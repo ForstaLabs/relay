@@ -5,7 +5,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'com.android.tools.build:gradle:2.1.3'
         classpath files('libs/gradle-witness.jar')
     }
 }
@@ -174,7 +174,7 @@ android {
         buildConfigField "String", "REDPHONE_MASTER_URL", "\"https://redphone-master.whispersystems.org\""
         buildConfigField "String", "REDPHONE_RELAY_HOST", "\"relay.whispersystems.org\""
         buildConfigField "String", "REDPHONE_PREFIX_NAME", "\".whispersystems.org\""
-        buildConfigField "boolean", "DEV_BUILD", "false"
+        buildConfigField "boolean", "DEV_BUILD", "true"
     }
 
     compileOptions {
