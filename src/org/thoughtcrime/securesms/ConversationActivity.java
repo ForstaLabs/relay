@@ -60,8 +60,6 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
-import org.thoughtcrime.redphone.RedPhone;
-import org.thoughtcrime.redphone.RedPhoneService;
 import org.thoughtcrime.securesms.TransportOptions.OnTransportChangedListener;
 import org.thoughtcrime.securesms.audio.AudioRecorder;
 import org.thoughtcrime.securesms.audio.AudioSlidePlayer;
@@ -449,8 +447,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     super.onOptionsItemSelected(item);
     switch (item.getItemId()) {
-    case R.id.menu_call_secure:
-    case R.id.menu_call_insecure:             handleDial(getRecipients().getPrimaryRecipient()); return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
     case R.id.menu_add_to_contacts:           handleAddToContacts();                             return true;
@@ -704,32 +700,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           return null;
         }
       }.execute();
-    }
-  }
-
-  private void handleDial(final Recipient recipient) {
-    if (recipient == null) return;
-
-    if (isSecureVoice) {
-      Intent intent = new Intent(this, RedPhoneService.class);
-      intent.setAction(RedPhoneService.ACTION_OUTGOING_CALL);
-      intent.putExtra(RedPhoneService.EXTRA_REMOTE_NUMBER, recipient.getNumber());
-      startService(intent);
-
-      Intent activityIntent = new Intent(this, RedPhone.class);
-      activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      startActivity(activityIntent);
-    } else {
-      try {
-        Intent dialIntent = new Intent(Intent.ACTION_DIAL,
-                                       Uri.parse("tel:" + recipient.getNumber()));
-        startActivity(dialIntent);
-      } catch (ActivityNotFoundException anfe) {
-        Log.w(TAG, anfe);
-        Dialogs.showAlertDialog(this,
-                                getString(R.string.ConversationActivity_calls_not_supported),
-                                getString(R.string.ConversationActivity_this_device_does_not_appear_to_support_dial_actions));
-      }
     }
   }
 

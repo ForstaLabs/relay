@@ -67,7 +67,6 @@ public class DatabaseUpgradeActivity extends BaseActivity {
   public static final int MIGRATE_SESSION_PLAINTEXT            = 136;
   public static final int CONTACTS_ACCOUNT_VERSION             = 136;
   public static final int MEDIA_DOWNLOAD_CONTROLS_VERSION      = 151;
-  public static final int REDPHONE_SUPPORT_VERSION             = 157;
 
   private static final SortedSet<Integer> UPGRADE_VERSIONS = new TreeSet<Integer>() {{
     add(NO_MORE_KEY_EXCHANGE_PREFIX_VERSION);
@@ -80,7 +79,6 @@ public class DatabaseUpgradeActivity extends BaseActivity {
     add(PUSH_DECRYPT_SERIAL_ID_VERSION);
     add(MIGRATE_SESSION_PLAINTEXT);
     add(MEDIA_DOWNLOAD_CONTROLS_VERSION);
-    add(REDPHONE_SUPPORT_VERSION);
   }};
 
   private MasterSecret masterSecret;
@@ -220,15 +218,6 @@ public class DatabaseUpgradeActivity extends BaseActivity {
 
       if (params[0] < MEDIA_DOWNLOAD_CONTROLS_VERSION) {
         schedulePendingIncomingParts(context);
-      }
-
-      if (params[0] < REDPHONE_SUPPORT_VERSION) {
-        ApplicationContext.getInstance(getApplicationContext())
-                          .getJobManager()
-                          .add(new RefreshAttributesJob(getApplicationContext()));
-        ApplicationContext.getInstance(getApplicationContext())
-                          .getJobManager()
-                          .add(new DirectoryRefreshJob(getApplicationContext()));
       }
 
       return null;

@@ -12,9 +12,6 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-import org.thoughtcrime.redphone.signaling.RedPhoneAccountAttributes;
-import org.thoughtcrime.redphone.signaling.RedPhoneAccountManager;
-import org.thoughtcrime.redphone.signaling.RedPhoneTrustStore;
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.crypto.IdentityKeyUtil;
@@ -253,12 +250,8 @@ public class RegistrationService extends Service {
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());
     DirectoryHelper.refreshDirectory(this, accountManager, number);
 
-    RedPhoneAccountManager redPhoneAccountManager = new RedPhoneAccountManager(BuildConfig.REDPHONE_MASTER_URL,
-                                                                               new RedPhoneTrustStore(this),
-                                                                               number, password);
-
+    /* XXX: Need to call? */
     String verificationToken = accountManager.getAccountVerificationToken();
-    redPhoneAccountManager.createAccount(verificationToken, new RedPhoneAccountAttributes(signalingKey, gcmRegistrationId));
 
     DirectoryRefreshListener.schedule(this);
   }

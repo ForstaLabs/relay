@@ -70,21 +70,6 @@
     <!-- Set image as wallpaper -->
     <uses-permission android:name="android.permission.SET_WALLPAPER"/>
 
-    <!-- Permissions from RedPhone -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
-    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.CALL_PRIVILEGED" />
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-    <uses-permission android:name="android.permission.RAISED_THREAD_PRIORITY" />
-    <uses-permission android:name="android.permission.READ_CALL_STATE"/>
-    <uses-permission android:name="android.permission.READ_LOGS"/>
-    <uses-permission android:name="android.permission.WRITE_CALL_LOG"/>
-
     <permission android:name="org.thoughtcrime.securesms.permission.C2D_MESSAGE"
                 android:protectionLevel="signature" />
     <uses-permission android:name="org.thoughtcrime.securesms.permission.C2D_MESSAGE" />
@@ -106,13 +91,6 @@
 
     <meta-data android:name="org.thoughtcrime.securesms.mms.TextSecureGlideModule"
                android:value="GlideModule" />
-
-    <activity android:name="org.thoughtcrime.redphone.RedPhone"
-              android:excludeFromRecents="true"
-              android:screenOrientation="portrait"
-              android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|fontScale"
-              android:launchMode="singleTask">
-    </activity>
 
     <activity android:name=".CountrySelectionActivity"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
@@ -339,20 +317,6 @@
         </intent-filter>
     </activity>
 
-    <activity android:name="org.thoughtcrime.redphone.RedPhoneShare"
-              android:excludeFromRecents="true"
-              android:theme="@style/NoAnimation.Theme.BlackScreen"
-              android:launchMode="singleTask"
-              android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
-
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <data android:mimeType="vnd.android.cursor.item/vnd.org.thoughtcrime.securesms.call" />
-        </intent-filter>
-
-    </activity>
-
     <activity android:name=".RecipientPreferenceActivity"
               android:theme="@style/TextSecure.LightNoActionBar"
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
@@ -362,8 +326,6 @@
               android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
 
     <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
-
-    <service android:enabled="true" android:name="org.thoughtcrime.redphone.RedPhoneService"/>
 
     <service android:enabled="true" android:name=".service.ApplicationMigrationService"/>
     <service android:enabled="true" android:name=".service.KeyCachingService"/>
