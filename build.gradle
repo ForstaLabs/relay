@@ -163,9 +163,9 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        applicationId "io.forsta.relay"
+        applicationId "io.forsta.relay.v2"
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
-        buildConfigField "String", "TEXTSECURE_URL", "\"http://home.justin.cloud:8180\""
+        buildConfigField "String", "TEXTSECURE_URL", "\"http://forsta-relay-1307716308.us-west-2.elb.amazonaws.com\""
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "boolean", "DEV_BUILD", "true"
     }
