@@ -14,8 +14,8 @@
               android:textSize="@dimen/onboarding_title_size"
               android:textIsSelectable="false"
               android:gravity="center_horizontal|bottom"
-              android:paddingLeft="20dp"
-              android:paddingRight="20dp"
+              android:paddingLeft="10dp"
+              android:paddingRight="10dp"
               android:fontFamily="sans-serif-light"
               tools:text="@string/ExperienceUpgradeActivity_welcome_to_signal_dgaf"
               android:textColor="@android:color/white" />
