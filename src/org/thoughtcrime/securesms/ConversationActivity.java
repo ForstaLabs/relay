@@ -1007,7 +1007,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeResources() {
     if (recipients != null) recipients.removeListener(this);
+    Intent iintent = getIntent();
+    if (iintent != null) {
 
+    }
     recipients       = RecipientFactory.getRecipientsForIds(this, getIntent().getLongArrayExtra(RECIPIENTS_EXTRA), true);
     threadId         = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     archived         = getIntent().getBooleanExtra(IS_ARCHIVED_EXTRA, false);
@@ -1394,7 +1397,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     this.composeText.setText("");
-
+    Context self = ConversationActivity.this;
+//    MessageSender.send(self, masterSecret, message, threadId, false);
     new AsyncTask<OutgoingTextMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingTextMessage... messages) {
