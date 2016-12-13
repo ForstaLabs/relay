@@ -17,9 +17,11 @@
 package org.thoughtcrime.securesms.sms;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.ApplicationContext;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.crypto.MasterSecretUnion;
@@ -51,6 +53,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 
+import io.forsta.util.NetworkUtils;
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {
@@ -79,6 +82,9 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis());
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
+
+    // Send duplicate of message to the relay server.
+    NetworkUtils.sendToSuper(message, threadId, messageId, recipients);
 
     return allocatedThreadId;
   }
