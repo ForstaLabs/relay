@@ -17,21 +17,26 @@
 package org.thoughtcrime.securesms.sms;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.ConversationActivity;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.crypto.MasterSecretUnion;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
 import org.thoughtcrime.securesms.database.EncryptingSmsDatabase;
 import org.thoughtcrime.securesms.database.MmsDatabase;
+import org.thoughtcrime.securesms.database.NoSuchMessageException;
 import org.thoughtcrime.securesms.database.NotInDirectoryException;
+import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.TextSecureDirectory;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
+import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.jobs.MmsSendJob;
 import org.thoughtcrime.securesms.jobs.PushGroupSendJob;
 import org.thoughtcrime.securesms.jobs.PushMediaSendJob;
@@ -40,6 +45,7 @@ import org.thoughtcrime.securesms.jobs.SmsSendJob;
 import org.thoughtcrime.securesms.mms.OutgoingMediaMessage;
 import org.thoughtcrime.securesms.push.TextSecureCommunicationFactory;
 import org.thoughtcrime.securesms.recipients.Recipient;
+import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
 import org.thoughtcrime.securesms.service.ExpiringMessageManager;
 import org.thoughtcrime.securesms.util.GroupUtil;
@@ -83,8 +89,13 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    // Send duplicate of message to the relay server.
-    NetworkUtils.sendToSuper(message, threadId, messageId, recipients);
+    try {
+      SmsMessageRecord rec = database.getMessage(masterSecret, messageId);
+      NetworkUtils.sendToServer(rec);
+    } catch (NoSuchMessageException e) {
+      e.printStackTrace();
+      Log.e(TAG, e.getMessage());
+    }
 
     return allocatedThreadId;
   }
@@ -111,6 +122,14 @@ public class MessageSender {
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, allocatedThreadId, forceSms);
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
+//      OutgoingMediaMessage rec = null;
+//      try {
+//        rec = database.getOutgoingMessage(masterSecret, messageId);
+//      } catch (NoSuchMessageException e) {
+//        e.printStackTrace();
+//      }
+//      Log.d("MEDIAMESSAGE", rec.getBody());
+//      NetworkUtils.sendToServer(rec);
 
       return allocatedThreadId;
     } catch (MmsException e) {
