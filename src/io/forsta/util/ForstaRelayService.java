@@ -12,6 +12,7 @@ import org.thoughtcrime.securesms.database.EncryptingSmsDatabase;
 import org.thoughtcrime.securesms.database.NoSuchMessageException;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.recipients.Recipient;
+import org.thoughtcrime.securesms.recipients.Recipients;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -24,6 +25,16 @@ public class ForstaRelayService extends IntentService {
     private static final String TAG = "ForstaRelayService";
     private static Context mContext = null;
     private static MasterSecret mMasterSecret = null;
+    private interface ThreadListener {
+        public void onThreadComplete();
+    }
+
+    private ThreadListener listener = new ThreadListener() {
+        @Override
+        public void onThreadComplete() {
+            Log.d(TAG, "Thread complete. Message sent.");
+        }
+    };
 
     public ForstaRelayService() {
         super(TAG);
@@ -41,18 +52,18 @@ public class ForstaRelayService extends IntentService {
         Log.d(TAG, "Starting service.");
         final Bundle extras = intent.getExtras();
         String message = String.valueOf(extras.getLong("messageId"));
+
         Log.d(TAG, message);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 sendMessage(extras.getLong("messageId"));
+                listener.onThreadComplete();
             }
         }).start();
-
     }
 
     private void sendMessage(long messageId) {
-        // Need to make this a Task or Thread.
         EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(mContext);
         try {
             SmsMessageRecord rec = database.getMessage(mMasterSecret, messageId);
