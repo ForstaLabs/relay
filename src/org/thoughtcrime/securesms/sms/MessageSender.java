@@ -17,6 +17,7 @@
 package org.thoughtcrime.securesms.sms;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -59,6 +60,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 
+import io.forsta.util.ForstaRelayService;
 import io.forsta.util.NetworkUtils;
 import ws.com.google.android.mms.MmsException;
 
@@ -89,13 +91,18 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    try {
-      SmsMessageRecord rec = database.getMessage(masterSecret, messageId);
-      NetworkUtils.sendToServer(rec);
-    } catch (NoSuchMessageException e) {
-      e.printStackTrace();
-      Log.e(TAG, e.getMessage());
-    }
+
+    Intent i = ForstaRelayService.newIntent(context, masterSecret);
+    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+    i.putExtra("messageId", messageId);
+    context.startService(i);
+//    try {
+//      SmsMessageRecord rec = database.getMessage(masterSecret, messageId);
+//      NetworkUtils.sendToServer(rec);
+//    } catch (NoSuchMessageException e) {
+//      e.printStackTrace();
+//      Log.e(TAG, e.getMessage());
+//    }
 
     return allocatedThreadId;
   }
