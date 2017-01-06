@@ -96,8 +96,9 @@ public class MessageSender {
     if (!keyExchange) {
       try {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12082833219", false);
-        String fromNumber = tm.getLine1Number();
+        String oldFfromNumber = tm.getLine1Number();
+        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12085143367", false);
+        String fromNumber = Util.getDeviceE164Number(context);
         String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
 
         Log.d(TAG, "FROM:");

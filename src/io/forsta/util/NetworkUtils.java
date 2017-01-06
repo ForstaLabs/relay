@@ -40,6 +40,52 @@ public class NetworkUtils {
 //    private static final String API_KEY = "Token 28c545ff7a9fc96a3ab9ad679fc506fadd393bcd";
     private static final String API_KEY = "Token 6dd6bb83729ff8a36e61200cef8281e5c1906b3e";
     private static final String API_URL = "https://ccsm-dev-api.forsta.io/v1/message/";
+    private static final String API_URL_LOCAL = "http://192.168.1.29:8000/api-auth";
+
+    public static JSONObject ccsmLogin(String username, String password) {
+        HttpURLConnection conn = null;
+        JSONObject result = new JSONObject(); //Or null?
+        try {
+            URL url = new URL(API_URL_LOCAL);
+
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+//            conn.setRequestProperty("Authorization", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+
+            JSONObject obj = new JSONObject();
+            obj.put("username", username);
+            obj.put("password", password);
+            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+            out.writeBytes(obj.toString());
+            out.close();
+            String strResult = readResult(conn.getInputStream());
+            result = new JSONObject(strResult);
+            Log.d(DEBUG_TAG, result.toString());
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Log.e(DEBUG_TAG, "Bad URL.");
+        } catch (ConnectException e) {
+            Log.e(DEBUG_TAG, "Connect Exception.");
+            Log.d(DEBUG_TAG, e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(DEBUG_TAG, "IO Exception.");
+            Log.d(DEBUG_TAG, e.getMessage());
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.d(DEBUG_TAG, "JSON Exception.");
+        } finally {
+            if (conn != null)
+                conn.disconnect();
+        }
+        return result;
+    }
 
     public static JSONObject sendToServer(SmsMessageRecord message) {
         JSONObject result = null;

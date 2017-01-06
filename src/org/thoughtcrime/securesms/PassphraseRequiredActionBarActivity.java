@@ -21,6 +21,9 @@ import org.thoughtcrime.securesms.util.TextSecurePreferences;
 
 import java.util.Locale;
 
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.LoginActivity;
+
 public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarActivity implements MasterSecretListener {
   private static final String TAG = PassphraseRequiredActionBarActivity.class.getSimpleName();
 
@@ -32,6 +35,8 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   private static final int STATE_UPGRADE_DATABASE         = 3;
   private static final int STATE_PROMPT_PUSH_REGISTRATION = 4;
   private static final int STATE_EXPERIENCE_UPGRADE       = 5;
+  // Forsta login
+  private static final int STATE_FORSTA_LOGIN             = 6;
 
   private BroadcastReceiver clearKeyReceiver;
   private boolean           isVisible;
@@ -137,6 +142,7 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     case STATE_UPGRADE_DATABASE:         return getUpgradeDatabaseIntent(masterSecret);
     case STATE_PROMPT_PUSH_REGISTRATION: return getPushRegistrationIntent(masterSecret);
     case STATE_EXPERIENCE_UPGRADE:       return getExperienceUpgradeIntent();
+      case STATE_FORSTA_LOGIN:           return getForstaLogin();
     default:                             return null;
     }
   }
@@ -150,11 +156,18 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
       return STATE_PROMPT_PASSPHRASE;
     } else if (DatabaseUpgradeActivity.isUpdate(this)) {
       return STATE_UPGRADE_DATABASE;
+    } else if (!ForstaPreferences.isRegisteredForsta(this)) {
+      return STATE_FORSTA_LOGIN;
     } else if (!TextSecurePreferences.hasPromptedPushRegistration(this)) {
       return STATE_PROMPT_PUSH_REGISTRATION;
     } else {
       return STATE_NORMAL;
     }
+  }
+
+  private Intent getForstaLogin() {
+    // Start the login intent, then return to the caller.
+    return getRoutedIntent(LoginActivity.class, getIntent(), null);
   }
 
   private Intent getCreatePassphraseIntent() {
