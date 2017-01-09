@@ -45,6 +45,8 @@ import org.thoughtcrime.securesms.util.DynamicLanguage;
 import org.thoughtcrime.securesms.util.DynamicTheme;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 
+import io.forsta.ccsm.DashboardActivity;
+
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener
 {
@@ -156,6 +158,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     case R.id.menu_import_export:     handleImportExport();    return true;
     case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
+      case R.id.menu_dashboard:       handleDashboard();        return true;
     }
 
     return false;
@@ -181,6 +184,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void createGroup() {
     Intent intent = new Intent(this, GroupCreateActivity.class);
     startActivity(intent);
+  }
+
+  private void handleDashboard() {
+    Intent dashIntent = new Intent(this, DashboardActivity.class);
+    startActivity(dashIntent);
   }
 
   private void handleDisplaySettings() {

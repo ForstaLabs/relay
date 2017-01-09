@@ -2,20 +2,38 @@ package io.forsta.ccsm;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BaseActionBarActivity;
+import org.thoughtcrime.securesms.ContactSelectionListFragment;
 import org.thoughtcrime.securesms.ConversationListActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.RegistrationActivity;
+import org.thoughtcrime.securesms.contacts.ContactSelectionListAdapter;
+import org.thoughtcrime.securesms.contacts.ContactsDatabase;
+import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.IdentityDatabase;
+import org.thoughtcrime.securesms.database.RecipientPreferenceDatabase;
+import org.thoughtcrime.securesms.database.TextSecureDirectory;
+import org.thoughtcrime.securesms.recipients.Recipient;
+import org.thoughtcrime.securesms.recipients.RecipientFactory;
+import org.thoughtcrime.securesms.recipients.Recipients;
+import org.thoughtcrime.securesms.util.DirectoryHelper;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
+
+import java.util.List;
 
 import io.forsta.util.NetworkUtils;
 
@@ -40,7 +58,9 @@ public class LoginActivity extends BaseActionBarActivity {
         mCancelButton = (Button) findViewById(R.id.forsta_cancel_login);
         mSubmitButton = (Button) findViewById(R.id.forsta_submit_login);
         mLoginEmailText = (TextView) findViewById(R.id.forsta_login_email);
+        mLoginEmailText.setText("jlewis@forsta.io");
         mLoginPasswordText = (TextView) findViewById(R.id.forsta_login_password);
+        mLoginPasswordText.setText("Jdlewy33!");
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,22 +71,20 @@ public class LoginActivity extends BaseActionBarActivity {
         mSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Contact CCSM server and attempt login at ccsm-api/api-auth
-                // Response should contain the api key
-//                TextSecurePreferences.setPromptedPushRegistration(RegistrationActivity.this, true);
-//                Intent nextIntent = getIntent().getParcelableExtra("next_intent");
 
-//                if (nextIntent == null) {
-//                    nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
-//                }
-                CCSMLogin task = new CCSMLogin();
-                task.execute("jlewis@forsta.io", "Jdlewy33!");
+                if (mLoginEmailText.length() < 5 || mLoginPasswordText.length() < 8) {
+                    // Return some kind of error to the page.
+                } else {
+                    CCSMLogin task = new CCSMLogin();
+                    task.execute(mLoginEmailText.getText().toString(), mLoginPasswordText.getText().toString());
+                }
 
 //                Intent nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
 //                startActivity(nextIntent);
 //                finish();
             }
         });
+
     }
 
     private class CCSMLogin extends AsyncTask<String, Void, JSONObject> {
@@ -82,7 +100,14 @@ public class LoginActivity extends BaseActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
-
+            if (jsonObject.has("token")) {
+                try {
+                    String token = jsonObject.getString("token");
+                    ForstaPreferences.setRegisteredForsta(LoginActivity.this, token);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

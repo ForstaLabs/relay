@@ -60,8 +60,6 @@
             android:layout_weight="1"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
-
 </LinearLayout>
-
 
 </RelativeLayout>

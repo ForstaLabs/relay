@@ -37,10 +37,10 @@ import java.util.List;
 
 public class NetworkUtils {
     private static final String DEBUG_TAG = "FORSTA-RELAY";
-//    private static final String API_KEY = "Token 28c545ff7a9fc96a3ab9ad679fc506fadd393bcd";
+    private static final String API_KEY_LOCAL = "Token 28c545ff7a9fc96a3ab9ad679fc506fadd393bcd";
     private static final String API_KEY = "Token 6dd6bb83729ff8a36e61200cef8281e5c1906b3e";
     private static final String API_URL = "https://ccsm-dev-api.forsta.io/v1/message/";
-    private static final String API_URL_LOCAL = "http://192.168.1.29:8000/api-auth";
+    private static final String API_URL_LOCAL = "http://192.168.1.29:8000/api-token-auth/";
 
     public static JSONObject ccsmLogin(String username, String password) {
         HttpURLConnection conn = null;
@@ -51,7 +51,6 @@ public class NetworkUtils {
             conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
-//            conn.setRequestProperty("Authorization", API_KEY);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
 
