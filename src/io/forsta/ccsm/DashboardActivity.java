@@ -23,10 +23,8 @@ import java.util.List;
 
 public class DashboardActivity extends BaseActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
-    private TextView mContactDebug;
-    private TextView mIdentityDebug;
+    private TextView mContactsDebug;
     private TextView mDirectoryDebug;
-    private TextView mContactListDebug;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,36 +34,17 @@ public class DashboardActivity extends BaseActionBarActivity {
     }
 
     private void initView() {
-        mContactDebug = (TextView) findViewById(R.id.contact_debug);
-        mIdentityDebug = (TextView) findViewById(R.id.identity_debug);
+        mContactsDebug = (TextView) findViewById(R.id.contacts_debug);
         mDirectoryDebug = (TextView) findViewById(R.id.directory_debug);
-        mContactListDebug = (TextView) findViewById(R.id.contact_list_debug);
-        TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
-        ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
+
         RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
-        IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(this);
 
-        Cursor cdb = idb.getIdentities();
-
-        StringBuilder sbout = new StringBuilder();
-        while (cdb.moveToNext()) {
-            String[] cols = cdb.getColumnNames();
-            for (int i=0;i < cdb.getColumnCount(); i++) {
-                sbout.append(cdb.getColumnName(i)).append(": ");
-                try {
-                    sbout.append(cdb.getString(i)).append(" ");
-                } catch(Exception e) {
-                    sbout.append(" bad value");
-                }
-            }
-            sbout.append("\n");
-        }
-
-        mIdentityDebug.setText(sbout.toString());
+        ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
 //        Cursor c = db.querySystemContacts(null);
         Cursor c = db.queryTextSecureContacts(null);
 
         StringBuilder sb = new StringBuilder();
+        sb.append("TextSecureContacts\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -78,15 +57,15 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append("\n");
             }
         }
-        mContactListDebug.setText(sb.toString());
 
+        TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
         List<String> numbers = dir.getAllNumbers();
-        StringBuilder out = new StringBuilder();
+        sb.append("\nTextSecureDirectory\n");
         for (String num : numbers) {
-            out.append(num).append("\n");
+            sb.append(num).append("\n");
         }
 
-        mDirectoryDebug.setText(out.toString());
+        mDirectoryDebug.setText(sb.toString());
         RecipientsList task = new RecipientsList();
         task.execute();
 
@@ -111,7 +90,24 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append(" Name: ").append(item.getName());
                 sb.append("\n");
             }
-            mContactDebug.setText(sb.toString());
+
+            IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(DashboardActivity.this);
+            Cursor cdb = idb.getIdentities();
+
+            sb.append("\nIdentities\n");
+            while (cdb.moveToNext()) {
+                String[] cols = cdb.getColumnNames();
+                for (int i=0;i < cdb.getColumnCount(); i++) {
+                    sb.append(cdb.getColumnName(i)).append(": ");
+                    try {
+                        sb.append(cdb.getString(i)).append(" ");
+                    } catch(Exception e) {
+                        sb.append(" bad value");
+                    }
+                }
+                sb.append("\n");
+            }
+            mContactsDebug.setText(sb.toString());
         }
     }
 }

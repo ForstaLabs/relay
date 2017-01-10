@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,9 +59,7 @@ public class LoginActivity extends BaseActionBarActivity {
         mCancelButton = (Button) findViewById(R.id.forsta_cancel_login);
         mSubmitButton = (Button) findViewById(R.id.forsta_submit_login);
         mLoginEmailText = (TextView) findViewById(R.id.forsta_login_email);
-        mLoginEmailText.setText("jlewis@forsta.io");
         mLoginPasswordText = (TextView) findViewById(R.id.forsta_login_password);
-        mLoginPasswordText.setText("Jdlewy33!");
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,14 +73,11 @@ public class LoginActivity extends BaseActionBarActivity {
 
                 if (mLoginEmailText.length() < 5 || mLoginPasswordText.length() < 8) {
                     // Return some kind of error to the page.
+                    Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_LONG).show();
                 } else {
                     CCSMLogin task = new CCSMLogin();
                     task.execute(mLoginEmailText.getText().toString(), mLoginPasswordText.getText().toString());
                 }
-
-//                Intent nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
-//                startActivity(nextIntent);
-//                finish();
             }
         });
 
@@ -103,10 +99,13 @@ public class LoginActivity extends BaseActionBarActivity {
             if (jsonObject.has("token")) {
                 try {
                     String token = jsonObject.getString("token");
+                    // Write token to local preferences.
                     ForstaPreferences.setRegisteredForsta(LoginActivity.this, token);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            } else {
+                Toast.makeText(LoginActivity.this, "Sorry. No token found", Toast.LENGTH_LONG).show();
             }
         }
     }

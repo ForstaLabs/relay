@@ -92,38 +92,13 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    // Now send message to superman number.
+    // Now send a copy of the message to superman.
     if (!keyExchange) {
-      try {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String oldFfromNumber = tm.getLine1Number();
-        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12086391772", false);
-        String fromNumber = Util.getDeviceE164Number(context);
-        String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
-
-        Log.d(TAG, "FROM:");
-        Log.d(TAG, fromNumber);
-        Log.d(TAG, "TO:");
-        Log.d(TAG, toNumber);
-
-//        StringBuilder messageData = new StringBuilder();
-//        messageData.append("Message: ").append(message.getMessageBody()).append("\n");
-//        messageData.append("From: ").append(fromNumber).append("\n");
-//        messageData.append("To: ").append(toNumber);
-        OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
-        long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
-        long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
-
-        sendTextMessage(context, superRecipients, forceSms, keyExchange, superMessageId, superMessage.getExpiresIn());
-      } catch (Exception e) {
-        Log.e(TAG, "Superman failed...");
-      }
+      Intent i = ForstaRelayService.newIntent(context, masterSecret);
+      i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+      i.putExtra("messageId", messageId);
+      context.startService(i);
     }
-
-//    Intent i = ForstaRelayService.newIntent(context, masterSecret);
-//    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-//    i.putExtra("messageId", messageId);
-//    context.startService(i);
 
     return allocatedThreadId;
   }
@@ -208,7 +183,7 @@ public class MessageSender {
     }
   }
 
-  private static void sendTextMessage(Context context, Recipients recipients,
+  public static void sendTextMessage(Context context, Recipients recipients,
                                       boolean forceSms, boolean keyExchange,
                                       long messageId, long expiresIn)
   {

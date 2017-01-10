@@ -9,42 +9,30 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="io.forsta.ccsm.DashboardActivity">
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="Contacts" />
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="100dp">
+        android:layout_height="200dp" android:background="@color/blue_50">
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:text="Data"
-            android:id="@+id/contact_debug"/>
+            android:id="@+id/contacts_debug"/>
     </ScrollView>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="Directory" />
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="100dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Data"
-            android:id="@+id/identity_debug"/>
-    </ScrollView>
-
-    <ScrollView
+        android:layout_height="300dp">
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="150dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Data"
-            android:id="@+id/directory_debug"/>
+        android:layout_height="wrap_content" android:text="Data"
+        android:id="@+id/directory_debug"/>
     </ScrollView>
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="150dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Data"
-            android:id="@+id/contact_list_debug"/>
-    </ScrollView>
-</LinearLayout>
-
+    </LinearLayout>
 </RelativeLayout>
