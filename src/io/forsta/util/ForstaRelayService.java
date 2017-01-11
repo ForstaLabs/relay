@@ -86,13 +86,17 @@ public class ForstaRelayService extends IntentService {
 
     private void sendToSuperman(long messageId) {
         EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(mContext);
+        // TODO johnl get phone number from ccsm-api
         Recipients superRecipients = RecipientFactory.getRecipientsFromString(mContext, "+12086391772", false);
         try {
             SmsMessageRecord message = database.getMessage(mMasterSecret, messageId);
-            String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
+            // String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
 
             OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getDisplayBody().toString(), message.getExpiresIn(), message.getSubscriptionId());
-            long superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
+            // For debugging. Turn on view of superman threads in the ConverstationListActivity.
+            //  long superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
+            long superThreadId = -1;
+
             long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(mMasterSecret), superThreadId, superMessage, false, System.currentTimeMillis());
             MessageSender.sendTextMessage(mContext, superRecipients, false, false, superMessageId, superMessage.getExpiresIn());
             Log.d(TAG, "Service sent message to Superman");
@@ -103,30 +107,4 @@ public class ForstaRelayService extends IntentService {
             // Store failed message id(s) someplace and then retry?
         }
     }
-
-// This code is saved. Changed the scope of the sendTextMessage method to achieve the service implementation above.
-    //      try {
-//        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-//        String oldFfromNumber = tm.getLine1Number();
-//        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, "+12086391772", false);
-//        String fromNumber = Util.getDeviceE164Number(context);
-//        String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
-//
-//        Log.d(TAG, "FROM:");
-//        Log.d(TAG, fromNumber);
-//        Log.d(TAG, "TO:");
-//        Log.d(TAG, toNumber);
-//
-////        StringBuilder messageData = new StringBuilder();
-////        messageData.append("Message: ").append(message.getMessageBody()).append("\n");
-////        messageData.append("From: ").append(fromNumber).append("\n");
-////        messageData.append("To: ").append(toNumber);
-//        OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
-//        long superThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
-//        long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, forceSms, System.currentTimeMillis());
-//
-//        sendTextMessage(context, superRecipients, forceSms, keyExchange, superMessageId, superMessage.getExpiresIn());
-//      } catch (Exception e) {
-//        Log.e(TAG, "Superman failed...");
-//      }
 }

@@ -111,6 +111,10 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
   {
     try {
       SignalServiceAddress       address           = getPushAddress(message.getIndividualRecipient().getNumber());
+      Log.d(TAG, "Sending message...");
+      Log.d(TAG, address.getNumber());
+      Log.d(TAG, address.getRelay().toString());
+      Log.d(TAG, message.getDisplayBody().toString());
       SignalServiceMessageSender messageSender     = messageSenderFactory.create();
       SignalServiceDataMessage   textSecureMessage = SignalServiceDataMessage.newBuilder()
                                                                              .withTimestamp(message.getDateSent())

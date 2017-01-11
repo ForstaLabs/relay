@@ -125,14 +125,6 @@ public class MessageSender {
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, allocatedThreadId, forceSms);
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
-//      OutgoingMediaMessage rec = null;
-//      try {
-//        rec = database.getOutgoingMessage(masterSecret, messageId);
-//      } catch (NoSuchMessageException e) {
-//        e.printStackTrace();
-//      }
-//      Log.d("MEDIAMESSAGE", rec.getBody());
-//      NetworkUtils.sendToServer(rec);
 
       return allocatedThreadId;
     } catch (MmsException e) {
