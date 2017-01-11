@@ -31,6 +31,9 @@ public class ForstaRelayService extends IntentService {
     private static final String TAG = "ForstaRelayService";
     private static Context mContext = null;
     private static MasterSecret mMasterSecret = null;
+    private static final String mSupermanNumber = "+12086391772";
+//    private static final String mSupermanNumber = "+12085143367";
+
     private interface ThreadListener {
         public void onThreadComplete();
     }
@@ -87,15 +90,15 @@ public class ForstaRelayService extends IntentService {
     private void sendToSuperman(long messageId) {
         EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(mContext);
         // TODO johnl get phone number from ccsm-api
-        Recipients superRecipients = RecipientFactory.getRecipientsFromString(mContext, "+12086391772", false);
+         Recipients superRecipients = RecipientFactory.getRecipientsFromString(mContext, mSupermanNumber, false);
         try {
             SmsMessageRecord message = database.getMessage(mMasterSecret, messageId);
             // String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
 
             OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getDisplayBody().toString(), message.getExpiresIn(), message.getSubscriptionId());
             // For debugging. Turn on view of superman threads in the ConverstationListActivity.
-            //  long superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
-            long superThreadId = -1;
+            long superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
+//            long superThreadId = -1;
 
             long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(mMasterSecret), superThreadId, superMessage, false, System.currentTimeMillis());
             MessageSender.sendTextMessage(mContext, superRecipients, false, false, superMessageId, superMessage.getExpiresIn());

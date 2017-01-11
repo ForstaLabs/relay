@@ -101,6 +101,14 @@ public class LoginActivity extends BaseActionBarActivity {
                     String token = jsonObject.getString("token");
                     // Write token to local preferences.
                     ForstaPreferences.setRegisteredForsta(LoginActivity.this, token);
+                    Intent nextIntent = getIntent().getParcelableExtra("next_intent");
+
+                    if (nextIntent == null) {
+                        nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
+                    }
+
+                    startActivity(nextIntent);
+                    finish();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

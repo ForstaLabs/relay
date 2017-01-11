@@ -14,7 +14,7 @@
         android:layout_height="match_parent" android:orientation="vertical">
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="Contacts" />
+        android:layout_height="wrap_content" android:text="TextSecure Directory Contacts" />
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="200dp" android:background="@color/blue_50">
