@@ -12,27 +12,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent" android:orientation="vertical">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="TextSecure Directory Contacts" />
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="200dp" android:background="@color/blue_50">
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Data"
-            android:id="@+id/contacts_debug"/>
-    </ScrollView>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="Directory" />
+            android:layout_height="wrap_content" android:paddingBottom="5dp" android:orientation="horizontal">
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dashboard_selection">
+                <RadioButton android:id="@+id/debug_radio1" android:text="Test Api" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:id="@+id/debug_radio2" android:text="Active Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:id="@+id/debug_radio3" android:text="Identities" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:id="@+id/debug_radio4" android:text="TextSecure Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </RadioGroup>
+        </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="300dp">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="Data"
-        android:id="@+id/directory_debug"/>
+        android:layout_height="match_parent" android:background="@color/gray5">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/debug_text" />
     </ScrollView>
     </LinearLayout>
+
+
 </RelativeLayout>

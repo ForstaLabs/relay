@@ -5,8 +5,12 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.BaseActionBarActivity;
 import org.thoughtcrime.securesms.PassphraseRequiredActionBarActivity;
 import org.thoughtcrime.securesms.R;
@@ -21,10 +25,12 @@ import org.thoughtcrime.securesms.recipients.Recipients;
 
 import java.util.List;
 
+import io.forsta.util.NetworkUtils;
+
 public class DashboardActivity extends BaseActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
-    private TextView mContactsDebug;
-    private TextView mDirectoryDebug;
+    private TextView mDebugText;
+    private RadioGroup mDebugType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,17 +40,37 @@ public class DashboardActivity extends BaseActionBarActivity {
     }
 
     private void initView() {
-        mContactsDebug = (TextView) findViewById(R.id.contacts_debug);
-        mDirectoryDebug = (TextView) findViewById(R.id.directory_debug);
+        mDebugText = (TextView) findViewById(R.id.debug_text);
+        mDebugType = (RadioGroup) findViewById(R.id.dashboard_selection);
+        mDebugType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Log.d(TAG, "Item checked" + checkedId);
+                switch (checkedId) {
+                    case R.id.debug_radio1:
+                        ApiContacts api = new ApiContacts();
+                        api.execute();
+                        break;
+                    case R.id.debug_radio2:
+                        RecipientsList task = new RecipientsList();
+                        task.execute();
+                        break;
+                    case R.id.debug_radio3:
+                        mDebugText.setText(getIdentities());
+                        break;
+                    case R.id.debug_radio4:
+                        mDebugText.setText(getTextSecureContacts());
+                        break;
+                }
+            }
+        });
+    }
 
-        RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
-
+    private String getTextSecureContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
 //        Cursor c = db.querySystemContacts(null);
         Cursor c = db.queryTextSecureContacts(null);
-
         StringBuilder sb = new StringBuilder();
-        sb.append("TextSecureContacts\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -57,28 +83,72 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append("\n");
             }
         }
+        return sb.toString();
+    }
 
+    private void getRecipientPreferences() {
+        RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
+    }
+
+    private String getDirectoryAllNumbers() {
         TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
         List<String> numbers = dir.getAllNumbers();
+        StringBuilder sb = new StringBuilder();
         sb.append("\nTextSecureDirectory\n");
         for (String num : numbers) {
             sb.append(num).append("\n");
         }
+        // Compare to Contacts?
+        // Compare with Recipients?
+        return sb.toString();
+    }
 
-        mDirectoryDebug.setText(sb.toString());
-        RecipientsList task = new RecipientsList();
-        task.execute();
+    private Recipients getDirectoryActiveNumbers() {
+        TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
+        List<String> dirNumbers = dir.getActiveNumbers();
+        Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, dirNumbers, false);
+        return recipients;
+    }
 
+    private String getIdentities() {
+        IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(DashboardActivity.this);
+        Cursor cdb = idb.getIdentities();
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nIdentities\n");
+        while (cdb.moveToNext()) {
+            String[] cols = cdb.getColumnNames();
+            for (int i=0;i < cdb.getColumnCount(); i++) {
+                sb.append(cdb.getColumnName(i)).append(": ");
+                try {
+                    sb.append(cdb.getString(i)).append(" ");
+                } catch(Exception e) {
+                    sb.append(" bad value");
+                }
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private class ApiContacts extends AsyncTask<Void, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+            return NetworkUtils.getApiData(DashboardActivity.this);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            Log.d(TAG, "Response from API");
+            mDebugText.setText(jsonObject.toString());
+        }
     }
 
     private class RecipientsList extends AsyncTask<Void, Void, Recipients> {
 
         @Override
         protected Recipients doInBackground(Void... params) {
-            TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
-            List<String> dirNumbers = dir.getActiveNumbers();
-            Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, dirNumbers, false);
-            return recipients;
+            return getDirectoryActiveNumbers();
         }
 
         @Override
@@ -90,24 +160,7 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append(" Name: ").append(item.getName());
                 sb.append("\n");
             }
-
-            IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(DashboardActivity.this);
-            Cursor cdb = idb.getIdentities();
-
-            sb.append("\nIdentities\n");
-            while (cdb.moveToNext()) {
-                String[] cols = cdb.getColumnNames();
-                for (int i=0;i < cdb.getColumnCount(); i++) {
-                    sb.append(cdb.getColumnName(i)).append(": ");
-                    try {
-                        sb.append(cdb.getString(i)).append(" ");
-                    } catch(Exception e) {
-                        sb.append(" bad value");
-                    }
-                }
-                sb.append("\n");
-            }
-            mContactsDebug.setText(sb.toString());
+            mDebugText.setText(sb.toString());
         }
     }
 }

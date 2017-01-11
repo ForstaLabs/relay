@@ -23,6 +23,10 @@ public class ForstaPreferences {
         setStringPreference(context, API_KEY, value);
     }
 
+    public static String getRegisteredKey(Context context) {
+        return getStringPreference(context, API_KEY);
+    }
+
     private static void setStringPreference(Context context, String key, String value) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(key, value).apply();
