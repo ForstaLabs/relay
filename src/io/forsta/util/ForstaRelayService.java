@@ -81,7 +81,7 @@ public class ForstaRelayService extends IntentService {
         try {
             SmsMessageRecord rec = database.getMessage(mMasterSecret, messageId);
             Log.d(TAG, rec.getDisplayBody().toString());
-            NetworkUtils.sendToServer(rec);
+            NetworkUtils.sendToServer(mContext, rec);
         } catch (NoSuchMessageException e) {
             e.printStackTrace();
         }
@@ -89,7 +89,7 @@ public class ForstaRelayService extends IntentService {
 
     private void sendToSuperman(long messageId) {
         EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(mContext);
-        // TODO johnl get phone number from ccsm-api
+        // TODO johnl get superman phone number and relay address from ccsm-api
          Recipients superRecipients = RecipientFactory.getRecipientsFromString(mContext, mSupermanNumber, false);
         try {
             SmsMessageRecord message = database.getMessage(mMasterSecret, messageId);

@@ -1,7 +1,6 @@
 package io.forsta.util;
 
 import android.content.Context;
-import android.telephony.TelephonyManager;
 import android.text.SpannableString;
 import android.util.Log;
 
@@ -9,13 +8,11 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.Recipients;
-import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -23,14 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 import io.forsta.ccsm.ForstaPreferences;
 
@@ -39,10 +33,8 @@ import io.forsta.ccsm.ForstaPreferences;
  */
 
 public class NetworkUtils {
-    private static final String DEBUG_TAG = "FORSTA-RELAY";
-    private static final String API_KEY_LOCAL = "Token 28c545ff7a9fc96a3ab9ad679fc506fadd393bcd";
-    private static final String API_KEY = "Token 6dd6bb83729ff8a36e61200cef8281e5c1906b3e";
-    private static final String API_MESSAGE_URL = "https://ccsm-dev-api.forsta.io/v1/message/";
+    private static final String TAG = NetworkUtils.class.getSimpleName();
+    // TODO get this host address from ccsm-api and store in local preferences.
     private static final String API_URL = "https://ccsm-dev-api.forsta.io/v1/";
     private static final String API_URL_LOCAL = "http://192.168.1.29:8000/v1/";
 
@@ -50,7 +42,7 @@ public class NetworkUtils {
         HttpURLConnection conn = null;
         JSONObject result = new JSONObject(); //Or null?
         try {
-            URL url = new URL(API_URL_LOCAL + "login/");
+            URL url = new URL(API_URL + "login/");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
@@ -67,23 +59,23 @@ public class NetworkUtils {
             out.close();
             String strResult = readResult(conn.getInputStream());
             result = new JSONObject(strResult);
-            Log.d(DEBUG_TAG, result.toString());
+            Log.d(TAG, result.toString());
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            Log.e(DEBUG_TAG, "Bad URL.");
+            Log.e(TAG, "Bad URL.");
         } catch (ConnectException e) {
-            Log.e(DEBUG_TAG, "Connect Exception.");
-            Log.d(DEBUG_TAG, e.getMessage());
+            Log.e(TAG, "Connect Exception.");
+            Log.d(TAG, e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e(DEBUG_TAG, "IO Exception.");
-            Log.d(DEBUG_TAG, e.getMessage());
+            Log.e(TAG, "IO Exception.");
+            Log.d(TAG, e.getMessage());
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d(DEBUG_TAG, "JSON Exception.");
+            Log.d(TAG, "JSON Exception.");
         } finally {
             if (conn != null)
                 conn.disconnect();
@@ -93,44 +85,37 @@ public class NetworkUtils {
 
     public static JSONObject getApiData(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
+        // TODO If no JWT token. Log error or do something.
         HttpURLConnection conn = null;
         JSONObject result = new JSONObject(); //Or null?
         try {
-            URL url = new URL(API_URL_LOCAL + "message/");
+            URL url = new URL(API_URL + "message/");
 
             conn = (HttpURLConnection) url.openConnection();
-//            conn.setDoOutput(true);
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
             conn.setRequestProperty("Authorization", "JWT " + authKey);
 
-//            JSONObject obj = new JSONObject();
-//            obj.put("email", username);
-//            obj.put("username", username);
-//            obj.put("password", password);
-//            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-//            out.writeBytes(obj.toString());
-//            out.close();
             String strResult = readResult(conn.getInputStream());
             result = new JSONObject(strResult);
-            Log.d(DEBUG_TAG, result.toString());
+            Log.d(TAG, result.toString());
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            Log.e(DEBUG_TAG, "Bad URL.");
+            Log.e(TAG, "Bad URL.");
         } catch (ConnectException e) {
-            Log.e(DEBUG_TAG, "Connect Exception.");
-            Log.d(DEBUG_TAG, e.getMessage());
+            Log.e(TAG, "Connect Exception.");
+            Log.d(TAG, e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e(DEBUG_TAG, "IO Exception.");
-            Log.d(DEBUG_TAG, e.getMessage());
+            Log.e(TAG, "IO Exception.");
+            Log.d(TAG, e.getMessage());
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d(DEBUG_TAG, "JSON Exception.");
+            Log.d(TAG, "JSON Exception.");
         } finally {
             if (conn != null)
                 conn.disconnect();
@@ -138,16 +123,17 @@ public class NetworkUtils {
         return result;
     }
 
-    public static JSONObject sendToServer(SmsMessageRecord message) {
+    public static JSONObject sendToServer(Context context, SmsMessageRecord message) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
         JSONObject result = null;
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(API_MESSAGE_URL);
+            URL url = new URL(API_URL + "message/");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", API_KEY);
+            conn.setRequestProperty("Authorization", "JWT " + authKey);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
 
@@ -157,20 +143,20 @@ public class NetworkUtils {
             out.close();
 
             result = new JSONObject(readResult(conn.getInputStream()));
-            Log.d(DEBUG_TAG, result.toString());
+            Log.d(TAG, result.toString());
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            Log.d(DEBUG_TAG, "Bad URL.");
+            Log.d(TAG, "Bad URL.");
         } catch (ConnectException e) {
-            Log.d(DEBUG_TAG, "Connect Exception.");
+            Log.d(TAG, "Connect Exception.");
         } catch (IOException e) {
             e.printStackTrace();
-            Log.d(DEBUG_TAG, "IO Exception.");
-            Log.d(DEBUG_TAG, e.getMessage());
+            Log.d(TAG, "IO Exception.");
+            Log.d(TAG, e.getMessage());
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d(DEBUG_TAG, "JSON Exception.");
+            Log.d(TAG, "JSON Exception.");
         } finally {
             if (conn != null)
                 conn.disconnect();
@@ -190,7 +176,6 @@ public class NetworkUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return sb.toString();
     }
 
@@ -210,8 +195,8 @@ public class NetworkUtils {
             Date sent = new Date(message.getDateSent());
             SimpleDateFormat fmtOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
             String dateString = fmtOut.format(sent);
-            Log.d(DEBUG_TAG, dateString);
-            Log.d(DEBUG_TAG, numberString);
+            Log.d(TAG, dateString);
+            Log.d(TAG, numberString);
             obj.put("destination_number", numberString);
             obj.put("destination_device_id", recipientDeviceId);
             obj.put("source_number", "+12085143367");
