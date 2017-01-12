@@ -56,17 +56,20 @@ public class DashboardActivity extends BaseActionBarActivity {
                         task.execute();
                         break;
                     case R.id.debug_radio3:
-                        mDebugText.setText(getIdentities());
+                        mDebugText.setText(printDirectory(true));
                         break;
                     case R.id.debug_radio4:
-                        mDebugText.setText(getTextSecureContacts());
+                        mDebugText.setText(printDirectory(false));
+                        break;
+                    case R.id.debug_radio5:
+                        mDebugText.setText(printTextSecureContacts());
                         break;
                 }
             }
         });
     }
 
-    private String getTextSecureContacts() {
+    private String printTextSecureContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
 //        Cursor c = db.querySystemContacts(null);
         Cursor c = db.queryTextSecureContacts(null);
@@ -83,6 +86,7 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append("\n");
             }
         }
+        c.close();
         return sb.toString();
     }
 
@@ -90,9 +94,10 @@ public class DashboardActivity extends BaseActionBarActivity {
         RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
     }
 
-    private String getDirectoryAllNumbers() {
+    private String printDirectory(boolean active) {
         TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
-        List<String> numbers = dir.getAllNumbers();
+        List<String> numbers = active ? dir.getActiveNumbers() : dir.getAllNumbers();
+//        Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, numbers, false);
         StringBuilder sb = new StringBuilder();
         sb.append("\nTextSecureDirectory\n");
         for (String num : numbers) {
@@ -103,14 +108,17 @@ public class DashboardActivity extends BaseActionBarActivity {
         return sb.toString();
     }
 
-    private Recipients getDirectoryActiveNumbers() {
-        TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
-        List<String> dirNumbers = dir.getActiveNumbers();
+    private List<String> getDirectoryActiveNumbers() {
+        TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
+        return dir.getActiveNumbers();
+    }
+
+    private Recipients getDirectoryActiveRecipients(List<String> dirNumbers) {
         Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, dirNumbers, false);
         return recipients;
     }
 
-    private String getIdentities() {
+    private String printIdentities() {
         IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(DashboardActivity.this);
         Cursor cdb = idb.getIdentities();
         StringBuilder sb = new StringBuilder();
@@ -127,6 +135,7 @@ public class DashboardActivity extends BaseActionBarActivity {
             }
             sb.append("\n");
         }
+        cdb.close();
         return sb.toString();
     }
 
@@ -148,7 +157,8 @@ public class DashboardActivity extends BaseActionBarActivity {
 
         @Override
         protected Recipients doInBackground(Void... params) {
-            return getDirectoryActiveNumbers();
+            List<String> dirNumbers = getDirectoryActiveNumbers();
+            return getDirectoryActiveRecipients(dirNumbers);
         }
 
         @Override
@@ -160,6 +170,7 @@ public class DashboardActivity extends BaseActionBarActivity {
                 sb.append(" Name: ").append(item.getName());
                 sb.append("\n");
             }
+            sb.append(printIdentities());
             mDebugText.setText(sb.toString());
         }
     }
