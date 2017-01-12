@@ -20,6 +20,8 @@ import org.thoughtcrime.securesms.sms.MessageSender;
 import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.Util;
 
+import io.forsta.ccsm.ForstaPreferences;
+
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
@@ -97,8 +99,10 @@ public class ForstaRelayService extends IntentService {
 
             OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getDisplayBody().toString(), message.getExpiresIn(), message.getSubscriptionId());
             // For debugging. Turn on view of superman threads in the ConverstationListActivity.
-            long superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
-//            long superThreadId = -1;
+            long superThreadId = -1;
+            if (ForstaPreferences.isCCSMDebug(mContext)) {
+                superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
+            }
 
             long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(mMasterSecret), superThreadId, superMessage, false, System.currentTimeMillis());
             MessageSender.sendTextMessage(mContext, superRecipients, false, false, superMessageId, superMessage.getExpiresIn());

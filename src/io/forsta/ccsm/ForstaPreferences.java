@@ -9,7 +9,8 @@ import android.preference.PreferenceManager;
  */
 
 public class ForstaPreferences {
-    public  static final String API_KEY                    = "api_key";
+    private  static final String API_KEY                    = "api_key";
+    private  static final String CCSM_DEBUG                    = "ccsm_debug";
 
     public static boolean isRegisteredForsta(Context context) {
         String key = ForstaPreferences.getStringPreference(context, API_KEY);
@@ -27,6 +28,15 @@ public class ForstaPreferences {
         return getStringPreference(context, API_KEY);
     }
 
+    public static void setCCSMDebug(Context context, boolean value) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putBoolean(CCSM_DEBUG, value);
+    }
+
+    public static boolean isCCSMDebug(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(CCSM_DEBUG, false);
+    }
+
     private static void setStringPreference(Context context, String key, String value) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(key, value).apply();
@@ -35,4 +45,5 @@ public class ForstaPreferences {
     private static String getStringPreference(Context context, String key) {
         return PreferenceManager.getDefaultSharedPreferences(context).getString(key, "");
     }
+
 }

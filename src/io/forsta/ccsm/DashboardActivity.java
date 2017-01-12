@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BaseActionBarActivity;
@@ -22,7 +24,9 @@ import org.thoughtcrime.securesms.database.TextSecureDirectory;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
+import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.forsta.util.NetworkUtils;
@@ -31,6 +35,8 @@ public class DashboardActivity extends BaseActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
     private RadioGroup mDebugType;
+    private Button mLoginButton;
+    private ToggleButton mDebugToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,24 +62,68 @@ public class DashboardActivity extends BaseActionBarActivity {
                         task.execute();
                         break;
                     case R.id.debug_radio3:
-                        mDebugText.setText(printDirectory(true));
+                        mDebugText.setText(printDirectory());
                         break;
                     case R.id.debug_radio4:
-                        mDebugText.setText(printDirectory(false));
+                        mDebugText.setText(printDirectory());
                         break;
                     case R.id.debug_radio5:
                         mDebugText.setText(printTextSecureContacts());
                         break;
+                    case R.id.debug_radio6:
+                        mDebugText.setText(printSystemContacts());
+                        break;
                 }
+            }
+        });
+        mLoginButton = (Button) findViewById(R.id.dashboard_login_button);
+        mLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
+                Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
+                intent.putExtra("next_intent", nextIntent);
+                startActivity(intent);
+                finish();
+            }
+        });
+        mDebugToggle = (ToggleButton) findViewById(R.id.dashboard_toggle_debug);
+        mDebugToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ForstaPreferences.setCCSMDebug(DashboardActivity.this, mDebugToggle.isChecked());
             }
         });
     }
 
+    private String printSystemContacts() {
+        ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
+        Cursor c = db.querySystemContacts(null);
+        StringBuilder sb = new StringBuilder();
+        sb.append("System Contacts: ").append(c.getCount()).append("\n");
+        while (c.moveToNext()) {
+            String[] cols = c.getColumnNames();
+            for (int i=0;i < c.getColumnCount(); i++) {
+                sb.append(c.getColumnName(i)).append(": ");
+                try {
+                    sb.append(c.getString(i)).append(" ");
+                } catch (Exception e) {
+                    sb.append(c.getInt(i)).append(" ");
+                }
+                sb.append("\n");
+            }
+        }
+        c.close();
+
+        return sb.toString();
+    }
+
+
     private String printTextSecureContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-//        Cursor c = db.querySystemContacts(null);
         Cursor c = db.queryTextSecureContacts(null);
         StringBuilder sb = new StringBuilder();
+        sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -90,21 +140,31 @@ public class DashboardActivity extends BaseActionBarActivity {
         return sb.toString();
     }
 
-    private void getRecipientPreferences() {
+    private Optional<RecipientPreferenceDatabase.RecipientsPreferences> getRecipientPreferences(long[] ids) {
         RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
+        return rdb.getRecipientsPreferences(ids);
     }
 
-    private String printDirectory(boolean active) {
+    private String printDirectory() {
         TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
-        List<String> numbers = active ? dir.getActiveNumbers() : dir.getAllNumbers();
-//        Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, numbers, false);
+        Cursor cursor = dir.getAllNumbers();
         StringBuilder sb = new StringBuilder();
-        sb.append("\nTextSecureDirectory\n");
-        for (String num : numbers) {
-            sb.append(num).append("\n");
+        try {
+            while (cursor != null && cursor.moveToNext()) {
+                for (int i=0;i<cursor.getColumnCount();i++) {
+                    sb.append(cursor.getColumnName(i)).append(": ");
+                    try {
+                        sb.append(cursor.getString(i)).append(" ");
+                    } catch(Exception e) {
+                        sb.append("Bad value");
+                    }
+                }
+                sb.append("\n");
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
         }
-        // Compare to Contacts?
-        // Compare with Recipients?
         return sb.toString();
     }
 

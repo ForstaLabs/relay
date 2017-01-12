@@ -232,27 +232,8 @@ public class TextSecureDirectory {
     }
   }
 
-  public List<String> getAllNumbers() {
-    final List<String> results = new ArrayList<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
-    try {
-      while (cursor != null && cursor.moveToNext()) {
-        StringBuilder sb = new StringBuilder();
-        for (int i=0;i<cursor.getColumnCount();i++) {
-          sb.append(cursor.getColumnName(i)).append(": ");
-          try {
-            sb.append(cursor.getString(i)).append(" ");
-          } catch(Exception e) {
-            sb.append("Bad value");
-          }
-        }
-        results.add(sb.toString());
-      }
-      return results;
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
+  public Cursor getAllNumbers() {
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
   }
 
   private static class DatabaseHelper extends SQLiteOpenHelper {
