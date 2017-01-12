@@ -30,7 +30,7 @@ public class ForstaPreferences {
 
     public static void setCCSMDebug(Context context, boolean value) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        prefs.edit().putBoolean(CCSM_DEBUG, value);
+        prefs.edit().putBoolean(CCSM_DEBUG, value).apply();
     }
 
     public static boolean isCCSMDebug(Context context) {

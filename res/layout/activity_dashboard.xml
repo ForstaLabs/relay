@@ -38,7 +38,8 @@
                     android:layout_height="wrap_content" android:text="Debug" />
                 <ToggleButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/dashboard_toggle_debug" />
+                    android:layout_height="wrap_content"
+                    android:id="@+id/dashboard_toggle_debug" />
             </LinearLayout>
         </LinearLayout>
 
