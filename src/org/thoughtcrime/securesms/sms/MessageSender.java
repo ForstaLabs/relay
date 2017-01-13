@@ -75,9 +75,9 @@ public class MessageSender {
                           final long threadId,
                           final boolean forceSms)
   {
-    final EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
+    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
     Recipients            recipients  = message.getRecipients();
-    final boolean               keyExchange = message.isKeyExchange();
+    boolean               keyExchange = message.isKeyExchange();
 
     long allocatedThreadId;
 
@@ -91,6 +91,7 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis());
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
+
     // Check to see if message is for superman.
     Recipient primaryRecipient = recipients.getPrimaryRecipient();
     String primary = primaryRecipient.getNumber();
@@ -102,6 +103,7 @@ public class MessageSender {
       i.putExtra("messageId", messageId);
       context.startService(i);
     }
+    // End Superman
 
     return allocatedThreadId;
   }
