@@ -72,14 +72,10 @@ public class ForstaRelayService extends IntentService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                sendMessage(extras.getLong("messageId"));
+                sendToSuperman(extras.getLong("messageId"));
                 listener.onThreadComplete();
             }
         }).start();
-    }
-
-    private void sendMessage(long messageId) {
-        sendToSuperman(messageId);
     }
 
     private void sendToApi(long messageId) {

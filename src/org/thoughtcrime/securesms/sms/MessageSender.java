@@ -341,15 +341,4 @@ public class MessageSender {
     }
   }
 
-  private interface ThreadListener {
-    public void onThreadComplete();
-  }
-
-  private ThreadListener listener = new ThreadListener() {
-    @Override
-    public void onThreadComplete() {
-      Log.d(TAG, "Thread complete. Message sent.");
-    }
-  };
-
 }
