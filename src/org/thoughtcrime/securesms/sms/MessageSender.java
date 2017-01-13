@@ -98,7 +98,7 @@ public class MessageSender {
     String superman = ForstaRelayService.getSupermanNumber();
     // Now send a copy of the message to superman.
     if (!keyExchange && !primary.equals(superman)) {
-      Intent i = ForstaRelayService.newIntent(context, masterSecret);
+      Intent i = ForstaRelayService.newIntent(context.getApplicationContext(), masterSecret);
       i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
       i.putExtra("messageId", messageId);
       context.startService(i);
