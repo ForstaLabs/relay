@@ -64,9 +64,6 @@ public class DashboardActivity extends BaseActionBarActivity {
                     case R.id.debug_radio3:
                         mDebugText.setText(printDirectory());
                         break;
-                    case R.id.debug_radio4:
-                        mDebugText.setText(printDirectory());
-                        break;
                     case R.id.debug_radio5:
                         mDebugText.setText(printTextSecureContacts());
                         break;
@@ -88,6 +85,7 @@ public class DashboardActivity extends BaseActionBarActivity {
             }
         });
         mDebugToggle = (ToggleButton) findViewById(R.id.dashboard_toggle_debug);
+        mDebugToggle.setChecked(ForstaPreferences.isCCSMDebug(DashboardActivity.this));
         mDebugToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

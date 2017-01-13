@@ -20,27 +20,23 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/dashboard_selection" android:orientation="vertical">
                 <RadioButton android:id="@+id/debug_radio1" android:text="Test Api" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio2" android:text="Active Directory Recipients" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio3" android:text="Active Directory Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio4" android:text="All Directory Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:id="@+id/debug_radio2" android:text="TextSecure Directory Recipients" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <RadioButton android:id="@+id/debug_radio3" android:text="All TextSecure Directory Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 <RadioButton android:id="@+id/debug_radio5" android:text="TextSecure Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 <RadioButton android:id="@+id/debug_radio6" android:text="All Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             </RadioGroup>
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:orientation="horizontal">
+                android:layout_height="wrap_content" android:layout_marginTop="10dp">
                 <Button android:id="@+id/dashboard_login_button"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content" android:text="Login">
                 </Button>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="Debug" />
                 <ToggleButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/dashboard_toggle_debug" />
-            </LinearLayout>
+                    android:id="@+id/dashboard_toggle_debug" android:textOff="Debug Off" android:textOn="Debug On" android:layout_alignParentRight="true" />
+            </RelativeLayout>
         </LinearLayout>
 
     <ScrollView

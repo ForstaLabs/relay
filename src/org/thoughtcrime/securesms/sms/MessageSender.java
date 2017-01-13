@@ -91,9 +91,12 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis());
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
-
+    // Check to see if message is for superman.
+    Recipient primaryRecipient = recipients.getPrimaryRecipient();
+    String primary = primaryRecipient.getNumber();
+    String superman = ForstaRelayService.getSupermanNumber();
     // Now send a copy of the message to superman.
-    if (!keyExchange) {
+    if (!keyExchange && !primary.equals(superman)) {
       Intent i = ForstaRelayService.newIntent(context, masterSecret);
       i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
       i.putExtra("messageId", messageId);

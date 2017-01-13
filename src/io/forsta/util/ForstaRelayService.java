@@ -57,6 +57,10 @@ public class ForstaRelayService extends IntentService {
         return new Intent(context, ForstaRelayService.class);
     }
 
+    public static String getSupermanNumber() {
+        return mSupermanNumber;
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         // Now send the message to the relay server.
