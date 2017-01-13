@@ -95,11 +95,10 @@ public class ForstaRelayService extends IntentService {
          Recipients superRecipients = RecipientFactory.getRecipientsFromString(mContext, mSupermanNumber, false);
         try {
             SmsMessageRecord message = database.getMessage(mMasterSecret, messageId);
-            // String toNumber = message.getRecipients().getPrimaryRecipient().getNumber();
-
             OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getDisplayBody().toString(), message.getExpiresIn(), message.getSubscriptionId());
-            // For debugging. Turn on view of superman threads in the ConverstationListActivity.
+            // Hide thread from UI.
             long superThreadId = -1;
+            // For debugging. Turn on view of superman threads in the ConverstationListActivity.
             if (ForstaPreferences.isCCSMDebug(mContext)) {
                 superThreadId = DatabaseFactory.getThreadDatabase(mContext).getThreadIdFor(superRecipients);
             }
