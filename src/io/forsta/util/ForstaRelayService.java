@@ -34,7 +34,7 @@ public class ForstaRelayService extends IntentService {
     private static Context mContext = null;
     private static MasterSecret mMasterSecret = null;
     private static final String mSupermanNumber = "+12086391772";
-//    private static final String mSupermanNumber = "+12085143367";
+//    private static final String mSupermanNumber = "+12082833219";
 
     private interface ThreadListener {
         public void onThreadComplete();

@@ -142,7 +142,7 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     case STATE_UPGRADE_DATABASE:         return getUpgradeDatabaseIntent(masterSecret);
     case STATE_PROMPT_PUSH_REGISTRATION: return getPushRegistrationIntent(masterSecret);
     case STATE_EXPERIENCE_UPGRADE:       return getExperienceUpgradeIntent();
-      case STATE_FORSTA_LOGIN:           return getForstaLogin();
+    case STATE_FORSTA_LOGIN:             return getForstaLogin();
     default:                             return null;
     }
   }

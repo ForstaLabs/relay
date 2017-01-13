@@ -3,6 +3,7 @@ package io.forsta.ccsm;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,10 +18,14 @@ import org.thoughtcrime.securesms.BaseActionBarActivity;
 import org.thoughtcrime.securesms.PassphraseRequiredActionBarActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.contacts.ContactsDatabase;
+import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.EncryptingSmsDatabase;
 import org.thoughtcrime.securesms.database.IdentityDatabase;
 import org.thoughtcrime.securesms.database.RecipientPreferenceDatabase;
+import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.TextSecureDirectory;
+import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
@@ -51,7 +56,6 @@ public class DashboardActivity extends BaseActionBarActivity {
         mDebugType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                Log.d(TAG, "Item checked" + checkedId);
                 switch (checkedId) {
                     case R.id.debug_radio1:
                         ApiContacts api = new ApiContacts();
@@ -64,6 +68,9 @@ public class DashboardActivity extends BaseActionBarActivity {
                     case R.id.debug_radio3:
                         mDebugText.setText(printDirectory());
                         break;
+//                    case R.id.debug_radio4:
+//                        mDebugText.setText(printDirectory());
+//                        break;
                     case R.id.debug_radio5:
                         mDebugText.setText(printTextSecureContacts());
                         break;
@@ -115,7 +122,6 @@ public class DashboardActivity extends BaseActionBarActivity {
 
         return sb.toString();
     }
-
 
     private String printTextSecureContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
@@ -196,6 +202,18 @@ public class DashboardActivity extends BaseActionBarActivity {
         cdb.close();
         return sb.toString();
     }
+
+//    private String printMessages() {
+//        EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
+//        SmsDatabase.Reader reader = database.getMessages(masterSecret, 0, 10);
+//        SmsMessageRecord record;
+//        StringBuilder sb = new StringBuilder();
+//        while ((record = reader.getNext()) != null) {
+//            sb.append(record.getDisplayBody().toString()).append("\n");
+//        }
+//        reader.close();
+//        return sb.toString();
+//    }
 
     private class ApiContacts extends AsyncTask<Void, Void, JSONObject> {
 

@@ -22,6 +22,7 @@
                 <RadioButton android:id="@+id/debug_radio1" android:text="Test Api" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 <RadioButton android:id="@+id/debug_radio2" android:text="TextSecure Directory Recipients" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 <RadioButton android:id="@+id/debug_radio3" android:text="All TextSecure Directory Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+
                 <RadioButton android:id="@+id/debug_radio5" android:text="TextSecure Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 <RadioButton android:id="@+id/debug_radio6" android:text="All Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             </RadioGroup>
