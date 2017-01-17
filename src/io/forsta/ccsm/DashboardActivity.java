@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,7 +37,7 @@ import java.util.List;
 
 import io.forsta.util.NetworkUtils;
 
-public class DashboardActivity extends BaseActionBarActivity {
+public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
     private RadioGroup mDebugType;
@@ -44,8 +45,8 @@ public class DashboardActivity extends BaseActionBarActivity {
     private ToggleButton mDebugToggle;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
+//        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         initView();
     }
