@@ -65,6 +65,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mDebugText = (TextView) findViewById(R.id.debug_text);
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
+        options.add("");
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -78,24 +79,24 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 0:
+                    case 1:
                         ApiContacts api = new ApiContacts();
                         api.execute();
                         break;
-                    case 1:
+                    case 2:
                         RecipientsList task = new RecipientsList();
                         task.execute();
                         break;
-                    case 2:
+                    case 3:
                         mDebugText.setText(printDirectory());
                         break;
-                    case 3:
+                    case 4:
                         mDebugText.setText(printMessages());
                         break;
-                    case 4:
+                    case 5:
                         mDebugText.setText(printTextSecureContacts());
                         break;
-                    case 5:
+                    case 6:
                         mDebugText.setText(printSystemContacts());
                         break;
                 }
