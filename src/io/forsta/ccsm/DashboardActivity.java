@@ -9,8 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -30,9 +35,12 @@ import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
+import org.thoughtcrime.securesms.util.DateUtils;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.forsta.util.NetworkUtils;
@@ -40,47 +48,65 @@ import io.forsta.util.NetworkUtils;
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
-    private RadioGroup mDebugType;
     private Button mLoginButton;
     private ToggleButton mDebugToggle;
+    private CheckBox mToggleSyncMessages;
+    private MasterSecret mMasterSecret;
+    private Spinner mSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
-//        super.onCreate(savedInstanceState);
+        mMasterSecret = masterSecret;
         setContentView(R.layout.activity_dashboard);
         initView();
     }
 
     private void initView() {
         mDebugText = (TextView) findViewById(R.id.debug_text);
-        mDebugType = (RadioGroup) findViewById(R.id.dashboard_selection);
-        mDebugType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
+        List<String> options = new ArrayList<String>();
+        options.add("API Test");
+        options.add("TextSecure Recipients");
+        options.add("TextSecure Directory");
+        options.add("Messages");
+        options.add("TextSecure Contacts");
+        options.add("All Contacts");
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, options);
+        mSpinner.setAdapter(adapter);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-                    case R.id.debug_radio1:
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
                         ApiContacts api = new ApiContacts();
                         api.execute();
                         break;
-                    case R.id.debug_radio2:
+                    case 1:
                         RecipientsList task = new RecipientsList();
                         task.execute();
                         break;
-                    case R.id.debug_radio3:
+                    case 2:
                         mDebugText.setText(printDirectory());
                         break;
-//                    case R.id.debug_radio4:
-//                        mDebugText.setText(printDirectory());
-//                        break;
-                    case R.id.debug_radio5:
+                    case 3:
+                        mDebugText.setText(printMessages());
+                        break;
+                    case 4:
                         mDebugText.setText(printTextSecureContacts());
                         break;
-                    case R.id.debug_radio6:
+                    case 5:
                         mDebugText.setText(printSystemContacts());
                         break;
                 }
             }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
         });
+
         mLoginButton = (Button) findViewById(R.id.dashboard_login_button);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,12 +118,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 finish();
             }
         });
-        mDebugToggle = (ToggleButton) findViewById(R.id.dashboard_toggle_debug);
-        mDebugToggle.setChecked(ForstaPreferences.isCCSMDebug(DashboardActivity.this));
-        mDebugToggle.setOnClickListener(new View.OnClickListener() {
+
+        mToggleSyncMessages = (CheckBox) findViewById(R.id.dashboard_toggle_sync_messages);
+        mToggleSyncMessages.setChecked(ForstaPreferences.isCCSMDebug(DashboardActivity.this));
+        mToggleSyncMessages.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ForstaPreferences.setCCSMDebug(DashboardActivity.this, mDebugToggle.isChecked());
+                ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
             }
         });
     }
@@ -189,11 +216,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         StringBuilder sb = new StringBuilder();
         sb.append("\nIdentities\n");
         while (cdb.moveToNext()) {
-            String[] cols = cdb.getColumnNames();
-            for (int i=0;i < cdb.getColumnCount(); i++) {
+            for (int i=1;i < cdb.getColumnCount(); i++) {
                 sb.append(cdb.getColumnName(i)).append(": ");
                 try {
-                    sb.append(cdb.getString(i)).append(" ");
+                    sb.append(cdb.getString(i)).append("\n");
                 } catch(Exception e) {
                     sb.append(" bad value");
                 }
@@ -204,17 +230,42 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return sb.toString();
     }
 
-//    private String printMessages() {
-//        EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
-//        SmsDatabase.Reader reader = database.getMessages(masterSecret, 0, 10);
-//        SmsMessageRecord record;
-//        StringBuilder sb = new StringBuilder();
-//        while ((record = reader.getNext()) != null) {
-//            sb.append(record.getDisplayBody().toString()).append("\n");
-//        }
-//        reader.close();
-//        return sb.toString();
-//    }
+    private String printMessages() {
+        if (mMasterSecret != null) {
+            EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
+            SmsDatabase.Reader reader = database.getMessages(mMasterSecret, 0, 50);
+            SmsMessageRecord record;
+            StringBuilder sb = new StringBuilder();
+            while ((record = reader.getNext()) != null) {
+                Date sent = new Date(record.getDateSent());
+                Date received = new Date(record.getDateReceived());
+                SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy h:mm a");
+
+                Recipients recipients = record.getRecipients();
+                List<Recipient> rlist = recipients.getRecipientsList();
+
+                sb.append("Sent: ");
+                sb.append(formatter.format(sent)).append("\n");
+                sb.append("To: ");
+                for (Recipient r : rlist) {
+                    sb.append(r.getNumber()).append(" ");
+                    sb.append("ID: ");
+                    sb.append(r.getRecipientId()).append(" ");
+                }
+                sb.append("\n");
+                sb.append("Received: ");
+                sb.append(formatter.format(received)).append(" ");
+                sb.append("\n");
+                sb.append("Message: ");
+                sb.append(record.getDisplayBody().toString());
+                sb.append("\n");
+                sb.append("\n");
+            }
+            reader.close();
+            return sb.toString();
+        }
+        return "MasterSecret NULL";
+    }
 
     private class ApiContacts extends AsyncTask<Void, Void, JSONObject> {
 

@@ -12,33 +12,40 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent" android:orientation="vertical">
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:paddingBottom="5dp" android:orientation="vertical">
-            <RadioGroup
+            android:layout_height="wrap_content"
+            android:text="Select Option"/>
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dashboard_selector" android:paddingBottom="10dp" />
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/dashboard_selection" android:orientation="vertical">
-                <RadioButton android:id="@+id/debug_radio1" android:text="Test Api" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio2" android:text="TextSecure Directory Recipients" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio3" android:text="All TextSecure Directory Numbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-
-                <RadioButton android:id="@+id/debug_radio5" android:text="TextSecure Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <RadioButton android:id="@+id/debug_radio6" android:text="All Contacts" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            </RadioGroup>
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:layout_marginTop="10dp">
-                <Button android:id="@+id/dashboard_login_button"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" android:text="Login">
-                </Button>
-                <ToggleButton
+                android:orientation="horizontal">
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/dashboard_toggle_debug" android:textOff="Debug Off" android:textOn="Debug On" android:layout_alignParentRight="true" />
-            </RelativeLayout>
-        </LinearLayout>
+                    android:id="@+id/dashboard_login"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <Button android:id="@+id/dashboard_login_button"
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content" android:text="Login">
+                    </Button>
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Show Sync Messages"
+                        android:id="@+id/dashboard_toggle_sync_messages"/>
+                </LinearLayout>
+            </LinearLayout>
+
+
+
 
     <ScrollView
         android:layout_width="match_parent"
