@@ -15,33 +15,38 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select Option"/>
+            android:text="Development Dashboard Options"/>
         <Spinner
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/dashboard_selector" android:paddingBottom="10dp" />
+            android:id="@+id/dashboard_selector"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/dashboard_login"/>
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
                     <Button android:id="@+id/dashboard_login_button"
                             android:layout_height="wrap_content"
-                            android:layout_width="wrap_content" android:text="Login">
+                            android:layout_width="wrap_content" android:text="Login"
+                        android:layout_alignParentLeft="true">
                     </Button>
                     <CheckBox
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Show Sync Messages"
-                        android:id="@+id/dashboard_toggle_sync_messages"/>
-                </LinearLayout>
+                        android:id="@+id/dashboard_toggle_sync_messages"
+                        android:layout_alignParentRight="true"/>
+                </RelativeLayout>
             </LinearLayout>
 
 

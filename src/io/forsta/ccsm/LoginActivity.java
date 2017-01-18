@@ -36,6 +36,7 @@ import org.thoughtcrime.securesms.util.TextSecurePreferences;
 
 import java.util.List;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.util.NetworkUtils;
 
 public class LoginActivity extends BaseActionBarActivity {
@@ -89,7 +90,7 @@ public class LoginActivity extends BaseActionBarActivity {
         protected JSONObject doInBackground(String... params) {
             String uname = params[0];
             String pass = params[1];
-            JSONObject token = NetworkUtils.ccsmLogin(uname, pass);
+            JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass);
             return token;
         }
 

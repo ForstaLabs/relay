@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.util.NetworkUtils;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
@@ -65,7 +66,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mDebugText = (TextView) findViewById(R.id.debug_text);
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
-        options.add("");
+        options.add("Select An Option");
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -272,7 +273,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected JSONObject doInBackground(Void... params) {
-            return NetworkUtils.getApiData(DashboardActivity.this);
+            return CcsmApi.apiGet(DashboardActivity.this, "message");
         }
 
         @Override
