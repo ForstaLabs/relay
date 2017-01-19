@@ -98,21 +98,14 @@ public class LoginActivity extends BaseActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
             if (jsonObject.has("token")) {
-                try {
-                    String token = jsonObject.getString("token");
-                    // Write token to local preferences.
-                    ForstaPreferences.setRegisteredForsta(LoginActivity.this, token);
-                    Intent nextIntent = getIntent().getParcelableExtra("next_intent");
+                Intent nextIntent = getIntent().getParcelableExtra("next_intent");
 
-                    if (nextIntent == null) {
-                        nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
-                    }
-
-                    startActivity(nextIntent);
-                    finish();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if (nextIntent == null) {
+                    nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
                 }
+
+                startActivity(nextIntent);
+                finish();
             } else {
                 Toast.makeText(LoginActivity.this, "Sorry. No token found", Toast.LENGTH_LONG).show();
             }

@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.LoginActivity;
 import io.forsta.util.NetworkUtils;
 
 /**
@@ -46,6 +47,10 @@ public class CcsmApi {
 
     }
 
+    public static JSONObject getContacts(Context context) {
+        return apiGet(context, "messages");
+    }
+
     public static JSONObject forstaLogin(Context context, String username, String password) {
         JSONObject result = new JSONObject();
         try {
@@ -54,6 +59,14 @@ public class CcsmApi {
             obj.put("username", username);
             obj.put("password", password);
             result = apiPost(context, "login", obj, false);
+            if (result.has("token")) {
+                String token = result.getString("token");
+                String lastLogin = result.getString("last_login");
+                // Write token to local preferences.
+                ForstaPreferences.setRegisteredForsta(context, token);
+                ForstaPreferences.setRegisteredDateTime(context, lastLogin);
+                // Store last login for token refresh.
+            }
         } catch (JSONException e) {
             e.printStackTrace();
             Log.d(TAG, "JSON Exception.");
@@ -61,8 +74,30 @@ public class CcsmApi {
         return result;
     }
 
+    public static JSONObject forstaRefreshToken(Context context) {
+        JSONObject result = new JSONObject();
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("token", ForstaPreferences.getRegisteredKey(context));
+            result = apiPost(context, "api-token-refresh", obj, false);
+            if (result.has("token")) {
+                String token = result.getString("token");
+                String existingToken = ForstaPreferences.getRegisteredKey(context);
+                if (existingToken.equals(token)) {
+                    Log.d(TAG, "Token refresh. Not expired");
+                } else {
+                    Log.d(TAG, "Token refresh. New token issued.");
+                    ForstaPreferences.setRegisteredForsta(context, result.getString("token"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "forstaRefreshToken failed");
+        }
+        return result;
+    }
 
-    public static JSONObject apiGet(Context context, String path) {
+    private static JSONObject apiGet(Context context, String path) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         // TODO If no JWT token. Log error or do something.
         HttpURLConnection conn = null;
@@ -103,7 +138,7 @@ public class CcsmApi {
         return result;
     }
 
-    public static JSONObject apiPost(Context context, String path, JSONObject data, boolean requireAuth) {
+    private static JSONObject apiPost(Context context, String path, JSONObject data, boolean requireAuth) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         JSONObject result = null;
         HttpURLConnection conn = null;

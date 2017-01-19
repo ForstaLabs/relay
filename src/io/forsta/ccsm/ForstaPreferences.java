@@ -9,8 +9,9 @@ import android.preference.PreferenceManager;
  */
 
 public class ForstaPreferences {
-    private  static final String API_KEY                    = "api_key";
-    private  static final String CCSM_DEBUG                    = "ccsm_debug";
+    private static final String API_KEY = "api_key";
+    private static final String API_LAST_LOGIN = "last_login";
+    private static final String CCSM_DEBUG = "ccsm_debug";
 
     public static boolean isRegisteredForsta(Context context) {
         String key = ForstaPreferences.getStringPreference(context, API_KEY);
@@ -35,6 +36,15 @@ public class ForstaPreferences {
 
     public static boolean isCCSMDebug(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(CCSM_DEBUG, false);
+    }
+
+    public static String getRegisteredDateTime(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getString(API_LAST_LOGIN, "");
+    }
+
+    public static void setRegisteredDateTime(Context context, String lastLogin) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(API_LAST_LOGIN, lastLogin).apply();
     }
 
     private static void setStringPreference(Context context, String key, String value) {

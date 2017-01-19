@@ -50,6 +50,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
     private Button mLoginButton;
+    private Button mTokenRefresh;
     private ToggleButton mDebugToggle;
     private CheckBox mToggleSyncMessages;
     private MasterSecret mMasterSecret;
@@ -121,6 +122,15 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             }
         });
 
+        mTokenRefresh = (Button) findViewById(R.id.dashboard_refresh_token);
+        mTokenRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RefreshApiToken refresh = new RefreshApiToken();
+                refresh.execute();
+            }
+        });
+
         mToggleSyncMessages = (CheckBox) findViewById(R.id.dashboard_toggle_sync_messages);
         mToggleSyncMessages.setChecked(ForstaPreferences.isCCSMDebug(DashboardActivity.this));
         mToggleSyncMessages.setOnClickListener(new View.OnClickListener() {
@@ -129,6 +139,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
             }
         });
+        StringBuilder sb = new StringBuilder();
+        String token = ForstaPreferences.getRegisteredKey(DashboardActivity.this);
+        String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
+        sb.append(lastLogin);
+        sb.append("\n");
+        sb.append("\n");
+        sb.append(token);
+        mDebugText.setText(sb.toString());
     }
 
     private String printSystemContacts() {
@@ -273,7 +291,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected JSONObject doInBackground(Void... params) {
-            return CcsmApi.apiGet(DashboardActivity.this, "message");
+            return CcsmApi.getContacts(DashboardActivity.this);
         }
 
         @Override
@@ -304,4 +322,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(sb.toString());
         }
     }
+
+    private class RefreshApiToken extends AsyncTask<Void, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+            return CcsmApi.forstaRefreshToken(DashboardActivity.this);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            Log.d(TAG, jsonObject.toString());
+
+        }
+    }
 }
+
