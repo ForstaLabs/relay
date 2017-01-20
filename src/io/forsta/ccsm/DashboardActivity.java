@@ -19,6 +19,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.google.zxing.common.StringUtils;
+
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BaseActionBarActivity;
 import org.thoughtcrime.securesms.PassphraseRequiredActionBarActivity;
@@ -28,9 +30,12 @@ import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
 import org.thoughtcrime.securesms.database.EncryptingSmsDatabase;
 import org.thoughtcrime.securesms.database.IdentityDatabase;
+import org.thoughtcrime.securesms.database.MmsDatabase;
+import org.thoughtcrime.securesms.database.MmsSmsDatabase;
 import org.thoughtcrime.securesms.database.RecipientPreferenceDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.TextSecureDirectory;
+import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
@@ -71,9 +76,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
-        options.add("Messages");
+        options.add("SMS Messages");
         options.add("TextSecure Contacts");
         options.add("All Contacts");
+        options.add("MMS Messages");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, options);
         mSpinner.setAdapter(adapter);
@@ -100,6 +106,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         break;
                     case 6:
                         mDebugText.setText(printSystemContacts());
+                        break;
+                    case 7:
+                        mDebugText.setText(printMmsMessages());
                         break;
                 }
             }
@@ -250,6 +259,34 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return sb.toString();
     }
 
+    private String printMmsMessages() {
+        StringBuilder sb = new StringBuilder();
+        if (mMasterSecret != null) {
+            ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+            MmsSmsDatabase database = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this);
+            Cursor c = tdb.getConversationList();
+            List<Long> list = new ArrayList<>();
+            while (c.moveToNext()) {
+                list.add(c.getLong(0));
+            }
+            c.close();
+            for (Long l : list) {
+                Cursor mmsCursor = database.getConversation(l);
+                while(mmsCursor.moveToNext()) {
+                    for (int i = 0; i< mmsCursor.getColumnCount(); i++) {
+                    sb.append(mmsCursor.getColumnName(i)).append(": ");
+                    sb.append(mmsCursor.getString(i));
+                    sb.append("\n");
+                }
+                sb.append("\n\n");
+                }
+                mmsCursor.close();
+            }
+            sb.append("\n\n");
+        }
+
+        return sb.toString();
+    }
     private String printMessages() {
         if (mMasterSecret != null) {
             EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);

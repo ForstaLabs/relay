@@ -93,15 +93,7 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    // Check to see if message is for superman.
-    Recipient primaryRecipient = recipients.getPrimaryRecipient();
-    String primary = primaryRecipient.getNumber();
-    String superman = ForstaRelayService.getSupermanNumber();
-    // Now send a copy of the message to superman.
-    if (!keyExchange && !primary.equals(superman)) {
-      CcsmSync.syncMessage(masterSecret, context, messageId);
-    }
-    // End Superman
+    CcsmSync.syncTextMessage(masterSecret, context, message);
 
     return allocatedThreadId;
   }
@@ -128,6 +120,8 @@ public class MessageSender {
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, allocatedThreadId, forceSms);
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
+
+      CcsmSync.syncMediaMessage(masterSecret, context, message);
 
       return allocatedThreadId;
     } catch (MmsException e) {

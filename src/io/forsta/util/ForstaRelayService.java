@@ -43,12 +43,12 @@ public class ForstaRelayService extends IntentService {
             @Override
             public void run() {
                 Log.d(TAG, "Forsta Sync. Sending Message ID: " + messageId);
-                sendToForstaSync(messageId);
+//                sendToForstaSync(messageId);
             }
         }).start();
     }
 
-    private void sendToForstaSync(long messageId) {
-        CcsmSync.syncMessage(mMasterSecret, mContext, messageId);
-    }
+//    private void sendToForstaSync(long messageId) {
+//        CcsmSync.syncMessage(mMasterSecret, mContext, messageId);
+//    }
 }
