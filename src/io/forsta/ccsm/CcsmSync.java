@@ -85,7 +85,7 @@ public class CcsmSync {
         JSONObject jsonBody = createMessageBody(context, recipients, body);
         OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, jsonBody.toString(), expiresIn, subscriptionId);
         // For debugging. Turn on view of superman threads in the ConverstationListActivity.
-        long superThreadId = ForstaPreferences.isCCSMDebug(context) ? -1 : DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients);
+        long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
 
         long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, false, System.currentTimeMillis());
         Log.d(TAG, "Forsta Sync. Sending Sync Message.");

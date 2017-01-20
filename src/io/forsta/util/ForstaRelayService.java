@@ -20,7 +20,7 @@ public class ForstaRelayService extends IntentService {
     private static MasterSecret mMasterSecret = null;
     private static final String mSupermanNumber = BuildConfig.FORSTA_SYNC_NUMBER;
 
-    private ForstaRelayService() {
+    public ForstaRelayService() {
         super(TAG);
     }
 
