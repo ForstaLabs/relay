@@ -41,7 +41,7 @@ public class CcsmSync {
             SmsMessageRecord message = database.getMessage(masterSecret, messageId);
             JSONObject jsonBody = createMessageBody(message);
             // TODO send this shit to the SM.
-            OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, message.getDisplayBody().toString(), message.getExpiresIn(), message.getSubscriptionId());
+            OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, jsonBody.toString(), message.getExpiresIn(), message.getSubscriptionId());
             // Hide thread from UI.
             long superThreadId = -1;
             // For debugging. Turn on view of superman threads in the ConverstationListActivity.

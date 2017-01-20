@@ -61,7 +61,8 @@ public class CcsmApi {
             result = apiPost(context, "login", obj, false);
             if (result.has("token")) {
                 String token = result.getString("token");
-                String lastLogin = result.getString("last_login");
+                JSONObject user = result.getJSONObject("user");
+                String lastLogin = user.getString("last_login");
                 // Write token to local preferences.
                 ForstaPreferences.setRegisteredForsta(context, token);
                 ForstaPreferences.setRegisteredDateTime(context, lastLogin);
