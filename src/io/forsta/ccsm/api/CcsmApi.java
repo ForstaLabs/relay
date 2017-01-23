@@ -48,7 +48,7 @@ public class CcsmApi {
     }
 
     public static JSONObject getContacts(Context context) {
-        return apiGet(context, "messages");
+        return apiGet(context, "user");
     }
 
     public static JSONObject forstaLogin(Context context, String username, String password) {

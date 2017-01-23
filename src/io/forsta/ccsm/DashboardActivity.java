@@ -287,6 +287,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         return sb.toString();
     }
+
     private String printMessages() {
         if (mMasterSecret != null) {
             EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
