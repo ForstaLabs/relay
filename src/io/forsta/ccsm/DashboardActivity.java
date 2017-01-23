@@ -37,12 +37,16 @@ import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.TextSecureDirectory;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
+import org.thoughtcrime.securesms.push.TextSecureCommunicationFactory;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
 import org.thoughtcrime.securesms.util.DateUtils;
 import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.SignalServiceAccountManager;
+import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -80,6 +84,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("TextSecure Contacts");
         options.add("All Contacts");
         options.add("MMS Messages");
+        options.add("Device Directory");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, options);
         mSpinner.setAdapter(adapter);
@@ -109,6 +114,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         break;
                     case 7:
                         mDebugText.setText(printMmsMessages());
+                        break;
+                    case 8:
+                        GetDirectory directory = new GetDirectory();
+                        directory.execute();
                         break;
                 }
             }
@@ -372,6 +381,25 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
 
+        }
+    }
+
+    private class GetDirectory extends AsyncTask<Void, Void, JSONObject> {
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
+            try {
+                List<DeviceInfo> devices = accountManager.getDevices();
+                Log.d(TAG, "Devices");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
         }
     }
 }
