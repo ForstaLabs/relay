@@ -187,6 +187,10 @@ android {
         exclude 'META-INF/NOTICE'
     }
 
+    signingConfigs {
+        release
+    }
+
     buildTypes {
         debug {
             minifyEnabled true
@@ -208,7 +212,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles = buildTypes.debug.proguardFiles
-            signingConfig signingConfigs.config
+            signingConfig signingConfigs.release
         }
         dev.initWith(buildTypes.debug)
         dev {
