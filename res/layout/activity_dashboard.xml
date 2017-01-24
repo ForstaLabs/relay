@@ -34,24 +34,26 @@
                     android:id="@+id/dashboard_login"/>
                 <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <Button android:id="@+id/dashboard_login_button"
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content" android:text="Login"
-                        android:layout_alignParentLeft="true">
-                    </Button>
-                    <Button android:id="@+id/dashboard_refresh_token"
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content" android:text="Refresh Token"
-                            android:layout_below="@id/dashboard_login_button">
-                    </Button>
+                    android:layout_height="wrap_content">
                     <CheckBox
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Show Sync Messages"
                         android:id="@+id/dashboard_toggle_sync_messages"
-                        android:layout_alignParentRight="true"/>
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"/>
+                    <Button android:id="@+id/dashboard_login_button"
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content" android:text="Login"
+                        android:layout_below="@+id/dashboard_toggle_sync_messages">
+                    </Button>
+                    <Button android:id="@+id/dashboard_refresh_token"
+                            android:layout_height="wrap_content"
+                            android:layout_width="wrap_content" android:text="Refresh Token"
+                            android:layout_below="@+id/dashboard_toggle_sync_messages"
+                        android:layout_alignParentRight="true">
+                    </Button>
+
                 </RelativeLayout>
             </LinearLayout>
 

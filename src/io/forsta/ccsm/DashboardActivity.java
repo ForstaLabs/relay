@@ -36,7 +36,9 @@ import org.thoughtcrime.securesms.database.RecipientPreferenceDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.TextSecureDirectory;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
+import org.thoughtcrime.securesms.database.model.MessageRecord;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
+import org.thoughtcrime.securesms.mms.SlideDeck;
 import org.thoughtcrime.securesms.push.TextSecureCommunicationFactory;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
@@ -83,10 +85,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("SMS Messages");
         options.add("TextSecure Contacts");
         options.add("All Contacts");
-        options.add("MMS Messages");
-        options.add("Device Directory");
+        options.add("MMS (Group) Messages");
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, options);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
         mSpinner.setAdapter(adapter);
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -113,11 +114,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         mDebugText.setText(printSystemContacts());
                         break;
                     case 7:
-                        mDebugText.setText(printMmsMessages());
-                        break;
-                    case 8:
-                        GetDirectory directory = new GetDirectory();
-                        directory.execute();
+                        mDebugText.setText(printAllMessages());
                         break;
                 }
             }
@@ -160,10 +157,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         StringBuilder sb = new StringBuilder();
         String token = ForstaPreferences.getRegisteredKey(DashboardActivity.this);
         String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
+        sb.append("Last Login:\n");
         sb.append(lastLogin);
         sb.append("\n");
         sb.append("\n");
-        sb.append(token);
+        sb.append("Current Token Size:");
+        sb.append(token.length());
         mDebugText.setText(sb.toString());
     }
 
@@ -269,6 +268,92 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private String printMmsMessages() {
+        MmsDatabase database = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
+        ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+        Cursor cursor = threadDb.getConversationList();
+        StringBuilder sb = new StringBuilder();
+        while(cursor.moveToNext()) {
+            for (int i=0; i<cursor.getColumnCount();i++) {
+                sb.append(cursor.getColumnName(i)).append(": ");
+                sb.append(cursor.getString(i)).append("\n");
+            }
+            sb.append("\n\n");
+        }
+        return sb.toString();
+    }
+
+    private String printGroupMessages(Cursor cursor) {
+        MessageRecord record;
+        MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
+        StringBuilder sb = new StringBuilder();
+        while ((record = reader.getNext()) != null) {
+            Recipient recipient = record.getIndividualRecipient();
+            Recipients recipients = record.getRecipients();
+            long threadId = record.getThreadId();
+            CharSequence body = record.getDisplayBody();
+            long timestamp = record.getTimestamp();
+            Date dt = new Date(timestamp);
+
+            sb.append("Primary Recipient: ");
+            sb.append(recipient.getNumber());
+            sb.append("\n");
+            sb.append("Date: ");
+            sb.append(dt.toString());
+            sb.append("\n");
+            sb.append("Message: ");
+            sb.append(body.toString());
+            sb.append("\n");
+            sb.append("\n");
+        }
+        cursor.close();
+        reader.close();
+        return sb.toString();
+    }
+
+    private String printAllMessages() {
+        StringBuilder sb = new StringBuilder();
+        if (mMasterSecret != null) {
+            ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+            Cursor cc = tdb.getConversationList();
+            List<Long> list = new ArrayList<>();
+            while (cc.moveToNext()) {
+                list.add(cc.getLong(0));
+            }
+            cc.close();
+            for (long tId : list) {
+                Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
+                MessageRecord record;
+                MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
+                while ((record = reader.getNext()) != null) {
+                    Recipient recipient = record.getIndividualRecipient();
+                    Recipients recipients = record.getRecipients();
+                    long threadId = record.getThreadId();
+                    CharSequence body = record.getDisplayBody();
+                    long timestamp = record.getTimestamp();
+                    Date dt = new Date(timestamp);
+
+                    sb.append("Primary Recipient: ");
+                    sb.append(recipient.getNumber());
+                    sb.append("\n");
+                    sb.append("Date: ");
+                    sb.append(dt.toString());
+                    sb.append("\n");
+                    sb.append("Message: ");
+                    sb.append(body.toString());
+                    sb.append("\n");
+                    sb.append("\n");
+                }
+                cursor.close();
+                reader.close();
+            }
+
+            return sb.toString();
+        }
+
+        return sb.toString();
+    }
+
+    private String printMmsSmsMessages() {
         StringBuilder sb = new StringBuilder();
         if (mMasterSecret != null) {
             ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
