@@ -11,7 +11,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,6 +48,8 @@ public class LoginActivity extends BaseActionBarActivity {
     private TextView mLoginEmailText;
     private TextView mLoginPasswordText;
     private TextView mLoginTitle;
+    private ProgressBar mLoginProgressBar;
+    private LinearLayout mLinearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,8 @@ public class LoginActivity extends BaseActionBarActivity {
     }
 
     private void initializeView() {
+        mLinearLayout = (LinearLayout) findViewById(R.id.linearLayout);
+        mLoginProgressBar = (ProgressBar) findViewById(R.id.login_progress_bar);
         mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
         mCancelButton = (Button) findViewById(R.id.forsta_cancel_login);
         mSubmitButton = (Button) findViewById(R.id.forsta_submit_login);
@@ -74,6 +80,8 @@ public class LoginActivity extends BaseActionBarActivity {
                 if (mLoginEmailText.length() < 5 || mLoginPasswordText.length() < 8) {
                     Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_LONG).show();
                 } else {
+                    mLinearLayout.setVisibility(View.GONE);
+                    mLoginProgressBar.setVisibility(View.VISIBLE);
                     CCSMLogin task = new CCSMLogin();
                     task.execute(mLoginEmailText.getText().toString(), mLoginPasswordText.getText().toString());
                 }
@@ -105,6 +113,8 @@ public class LoginActivity extends BaseActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
+            mLinearLayout.setVisibility(View.VISIBLE);
+            mLoginProgressBar.setVisibility(View.GONE);
             if (jsonObject.has("token")) {
                 finishLoginActivity();
             } else {
