@@ -65,8 +65,8 @@ public class CcsmApi {
                 String lastLogin = user.getString("last_login");
                 // Write token to local preferences.
                 ForstaPreferences.setRegisteredForsta(context, token);
-                ForstaPreferences.setRegisteredDateTime(context, lastLogin);
                 // Store last login for token refresh.
+                ForstaPreferences.setRegisteredDateTime(context, lastLogin);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -141,7 +141,7 @@ public class CcsmApi {
 
     private static JSONObject apiPost(Context context, String path, JSONObject data, boolean requireAuth) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
-        JSONObject result = null;
+        JSONObject result = new JSONObject();
         HttpURLConnection conn = null;
         try {
 

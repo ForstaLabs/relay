@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,6 +52,8 @@ import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -59,6 +62,7 @@ import io.forsta.util.NetworkUtils;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
+    private TextView mLastLogin;
     private TextView mDebugText;
     private Button mLoginButton;
     private Button mTokenRefresh;
@@ -75,6 +79,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private void initView() {
+        mLastLogin = (TextView) findViewById(R.id.dashboard_login);
         mDebugText = (TextView) findViewById(R.id.debug_text);
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
@@ -82,10 +87,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
-        options.add("SMS Messages");
+        options.add("SMS and MMS Messages");
         options.add("TextSecure Contacts");
         options.add("All Contacts");
-        options.add("MMS (Group) Messages");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
         mSpinner.setAdapter(adapter);
@@ -94,27 +98,25 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 1:
-                        ApiContacts api = new ApiContacts();
+                        GetApiContacts api = new GetApiContacts();
                         api.execute();
                         break;
                     case 2:
-                        RecipientsList task = new RecipientsList();
+                        GetRecipientsList task = new GetRecipientsList();
                         task.execute();
                         break;
                     case 3:
                         mDebugText.setText(printDirectory());
                         break;
                     case 4:
-                        mDebugText.setText(printMessages());
+                        GetMessages getMessages = new GetMessages();
+                        getMessages.execute();
                         break;
                     case 5:
                         mDebugText.setText(printTextSecureContacts());
                         break;
                     case 6:
                         mDebugText.setText(printSystemContacts());
-                        break;
-                    case 7:
-                        mDebugText.setText(printAllMessages());
                         break;
                 }
             }
@@ -157,13 +159,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         StringBuilder sb = new StringBuilder();
         String token = ForstaPreferences.getRegisteredKey(DashboardActivity.this);
         String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
-        sb.append("Last Login:\n");
+        sb.append("Last Login: ");
         sb.append(lastLogin);
-        sb.append("\n");
-        sb.append("\n");
-        sb.append("Current Token Size:");
-        sb.append(token.length());
-        mDebugText.setText(sb.toString());
+        mLastLogin.setText(sb.toString());
     }
 
     private String printSystemContacts() {
@@ -267,51 +265,18 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return sb.toString();
     }
 
-    private String printMmsMessages() {
-        MmsDatabase database = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
-        ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
-        Cursor cursor = threadDb.getConversationList();
-        StringBuilder sb = new StringBuilder();
-        while(cursor.moveToNext()) {
-            for (int i=0; i<cursor.getColumnCount();i++) {
-                sb.append(cursor.getColumnName(i)).append(": ");
-                sb.append(cursor.getString(i)).append("\n");
-            }
-            sb.append("\n\n");
-        }
-        return sb.toString();
-    }
-
-    private String printGroupMessages(Cursor cursor) {
-        MessageRecord record;
-        MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
-        StringBuilder sb = new StringBuilder();
-        while ((record = reader.getNext()) != null) {
-            Recipient recipient = record.getIndividualRecipient();
-            Recipients recipients = record.getRecipients();
-            long threadId = record.getThreadId();
-            CharSequence body = record.getDisplayBody();
-            long timestamp = record.getTimestamp();
-            Date dt = new Date(timestamp);
-
-            sb.append("Primary Recipient: ");
-            sb.append(recipient.getNumber());
-            sb.append("\n");
-            sb.append("Date: ");
-            sb.append(dt.toString());
-            sb.append("\n");
-            sb.append("Message: ");
-            sb.append(body.toString());
-            sb.append("\n");
-            sb.append("\n");
-        }
-        cursor.close();
-        reader.close();
-        return sb.toString();
-    }
-
     private String printAllMessages() {
         StringBuilder sb = new StringBuilder();
+        List<Pair<Date, String>> list = getMessages();
+        for (Pair<Date, String> record : list) {
+            sb.append(record.second);
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private List<Pair<Date, String>> getMessages() {
+        List<Pair<Date, String>> messageList = new ArrayList<>();
         if (mMasterSecret != null) {
             ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
             Cursor cc = tdb.getConversationList();
@@ -324,14 +289,24 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
                 MessageRecord record;
                 MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
+
                 while ((record = reader.getNext()) != null) {
+                    StringBuilder sb = new StringBuilder();
                     Recipient recipient = record.getIndividualRecipient();
                     Recipients recipients = record.getRecipients();
                     long threadId = record.getThreadId();
                     CharSequence body = record.getDisplayBody();
                     long timestamp = record.getTimestamp();
                     Date dt = new Date(timestamp);
-
+                    List<Recipient> recipList = recipients.getRecipientsList();
+                    sb.append("ThreadId: ");
+                    sb.append(threadId);
+                    sb.append("\n");
+                    sb.append("Recipients: ");
+                    for (Recipient r : recipList) {
+                        sb.append(r.getNumber()).append(" ");
+                    }
+                    sb.append("\n");
                     sb.append("Primary Recipient: ");
                     sb.append(recipient.getNumber());
                     sb.append("\n");
@@ -341,48 +316,22 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                     sb.append("Message: ");
                     sb.append(body.toString());
                     sb.append("\n");
-                    sb.append("\n");
+                    messageList.add(new Pair(dt, sb.toString()));
                 }
                 cursor.close();
                 reader.close();
             }
-
-            return sb.toString();
+            Collections.sort(messageList, new Comparator<Pair<Date, String>>() {
+                @Override
+                public int compare(Pair<Date, String> lhs, Pair<Date, String> rhs) {
+                    return rhs.first.compareTo(lhs.first);
+                }
+            });
         }
-
-        return sb.toString();
+        return messageList;
     }
 
-    private String printMmsSmsMessages() {
-        StringBuilder sb = new StringBuilder();
-        if (mMasterSecret != null) {
-            ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
-            MmsSmsDatabase database = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this);
-            Cursor c = tdb.getConversationList();
-            List<Long> list = new ArrayList<>();
-            while (c.moveToNext()) {
-                list.add(c.getLong(0));
-            }
-            c.close();
-            for (Long l : list) {
-                Cursor mmsCursor = database.getConversation(l);
-                while(mmsCursor.moveToNext()) {
-                    for (int i = 0; i< mmsCursor.getColumnCount(); i++) {
-                    sb.append(mmsCursor.getColumnName(i)).append(": ");
-                    sb.append(mmsCursor.getString(i));
-                    sb.append("\n");
-                }
-                sb.append("\n\n");
-                }
-                mmsCursor.close();
-            }
-            sb.append("\n\n");
-        }
-
-        return sb.toString();
-    }
-
-    private String printMessages() {
+    private String printSmsMessages() {
         if (mMasterSecret != null) {
             EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
             SmsDatabase.Reader reader = database.getMessages(mMasterSecret, 0, 50);
@@ -419,7 +368,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return "MasterSecret NULL";
     }
 
-    private class ApiContacts extends AsyncTask<Void, Void, JSONObject> {
+    private class GetApiContacts extends AsyncTask<Void, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(Void... params) {
@@ -433,7 +382,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class RecipientsList extends AsyncTask<Void, Void, Recipients> {
+    private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
 
         @Override
         protected Recipients doInBackground(Void... params) {
@@ -466,6 +415,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
 
+        }
+    }
+
+    private class GetMessages extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... params) {
+            return printAllMessages();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            mDebugText.setText(s);
         }
     }
 

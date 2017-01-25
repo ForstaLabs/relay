@@ -64,16 +64,14 @@ public class LoginActivity extends BaseActionBarActivity {
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                finishActivity();
             }
         });
 
         mSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (mLoginEmailText.length() < 5 || mLoginPasswordText.length() < 8) {
-                    // Return some kind of error to the page.
                     Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_LONG).show();
                 } else {
                     CCSMLogin task = new CCSMLogin();
@@ -82,6 +80,16 @@ public class LoginActivity extends BaseActionBarActivity {
             }
         });
 
+    }
+
+    private void finishActivity() {
+        Intent nextIntent = getIntent().getParcelableExtra("next_intent");
+        if (nextIntent == null) {
+            nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
+        }
+
+        startActivity(nextIntent);
+        finish();
     }
 
     private class CCSMLogin extends AsyncTask<String, Void, JSONObject> {
@@ -98,16 +106,9 @@ public class LoginActivity extends BaseActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
             if (jsonObject.has("token")) {
-                Intent nextIntent = getIntent().getParcelableExtra("next_intent");
-
-                if (nextIntent == null) {
-                    nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
-                }
-
-                startActivity(nextIntent);
-                finish();
+                finishActivity();
             } else {
-                Toast.makeText(LoginActivity.this, "Sorry. No token found", Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
             }
         }
     }

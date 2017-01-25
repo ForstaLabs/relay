@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/forsta_login_title"
-        android:text="CCSM Login"
+        android:text=""
         android:layout_marginBottom="20dp"
         style="@style/TextAppearance.AppCompat.Medium"/>
     <TextView
