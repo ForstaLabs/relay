@@ -212,6 +212,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles = buildTypes.debug.proguardFiles
+            signingConfig signingConfigs.release
         }
         dev.initWith(buildTypes.debug)
         dev {
