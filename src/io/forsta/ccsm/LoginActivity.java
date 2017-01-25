@@ -64,7 +64,7 @@ public class LoginActivity extends BaseActionBarActivity {
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finishActivity();
+                finishLoginActivity();
             }
         });
 
@@ -82,7 +82,7 @@ public class LoginActivity extends BaseActionBarActivity {
 
     }
 
-    private void finishActivity() {
+    private void finishLoginActivity() {
         Intent nextIntent = getIntent().getParcelableExtra("next_intent");
         if (nextIntent == null) {
             nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
@@ -106,7 +106,7 @@ public class LoginActivity extends BaseActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
             if (jsonObject.has("token")) {
-                finishActivity();
+                finishLoginActivity();
             } else {
                 Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
             }
