@@ -42,13 +42,17 @@ public class CcsmApi {
     private static final String TAG = CcsmApi.class.getSimpleName();
     private static final String API_URL = "https://ccsm-dev-api.forsta.io/v1/";
     private static final String API_URL_LOCAL = "http://192.168.1.29:8000/v1/";
+    private static final String API_LOGIN = API_URL + "login";
+    private static final String API_USER = API_URL + "user";
+    private static final String API_TOKEN_REFRESH = API_URL + "api-token-refresh";
 
     private CcsmApi() {
 
     }
 
     public static JSONObject getContacts(Context context) {
-        return apiGet(context, "user");
+        String authKey = ForstaPreferences.getRegisteredKey(context);
+        return NetworkUtils.apiGet(authKey, API_USER);
     }
 
     public static JSONObject forstaLogin(Context context, String username, String password) {
@@ -58,7 +62,8 @@ public class CcsmApi {
             obj.put("email", username);
             obj.put("username", username);
             obj.put("password", password);
-            result = apiPost(context, "login", obj, false);
+            result = NetworkUtils.apiPost(null, API_LOGIN, obj);
+
             if (result.has("token")) {
                 String token = result.getString("token");
                 JSONObject user = result.getJSONObject("user");
@@ -76,11 +81,13 @@ public class CcsmApi {
     }
 
     public static JSONObject forstaRefreshToken(Context context) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
         JSONObject result = new JSONObject();
         try {
             JSONObject obj = new JSONObject();
             obj.put("token", ForstaPreferences.getRegisteredKey(context));
-            result = apiPost(context, "api-token-refresh", obj, false);
+            result = NetworkUtils.apiPost(authKey, API_TOKEN_REFRESH, obj);
+
             if (result.has("token")) {
                 String token = result.getString("token");
                 String existingToken = ForstaPreferences.getRegisteredKey(context);
@@ -98,112 +105,11 @@ public class CcsmApi {
         return result;
     }
 
-    private static JSONObject apiGet(Context context, String path) {
-        String authKey = ForstaPreferences.getRegisteredKey(context);
-        // TODO If no JWT token. Log error or do something.
-        HttpURLConnection conn = null;
-        JSONObject result = new JSONObject(); //Or null?
-        try {
-            path = !path.endsWith("/") ? path + "/" : path;
-            URL url = new URL(API_URL + path);
-
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Authorization", "JWT " + authKey);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-
-            String strResult = readResult(conn.getInputStream());
-            result = new JSONObject(strResult);
-            Log.d(TAG, result.toString());
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Bad URL.");
-        } catch (ConnectException e) {
-            Log.e(TAG, "Connect Exception.");
-            Log.d(TAG, e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "IO Exception.");
-            Log.d(TAG, e.getMessage());
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.d(TAG, "JSON Exception.");
-        } finally {
-            if (conn != null)
-                conn.disconnect();
-        }
-        return result;
-    }
-
-    private static JSONObject apiPost(Context context, String path, JSONObject data, boolean requireAuth) {
-        String authKey = ForstaPreferences.getRegisteredKey(context);
-        JSONObject result = new JSONObject();
-        HttpURLConnection conn = null;
-        try {
-
-            URL url = new URL(API_URL + fixApiPath(path));
-
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            if (requireAuth) {
-                conn.setRequestProperty("Authorization", "JWT " + authKey);
-            }
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-
-            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-            out.writeBytes(data.toString());
-            out.close();
-
-            result = new JSONObject(readResult(conn.getInputStream()));
-            Log.d(TAG, result.toString());
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Log.d(TAG, "Bad URL.");
-        } catch (ConnectException e) {
-            Log.d(TAG, "Connect Exception.");
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.d(TAG, "IO Exception.");
-            Log.d(TAG, e.getMessage());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.d(TAG, "JSON Exception.");
-        } finally {
-            if (conn != null)
-                conn.disconnect();
-        }
-        return result;
-    }
-
-    private static String fixApiPath(String path) {
-        return !path.endsWith("/") ? path + "/" : path;
-    }
-
+    // No longer used? Sends message directly to API endpoint instead of superman.
     public static JSONObject sendMessageToServer(Context context, SmsMessageRecord message) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
         JSONObject jsonObj = messageToJSONObject(message);
-        return apiPost(context, "message", jsonObj, true);
-    }
-
-    private static String readResult(InputStream input) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(input));
-        String line = null;
-        StringBuilder sb = new StringBuilder();
-        try {
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return sb.toString();
+        return NetworkUtils.apiPost(authKey, API_URL + "message", jsonObj);
     }
 
     private static JSONObject messageToJSONObject(SmsMessageRecord message) {

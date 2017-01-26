@@ -161,6 +161,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
         sb.append("Last Login: ");
         sb.append(lastLogin);
+        Date tokenExpire = ForstaPreferences.getRegisteredExpireDate(DashboardActivity.this);
+        sb.append("\n");
+        sb.append("Token Expires: ");
+        sb.append(tokenExpire);
         mLastLogin.setText(sb.toString());
     }
 
@@ -414,7 +418,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
-
+            mDebugText.setText(jsonObject.toString());
         }
     }
 
