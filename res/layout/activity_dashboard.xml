@@ -18,19 +18,45 @@
             android:layout_height="wrap_content"
             android:id="@+id/dashboard_login"
             android:paddingBottom="10dp"/>
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="10dp" android:visibility="gone">
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:ems="10"
+                android:id="@+id/dashboard_superman_number"/>
+            <Button android:id="@+id/dashboard_change_number_button"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:padding="0dp"
+                    android:text="Save"
+                style="@style/Widget.AppCompat.Button.Small"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <Button android:id="@+id/dashboard_login_button"
                     android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" android:text="Login">
+                    android:layout_width="wrap_content"
+                    android:text="Login">
+            </Button>
+            <Button android:id="@+id/dashboard_logout_button"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="Logout">
             </Button>
             <Button android:id="@+id/dashboard_refresh_token"
                     android:layout_height="wrap_content"
-                    android:layout_width="wrap_content" android:text="Refresh Token"
-                    android:layout_alignParentRight="true">
+                    android:layout_width="wrap_content"
+                    android:text="Refresh Token">
             </Button>
-        </RelativeLayout>
+        </LinearLayout>
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -48,7 +74,9 @@
             android:id="@+id/dashboard_selector"
             android:spinnerMode="dialog"/>
 
-    <ScrollView
+
+
+        <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent" android:background="@color/gray5" android:layout_marginTop="10dp">
         <TextView

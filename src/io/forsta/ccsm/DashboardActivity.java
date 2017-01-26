@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -24,6 +25,7 @@ import com.google.zxing.common.StringUtils;
 
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BaseActionBarActivity;
+import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.PassphraseRequiredActionBarActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.contacts.ContactsDatabase;
@@ -65,11 +67,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private TextView mLastLogin;
     private TextView mDebugText;
     private Button mLoginButton;
+    private Button mLogoutButton;
     private Button mTokenRefresh;
     private ToggleButton mDebugToggle;
     private CheckBox mToggleSyncMessages;
     private MasterSecret mMasterSecret;
     private Spinner mSpinner;
+    private EditText mSyncNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -79,6 +83,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private void initView() {
+        mSyncNumber = (EditText) findViewById(R.id.dashboard_superman_number);
         mLastLogin = (TextView) findViewById(R.id.dashboard_login);
         mDebugText = (TextView) findViewById(R.id.debug_text);
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
@@ -127,6 +132,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             }
         });
 
+        mLogoutButton = (Button) findViewById(R.id.dashboard_logout_button);
+        mLogoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ForstaPreferences.clearPreferences(DashboardActivity.this);
+            }
+        });
         mLoginButton = (Button) findViewById(R.id.dashboard_login_button);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,9 +168,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
             }
         });
+        printLoginInformation();
+    }
+
+    private void printLoginInformation() {
+        String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(DashboardActivity.this);
+        String smNumber = debugSyncNumber != "" ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
+
+        mSyncNumber.setText(smNumber);
         StringBuilder sb = new StringBuilder();
-        String token = ForstaPreferences.getRegisteredKey(DashboardActivity.this);
         String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
+        sb.append("Forsta Sync Number: ");
+        sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
+        sb.append("\n");
         sb.append("Last Login: ");
         sb.append(lastLogin);
         Date tokenExpire = ForstaPreferences.getRegisteredExpireDate(DashboardActivity.this);
@@ -418,6 +440,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
+            printLoginInformation();
             mDebugText.setText(jsonObject.toString());
         }
     }

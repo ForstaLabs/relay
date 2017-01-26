@@ -112,12 +112,11 @@ public class LoginActivity extends BaseActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            Log.d(TAG, jsonObject.toString());
-            mLinearLayout.setVisibility(View.VISIBLE);
-            mLoginProgressBar.setVisibility(View.GONE);
             if (jsonObject.has("token")) {
                 finishLoginActivity();
             } else {
+                mLoginProgressBar.setVisibility(View.GONE);
+                mLinearLayout.setVisibility(View.VISIBLE);
                 Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
             }
         }

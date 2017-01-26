@@ -89,14 +89,11 @@ public class CcsmApi {
             result = NetworkUtils.apiPost(authKey, API_TOKEN_REFRESH, obj);
 
             if (result.has("token")) {
+                Log.d(TAG, "Token refresh. New token issued.");
                 String token = result.getString("token");
-                String existingToken = ForstaPreferences.getRegisteredKey(context);
-                if (existingToken.equals(token)) {
-                    Log.d(TAG, "Token refresh. Not expired");
-                } else {
-                    Log.d(TAG, "Token refresh. New token issued.");
-                    ForstaPreferences.setRegisteredForsta(context, result.getString("token"));
-                }
+                ForstaPreferences.setRegisteredForsta(context, token);
+            } else {
+                ForstaPreferences.setRegisteredForsta(context, "");
             }
         } catch (Exception e) {
             e.printStackTrace();

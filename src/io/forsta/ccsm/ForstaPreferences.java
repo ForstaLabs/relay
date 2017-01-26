@@ -13,6 +13,7 @@ import org.thoughtcrime.securesms.util.Base64;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by jlewis on 1/6/17.
@@ -21,6 +22,7 @@ import java.util.Date;
 public class ForstaPreferences {
     private static final String API_KEY = "api_key";
     private static final String API_LAST_LOGIN = "last_login";
+    private static final String FORSTA_SYNC_NUMBER = "forsta_sync_number";
     private static final String CCSM_DEBUG = "ccsm_debug";
 
     public static boolean isRegisteredForsta(Context context) {
@@ -29,6 +31,11 @@ public class ForstaPreferences {
             return true;
         }
         return false;
+    }
+
+    public static void clearPreferences(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(API_KEY, "").putString(API_LAST_LOGIN, "").putBoolean(CCSM_DEBUG, false).apply();
     }
 
     public static void setRegisteredForsta(Context context, String value) {
@@ -82,6 +89,14 @@ public class ForstaPreferences {
     public static void setRegisteredDateTime(Context context, String lastLogin) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(API_LAST_LOGIN, lastLogin).apply();
+    }
+
+    public static void setForstaSyncNumber(Context context, String number) {
+        setStringPreference(context, FORSTA_SYNC_NUMBER, number);
+    }
+
+    public static String getForstaSyncNumber(Context context) {
+        return getStringPreference(context, FORSTA_SYNC_NUMBER);
     }
 
     private static void setStringPreference(Context context, String key, String value) {

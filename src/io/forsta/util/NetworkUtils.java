@@ -51,10 +51,22 @@ public class NetworkUtils {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
 
-            String strResult = readResult(conn.getInputStream());
-            result = new JSONObject(strResult);
-            Log.d(TAG, result.toString());
-
+            int response = conn.getResponseCode();
+            switch (response) {
+                case 200: {
+                    String strResult = readResult(conn.getInputStream());
+                    result = new JSONObject(strResult);
+                    break;
+                }
+                case 401: {
+                    result.put("error", "Unauthorized");
+                    break;
+                }
+                case 403: {
+                    result.put("error", "Permission Denied");
+                    break;
+                }
+            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
             Log.e(TAG, "Bad URL.");
@@ -95,9 +107,14 @@ public class NetworkUtils {
             out.writeBytes(data.toString());
             out.close();
 
-            result = new JSONObject(readResult(conn.getInputStream()));
-            Log.d(TAG, result.toString());
-
+            int response = conn.getResponseCode();
+            if (response == 200) {
+                result = new JSONObject(readResult(conn.getInputStream()));
+                Log.d(TAG, result.toString());
+            } else {
+                // 400 on invalid login.
+                result.put("error", "Login Failed");
+            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
             Log.d(TAG, "Bad URL.");
