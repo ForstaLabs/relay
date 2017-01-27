@@ -3,9 +3,7 @@ package io.forsta.ccsm;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -15,16 +13,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import com.google.zxing.common.StringUtils;
-
 import org.json.JSONObject;
-import org.thoughtcrime.securesms.BaseActionBarActivity;
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.PassphraseRequiredActionBarActivity;
 import org.thoughtcrime.securesms.R;
@@ -33,7 +26,6 @@ import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
 import org.thoughtcrime.securesms.database.EncryptingSmsDatabase;
 import org.thoughtcrime.securesms.database.IdentityDatabase;
-import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.MmsSmsDatabase;
 import org.thoughtcrime.securesms.database.RecipientPreferenceDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
@@ -41,12 +33,10 @@ import org.thoughtcrime.securesms.database.TextSecureDirectory;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
 import org.thoughtcrime.securesms.database.model.SmsMessageRecord;
-import org.thoughtcrime.securesms.mms.SlideDeck;
 import org.thoughtcrime.securesms.push.TextSecureCommunicationFactory;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFactory;
 import org.thoughtcrime.securesms.recipients.Recipients;
-import org.thoughtcrime.securesms.util.DateUtils;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
@@ -60,11 +50,9 @@ import java.util.Date;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.util.NetworkUtils;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
-    private TextView mLastLogin;
     private TextView mDebugText;
     private Button mLoginButton;
     private Button mLogoutButton;
@@ -83,12 +71,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private void initView() {
-        mSyncNumber = (EditText) findViewById(R.id.dashboard_superman_number);
-        mLastLogin = (TextView) findViewById(R.id.dashboard_login);
+        mSyncNumber = (EditText) findViewById(R.id.dashboard_sync_number);
         mDebugText = (TextView) findViewById(R.id.debug_text);
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
-        options.add("Select An Option");
+        options.add("Login Information");
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -102,6 +89,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
+                    case 0:
+                        printLoginInformation();
+                        break;
                     case 1:
                         GetApiContacts api = new GetApiContacts();
                         api.execute();
@@ -128,7 +118,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                printLoginInformation();
             }
         });
 
@@ -137,17 +127,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             @Override
             public void onClick(View v) {
                 ForstaPreferences.clearPreferences(DashboardActivity.this);
+                startLoginIntent();
             }
         });
         mLoginButton = (Button) findViewById(R.id.dashboard_login_button);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
-                Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
-                intent.putExtra("next_intent", nextIntent);
-                startActivity(intent);
-                finish();
+                startLoginIntent();
             }
         });
 
@@ -171,6 +158,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         printLoginInformation();
     }
 
+    private void startLoginIntent() {
+        Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
+        Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
+        intent.putExtra("next_intent", nextIntent);
+        startActivity(intent);
+        finish();
+    }
+
     private void printLoginInformation() {
         String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(DashboardActivity.this);
         String smNumber = debugSyncNumber != "" ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
@@ -183,11 +178,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
         sb.append("Last Login: ");
         sb.append(lastLogin);
-        Date tokenExpire = ForstaPreferences.getRegisteredExpireDate(DashboardActivity.this);
+        Date tokenExpire = ForstaPreferences.getTokenExpireDate(DashboardActivity.this);
         sb.append("\n");
         sb.append("Token Expires: ");
         sb.append(tokenExpire);
-        mLastLogin.setText(sb.toString());
+        mDebugText.setText(sb.toString());
     }
 
     private String printSystemContacts() {
@@ -441,7 +436,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             Log.d(TAG, jsonObject.toString());
             printLoginInformation();
-            mDebugText.setText(jsonObject.toString());
         }
     }
 

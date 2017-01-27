@@ -171,6 +171,7 @@ android {
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "boolean", "DEV_BUILD", "true"
         buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+12086391772\""
+        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
     }
 
     compileOptions {

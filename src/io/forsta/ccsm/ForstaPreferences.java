@@ -15,6 +15,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
 
+import io.forsta.ccsm.api.CcsmApi;
+
 /**
  * Created by jlewis on 1/6/17.
  */
@@ -24,18 +26,15 @@ public class ForstaPreferences {
     private static final String API_LAST_LOGIN = "last_login";
     private static final String FORSTA_SYNC_NUMBER = "forsta_sync_number";
     private static final String CCSM_DEBUG = "ccsm_debug";
-
-    public static boolean isRegisteredForsta(Context context) {
-        String key = ForstaPreferences.getStringPreference(context, API_KEY);
-        if (key !=  "") {
-            return true;
-        }
-        return false;
-    }
+    private static final String FORSTA_API_HOST = "forsta_api_url";
 
     public static void clearPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(API_KEY, "").putString(API_LAST_LOGIN, "").putBoolean(CCSM_DEBUG, false).apply();
+    }
+
+    public static boolean isRegisteredForsta(Context context) {
+        return ForstaPreferences.getRegisteredKey(context) != "";
     }
 
     public static void setRegisteredForsta(Context context, String value) {
@@ -46,7 +45,7 @@ public class ForstaPreferences {
         return getStringPreference(context, API_KEY);
     }
 
-    public static Date getRegisteredExpireDate(Context context) {
+    public static Date getTokenExpireDate(Context context) {
         Date expireDate = new Date();
         String token = getStringPreference(context, API_KEY);
         String[] tokenParts = token.split("\\.");
@@ -57,8 +56,6 @@ public class ForstaPreferences {
                 JSONObject obj = new JSONObject(payloadString);
                 if (obj.has("exp")) {
                     int expire = obj.getInt("exp");
-                    Date dt = new Date(expire);
-
                     long expireTime = (long) expire * 1000;
                     expireDate = new Date(expireTime);
                 }
@@ -97,6 +94,14 @@ public class ForstaPreferences {
 
     public static String getForstaSyncNumber(Context context) {
         return getStringPreference(context, FORSTA_SYNC_NUMBER);
+    }
+
+    public static void setForstaApiHost(Context context, String host) {
+        setStringPreference(context, FORSTA_API_HOST, host);
+    }
+
+    public static String getForstaApiHost(Context context) {
+        return getStringPreference(context, FORSTA_API_HOST);
     }
 
     private static void setStringPreference(Context context, String key, String value) {

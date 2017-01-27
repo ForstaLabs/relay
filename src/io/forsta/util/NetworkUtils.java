@@ -34,9 +34,8 @@ import io.forsta.ccsm.ForstaPreferences;
 
 public class NetworkUtils {
     private static final String TAG = NetworkUtils.class.getSimpleName();
-    private NetworkUtils() {
 
-    }
+    private NetworkUtils() { }
 
     public static JSONObject apiGet(String authKey, String path) {
         HttpURLConnection conn = null;

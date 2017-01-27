@@ -33,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.components.RatingManager;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
@@ -46,6 +47,8 @@ import org.thoughtcrime.securesms.util.DynamicTheme;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 
 import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener
@@ -72,6 +75,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
     getSupportActionBar().setTitle(R.string.app_name);
     fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+
+    if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
+      RefreshToken refreshToken = new RefreshToken();
+      refreshToken.execute();
+    }
 
     initializeContactUpdatesReceiver();
 
@@ -247,5 +255,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI,
                                                  true, observer);
+  }
+
+  private class RefreshToken extends AsyncTask<Void, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(Void... params) {
+      return CcsmApi.forstaRefreshToken(getApplicationContext());
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      // Notify UI that something has happened?
+    }
   }
 }

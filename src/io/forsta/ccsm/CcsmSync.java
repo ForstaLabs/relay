@@ -30,19 +30,15 @@ import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
 import java.util.List;
 
-import io.forsta.util.ForstaRelayService;
-
 /**
  * Created by jlewis on 1/18/17.
  */
 
 public class CcsmSync {
     private static final String TAG = CcsmSync.class.getSimpleName();
-    private static final String mSupermanNumber = BuildConfig.FORSTA_SYNC_NUMBER;
+    private static final String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
 
-    private CcsmSync() {
-
-    }
+    private CcsmSync() { }
 
     public static void syncMediaMessage(MasterSecret masterSecret, Context context, OutgoingMediaMessage message) {
         try {
@@ -66,11 +62,10 @@ public class CcsmSync {
             Recipients recipients = message.getRecipients();
             boolean keyExchange = message.isKeyExchange();
 
-            // Check to see if message is for superman.
             Recipient primaryRecipient = recipients.getPrimaryRecipient();
             String primary = primaryRecipient.getNumber();
-
-            if (!keyExchange && !primary.equals(mSupermanNumber)) {
+            // Don't duplicate keyexchanges or direct messages to sync number.
+            if (!keyExchange && !primary.equals(mForstaSyncNumber)) {
                 syncMessage(masterSecret, context, recipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
             }
         } catch (Exception e) {
@@ -81,14 +76,17 @@ public class CcsmSync {
 
     private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, long expiresIn, int subscriptionId) {
         EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(context);
-        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, mSupermanNumber, false);
+        Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, mForstaSyncNumber, false);
         JSONObject jsonBody = createMessageBody(context, recipients, body);
         OutgoingTextMessage superMessage = new OutgoingTextMessage(superRecipients, jsonBody.toString(), expiresIn, subscriptionId);
+
+        // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
         // For debugging. Turn on view of superman threads in the ConverstationListActivity.
         long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
-
         long superMessageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), superThreadId, superMessage, false, System.currentTimeMillis());
+
         Log.d(TAG, "Forsta Sync. Sending Sync Message.");
+
         MessageSender.sendTextMessage(context, superRecipients, false, false, superMessageId, superMessage.getExpiresIn());
     }
 

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -13,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.WindowManager;
 
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.crypto.MasterSecretUtil;
 import org.thoughtcrime.securesms.service.KeyCachingService;
@@ -23,6 +25,7 @@ import java.util.Locale;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
+import io.forsta.ccsm.api.CcsmApi;
 
 public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarActivity implements MasterSecretListener {
   private static final String TAG = PassphraseRequiredActionBarActivity.class.getSimpleName();
@@ -148,7 +151,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   }
 
   private int getApplicationState(MasterSecret masterSecret) {
-    if (!MasterSecretUtil.isPassphraseInitialized(this)) {
+    if (!ForstaPreferences.isRegisteredForsta(this)) {
+      return STATE_FORSTA_LOGIN;
+    } else if (!MasterSecretUtil.isPassphraseInitialized(this)) {
       return STATE_CREATE_PASSPHRASE;
     } else if (ExperienceUpgradeActivity.isUpdate(this)) {
       return STATE_EXPERIENCE_UPGRADE;
@@ -156,8 +161,6 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
       return STATE_PROMPT_PASSPHRASE;
     } else if (DatabaseUpgradeActivity.isUpdate(this)) {
       return STATE_UPGRADE_DATABASE;
-    } else if (!ForstaPreferences.isRegisteredForsta(this)) {
-      return STATE_FORSTA_LOGIN;
     } else if (!TextSecurePreferences.hasPromptedPushRegistration(this)) {
       return STATE_PROMPT_PUSH_REGISTRATION;
     } else {
@@ -166,7 +169,6 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   }
 
   private Intent getForstaLogin() {
-    // Start the login intent, then return to the caller.
     return getRoutedIntent(LoginActivity.class, getIntent(), null);
   }
 
@@ -225,4 +227,5 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
       clearKeyReceiver = null;
     }
   }
+
 }
