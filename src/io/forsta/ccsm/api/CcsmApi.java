@@ -102,7 +102,7 @@ public class CcsmApi {
         return result;
     }
 
-    // No longer used? Sends message directly to API endpoint instead of superman.
+    // No longer used. Sends message directly to API endpoint instead of superman.
     public static JSONObject sendMessageToServer(Context context, SmsMessageRecord message) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         JSONObject jsonObj = messageToJSONObject(message);
