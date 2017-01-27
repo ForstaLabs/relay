@@ -373,7 +373,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
                 Recipients recipients = record.getRecipients();
                 List<Recipient> rlist = recipients.getRecipientsList();
-
+                sb.append("ThreadId: ");
+                sb.append(record.getThreadId());
+                sb.append("\n");
                 sb.append("Sent: ");
                 sb.append(formatter.format(sent)).append("\n");
                 sb.append("To: ");
