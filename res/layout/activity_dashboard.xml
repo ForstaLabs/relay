@@ -5,47 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="io.forsta.ccsm.DashboardActivity">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_margin="5dp"
-        android:id="@+id/dashboard_button_container">
-        <Button android:id="@+id/dashboard_login_button"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                style="?borderlessButtonStyle"
-                android:background="@color/textsecure_holo_blue_light"
-                android:text="Login"
-            android:layout_alignParentLeft="true">
-        </Button>
-        <Button android:id="@+id/dashboard_logout_button"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                style="?borderlessButtonStyle"
-                android:background="@color/textsecure_holo_blue_light"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_toRightOf="@+id/dashboard_login_button"
-                android:text="Logout">
-        </Button>
-        <Button android:id="@+id/dashboard_refresh_token"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                style="?borderlessButtonStyle"
-                android:padding="5dp"
-                android:background="@color/textsecure_holo_blue_light"
-                android:layout_alignParentRight="true"
-                android:text="Refresh Token">
-        </Button>
-    </RelativeLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="13dp"
-        android:paddingTop="0dp"
-        android:layout_below="@+id/dashboard_button_container">
+        android:paddingTop="0dp">
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

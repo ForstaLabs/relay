@@ -7,6 +7,9 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -54,10 +57,6 @@ import io.forsta.ccsm.api.CcsmApi;
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
-    private Button mLoginButton;
-    private Button mLogoutButton;
-    private Button mTokenRefresh;
-    private ToggleButton mDebugToggle;
     private CheckBox mToggleSyncMessages;
     private MasterSecret mMasterSecret;
     private Spinner mSpinner;
@@ -70,6 +69,36 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         initView();
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuInflater inflater = new MenuInflater(DashboardActivity.this);
+        menu.clear();
+        inflater.inflate(R.menu.dashboard, menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_dashboard_login: {
+                startLoginIntent();
+                break;
+            }
+            case R.id.menu_dashboard_logout: {
+                ForstaPreferences.clearPreferences(DashboardActivity.this);
+                startLoginIntent();
+                break;
+            }
+
+            case R.id.menu_dashboard_token_refresh: {
+                RefreshApiToken refresh = new RefreshApiToken();
+                refresh.execute();
+                break;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void initView() {
         mSyncNumber = (EditText) findViewById(R.id.dashboard_sync_number);
         mDebugText = (TextView) findViewById(R.id.debug_text);
@@ -80,6 +109,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
         options.add("SMS and MMS Messages");
+        options.add("SMS Messages");
         options.add("TextSecure Contacts");
         options.add("All Contacts");
 
@@ -108,9 +138,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         getMessages.execute();
                         break;
                     case 5:
-                        mDebugText.setText(printTextSecureContacts());
+                        mDebugText.setText(printSmsMessages());
                         break;
                     case 6:
+                        mDebugText.setText(printTextSecureContacts());
+                        break;
+                    case 7:
                         mDebugText.setText(printSystemContacts());
                         break;
                 }
@@ -118,32 +151,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                printLoginInformation();
-            }
-        });
 
-        mLogoutButton = (Button) findViewById(R.id.dashboard_logout_button);
-        mLogoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ForstaPreferences.clearPreferences(DashboardActivity.this);
-                startLoginIntent();
-            }
-        });
-        mLoginButton = (Button) findViewById(R.id.dashboard_login_button);
-        mLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startLoginIntent();
-            }
-        });
-
-        mTokenRefresh = (Button) findViewById(R.id.dashboard_refresh_token);
-        mTokenRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RefreshApiToken refresh = new RefreshApiToken();
-                refresh.execute();
             }
         });
 
