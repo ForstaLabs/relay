@@ -32,7 +32,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.components.RatingManager;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
@@ -45,9 +44,7 @@ import org.thoughtcrime.securesms.service.KeyCachingService;
 import org.thoughtcrime.securesms.util.DynamicLanguage;
 import org.thoughtcrime.securesms.util.DynamicTheme;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
-
 import io.forsta.ccsm.DashboardActivity;
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
