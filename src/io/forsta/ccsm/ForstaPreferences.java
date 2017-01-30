@@ -3,19 +3,11 @@ package io.forsta.ccsm;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.spongycastle.util.encoders.Base64Encoder;
 import org.thoughtcrime.securesms.util.Base64;
-
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.Date;
-import java.util.Map;
-
-import io.forsta.ccsm.api.CcsmApi;
 
 /**
  * Created by jlewis on 1/6/17.

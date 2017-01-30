@@ -1,15 +1,11 @@
 package io.forsta.ccsm.api;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BuildConfig;
-
 import java.util.Date;
-
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.util.NetworkUtils;
 
