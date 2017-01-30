@@ -95,7 +95,7 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="org.thoughtcrime.securesms.permission.C2D_MESSAGE" />
-
+    <!-- Old key AIzaSyCSx9xea86GwDKGznCAULE9Y5a8b-TfN9U -->
     <application
         android:name=".ApplicationContext"
         android:allowBackup="false"
@@ -106,7 +106,7 @@
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCSx9xea86GwDKGznCAULE9Y5a8b-TfN9U" />
+            android:value="AIzaSyD0hDDyBcplwkYtn-2j_1rx-aOu9d-J1o0" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

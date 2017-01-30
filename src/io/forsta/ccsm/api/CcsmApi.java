@@ -19,6 +19,7 @@ public class CcsmApi {
     private static final String API_TOKEN_REFRESH = API_URL + "/v1/api-token-refresh";
     private static final String API_LOGIN = API_URL + "/v1/login";
     private static final String API_USER = API_URL + "/v1/user";
+    private static final long EXPIRE_REFRESH_DELTA = 7L;
 
     private CcsmApi() { }
 
@@ -57,7 +58,7 @@ public class CcsmApi {
         Date expireDate = ForstaPreferences.getTokenExpireDate(context);
         Date current = new Date();
         long expiresIn = (expireDate.getTime() - current.getTime())/(1000 * 60 * 60 * 24);
-        long expireDelta = 7L;
+        long expireDelta = EXPIRE_REFRESH_DELTA;
         boolean expired = expiresIn < expireDelta;
 
         Log.d(TAG, "Token expires in: " + expiresIn);
