@@ -6,6 +6,12 @@
     <string name="delete">Delete</string>
     <string name="please_wait">Please wait...</string>
 
+    <!-- Forsta Strings -->
+    <string name="forsta_login_title">Join Forsta</string>
+    <string name="forsta_login_email_label">Email</string>
+    <string name="forsta_login_password_label">Password</string>
+    <string name="forsta_login_security_code">Security Code</string>
+
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 

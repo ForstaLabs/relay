@@ -17,13 +17,12 @@ import io.forsta.ccsm.api.CcsmApi;
 
 public class LoginActivity extends BaseActionBarActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
-    private Button mCancelButton;
     private Button mSubmitButton;
     private TextView mLoginEmailText;
     private TextView mLoginPasswordText;
     private TextView mLoginTitle;
     private ProgressBar mLoginProgressBar;
-    private LinearLayout mLinearLayout;
+    private LinearLayout mFormContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,19 +33,12 @@ public class LoginActivity extends BaseActionBarActivity {
     }
 
     private void initializeView() {
-        mLinearLayout = (LinearLayout) findViewById(R.id.linearLayout);
+        mFormContainer = (LinearLayout) findViewById(R.id.login_form_container);
         mLoginProgressBar = (ProgressBar) findViewById(R.id.login_progress_bar);
         mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
-        mCancelButton = (Button) findViewById(R.id.forsta_cancel_login);
         mSubmitButton = (Button) findViewById(R.id.forsta_submit_login);
         mLoginEmailText = (TextView) findViewById(R.id.forsta_login_email);
         mLoginPasswordText = (TextView) findViewById(R.id.forsta_login_password);
-        mCancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finishLoginActivity();
-            }
-        });
 
         mSubmitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,7 +46,7 @@ public class LoginActivity extends BaseActionBarActivity {
                 if (mLoginEmailText.length() < 5 || mLoginPasswordText.length() < 8) {
                     Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_LONG).show();
                 } else {
-                    mLinearLayout.setVisibility(View.GONE);
+                    mFormContainer.setVisibility(View.GONE);
                     mLoginProgressBar.setVisibility(View.VISIBLE);
                     CCSMLogin task = new CCSMLogin();
                     task.execute(mLoginEmailText.getText().toString(), mLoginPasswordText.getText().toString());
@@ -90,7 +82,7 @@ public class LoginActivity extends BaseActionBarActivity {
                 finishLoginActivity();
             } else {
                 mLoginProgressBar.setVisibility(View.GONE);
-                mLinearLayout.setVisibility(View.VISIBLE);
+                mFormContainer.setVisibility(View.VISIBLE);
                 Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
             }
         }
