@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.forsta.securesms.BuildConfig;
+import io.forsta.securesms.BuildConfig;
 import java.util.Date;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.util.NetworkUtils;

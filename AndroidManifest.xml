@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="org.forsta.securesms"
+    package="io.forsta.securesms"
     android:versionCode="100"
     android:versionName="1.0.1">
 
     <uses-sdk tools:overrideLibrary="com.amulyakhare.textdrawable,com.astuetz.pagerslidingtabstrip,pl.tajchert.waitingdots,com.h6ah4i.android.multiselectlistpreferencecompat" />
 
     <permission
-        android:name="org.forsta.securesms.ACCESS_SECRETS"
+        android:name="io.forsta.securesms.ACCESS_SECRETS"
         android:label="Access to TextSecure Secrets"
         android:protectionLevel="signature" />
 
@@ -40,7 +40,7 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <uses-permission android:name="org.forsta.securesms.ACCESS_SECRETS" />
+    <uses-permission android:name="io.forsta.securesms.ACCESS_SECRETS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.WRITE_PROFILE" />
     <uses-permission
@@ -91,13 +91,13 @@
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
     <permission
-        android:name="org.forsta.securesms.permission.C2D_MESSAGE"
+        android:name="io.forsta.securesms.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="org.forsta.securesms.permission.C2D_MESSAGE" />
+    <uses-permission android:name="io.forsta.securesms.permission.C2D_MESSAGE" />
     <!-- Old key AIzaSyCSx9xea86GwDKGznCAULE9Y5a8b-TfN9U -->
     <application
-        android:name="org.forsta.securesms.ApplicationContext"
+        android:name="io.forsta.securesms.ApplicationContext"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -111,32 +111,32 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <meta-data
-            android:name="org.forsta.securesms.mms.TextSecureGlideModule"
+            android:name="io.forsta.securesms.mms.TextSecureGlideModule"
             android:value="GlideModule" />
 
         <activity
-            android:name="org.forsta.securesms.CountrySelectionActivity"
+            android:name=".CountrySelectionActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.ImportExportActivity"
+            android:name=".ImportExportActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.InviteActivity"
+            android:name=".InviteActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:parentActivityName="org.forsta.securesms.ConversationListActivity"
+            android:parentActivityName=".ConversationListActivity"
             android:theme="@style/TextSecure.HighlightTheme"
             android:windowSoftInputMode="stateHidden">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.forsta.securesms.ConversationListActivity" />
+                android:value=".ConversationListActivity" />
         </activity>
         <activity
-            android:name="org.forsta.securesms.PromptMmsActivity"
+            android:name=".PromptMmsActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="Configure MMS Settings"
             android:windowSoftInputMode="stateUnchanged" />
         <activity
-            android:name="org.forsta.securesms.DeviceProvisioningActivity"
+            android:name=".DeviceProvisioningActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -148,10 +148,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.forsta.securesms.preferences.MmsPreferencesActivity"
+            android:name=".preferences.MmsPreferencesActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.ShareActivity"
+            android:name=".ShareActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
@@ -169,7 +169,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.forsta.securesms.ConversationListActivity"
+            android:name=".ConversationListActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:exported="true"
             android:label="@string/app_name"
@@ -178,7 +178,7 @@
         <activity-alias
             android:name=".RoutingActivity"
             android:exported="true"
-            android:targetActivity="org.forsta.securesms.ConversationListActivity">
+            android:targetActivity=".ConversationListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -195,27 +195,27 @@
         </activity-alias>
 
         <activity
-            android:name="org.forsta.securesms.ConversationListArchiveActivity"
+            android:name=".ConversationListArchiveActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest_archived_conversations"
             android:launchMode="singleTask"
-            android:parentActivityName="org.forsta.securesms.ConversationListActivity">
+            android:parentActivityName=".ConversationListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.forsta.securesms.ConversationListActivity" />
+                android:value=".ConversationListActivity" />
         </activity>
         <activity
-            android:name="org.forsta.securesms.ConversationActivity"
+            android:name=".ConversationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
-            android:parentActivityName="org.forsta.securesms.ConversationListActivity"
+            android:parentActivityName=".ConversationListActivity"
             android:windowSoftInputMode="stateUnchanged">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.forsta.securesms.ConversationListActivity" />
+                android:value=".ConversationListActivity" />
         </activity>
         <activity
-            android:name="org.forsta.securesms.ConversationPopupActivity"
+            android:name=".ConversationPopupActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
@@ -223,92 +223,92 @@
             android:theme="@style/TextSecure.LightTheme.Popup"
             android:windowSoftInputMode="stateVisible" />
         <activity
-            android:name="org.forsta.securesms.MessageDetailsActivity"
+            android:name=".MessageDetailsActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__message_details"
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name="org.forsta.securesms.GroupCreateActivity"
+            android:name=".GroupCreateActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:windowSoftInputMode="stateVisible" />
         <activity
-            android:name="org.forsta.securesms.DatabaseMigrationActivity"
+            android:name=".DatabaseMigrationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
             android:theme="@style/NoAnimation.Theme.AppCompat.Light.DarkActionBar" />
         <activity
-            android:name="org.forsta.securesms.DatabaseUpgradeActivity"
+            android:name=".DatabaseUpgradeActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
             android:theme="@style/NoAnimation.Theme.AppCompat.Light.DarkActionBar" />
         <activity
-            android:name="org.forsta.securesms.ExperienceUpgradeActivity"
+            android:name=".ExperienceUpgradeActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name="org.forsta.securesms.PassphraseCreateActivity"
+            android:name=".PassphraseCreateActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__create_passphrase"
             android:launchMode="singleTask"
             android:theme="@style/TextSecure.LightIntroTheme"
             android:windowSoftInputMode="stateUnchanged" />
         <activity
-            android:name="org.forsta.securesms.PassphrasePromptActivity"
+            android:name=".PassphrasePromptActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__enter_passphrase"
             android:launchMode="singleTask"
             android:theme="@style/TextSecure.LightIntroTheme"
             android:windowSoftInputMode="stateAlwaysVisible" />
         <activity
-            android:name="org.forsta.securesms.NewConversationActivity"
+            android:name=".NewConversationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.LightNoActionBar"
             android:windowSoftInputMode="stateAlwaysVisible" />
         <activity
-            android:name="org.forsta.securesms.PushContactSelectionActivity"
+            android:name=".PushContactSelectionActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__select_contacts"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name="org.forsta.securesms.PassphraseChangeActivity"
+            android:name=".PassphraseChangeActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__change_passphrase" />
         <activity
-            android:name="org.forsta.securesms.VerifyIdentityActivity"
+            android:name=".VerifyIdentityActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.ApplicationPreferencesActivity"
+            android:name=".ApplicationPreferencesActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.RegistrationActivity"
+            android:name=".RegistrationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:windowSoftInputMode="stateUnchanged" />
         <activity
-            android:name="org.forsta.securesms.RegistrationProgressActivity"
+            android:name=".RegistrationProgressActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
         <activity
-            android:name="org.forsta.securesms.DeviceActivity"
+            android:name=".DeviceActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__linked_devices" />
         <activity
-            android:name="org.forsta.securesms.LogSubmitActivity"
+            android:name=".LogSubmitActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__log_submit"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name="org.forsta.securesms.MediaPreviewActivity"
+            android:name=".MediaPreviewActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__media_preview"
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name="org.forsta.securesms.MediaOverviewActivity"
+            android:name=".MediaOverviewActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name="org.forsta.securesms.DummyActivity"
+            android:name=".DummyActivity"
             android:allowTaskReparenting="true"
             android:alwaysRetainTaskState="false"
             android:clearTaskOnLaunch="true"
@@ -319,10 +319,10 @@
             android:stateNotNeeded="true"
             android:theme="@android:style/Theme.NoDisplay" />
         <activity
-            android:name="org.forsta.securesms.PlayServicesProblemActivity"
+            android:name=".PlayServicesProblemActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.DialogActivity" />
-        <activity android:name="org.forsta.securesms.SmsSendtoActivity">
+        <activity android:name=".SmsSendtoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SENDTO" />
                 <action android:name="android.intent.action.VIEW" />
@@ -340,33 +340,33 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:mimeType="vnd.android.cursor.item/vnd.org.forsta.securesms.contact" />
+                <data android:mimeType="vnd.android.cursor.item/vnd.io.forsta.securesms.contact" />
             </intent-filter>
         </activity>
         <activity
-            android:name="org.forsta.securesms.RecipientPreferenceActivity"
+            android:name=".RecipientPreferenceActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.LightNoActionBar" />
         <activity
-            android:name="org.forsta.securesms.BlockedContactsActivity"
+            android:name=".BlockedContactsActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.LightTheme" />
         <activity android:name="com.soundcloud.android.crop.CropImageActivity" />
 
         <service
-            android:name="org.forsta.securesms.service.ApplicationMigrationService"
+            android:name=".service.ApplicationMigrationService"
             android:enabled="true" />
         <service
-            android:name="org.forsta.securesms.service.KeyCachingService"
+            android:name=".service.KeyCachingService"
             android:enabled="true" />
         <service
-            android:name="org.forsta.securesms.service.RegistrationService"
+            android:name=".service.RegistrationService"
             android:enabled="true" />
         <service
-            android:name="org.forsta.securesms.service.MessageRetrievalService"
+            android:name=".service.MessageRetrievalService"
             android:enabled="true" />
         <service
-            android:name="org.forsta.securesms.service.QuickResponseService"
+            android:name=".service.QuickResponseService"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
@@ -381,7 +381,7 @@
             </intent-filter>
         </service>
         <service
-            android:name="org.forsta.securesms.service.AccountAuthenticatorService"
+            android:name=".service.AccountAuthenticatorService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -392,7 +392,7 @@
                 android:resource="@xml/authenticator" />
         </service>
         <service
-            android:name="org.forsta.securesms.service.ContactsSyncAdapterService"
+            android:name=".service.ContactsSyncAdapterService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -407,16 +407,16 @@
         </service>
 
         <receiver
-            android:name="org.forsta.securesms.gcm.GcmBroadcastReceiver"
+            android:name=".gcm.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
 
-                <category android:name="org.forsta.securesms" />
+                <category android:name="io.forsta.securesms" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.service.SmsListener"
+            android:name=".service.SmsListener"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
@@ -428,14 +428,14 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.service.SmsDeliveryListener"
+            android:name=".service.SmsDeliveryListener"
             android:exported="true">
             <intent-filter>
-                <action android:name="org.forsta.securesms.services.MESSAGE_SENT" />
+                <action android:name="io.forsta.securesms.services.MESSAGE_SENT" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.service.MmsListener"
+            android:name=".service.MmsListener"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
@@ -451,57 +451,57 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.notifications.MarkReadReceiver"
+            android:name=".notifications.MarkReadReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="org.forsta.securesms.notifications.CLEAR" />
+                <action android:name="io.forsta.securesms.notifications.CLEAR" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.notifications.WearReplyReceiver"
+            android:name=".notifications.WearReplyReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
-                <action android:name="org.forsta.securesms.notifications.WEAR_REPLY" />
+                <action android:name="io.forsta.securesms.notifications.WEAR_REPLY" />
             </intent-filter>
         </receiver>
 
         <provider
-            android:name="org.forsta.securesms.providers.PartProvider"
-            android:authorities="org.forsta.provider.securesms"
+            android:name=".providers.PartProvider"
+            android:authorities="io.forsta.provider.securesms"
             android:exported="false"
             android:grantUriPermissions="true" />
         <provider
-            android:name="org.forsta.securesms.providers.MmsBodyProvider"
-            android:authorities="org.forsta.provider.securesms.mms"
+            android:name=".providers.MmsBodyProvider"
+            android:authorities="io.forsta.provider.securesms.mms"
             android:exported="false"
             android:grantUriPermissions="true" />
 
         <receiver
-            android:name="org.forsta.securesms.service.RegistrationNotifier"
+            android:name=".service.RegistrationNotifier"
             android:exported="false">
             <intent-filter>
-                <action android:name="org.forsta.securesms.REGISTRATION_EVENT" />
+                <action android:name="io.forsta.securesms.REGISTRATION_EVENT" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.forsta.securesms.service.DirectoryRefreshListener">
+        <receiver android:name=".service.DirectoryRefreshListener">
             <intent-filter>
                 <action android:name="org.whispersystems.whisperpush.DIRECTORY_REFRESH" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.forsta.securesms.notifications.MessageNotifier$ReminderReceiver">
+        <receiver android:name=".notifications.MessageNotifier$ReminderReceiver">
             <intent-filter>
-                <action android:name="org.forsta.securesms.MessageNotifier.REMINDER_ACTION" />
+                <action android:name="io.forsta.securesms.MessageNotifier.REMINDER_ACTION" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.forsta.securesms.notifications.MessageNotifier$DeleteReceiver">
+        <receiver android:name=".notifications.MessageNotifier$DeleteReceiver">
             <intent-filter>
-                <action android:name="org.forsta.securesms.MessageNotifier.DELETE_REMINDER_ACTION" />
+                <action android:name="io.forsta.securesms.MessageNotifier.DELETE_REMINDER_ACTION" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.forsta.securesms.ExperienceUpgradeActivity$AppUpgradeReceiver">
+        <receiver android:name=".ExperienceUpgradeActivity$AppUpgradeReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
 
@@ -509,7 +509,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="org.forsta.securesms.service.PanicResponderListener"
+            android:name=".service.PanicResponderListener"
             android:exported="true">
             <intent-filter>
                 <action android:name="info.guardianproject.panic.action.TRIGGER" />
@@ -540,10 +540,10 @@
             android:name="io.forsta.ccsm.LoginActivity"
             android:label="@string/title_activity_login" />
         <activity android:name="io.forsta.ccsm.DashboardActivity"
-                  android:parentActivityName="org.forsta.securesms.ConversationListActivity">
+                  android:parentActivityName=".ConversationListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.forsta.securesms.ConversationListActivity" />
+                android:value=".ConversationListActivity" />
         </activity>
     </application>
 

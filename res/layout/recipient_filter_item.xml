@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <org.forsta.securesms.components.emoji.EmojiTextView
+        <io.forsta.securesms.components.emoji.EmojiTextView
             android:id="@+id/name"
             style="?android:attr/dropDownItemStyle"
             android:layout_width="wrap_content"

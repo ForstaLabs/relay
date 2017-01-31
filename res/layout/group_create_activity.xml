@@ -21,7 +21,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <org.forsta.securesms.components.ImageDivet
+            <io.forsta.securesms.components.ImageDivet
                 android:id="@+id/avatar"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
@@ -29,7 +29,7 @@
                 android:layout_marginRight="10dp"
                 android:contentDescription="@string/GroupCreateActivity_avatar_content_description" />
 
-            <org.forsta.securesms.components.emoji.EmojiEditText
+            <io.forsta.securesms.components.emoji.EmojiEditText
                 android:id="@+id/group_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,7 +58,7 @@
                 style="@android:style/Widget.ProgressBar"
                 android:indeterminate="true" />
 
-            <org.forsta.securesms.components.emoji.EmojiTextView
+            <io.forsta.securesms.components.emoji.EmojiTextView
                 android:id="@+id/creating_group_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -90,7 +90,7 @@
             </RelativeLayout>
     </RelativeLayout>
 
-    <org.forsta.securesms.components.PushRecipientsPanel
+    <io.forsta.securesms.components.PushRecipientsPanel
         android:id="@+id/recipients"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

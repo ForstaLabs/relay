@@ -15,7 +15,7 @@
         <FrameLayout android:layout_width="wrap_content"
                      android:layout_height="wrap_content">
 
-            <org.forsta.securesms.components.SquareImageView
+            <io.forsta.securesms.components.SquareImageView
                     android:id="@+id/qr_code"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
                       android:textSize="11sp"
                       android:text="@string/verify_display_fragment__tap_to_scan"/>
 
-            <org.forsta.securesms.components.SquareImageView
+            <io.forsta.securesms.components.SquareImageView
                     android:id="@+id/qr_verified"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

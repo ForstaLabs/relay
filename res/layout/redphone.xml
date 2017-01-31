@@ -20,7 +20,7 @@
               android:layout_height="fill_parent"
               >
 
-    <org.forsta.redphone.ui.CallScreen
+    <io.forsta.redphone.ui.CallScreen
         android:id="@+id/callScreen"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />

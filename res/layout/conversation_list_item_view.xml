@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<org.forsta.securesms.ConversationListItem
+<io.forsta.securesms.ConversationListItem
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
@@ -9,7 +9,7 @@
         android:nextFocusLeft="@+id/container"
         android:layout_height="70dp">
 
-    <org.forsta.securesms.components.AvatarImageView
+    <io.forsta.securesms.components.AvatarImageView
         android:id="@+id/contact_photo_image"
         android:foreground="@drawable/contact_photo_background"
         android:layout_width="50dp"
@@ -37,7 +37,7 @@
                   android:weightSum="1"
                   android:orientation="horizontal">
 
-        <org.forsta.securesms.components.FromTextView
+        <io.forsta.securesms.components.FromTextView
                   android:id="@+id/from"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
                   android:ellipsize="end"
                   android:drawablePadding="5dp"/>
 
-        <org.forsta.securesms.components.AlertView
+        <io.forsta.securesms.components.AlertView
                 android:id="@+id/indicators_parent"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
@@ -67,7 +67,7 @@
                 android:visibility="gone"
                 tools:visibility="visible"/>
 
-        <org.forsta.securesms.components.emoji.EmojiTextView
+        <io.forsta.securesms.components.emoji.EmojiTextView
                 android:id="@+id/subject"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                 tools:text="Wheels arrive at 3pm flat. This is a somewhat longer message."
                 android:ellipsize="end" />
 
-        <org.forsta.securesms.components.ThumbnailView
+        <io.forsta.securesms.components.ThumbnailView
                 android:id="@+id/thumbnail"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -131,7 +131,7 @@
                   android:textSize="12sp"
                 />
 
-        <org.forsta.securesms.components.DeliveryStatusView
+        <io.forsta.securesms.components.DeliveryStatusView
                   android:id="@+id/delivery_status"
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
@@ -142,4 +142,4 @@
                   app:iconColor="?attr/conversation_list_item_subject_color"/>
 
     </RelativeLayout>
-</org.forsta.securesms.ConversationListItem>
+</io.forsta.securesms.ConversationListItem>

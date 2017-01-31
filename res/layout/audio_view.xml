@@ -12,7 +12,7 @@
                       android:layout_height="fill_parent"
                       android:orientation="horizontal">
 
-            <org.forsta.securesms.components.AnimatingToggle
+            <io.forsta.securesms.components.AnimatingToggle
                     android:id="@+id/control_toggle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -62,7 +62,7 @@
                            android:src="@drawable/ic_download_circle_fill_white_48dp"
                            android:contentDescription="Download"/>
 
-            </org.forsta.securesms.components.AnimatingToggle>
+            </io.forsta.securesms.components.AnimatingToggle>
 
             <SeekBar android:id="@+id/seek"
                      android:layout_width="fill_parent"
