@@ -20,9 +20,10 @@
               android:layout_height="fill_parent"
               >
 
-    <org.thoughtcrime.redphone.ui.CallScreen android:id="@+id/callScreen"
-                                             android:layout_width="fill_parent"
-                                             android:layout_height="fill_parent" />
+    <org.forsta.redphone.ui.CallScreen
+        android:id="@+id/callScreen"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
 
     <!-- Main frame containing all in-call UI elements.
          This is a FrameLayout with 2 children:
@@ -44,7 +45,7 @@
 <!--                         android:layout_height="fill_parent" -->
 <!--                         > -->
 
-<!-- 			<org.thoughtcrime.redphone.ui.CallCard xmlns:android="http://schemas.android.com/apk/res/android" -->
+<!-- 			<forstaone.ui.CallCard xmlns:android="http://schemas.android.com/apk/res/android" -->
 <!--     											   android:id="@+id/callCard" -->
 <!--     											   android:layout_width="fill_parent" -->
 <!--     											   android:layout_height="fill_parent" /> -->

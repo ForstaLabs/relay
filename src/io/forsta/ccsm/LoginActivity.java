@@ -10,9 +10,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONObject;
-import org.thoughtcrime.securesms.BaseActionBarActivity;
-import org.thoughtcrime.securesms.R;
-import org.thoughtcrime.securesms.RegistrationActivity;
+import org.forsta.securesms.BaseActionBarActivity;
+import org.forsta.securesms.R;
+import org.forsta.securesms.RegistrationActivity;
 import io.forsta.ccsm.api.CcsmApi;
 
 public class LoginActivity extends BaseActionBarActivity {

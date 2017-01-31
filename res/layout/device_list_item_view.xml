@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<org.thoughtcrime.securesms.DeviceListItem xmlns:android="http://schemas.android.com/apk/res/android"
-                                           android:orientation="vertical"
-                                           android:layout_width="match_parent"
-                                           android:layout_height="match_parent"
-                                           android:layout_marginLeft="16dp"
-                                           android:layout_marginRight="16dp">
+<org.forsta.securesms.DeviceListItem xmlns:android="http://schemas.android.com/apk/res/android"
+                                     android:orientation="vertical"
+                                     android:layout_width="match_parent"
+                                     android:layout_height="match_parent"
+                                     android:layout_marginLeft="16dp"
+                                     android:layout_marginRight="16dp">
 
     <TextView android:id="@+id/name"
               android:textAppearance="?android:attr/textAppearanceMedium"
@@ -30,4 +30,4 @@
               android:fontFamily="sans-serif-light"
               android:layout_marginBottom="8dp" />
 
-</org.thoughtcrime.securesms.DeviceListItem>
+</org.forsta.securesms.DeviceListItem>

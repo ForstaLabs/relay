@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.thoughtcrime.securesms.util.Base64;
+import org.forsta.securesms.util.Base64;
 import java.io.IOException;
 import java.util.Date;
 
