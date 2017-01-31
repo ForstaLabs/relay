@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -13,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.WindowManager;
 
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.crypto.MasterSecretUtil;
 import org.thoughtcrime.securesms.service.KeyCachingService;
@@ -20,6 +22,10 @@ import org.thoughtcrime.securesms.service.MessageRetrievalService;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 
 import java.util.Locale;
+
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.LoginActivity;
+import io.forsta.ccsm.api.CcsmApi;
 
 public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarActivity implements MasterSecretListener {
   private static final String TAG = PassphraseRequiredActionBarActivity.class.getSimpleName();
@@ -32,6 +38,8 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   private static final int STATE_UPGRADE_DATABASE         = 3;
   private static final int STATE_PROMPT_PUSH_REGISTRATION = 4;
   private static final int STATE_EXPERIENCE_UPGRADE       = 5;
+  // Forsta login
+  private static final int STATE_FORSTA_LOGIN             = 6;
 
   private BroadcastReceiver clearKeyReceiver;
   private boolean           isVisible;
@@ -137,12 +145,15 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     case STATE_UPGRADE_DATABASE:         return getUpgradeDatabaseIntent(masterSecret);
     case STATE_PROMPT_PUSH_REGISTRATION: return getPushRegistrationIntent(masterSecret);
     case STATE_EXPERIENCE_UPGRADE:       return getExperienceUpgradeIntent();
+    case STATE_FORSTA_LOGIN:             return getForstaLogin();
     default:                             return null;
     }
   }
 
   private int getApplicationState(MasterSecret masterSecret) {
-    if (!MasterSecretUtil.isPassphraseInitialized(this)) {
+    if (!ForstaPreferences.isRegisteredForsta(this)) {
+      return STATE_FORSTA_LOGIN;
+    } else if (!MasterSecretUtil.isPassphraseInitialized(this)) {
       return STATE_CREATE_PASSPHRASE;
     } else if (ExperienceUpgradeActivity.isUpdate(this)) {
       return STATE_EXPERIENCE_UPGRADE;
@@ -155,6 +166,10 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     } else {
       return STATE_NORMAL;
     }
+  }
+
+  private Intent getForstaLogin() {
+    return getRoutedIntent(LoginActivity.class, getIntent(), null);
   }
 
   private Intent getCreatePassphraseIntent() {
@@ -212,4 +227,5 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
       clearKeyReceiver = null;
     }
   }
+
 }

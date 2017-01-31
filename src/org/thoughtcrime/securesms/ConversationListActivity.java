@@ -32,7 +32,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.components.RatingManager;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
@@ -44,6 +44,8 @@ import org.thoughtcrime.securesms.service.KeyCachingService;
 import org.thoughtcrime.securesms.util.DynamicLanguage;
 import org.thoughtcrime.securesms.util.DynamicTheme;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
+import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.api.CcsmApi;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener
@@ -70,6 +72,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
     getSupportActionBar().setTitle(R.string.app_name);
     fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+
+    if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
+      RefreshToken refreshToken = new RefreshToken();
+      refreshToken.execute();
+    }
 
     initializeContactUpdatesReceiver();
 
@@ -156,6 +163,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     case R.id.menu_import_export:     handleImportExport();    return true;
     case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
+    case R.id.menu_dashboard:         handleDashboard();       return true;
     }
 
     return false;
@@ -181,6 +189,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void createGroup() {
     Intent intent = new Intent(this, GroupCreateActivity.class);
     startActivity(intent);
+  }
+
+  private void handleDashboard() {
+    Intent dashIntent = new Intent(this, DashboardActivity.class);
+    startActivity(dashIntent);
   }
 
   private void handleDisplaySettings() {
@@ -239,5 +252,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI,
                                                  true, observer);
+  }
+
+  private class RefreshToken extends AsyncTask<Void, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(Void... params) {
+      return CcsmApi.forstaRefreshToken(getApplicationContext());
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      // Notify UI that something has happened?
+    }
   }
 }

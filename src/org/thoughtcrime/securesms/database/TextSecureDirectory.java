@@ -232,6 +232,10 @@ public class TextSecureDirectory {
     }
   }
 
+  public Cursor getAllNumbers() {
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
+  }
+
   private static class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context, String name,
