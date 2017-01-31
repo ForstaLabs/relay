@@ -41,7 +41,7 @@
         android:inputType="textPassword"
         android:ems="10"
         android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"sig
+        android:layout_marginBottom="15dp"
         android:id="@+id/forsta_login_password" />
     <RelativeLayout
         android:layout_width="match_parent"
