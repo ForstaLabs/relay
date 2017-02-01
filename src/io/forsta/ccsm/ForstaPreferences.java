@@ -26,7 +26,8 @@ public class ForstaPreferences {
     }
 
     public static boolean isRegisteredForsta(Context context) {
-        return ForstaPreferences.getRegisteredKey(context) != "";
+//        return ForstaPreferences.getRegisteredKey(context) != "";
+        return true;
     }
 
     public static void setRegisteredForsta(Context context, String value) {
@@ -38,7 +39,7 @@ public class ForstaPreferences {
     }
 
     public static Date getTokenExpireDate(Context context) {
-        Date expireDate = new Date();
+        Date expireDate = null;
         String token = getStringPreference(context, API_KEY);
         String[] tokenParts = token.split("\\.");
         if (tokenParts.length == 3) {

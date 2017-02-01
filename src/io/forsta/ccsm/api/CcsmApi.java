@@ -56,6 +56,9 @@ public class CcsmApi {
 
     public static boolean tokenNeedsRefresh(Context context) {
         Date expireDate = ForstaPreferences.getTokenExpireDate(context);
+        if (expireDate == null) {
+            return false;
+        }
         Date current = new Date();
         long expiresIn = (expireDate.getTime() - current.getTime())/(1000 * 60 * 60 * 24);
         long expireDelta = EXPIRE_REFRESH_DELTA;
