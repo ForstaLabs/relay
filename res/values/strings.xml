@@ -8,7 +8,7 @@
 
     <!-- Forsta Strings -->
     <string name="forsta_login_title">Join Forsta</string>
-    <string name="forsta_login_email_label">Email</string>
+    <string name="forsta_login_email_label">Username</string>
     <string name="forsta_login_password_label">Password</string>
     <string name="forsta_login_security_code">Security Code</string>
 
