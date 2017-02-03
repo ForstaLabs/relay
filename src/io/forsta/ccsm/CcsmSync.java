@@ -29,7 +29,7 @@ import java.util.List;
 
 public class CcsmSync {
     private static final String TAG = CcsmSync.class.getSimpleName();
-    private static final String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
+    private static String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
 
     private CcsmSync() { }
 
@@ -51,6 +51,8 @@ public class CcsmSync {
     }
 
     public static void syncTextMessage(MasterSecret masterSecret, Context context, OutgoingTextMessage message) {
+        String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(context);
+        mForstaSyncNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
         try {
             Recipients recipients = message.getRecipients();
             boolean keyExchange = message.isKeyExchange();

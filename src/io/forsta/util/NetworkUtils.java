@@ -22,82 +22,38 @@ public class NetworkUtils {
 
     private NetworkUtils() { }
 
-    public static JSONObject apiGet(String authKey, String path) {
-        HttpURLConnection conn = null;
-        JSONObject result = new JSONObject();
-        try {
-            URL url = new URL(fixApiPath(path));
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            if (isAuthKey(authKey)) {
-                conn.setRequestProperty("Authorization", "JWT " + authKey);
-            }
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-
-            int response = conn.getResponseCode();
-            switch (response) {
-                case 200: {
-                    String strResult = readResult(conn.getInputStream());
-                    result = new JSONObject(strResult);
-                    break;
-                }
-                case 401: {
-                    result.put("error", "Unauthorized");
-                    break;
-                }
-                case 403: {
-                    result.put("error", "Permission Denied");
-                    break;
-                }
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Bad URL.");
-        } catch (ConnectException e) {
-            Log.e(TAG, "Connect Exception.");
-            Log.d(TAG, e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "IO Exception.");
-            Log.d(TAG, e.getMessage());
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.d(TAG, "JSON Exception.");
-        } finally {
-            if (conn != null)
-                conn.disconnect();
+    public enum RequestMethod {
+        GET, POST, PUT, DELETE
+    }
+    private static void setConnHeader(HttpURLConnection conn, String authKey) {
+        if (isAuthKey(authKey)) {
+            conn.setRequestProperty("Authorization", "JWT " + authKey);
         }
-        return result;
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
     }
 
-    public static JSONObject apiPost(String authKey, String path, JSONObject data) {
+    public static JSONObject apiFetch(RequestMethod method, String authKey, String path, JSONObject body) {
         JSONObject result = new JSONObject();
         HttpURLConnection conn = null;
         try {
             URL url = new URL(fixApiPath(path));
             conn = (HttpURLConnection) url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            if (isAuthKey(authKey)) {
-                conn.setRequestProperty("Authorization", "JWT " + authKey);
+            conn.setRequestMethod(method.toString());
+            setConnHeader(conn, authKey);
+            if (body != null) {
+                conn.setDoOutput(true);
+                DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                out.writeBytes(body.toString());
+                out.close();
             }
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-
-            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
-            out.writeBytes(data.toString());
-            out.close();
-
             int response = conn.getResponseCode();
             if (response == 200) {
                 result = new JSONObject(readResult(conn.getInputStream()));
                 Log.d(TAG, result.toString());
             } else {
                 // 400 on invalid login.
-                result.put("error", "Login Failed");
+                result.put("error", "Bad response.");
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();

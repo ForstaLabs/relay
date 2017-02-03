@@ -8,10 +8,13 @@
 
     <!-- Forsta Strings -->
     <string name="forsta_login_title">Join Forsta</string>
-    <string name="forsta_login_email_label">Username</string>
+    <string name="forsta_login_username_label">Username</string>
     <string name="forsta_login_password_label">Password</string>
-    <string name="forsta_login_security_code">Security Code</string>
-
+    <string name="forsta_login_org_label">Organization</string>
+    <string name="forsta_login_security_code_label">Enter your security code.</string>
+    <string name="forsta_login_send_link_button">Send Verify Link</string>
+    <string name="forsta_login_login_button">Login</string>
+    <string name="forsta_login_verify_token_button">Verify Token</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 

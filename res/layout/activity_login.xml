@@ -12,7 +12,7 @@
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/login_form_container"
+    android:id="@+id/forsta_login_container"
     android:orientation="vertical">
     <TextView
         android:layout_width="wrap_content"
@@ -21,40 +21,106 @@
         android:text="@string/forsta_login_title"
         android:layout_marginBottom="30dp"
         style="@style/TextAppearance.AppCompat.Medium"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="@string/forsta_login_email_label" />
-    <EditText
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textEmailAddress"
-        android:ems="10"
-        android:layout_marginTop="15dp"
-        android:id="@+id/forsta_login_email" />
-
-    <TextView
+        android:orientation="vertical"
+        android:id="@+id/forsta_login_send_link_container">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/forsta_login_org_label" />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:layout_marginTop="5dp"
+            android:id="@+id/forsta_login_org_get_token" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/forsta_login_username_label"
+            android:layout_marginTop="10dp"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:layout_marginTop="5dp"
+            android:id="@+id/forsta_login_username_get_token" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/forsta_get_token_button"
+            android:text="@string/forsta_login_send_link_button"/>
+    </LinearLayout>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/forsta_login_password_label"
-        android:layout_marginTop="10dp"/>
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
-        android:id="@+id/forsta_login_password" />
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <Button android:id="@+id/forsta_submit_login"
-                android:text="@android:string/ok"
-                android:layout_width="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/forsta_login_submit_container"
+        android:visibility="gone">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/forsta_login_password_container"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-            android:layout_alignParentRight="true"/>
-    </RelativeLayout>
+                android:text="@string/forsta_login_username_label"
+                android:layout_marginTop="10dp"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:layout_marginTop="5dp"
+                android:id="@+id/forsta_login_username" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/forsta_login_password_label"
+                android:layout_marginTop="10dp"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:layout_marginTop="5dp"
+                android:id="@+id/forsta_login_password"
+                />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/forsta_login_verify_token_container">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/forsta_login_security_code_label"
+                android:layout_marginTop="10dp"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:ems="10"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="15dp"
+                android:id="@+id/forsta_login_security_code" />
+        </LinearLayout>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/forsta_login_submit_button"
+            android:text="@string/forsta_login_login_button"/>
+    </LinearLayout>
+
 
 </LinearLayout>
 

@@ -26,8 +26,7 @@ public class ForstaPreferences {
     }
 
     public static boolean isRegisteredForsta(Context context) {
-//        return ForstaPreferences.getRegisteredKey(context) != "";
-        return true;
+        return ForstaPreferences.getRegisteredKey(context) != "";
     }
 
     public static void setRegisteredForsta(Context context, String value) {

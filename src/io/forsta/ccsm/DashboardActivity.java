@@ -13,10 +13,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -54,9 +59,14 @@ import io.forsta.ccsm.api.CcsmApi;
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private TextView mDebugText;
+    private TextView mLoginInfo;
     private CheckBox mToggleSyncMessages;
+    private Button mChangeNumberButton;
+    private Button mResetNumberButton;
     private MasterSecret mMasterSecret;
     private Spinner mSpinner;
+    private LinearLayout mChangeNumberContainer;
+    private ScrollView mScrollView;
     private EditText mSyncNumber;
 
     @Override
@@ -97,11 +107,34 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private void initView() {
+        mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
+        mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
         mSyncNumber = (EditText) findViewById(R.id.dashboard_sync_number);
+        mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
         mDebugText = (TextView) findViewById(R.id.debug_text);
+        mChangeNumberButton = (Button) findViewById(R.id.dashboard_change_number_button);
+        mChangeNumberButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, mSyncNumber.getText().toString());
+                printLoginInformation();
+                Toast.makeText(DashboardActivity.this, "Sync number changed.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        mResetNumberButton = (Button) findViewById(R.id.dashboard_reset_number_button);
+        mResetNumberButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, "");
+                Toast.makeText(DashboardActivity.this, "Sync number reset.", Toast.LENGTH_LONG).show();
+                mSyncNumber.setText(BuildConfig.FORSTA_SYNC_NUMBER);
+                printLoginInformation();
+            }
+        });
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
-        options.add("Login Information");
+        options.add("Choose an option");
         options.add("API Test");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -115,6 +148,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    showChangeNumber();
+                } else {
+                    showScrollView();
+                }
                 switch (position) {
                     case 0:
                         printLoginInformation();
@@ -163,6 +201,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         printLoginInformation();
     }
 
+    private void showScrollView() {
+        mScrollView.setVisibility(View.VISIBLE);
+        mChangeNumberContainer.setVisibility(View.GONE);
+    }
+
+    private void showChangeNumber() {
+        mScrollView.setVisibility(View.GONE);
+        mChangeNumberContainer.setVisibility(View.VISIBLE);
+    }
+
     private void startLoginIntent() {
         Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
         Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
@@ -173,13 +221,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
     private void printLoginInformation() {
         String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(DashboardActivity.this);
-        String smNumber = debugSyncNumber != "" ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
+        String smNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
 
         mSyncNumber.setText(smNumber);
         StringBuilder sb = new StringBuilder();
         String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
-        sb.append("Forsta Sync Number: ");
+        sb.append("Sync Number: Build: ");
         sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
+        sb.append(" Current: ").append(smNumber);
         sb.append("\n");
         sb.append("Last Login: ");
         sb.append(lastLogin);
@@ -187,7 +236,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
         sb.append("Token Expires: ");
         sb.append(tokenExpire);
-        mDebugText.setText(sb.toString());
+        mLoginInfo.setText(sb.toString());
     }
 
     private String printSystemContacts() {

@@ -19,23 +19,30 @@ public class CcsmApi {
     private static final String API_TOKEN_REFRESH = API_URL + "/v1/api-token-refresh";
     private static final String API_LOGIN = API_URL + "/v1/login";
     private static final String API_USER = API_URL + "/v1/user";
+    private static final String API_SEND_TOKEN = API_URL + "/v1/login/send";
+    private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken";
     private static final long EXPIRE_REFRESH_DELTA = 7L;
 
     private CcsmApi() { }
 
     public static JSONObject getContacts(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
-        return NetworkUtils.apiGet(authKey, API_USER);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER, null);
     }
 
-    public static JSONObject forstaLogin(Context context, String username, String password) {
+    public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
         JSONObject result = new JSONObject();
         try {
             JSONObject obj = new JSONObject();
-            obj.put("email", username);
-            obj.put("username", username);
-            obj.put("password", password);
-            result = NetworkUtils.apiPost(null, API_LOGIN, obj);
+            if (!authToken.equals("")) {
+                String token = authToken.contains(":") ? authToken : username + ":" + authToken;
+                obj.put("authtoken", token);
+                result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_AUTH_TOKEN, obj);
+            } else {
+                obj.put("username", username);
+                obj.put("password", password);
+                result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_LOGIN, obj);
+            }
 
             if (result.has("token")) {
                 Log.d(TAG, "Login Success. Token Received.");
@@ -74,8 +81,8 @@ public class CcsmApi {
         try {
             JSONObject obj = new JSONObject();
             obj.put("token", ForstaPreferences.getRegisteredKey(context));
-            result = NetworkUtils.apiPost(authKey, API_TOKEN_REFRESH, obj);
 
+            result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, authKey, API_TOKEN_REFRESH, obj);
             if (result.has("token")) {
                 Log.d(TAG, "Token refresh. New token issued.");
                 String token = result.getString("token");
@@ -88,6 +95,11 @@ public class CcsmApi {
             e.printStackTrace();
             Log.d(TAG, "forstaRefreshToken failed");
         }
+        return result;
+    }
+
+    public static JSONObject forstaSendToken(String org, String username) {
+        JSONObject result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, null, API_SEND_TOKEN + "/" + org + "/" + username + "/", null);
         return result;
     }
 }
