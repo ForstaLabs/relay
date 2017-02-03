@@ -132,5 +132,23 @@
         android:layout_marginTop="20dp"
         android:id="@+id/login_progress_bar"
         android:visibility="gone"/>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_alignParentBottom="true">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Having trouble with the login?"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Click to try Username and Password."
+        android:id="@+id/forsta_login_standard_login"
+        android:textColor="@color/blue_100"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"/>
+</LinearLayout>
 
 </RelativeLayout>

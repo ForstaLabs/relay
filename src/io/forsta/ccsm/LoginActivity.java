@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -35,6 +36,7 @@ public class LoginActivity extends BaseActionBarActivity {
     private LinearLayout mLoginSubmitFormContainer;
     private LinearLayout mVerifyFormContainer;
     private LinearLayout mPasswordFormContainer;
+    private TextView mStandardLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +95,18 @@ public class LoginActivity extends BaseActionBarActivity {
                     CCSMLogin task = new CCSMLogin();
                     task.execute(mLoginUsernameText.getText().toString(), mLoginPasswordText.getText().toString(), mLoginSecurityCode.getText().toString());
                 }
+            }
+        });
+
+        mStandardLogin = (TextView) findViewById(R.id.forsta_login_standard_login);
+        mStandardLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSendLinkFormContainer.setVisibility(View.GONE);
+                mVerifyFormContainer.setVisibility(View.GONE);
+                mPasswordFormContainer.setVisibility(View.VISIBLE);
+                mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+                mLoginFormContainer.setVisibility(View.VISIBLE);
             }
         });
 
