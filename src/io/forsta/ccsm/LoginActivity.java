@@ -41,7 +41,7 @@ public class LoginActivity extends BaseActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setTitle("Connect with Forsta");
-        if (savedInstanceState.getBoolean(IS_PENDING)) {
+        if (savedInstanceState != null && savedInstanceState.getBoolean(IS_PENDING)) {
             mPending = savedInstanceState.getBoolean(IS_PENDING);
         }
         initializeView();
@@ -87,7 +87,7 @@ public class LoginActivity extends BaseActionBarActivity {
             @Override
             public void onClick(View v) {
                 if (mLoginSecurityCode.getText().length() < 3) {
-                    Toast.makeText(LoginActivity.this, "Invalid securty code", Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
                 } else {
                     showProgressBar();
                     CCSMLogin task = new CCSMLogin();
@@ -157,6 +157,11 @@ public class LoginActivity extends BaseActionBarActivity {
             String uname = params[0];
             String pass = params[1];
             String authtoken = params[2];
+            if (authtoken.contains("/")) {
+                String[] parts = authtoken.split("/");
+                authtoken = parts[parts.length-1];
+            }
+
             JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);
             return token;
         }
