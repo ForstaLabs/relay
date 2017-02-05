@@ -113,12 +113,23 @@
                 android:layout_marginBottom="15dp"
                 android:id="@+id/forsta_login_security_code" />
         </LinearLayout>
-
-        <Button
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/forsta_login_submit_button"
-            android:text="@string/forsta_login_login_button"/>
+            android:orientation="horizontal">
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/forsta_login_submit_button"
+                android:text="@string/forsta_login_login_button"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/forsta_login_tryagain"
+                android:text="@string/forsta_login_tryagain_button"
+                android:layout_marginLeft="10dp"/>
+        </LinearLayout>
+
     </LinearLayout>
 
 

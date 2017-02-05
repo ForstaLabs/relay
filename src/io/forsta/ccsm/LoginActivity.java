@@ -25,6 +25,7 @@ public class LoginActivity extends BaseActionBarActivity {
     private boolean mPending = false;
     private Button mSubmitButton;
     private Button mSendTokenButton;
+    private Button mTryAgainButton;
     private EditText mSendTokenUsername;
     private EditText mSendTokenOrg;
     private EditText mLoginUsernameText;
@@ -43,8 +44,8 @@ public class LoginActivity extends BaseActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setTitle("Connect with Forsta");
-        if (savedInstanceState != null && savedInstanceState.getBoolean(IS_PENDING)) {
-            mPending = savedInstanceState.getBoolean(IS_PENDING);
+        if (savedInstanceState != null) {
+            mPending = savedInstanceState.getBoolean(IS_PENDING, false);
         }
         initializeView();
     }
@@ -102,18 +103,48 @@ public class LoginActivity extends BaseActionBarActivity {
         mStandardLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSendLinkFormContainer.setVisibility(View.GONE);
-                mVerifyFormContainer.setVisibility(View.GONE);
-                mPasswordFormContainer.setVisibility(View.VISIBLE);
-                mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
-                mLoginFormContainer.setVisibility(View.VISIBLE);
+                showPasswordForm();
+            }
+        });
+
+        mTryAgainButton = (Button) findViewById(R.id.forsta_login_tryagain);
+        mTryAgainButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showSendLinkForm();
             }
         });
 
         if (mPending) {
-            mSendLinkFormContainer.setVisibility(View.GONE);
-            mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+            showVerifyForm();
         }
+    }
+
+    private void showSendLinkForm() {
+        mPending = false;
+        mSendLinkFormContainer.setVisibility(View.VISIBLE);
+        mLoginSubmitFormContainer.setVisibility(View.GONE);
+        mVerifyFormContainer.setVisibility(View.VISIBLE);
+        mPasswordFormContainer.setVisibility(View.GONE);
+        hideProgressBar();
+    }
+
+    private void showVerifyForm() {
+        mPending = true;
+        mSendLinkFormContainer.setVisibility(View.GONE);
+        mVerifyFormContainer.setVisibility(View.VISIBLE);
+        mPasswordFormContainer.setVisibility(View.GONE);
+        mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+        hideProgressBar();
+    }
+
+    private void showPasswordForm() {
+        mPending = false;
+        mSendLinkFormContainer.setVisibility(View.GONE);
+        mVerifyFormContainer.setVisibility(View.GONE);
+        mPasswordFormContainer.setVisibility(View.VISIBLE);
+        mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+        hideProgressBar();
     }
 
     private void showProgressBar() {
@@ -148,12 +179,9 @@ public class LoginActivity extends BaseActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            hideProgressBar();
             if (jsonObject.has("msg")) {
                 try {
-                    mPending = true;
-                    mSendLinkFormContainer.setVisibility(View.GONE);
-                    mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+                    showVerifyForm();
                     Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     Log.d(TAG, e.getMessage());

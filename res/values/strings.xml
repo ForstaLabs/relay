@@ -15,6 +15,7 @@
     <string name="forsta_login_send_link_button">Send Verify Link</string>
     <string name="forsta_login_login_button">Login</string>
     <string name="forsta_login_verify_token_button">Verify Token</string>
+    <string name="forsta_login_tryagain_button">Try Again</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 

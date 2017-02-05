@@ -126,6 +126,13 @@
             android:parentActivityName=".ConversationListActivity"
             android:theme="@style/TextSecure.HighlightTheme"
             android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="ccsm-dev.forsta.io"
+                      android:scheme="https, http"/>
+            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ConversationListActivity" />
@@ -185,7 +192,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
 
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:host="ccsm-dev.forsta.io"
+                    android:scheme="https"/>
+            </intent-filter>
             <meta-data
                 android:name="com.sec.minimode.icon.portrait.normal"
                 android:resource="@drawable/icon" />
