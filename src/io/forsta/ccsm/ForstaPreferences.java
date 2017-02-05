@@ -3,11 +3,15 @@ package io.forsta.ccsm;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import com.h6ah4i.android.compat.utils.SharedPreferencesJsonStringSetWrapperUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.util.Base64;
 import java.io.IOException;
 import java.util.Date;
+import java.util.PriorityQueue;
 
 /**
  * Created by jlewis on 1/6/17.
@@ -19,6 +23,7 @@ public class ForstaPreferences {
     private static final String FORSTA_SYNC_NUMBER = "forsta_sync_number";
     private static final String CCSM_DEBUG = "ccsm_debug";
     private static final String FORSTA_API_HOST = "forsta_api_url";
+    private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
 
     public static void clearPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -88,6 +93,13 @@ public class ForstaPreferences {
         return getStringPreference(context, FORSTA_SYNC_NUMBER);
     }
 
+    public static void setForstaLoginPending(Context context, boolean pending) {
+        setBooleanPreference(context, FORSTA_LOGIN_PENDING, pending);
+    }
+
+    public static boolean getForstaLoginPending(Context context) {
+        return getBooleanPreference(context, FORSTA_LOGIN_PENDING);
+    }
     public static void setForstaApiHost(Context context, String host) {
         setStringPreference(context, FORSTA_API_HOST, host);
     }
@@ -103,6 +115,15 @@ public class ForstaPreferences {
 
     private static String getStringPreference(Context context, String key) {
         return PreferenceManager.getDefaultSharedPreferences(context).getString(key, "");
+    }
+
+    private static void setBooleanPreference(Context context, String key, boolean value) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putBoolean(key, value);
+    }
+
+    private static boolean getBooleanPreference(Context context, String key) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(key, false);
     }
 
 }
