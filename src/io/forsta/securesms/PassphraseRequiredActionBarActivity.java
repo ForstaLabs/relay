@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -62,6 +63,16 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     KeyCachingService.registerPassphraseActivityStarted(this);
     MessageRetrievalService.registerActivityStarted(this);
     isVisible = true;
+
+    Intent i = getIntent();
+    String action = i.getAction();
+    if (action != null && action.equalsIgnoreCase(Intent.ACTION_VIEW)) {
+      // This is someone clicking on the email token link.
+      // Need to decide what the UI does when this is happening.
+      // Route to ConversationListActivity or to some LoginActivity "success" screen?
+      String data = i.getDataString();
+      Uri url = i.getData();
+    }
   }
 
   @Override

@@ -1,6 +1,7 @@
 package io.forsta.ccsm;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,6 +49,11 @@ public class LoginActivity extends BaseActionBarActivity {
             mPending = savedInstanceState.getBoolean(IS_PENDING, false);
         }
         initializeView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
