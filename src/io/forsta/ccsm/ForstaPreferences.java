@@ -8,6 +8,9 @@ import com.h6ah4i.android.compat.utils.SharedPreferencesJsonStringSetWrapperUtil
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaJWT;
 import io.forsta.securesms.util.Base64;
 import java.io.IOException;
 import java.util.Date;
@@ -49,28 +52,9 @@ public class ForstaPreferences {
     }
 
     public static Date getTokenExpireDate(Context context) {
-        Date expireDate = null;
         String token = getStringPreference(context, API_KEY);
-        String[] tokenParts = token.split("\\.");
-        if (tokenParts.length == 3) {
-            try {
-                byte[] payload = Base64.decodeWithoutPadding(tokenParts[1]);
-                String payloadString = new String(payload, "UTF-8");
-                JSONObject obj = new JSONObject(payloadString);
-                if (obj.has("exp")) {
-                    int expire = obj.getInt("exp");
-                    long expireTime = (long) expire * 1000;
-                    expireDate = new Date(expireTime);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return expireDate;
+        ForstaJWT jwt = new ForstaJWT(token);
+        return jwt.getExpireDate();
     }
 
     public static void setCCSMDebug(Context context, boolean value) {

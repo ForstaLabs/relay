@@ -115,7 +115,7 @@ public class LoginActivity extends BaseActionBarActivity {
                 }
             }
         });
-
+        // TODO Remove this option?
         mStandardLogin = (TextView) findViewById(R.id.forsta_login_standard_login);
         mStandardLogin.setOnClickListener(new View.OnClickListener() {
             @Override

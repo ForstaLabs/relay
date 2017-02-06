@@ -5,8 +5,12 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.util.Base64;
 import io.forsta.util.NetworkUtils;
 
 /**
@@ -115,4 +119,5 @@ public class CcsmApi {
         }
         return authtoken;
     }
+
 }
