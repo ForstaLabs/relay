@@ -87,10 +87,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_dashboard_login: {
-                startLoginIntent();
-                break;
-            }
             case R.id.menu_dashboard_logout: {
                 ForstaPreferences.clearPreferences(DashboardActivity.this);
                 startLoginIntent();
