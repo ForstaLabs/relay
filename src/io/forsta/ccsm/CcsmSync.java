@@ -1,14 +1,17 @@
 package io.forsta.ccsm;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
+import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -38,6 +41,7 @@ public class CcsmSync {
             Recipients recipients = message.getRecipients();
             Recipient primaryRecipient = recipients.getPrimaryRecipient();
             String primary = primaryRecipient.getNumber();
+
             if (GroupUtil.isEncodedGroup(primary)) {
                 recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(GroupUtil.getDecodedId(primary), false);
             }

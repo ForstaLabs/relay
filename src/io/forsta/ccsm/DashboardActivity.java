@@ -26,8 +26,11 @@ import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.attachments.Attachment;
+import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
@@ -350,6 +353,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         List<Pair<Date, String>> messageList = new ArrayList<>();
         if (mMasterSecret != null) {
             ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+            AttachmentDatabase adb = DatabaseFactory.getAttachmentDatabase(DashboardActivity.this);
+
             Cursor cc = tdb.getConversationList();
             List<Long> list = new ArrayList<>();
             while (cc.moveToNext()) {
@@ -370,6 +375,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                     long timestamp = record.getTimestamp();
                     Date dt = new Date(timestamp);
                     List<Recipient> recipList = recipients.getRecipientsList();
+                    List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
+
                     sb.append("ThreadId: ");
                     sb.append(threadId);
                     sb.append("\n");
@@ -386,6 +393,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                     sb.append("\n");
                     sb.append("Message: ");
                     sb.append(body.toString());
+                    sb.append("\n");
+                    sb.append("Attachments:");
+                    for (DatabaseAttachment item: attachments) {
+                        sb.append(item.getDataUri()).append(" ");
+                    }
                     sb.append("\n");
                     messageList.add(new Pair(dt, sb.toString()));
                 }
