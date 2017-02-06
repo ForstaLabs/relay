@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -16,14 +17,13 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.BaseActionBarActivity;
+import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.RegistrationActivity;
 import io.forsta.ccsm.api.CcsmApi;
 
 public class LoginActivity extends BaseActionBarActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
-    private static final String IS_PENDING = "pending";
-    private boolean mPending = false;
     private Button mSubmitButton;
     private Button mSendTokenButton;
     private Button mTryAgainButton;
@@ -45,21 +45,31 @@ public class LoginActivity extends BaseActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setTitle("Connect with Forsta");
-        if (savedInstanceState != null) {
-            mPending = savedInstanceState.getBoolean(IS_PENDING, false);
-        }
         initializeView();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-    }
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        Intent nextIntent = intent.getParcelableExtra("next_intent");
+        if (nextIntent != null) {
+            String action = nextIntent.getAction();
+            if (action != null && action.equalsIgnoreCase(Intent.ACTION_VIEW)) {
+                String authtoken = nextIntent.getDataString();
+                // LoginPending must be set. User has requested a new login.
+                if (ForstaPreferences.getForstaLoginPending(this)) {
+                    showProgressBar();
+                    CCSMLogin loginAction = new CCSMLogin();
+                    loginAction.execute("", "", authtoken);
+                }
+            }
+        }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(IS_PENDING, mPending);
+        if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
+            showVerifyForm();
+        }
     }
 
     private void initializeView() {
@@ -87,6 +97,7 @@ public class LoginActivity extends BaseActionBarActivity {
                     Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
                 } else {
                     showProgressBar();
+
                     CCSMSendToken getToken = new CCSMSendToken();
                     getToken.execute(mSendTokenOrg.getText().toString(), mSendTokenUsername.getText().toString());
                 }
@@ -120,14 +131,10 @@ public class LoginActivity extends BaseActionBarActivity {
                 showSendLinkForm();
             }
         });
-
-        if (mPending) {
-            showVerifyForm();
-        }
     }
 
     private void showSendLinkForm() {
-        mPending = false;
+        ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
         mSendLinkFormContainer.setVisibility(View.VISIBLE);
         mLoginSubmitFormContainer.setVisibility(View.GONE);
         mVerifyFormContainer.setVisibility(View.VISIBLE);
@@ -136,7 +143,6 @@ public class LoginActivity extends BaseActionBarActivity {
     }
 
     private void showVerifyForm() {
-        mPending = true;
         mSendLinkFormContainer.setVisibility(View.GONE);
         mVerifyFormContainer.setVisibility(View.VISIBLE);
         mPasswordFormContainer.setVisibility(View.GONE);
@@ -145,7 +151,7 @@ public class LoginActivity extends BaseActionBarActivity {
     }
 
     private void showPasswordForm() {
-        mPending = false;
+        ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
         mSendLinkFormContainer.setVisibility(View.GONE);
         mVerifyFormContainer.setVisibility(View.GONE);
         mPasswordFormContainer.setVisibility(View.VISIBLE);
@@ -187,6 +193,9 @@ public class LoginActivity extends BaseActionBarActivity {
         protected void onPostExecute(JSONObject jsonObject) {
             if (jsonObject.has("msg")) {
                 try {
+                    // If we've requested a new login, we need to logout.
+                    ForstaPreferences.clearPreferences(LoginActivity.this);
+                    ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
                     showVerifyForm();
                     Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
@@ -205,10 +214,7 @@ public class LoginActivity extends BaseActionBarActivity {
             String uname = params[0];
             String pass = params[1];
             String authtoken = params[2];
-            if (authtoken.contains("/")) {
-                String[] parts = authtoken.split("/");
-                authtoken = parts[parts.length-1];
-            }
+            authtoken = CcsmApi.parseLoginToken(authtoken);
 
             JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);
             return token;

@@ -11,7 +11,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.service.KeyCachingService;
@@ -44,6 +48,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   protected final void onCreate(Bundle savedInstanceState) {
     Log.w(TAG, "onCreate(" + savedInstanceState + ")");
     onPreCreate();
+    Intent i = getIntent();
+    String action = i.getAction();
+
     final MasterSecret masterSecret = KeyCachingService.getMasterSecret(this);
     routeApplicationState(masterSecret);
     super.onCreate(savedInstanceState);
@@ -63,16 +70,6 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     KeyCachingService.registerPassphraseActivityStarted(this);
     MessageRetrievalService.registerActivityStarted(this);
     isVisible = true;
-
-    Intent i = getIntent();
-    String action = i.getAction();
-    if (action != null && action.equalsIgnoreCase(Intent.ACTION_VIEW)) {
-      // This is someone clicking on the email token link.
-      // Need to decide what the UI does when this is happening.
-      // Route to ConversationListActivity or to some LoginActivity "success" screen?
-      String data = i.getDataString();
-      Uri url = i.getData();
-    }
   }
 
   @Override

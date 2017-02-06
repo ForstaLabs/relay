@@ -21,13 +21,19 @@ public class ForstaPreferences {
     private static final String API_KEY = "api_key";
     private static final String API_LAST_LOGIN = "last_login";
     private static final String FORSTA_SYNC_NUMBER = "forsta_sync_number";
-    private static final String CCSM_DEBUG = "ccsm_debug";
     private static final String FORSTA_API_HOST = "forsta_api_url";
     private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
+    private static final String CCSM_DEBUG = "ccsm_debug";
 
     public static void clearPreferences(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        prefs.edit().putString(API_KEY, "").putString(API_LAST_LOGIN, "").putBoolean(CCSM_DEBUG, false).apply();
+        prefs.edit().putString(API_KEY, "")
+                .putString(API_LAST_LOGIN, "")
+                .putString(FORSTA_SYNC_NUMBER, "")
+                .putString(FORSTA_API_HOST, "")
+                .putBoolean(FORSTA_LOGIN_PENDING, false)
+                .putBoolean(CCSM_DEBUG, false)
+                .apply();
     }
 
     public static boolean isRegisteredForsta(Context context) {
@@ -119,7 +125,7 @@ public class ForstaPreferences {
 
     private static void setBooleanPreference(Context context, String key, boolean value) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        prefs.edit().putBoolean(key, value);
+        prefs.edit().putBoolean(key, value).apply();
     }
 
     private static boolean getBooleanPreference(Context context, String key) {

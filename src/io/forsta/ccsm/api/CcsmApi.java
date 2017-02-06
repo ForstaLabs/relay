@@ -30,6 +30,10 @@ public class CcsmApi {
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER, null);
     }
 
+    public static JSONObject forstaLogin(Context context, String authToken) {
+        return forstaLogin(context, "", "", authToken);
+    }
+
     public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
         JSONObject result = new JSONObject();
         try {
@@ -53,6 +57,7 @@ public class CcsmApi {
                 // Write token and last login to local preferences.
                 ForstaPreferences.setRegisteredForsta(context, token);
                 ForstaPreferences.setRegisteredDateTime(context, lastLogin);
+                ForstaPreferences.setForstaLoginPending(context, false);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -101,5 +106,13 @@ public class CcsmApi {
     public static JSONObject forstaSendToken(String org, String username) {
         JSONObject result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, null, API_SEND_TOKEN + "/" + org + "/" + username + "/", null);
         return result;
+    }
+
+    public static String parseLoginToken(String authtoken) {
+        if (authtoken.contains("/")) {
+            String[] parts = authtoken.split("/");
+            authtoken = parts[parts.length-1];
+        }
+        return authtoken;
     }
 }
