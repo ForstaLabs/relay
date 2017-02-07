@@ -281,10 +281,19 @@ if (propFile.canRead()){
         props.containsKey('KEY_ALIAS')      &&
         props.containsKey('KEY_PASSWORD'))
     {
-        android.signingConfigs.release.storeFile = file(props['STORE_FILE'])
-        android.signingConfigs.release.storePassword = props['STORE_PASSWORD']
+        def storeFile = props['STORE_FILE']
+        def storePassword = props['STORE_PASSWORD']
+        def keyPassword = props['KEY_PASSWORD']
+        if (System.getenv('STORE_FILE') && System.getenv('STORE_PASSWORD') && System.getenv('KEY_PASSWORD')) {
+            storeFile = System.getenv('STORE_FILE')
+            storePassword = System.getenv('STORE_PASSWORD')
+            keyPassword = System.getenv('KEY_PASSWORD')
+        }
+
+        android.signingConfigs.release.storeFile = file(storeFile)
+        android.signingConfigs.release.storePassword = storePassword
         android.signingConfigs.release.keyAlias = props['KEY_ALIAS']
-        android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
+        android.signingConfigs.release.keyPassword = keyPassword
     } else {
         println 'signing.properties found but some entries are missing'
         android.buildTypes.release.signingConfig = null
