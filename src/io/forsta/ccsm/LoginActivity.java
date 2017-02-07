@@ -51,8 +51,14 @@ public class LoginActivity extends BaseActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
+            showVerifyForm();
+        }
+        handleBroadcastIntent();
+    }
+
+    private void handleBroadcastIntent() {
         Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
         Intent nextIntent = intent.getParcelableExtra("next_intent");
         if (nextIntent != null) {
             String action = nextIntent.getAction();
@@ -65,10 +71,6 @@ public class LoginActivity extends BaseActionBarActivity {
                     loginAction.execute("", "", authtoken);
                 }
             }
-        }
-
-        if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
-            showVerifyForm();
         }
     }
 
