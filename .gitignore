@@ -23,3 +23,5 @@ ffpr
 test/androidTestEspresso/res/values/arrays.xml
 obj/
 jni/libspeex/.deps/
+*.jks
+.env.sh
