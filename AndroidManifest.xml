@@ -188,9 +188,8 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data
-                    android:host="ccsm-dev.forsta.io"
-                    android:scheme="https"/>
+                <data android:host="ccsm-dev.forsta.io" android:scheme="https"/>
+                <data android:host="ccsm-dev.forsta.io" android:scheme="http"/>
             </intent-filter>
             <meta-data
                 android:name="com.sec.minimode.icon.portrait.normal"
@@ -545,13 +544,6 @@
         <activity
             android:name="io.forsta.ccsm.LoginActivity"
             android:label="@string/title_activity_login">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:host="ccsm-dev.forsta.io"
-                      android:scheme="https, http"/>
-            </intent-filter>
         </activity>
         <activity android:name="io.forsta.ccsm.DashboardActivity"
                   android:parentActivityName=".ConversationListActivity">
