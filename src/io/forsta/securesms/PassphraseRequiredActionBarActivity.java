@@ -48,8 +48,6 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   protected final void onCreate(Bundle savedInstanceState) {
     Log.w(TAG, "onCreate(" + savedInstanceState + ")");
     onPreCreate();
-    Intent i = getIntent();
-    String action = i.getAction();
 
     final MasterSecret masterSecret = KeyCachingService.getMasterSecret(this);
     routeApplicationState(masterSecret);
