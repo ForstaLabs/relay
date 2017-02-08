@@ -14,6 +14,7 @@ import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
+import io.forsta.securesms.mms.OutgoingGroupMediaMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -45,8 +46,10 @@ public class CcsmSync {
             if (GroupUtil.isEncodedGroup(primary)) {
                 recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(GroupUtil.getDecodedId(primary), false);
             }
-
-            syncMessage(masterSecret, context, recipients, message.getBody(), message.getExpiresIn(), message.getSubscriptionId());
+            // Work this out. Do we want group creation and update messages going to Forsta Sync?
+            if (!(message instanceof OutgoingGroupMediaMessage)) {
+                syncMessage(masterSecret, context, recipients, message.getBody(), message.getExpiresIn(), message.getSubscriptionId());
+            }
 
         } catch (Exception e) {
             Log.e(TAG, "Forsta Sync failed");
