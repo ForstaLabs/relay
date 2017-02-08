@@ -1,6 +1,6 @@
 test:
   override:
     - ./gradlew test
-    - ./gradlew assembleRelease
+    - ./gradlew assemble
     - cp -r relay/build/outputs $CIRCLE_ARTIFACTS
 
