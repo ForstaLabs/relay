@@ -479,6 +479,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         protected void onPostExecute(Recipients recipients) {
             List<Recipient> list = recipients.getRecipientsList();
             StringBuilder sb = new StringBuilder();
+
             for (Recipient item : list) {
                 sb.append("Number: ").append(item.getNumber()).append(" ID: ").append(item.getRecipientId());
                 sb.append(" Name: ").append(item.getName());
