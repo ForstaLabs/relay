@@ -161,8 +161,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "1.0.0"
-        versionCode 100
+        versionName "1.0.2"
+        versionCode 102
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         buildConfigField "String", "TEXTSECURE_URL", "\"http://forsta-relay-1307716308.us-west-2.elb.amazonaws.com\""
