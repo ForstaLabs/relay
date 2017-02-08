@@ -543,9 +543,7 @@
 
         <activity
             android:name="io.forsta.ccsm.LoginActivity"
-            android:label="@string/title_activity_login"
-            android:launchMode="singleTask">
-
+            android:label="@string/title_activity_login">
         </activity>
         <activity android:name="io.forsta.ccsm.DashboardActivity"
                   android:parentActivityName=".ConversationListActivity">
