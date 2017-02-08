@@ -144,7 +144,7 @@ public class MessageSender {
     }
   }
 
-  private static void sendMediaMessage(Context context, MasterSecret masterSecret,
+  public static void sendMediaMessage(Context context, MasterSecret masterSecret,
                                        Recipients recipients, boolean forceSms,
                                        long messageId, long expiresIn)
       throws MmsException
