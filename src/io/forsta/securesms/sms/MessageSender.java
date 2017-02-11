@@ -160,7 +160,7 @@ public class MessageSender {
     }
   }
 
-  public static void sendTextMessage(Context context, Recipients recipients,
+  private static void sendTextMessage(Context context, Recipients recipients,
                                       boolean forceSms, boolean keyExchange,
                                       long messageId, long expiresIn)
   {
