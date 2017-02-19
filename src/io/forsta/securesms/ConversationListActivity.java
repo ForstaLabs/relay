@@ -89,6 +89,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    String shit = "shit";
   }
 
   @Override

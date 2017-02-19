@@ -10,6 +10,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -48,6 +49,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   protected final void onCreate(Bundle savedInstanceState) {
     Log.w(TAG, "onCreate(" + savedInstanceState + ")");
     onPreCreate();
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    Intent nextIntent = intent.getParcelableExtra("next_intent");
 
     final MasterSecret masterSecret = KeyCachingService.getMasterSecret(this);
     routeApplicationState(masterSecret);
@@ -65,6 +69,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   protected void onResume() {
     Log.w(TAG, "onResume()");
     super.onResume();
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    Intent nextIntent = intent.getParcelableExtra("next_intent");
     KeyCachingService.registerPassphraseActivityStarted(this);
     MessageRetrievalService.registerActivityStarted(this);
     isVisible = true;
