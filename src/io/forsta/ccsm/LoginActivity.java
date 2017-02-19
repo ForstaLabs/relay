@@ -58,7 +58,7 @@ public class LoginActivity extends BaseActionBarActivity {
             Intent intent = new Intent(LoginActivity.this, ConversationListActivity.class);
             startActivity(intent);
             finish();
-        } 
+        }
 
         // Check to see if Broadcast intent has already been handled.
         // If so, go to ConversationListActivity and finish();
