@@ -54,15 +54,11 @@ public class LoginActivity extends BaseActionBarActivity {
         if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
             showVerifyForm();
             handleBroadcastIntent();
-        } else if (ForstaPreferences.getRegisteredKey(LoginActivity.this).equals("")) {
+        } else if (!ForstaPreferences.getRegisteredKey(LoginActivity.this).equals("")) {
             Intent intent = new Intent(LoginActivity.this, ConversationListActivity.class);
             startActivity(intent);
             finish();
         }
-
-        // Check to see if Broadcast intent has already been handled.
-        // If so, go to ConversationListActivity and finish();
-        // handleBroadcastIntent();
     }
 
     private void handleBroadcastIntent() {
