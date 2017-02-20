@@ -23,6 +23,8 @@ public class CcsmApi {
     private static final String API_TOKEN_REFRESH = API_URL + "/v1/api-token-refresh";
     private static final String API_LOGIN = API_URL + "/v1/login";
     private static final String API_USER = API_URL + "/v1/user";
+    private static final String API_TAG = API_URL + "/v1/tag";
+    private static final String API_ORG = API_URL + "/v1/org";
     private static final String API_SEND_TOKEN = API_URL + "/v1/login/send";
     private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken";
     private static final long EXPIRE_REFRESH_DELTA = 7L;
@@ -31,7 +33,7 @@ public class CcsmApi {
 
     public static JSONObject getContacts(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
-        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER, null);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
     }
 
     public static JSONObject forstaLogin(Context context, String authToken) {
