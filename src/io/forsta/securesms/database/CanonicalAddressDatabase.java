@@ -57,7 +57,7 @@ public class CanonicalAddressDatabase {
   private        DatabaseHelper           databaseHelper;
   private final  Context                  context;
 
-  private final Map<String, Long> addressCache = new ConcurrentHashMap<>();
+  public final Map<String, Long> addressCache = new ConcurrentHashMap<>();
   private final Map<Long, String> idCache      = new ConcurrentHashMap<>();
 
   public synchronized static CanonicalAddressDatabase getInstance(Context context) {

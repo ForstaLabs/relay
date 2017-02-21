@@ -26,6 +26,7 @@ public class ForstaPreferences {
     private static final String FORSTA_SYNC_NUMBER = "forsta_sync_number";
     private static final String FORSTA_API_HOST = "forsta_api_url";
     private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
+    private static final String FORSTA_ORG_NAME = "forsta_org_name";
     private static final String CCSM_DEBUG = "ccsm_debug";
 
     public static void clearPreferences(Context context) {
@@ -35,6 +36,7 @@ public class ForstaPreferences {
                 .putString(FORSTA_SYNC_NUMBER, "")
                 .putString(FORSTA_API_HOST, "")
                 .putBoolean(FORSTA_LOGIN_PENDING, false)
+                .putString(FORSTA_ORG_NAME, "")
                 .putBoolean(CCSM_DEBUG, false)
                 .apply();
     }
@@ -96,6 +98,14 @@ public class ForstaPreferences {
 
     public static String getForstaApiHost(Context context) {
         return getStringPreference(context, FORSTA_API_HOST);
+    }
+
+    public static void setForstaOrgName(Context context, String orgName) {
+        setStringPreference(context, FORSTA_ORG_NAME, orgName);
+    }
+
+    public static String getForstaOrgName(Context context) {
+        return getStringPreference(context, FORSTA_ORG_NAME);
     }
 
     private static void setStringPreference(Context context, String key, String value) {

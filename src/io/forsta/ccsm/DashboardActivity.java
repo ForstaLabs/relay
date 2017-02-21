@@ -22,6 +22,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -31,6 +33,7 @@ import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
@@ -48,6 +51,7 @@ import io.forsta.securesms.recipients.Recipients;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -55,9 +59,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
@@ -134,13 +143,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
         options.add("Choose an option");
-        options.add("API Test");
+        options.add("Update Directory");
+        options.add("Address Database");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
         options.add("TextSecure Contacts");
-        options.add("All Contacts");
+
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
         mSpinner.setAdapter(adapter);
@@ -161,25 +171,27 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         api.execute();
                         break;
                     case 2:
+                        GetAddressDatabase getAddresses = new GetAddressDatabase();
+                        getAddresses.execute();
+                        break;
+                    case 3:
                         GetRecipientsList task = new GetRecipientsList();
                         task.execute();
                         break;
-                    case 3:
+                    case 4:
                         mDebugText.setText(printDirectory());
                         break;
-                    case 4:
+                    case 5:
                         GetMessages getMessages = new GetMessages();
                         getMessages.execute();
                         break;
-                    case 5:
+                    case 6:
                         mDebugText.setText(printSmsMessages());
                         break;
-                    case 6:
+                    case 7:
                         mDebugText.setText(printTextSecureContacts());
                         break;
-                    case 7:
-                        mDebugText.setText(printSystemContacts());
-                        break;
+
                 }
             }
 
@@ -293,11 +305,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         try {
             while (cursor != null && cursor.moveToNext()) {
                 for (int i=0;i<cursor.getColumnCount();i++) {
-                    sb.append(cursor.getColumnName(i)).append(": ");
-                    try {
-                        sb.append(cursor.getString(i)).append(" ");
-                    } catch(Exception e) {
-                        sb.append("Bad value");
+                    if (!cursor.getColumnName(i).equals("timestamp") && !cursor.getColumnName(i).equals("relay") && !cursor.getColumnName(i).equals("voice")) {
+                        sb.append(cursor.getColumnName(i)).append(": ");
+                        try {
+                            sb.append(cursor.getString(i)).append(" ");
+                        } catch(Exception e) {
+                            sb.append("Bad value");
+                        }
                     }
                 }
                 sb.append("\n");
@@ -462,8 +476,61 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            Log.d(TAG, "Response from API");
-            mDebugText.setText(jsonObject.toString());
+            List<JSONObject> contacts = new ArrayList<>();
+            List<String> addresses = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+
+            CanonicalAddressDatabase db = CanonicalAddressDatabase.getInstance(DashboardActivity.this);
+            try {
+                JSONArray results = jsonObject.getJSONArray("results");
+                for (int i=0; i<results.length(); i++) {
+                    JSONObject obj = results.getJSONObject(i);
+                    JSONArray users = obj.getJSONArray("users");
+                    if (users.length() > 0) {
+                        for (int j=0; j<users.length(); j++) {
+                            JSONObject user = users.getJSONObject(j).getJSONObject("user");
+                            if (user.has("primary_phone")) {
+                                addresses.add(user.getString("primary_phone"));
+                                sb.append("Phone: ");
+                                sb.append(user.getString("primary_phone"));
+                            }
+                            contacts.add(user);
+                        }
+                        sb.append("\n");
+                    }
+                }
+                List<Long> ids = db.getCanonicalAddressIds(addresses);
+//                new RefreshDirectory() {
+//
+//                }.execute(addresses);
+
+            } catch (JSONException e) {
+                Log.d(TAG, "GetApiContacts. Error");
+                e.printStackTrace();
+            }
+
+            mDebugText.setText(sb.toString());
+        }
+    }
+
+    private class RefreshDirectory extends AsyncTask<List<String>, Void, Void> {
+
+        @Override
+        protected Void doInBackground(List<String>... lists) {
+            List<String> addresses = lists[0];
+            Set<String> addressSet = new HashSet<>(addresses);
+            Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, addresses, false);
+            try {
+//                DirectoryHelper.UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(DashboardActivity.this, mMasterSecret, recipients, TextSecurePreferences.getLocalNumber(DashboardActivity.this));
+//                DirectoryHelper.refreshDirectory(DashboardActivity.this, mMasterSecret);
+                SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
+                List<ContactTokenDetails> activeTokens = accountManager.getContacts(addressSet);
+
+                Log.d(TAG, "Refreshing Directory");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 
@@ -517,22 +584,25 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class GetDirectory extends AsyncTask<Void, Void, JSONObject> {
+    private class GetAddressDatabase extends AsyncTask<Void, Void, Map<String, Long>> {
+
         @Override
-        protected JSONObject doInBackground(Void... params) {
-            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
-            try {
-                List<DeviceInfo> devices = accountManager.getDevices();
-                Log.d(TAG, "Devices");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        protected Map<String, Long> doInBackground(Void... voids) {
+            CanonicalAddressDatabase db = CanonicalAddressDatabase.getInstance(DashboardActivity.this);
+            Map<String, Long> vals = db.addressCache;
+
+            return vals;
         }
 
         @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            super.onPostExecute(jsonObject);
+        protected void onPostExecute(Map<String, Long> addresses) {
+            StringBuilder sb = new StringBuilder();
+            for (String number : addresses.keySet()) {
+                sb.append(number).append(" ");
+                sb.append(addresses.get(number));
+                sb.append("\n");
+            }
+            mDebugText.setText(sb.toString());
         }
     }
 }
