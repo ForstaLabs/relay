@@ -167,8 +167,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         printLoginInformation();
                         break;
                     case 1:
-                        GetApiContacts api = new GetApiContacts();
-                        api.execute();
+//                        GetApiContacts api = new GetApiContacts();
+//                        api.execute();
+
                         break;
                     case 2:
                         GetAddressDatabase getAddresses = new GetAddressDatabase();
@@ -499,7 +500,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         sb.append("\n");
                     }
                 }
-                List<Long> ids = db.getCanonicalAddressIds(addresses);
+                List<Long> ids = db.getCanonicalAddressIds(addresses); //This adds them to the canonical database...
 //                new RefreshDirectory() {
 //
 //                }.execute(addresses);
@@ -601,6 +602,42 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 sb.append(number).append(" ");
                 sb.append(addresses.get(number));
                 sb.append("\n");
+            }
+            mDebugText.setText(sb.toString());
+        }
+    }
+
+    private class GetActiveTokens extends AsyncTask<Set<String>, Void, Set<String>> {
+        @Override
+        protected Set<String> doInBackground(Set<String>... params) {
+            return null;
+        }
+    }
+
+    private class SyncContacts extends AsyncTask<Set<String>, Void, Set<String>> {
+        @Override
+        protected Set<String> doInBackground(Set<String>... params) {
+            Set<String> numbers = params[0];
+            Set<String> results = new HashSet<>();
+            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
+            try {
+                List<ContactTokenDetails> activeTokens = accountManager.getContacts(numbers);
+                for (ContactTokenDetails details: activeTokens) {
+                    details.getNumber();
+                    results.add(details.getNumber());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void onPostExecute(Set<String> numbers) {
+            StringBuilder sb = new StringBuilder();
+            for (String num : numbers) {
+                sb.append("Number: ").append(num).append("\n");
             }
             mDebugText.setText(sb.toString());
         }
