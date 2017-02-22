@@ -1,12 +1,17 @@
 package io.forsta.ccsm;
 
+import android.accounts.Account;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
+import android.util.StringBuilderPrinter;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -59,7 +64,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,13 +150,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
         options.add("Choose an option");
-        options.add("Update Directory");
+        options.add("Refresh Directory");
         options.add("Address Database");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
-        options.add("TextSecure Contacts");
+        options.add("Contacts");
 
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
@@ -167,9 +174,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         printLoginInformation();
                         break;
                     case 1:
-//                        GetApiContacts api = new GetApiContacts();
-//                        api.execute();
-
+                        FetchContacts refresh = new FetchContacts();
+                        refresh.execute();
                         break;
                     case 2:
                         GetAddressDatabase getAddresses = new GetAddressDatabase();
@@ -514,27 +520,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class RefreshDirectory extends AsyncTask<List<String>, Void, Void> {
-
-        @Override
-        protected Void doInBackground(List<String>... lists) {
-            List<String> addresses = lists[0];
-            Set<String> addressSet = new HashSet<>(addresses);
-            Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, addresses, false);
-            try {
-//                DirectoryHelper.UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(DashboardActivity.this, mMasterSecret, recipients, TextSecurePreferences.getLocalNumber(DashboardActivity.this));
-//                DirectoryHelper.refreshDirectory(DashboardActivity.this, mMasterSecret);
-                SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
-                List<ContactTokenDetails> activeTokens = accountManager.getContacts(addressSet);
-
-                Log.d(TAG, "Refreshing Directory");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
     private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
 
         @Override
@@ -607,39 +592,23 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class GetActiveTokens extends AsyncTask<Set<String>, Void, Set<String>> {
-        @Override
-        protected Set<String> doInBackground(Set<String>... params) {
-            return null;
-        }
-    }
+    private class FetchContacts extends AsyncTask<Void, Void, JSONObject> {
 
-    private class SyncContacts extends AsyncTask<Set<String>, Void, Set<String>> {
         @Override
-        protected Set<String> doInBackground(Set<String>... params) {
-            Set<String> numbers = params[0];
-            Set<String> results = new HashSet<>();
-            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(DashboardActivity.this);
+        protected JSONObject doInBackground(Void... voids) {
             try {
-                List<ContactTokenDetails> activeTokens = accountManager.getContacts(numbers);
-                for (ContactTokenDetails details: activeTokens) {
-                    details.getNumber();
-                    results.add(details.getNumber());
-                }
+//                JSONObject tags = CcsmApi.getContacts(DashboardActivity.this);
+//                CcsmApi.syncForstaContacts(DashboardActivity.this, tags);
+                DirectoryHelper.refreshDirectory(DashboardActivity.this, mMasterSecret);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            return results;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(Set<String> numbers) {
-            StringBuilder sb = new StringBuilder();
-            for (String num : numbers) {
-                sb.append("Number: ").append(num).append("\n");
-            }
-            mDebugText.setText(sb.toString());
+        protected void onPostExecute(JSONObject jsonObject) {
+            mDebugText.setText(printTextSecureContacts());
         }
     }
 }

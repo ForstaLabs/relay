@@ -1,15 +1,31 @@
 package io.forsta.ccsm.api;
 
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.Context;
+import android.database.Cursor;
+import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.util.Log;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.util.Base64;
 import io.forsta.util.NetworkUtils;
 
@@ -122,4 +138,75 @@ public class CcsmApi {
         return authtoken;
     }
 
+    public static Map<String, String> getContacts(JSONObject jsonObject) {
+        Map<String, String> contacts = new HashMap<>();
+        try {
+            JSONArray results = jsonObject.getJSONArray("results");
+            for (int i=0; i<results.length(); i++) {
+                JSONObject obj = results.getJSONObject(i);
+                JSONArray users = obj.getJSONArray("users");
+                if (users.length() > 0) {
+                    for (int j=0; j<users.length(); j++) {
+                        JSONObject user = users.getJSONObject(j).getJSONObject("user");
+                        if (user.has("primary_phone")) {
+                            String name = user.getString("first_name") + " " + user.getString("last_name");
+                            contacts.put(user.getString("primary_phone"), name);
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return contacts;
+    }
+
+    public static void syncForstaContacts(Context context, JSONObject tags) {
+        Map<String, String> contacts = getContacts(tags);
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
+        Cursor cursor = db.querySystemContacts(null);
+
+        if (cursor != null) {
+            while(cursor.moveToNext()) {
+                // get each contact. If there is not an entry for Forsta user, add it.
+                // Then check to see if user is registered with the TextSecure server.
+                // if they are registered, update the contact.
+            }
+            cursor.close();
+        }
+
+
+        for (Map.Entry<String, String> entry : contacts.entrySet()) {
+            updateContactsDb(ops, entry.getKey(), entry.getValue());
+        }
+        try{
+            ContentProviderResult[] results = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateContactsDb(List<ContentProviderOperation> ops, String number, String name) {
+        int index = ops.size();
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .build());
+
+        // first and last names
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+                .build());
+
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+                .withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                .build());
+    }
 }
