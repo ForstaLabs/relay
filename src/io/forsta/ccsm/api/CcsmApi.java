@@ -176,36 +176,41 @@ public class CcsmApi {
     public static void syncForstaContacts(Context context) {
         try {
             JSONObject tags = CcsmApi.getContacts(context);
-            TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
-            Set<String> eligibleContactNumbers = getSystemContacts(context);
+            Set<String> contactNumbers = getSystemContacts(context);
 
             Map<String, String> contacts = getContacts(tags);
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
             Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
             for (Map.Entry<String, String> entry : contacts.entrySet()) {
-
-                String e164number = Util.canonicalizeNumber(context, entry.getKey());
-                if (!eligibleContactNumbers.contains(e164number)) {
-                    updateContactsDb(ops, account.get(), e164number, entry.getValue());
+                try {
+                    String e164number = Util.canonicalizeNumber(context, entry.getKey());
+                    if (!contactNumbers.contains(e164number)) {
+                        updateContactsDb(ops, account.get(), e164number, entry.getValue());
+                    }
+                } catch (InvalidNumberException e){
+                    e.printStackTrace();
                 }
             }
-            ContentProviderResult[] results = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        } catch (InvalidNumberException e) {
-            e.printStackTrace();
+            context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
         } catch(Exception e){
-            Log.d(TAG, "Shit went wrong here...");
             e.printStackTrace();
         }
     }
 
     private static Set<String> getSystemContacts(Context context) {
         Set<String> results = new HashSet<>();
-        ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
-        Cursor cursor = db.querySystemContacts(null);
-        String[] cols = cursor.getColumnNames();
+        String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone._ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.TYPE,
+                ContactsContract.CommonDataKinds.Phone.LABEL
+        };
+        String  sort = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+
+        Cursor cursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, null, null, sort);
         while (cursor.moveToNext()) {
-            String number = cursor.getString(cursor.getColumnIndex("number"));
+            String number = cursor.getString(cursor.getColumnIndex("data1"));
             try {
                 String e164number = Util.canonicalizeNumber(context, number);
                 results.add(e164number);

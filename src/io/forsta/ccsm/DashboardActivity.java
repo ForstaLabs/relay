@@ -150,7 +150,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
         options.add("Choose an option");
-        options.add("Refresh Directory");
+        options.add("Sync Contacts");
         options.add("Address Database");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -265,15 +265,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                 ContactsContract.CommonDataKinds.Phone.TYPE,
-                ContactsContract.CommonDataKinds.Phone.LABEL,
-                ContactsContract.Data.MIMETYPE,
-                ContactsContract.Data.RAW_CONTACT_ID,
-                ContactsContract.RawContacts.ACCOUNT_TYPE,
-                ContactsContract.RawContacts.ACCOUNT_NAME
+                ContactsContract.CommonDataKinds.Phone.LABEL
         };
         String  sort = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
 
-        Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, projection, null, null, sort);
+        Cursor c = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, null, null, sort);
+//        Cursor c = db.querySystemContacts(null);
         StringBuilder sb = new StringBuilder();
         sb.append("System Contacts: ").append(c.getCount()).append("\n");
         sb.append("Count: ").append(c.getCount()).append("\n");
