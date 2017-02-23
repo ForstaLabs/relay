@@ -154,7 +154,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("Address Database");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
-        options.add("Contacts");
+        options.add("TextSecure Contacts");
+        options.add("System Contacts");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
 
@@ -190,13 +191,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         mDebugText.setText(printDirectory());
                         break;
                     case 5:
-                        mDebugText.setText(printSystemContacts());
+                        mDebugText.setText(printTextSecureContacts());
                         break;
                     case 6:
+                        mDebugText.setText(printSystemContacts());
+                        break;
+                    case 7:
                         GetMessages getMessages = new GetMessages();
                         getMessages.execute();
                         break;
-                    case 7:
+                    case 8:
                         mDebugText.setText(printSmsMessages());
                         break;
 
@@ -261,6 +265,27 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
     private String printSystemContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
+        Cursor c = db.querySystemContacts(null);
+        StringBuilder sb = new StringBuilder();
+        sb.append("System Contacts: ").append(c.getCount()).append("\n");
+        while (c.moveToNext()) {
+            String[] cols = c.getColumnNames();
+            for (int i=0;i < c.getColumnCount(); i++) {
+                sb.append(c.getColumnName(i)).append(": ");
+                try {
+                    sb.append(c.getString(i)).append(" ");
+                } catch (Exception e) {
+                    sb.append(c.getInt(i)).append(" ");
+                }
+                sb.append("\n");
+            }
+        }
+        c.close();
+
+        return sb.toString();
+    }
+
+    private String printAllContacts() {
         String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone._ID,
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
@@ -272,8 +297,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         Cursor c = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, null, null, sort);
 //        Cursor c = db.querySystemContacts(null);
         StringBuilder sb = new StringBuilder();
-        sb.append("System Contacts: ").append(c.getCount()).append("\n");
-        sb.append("Count: ").append(c.getCount()).append("\n");
+        sb.append("All Contacts: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -296,7 +320,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         Cursor c = db.queryTextSecureContacts(null);
         StringBuilder sb = new StringBuilder();
         sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
-        sb.append("Count: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
