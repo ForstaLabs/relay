@@ -58,11 +58,6 @@ public class CcsmApi {
 
     private CcsmApi() { }
 
-    public static JSONObject getContacts(Context context) {
-        String authKey = ForstaPreferences.getRegisteredKey(context);
-        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
-    }
-
     public static JSONObject forstaLogin(Context context, String authToken) {
         return forstaLogin(context, "", "", authToken);
     }
@@ -149,7 +144,7 @@ public class CcsmApi {
         return authtoken;
     }
 
-    public static Map<String, String> getContacts(JSONObject jsonObject) {
+    public static Map<String, String> getTagContacts(JSONObject jsonObject) {
         Map<String, String> contacts = new HashMap<>();
         try {
             JSONArray results = jsonObject.getJSONArray("results");
@@ -173,12 +168,17 @@ public class CcsmApi {
         return contacts;
     }
 
+    public static JSONObject getContacts(Context context) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
+    }
+
     public static void syncForstaContacts(Context context) {
         try {
-            JSONObject tags = CcsmApi.getContacts(context);
+            JSONObject tags = getContacts(context);
             Set<String> contactNumbers = getSystemContacts(context);
 
-            Map<String, String> contacts = getContacts(tags);
+            Map<String, String> contacts = getTagContacts(tags);
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
             Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
@@ -233,7 +233,7 @@ public class CcsmApi {
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
                 .build());
 
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
