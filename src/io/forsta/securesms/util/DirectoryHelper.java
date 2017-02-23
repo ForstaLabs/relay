@@ -230,7 +230,7 @@ public class DirectoryHelper {
     }
   }
 
-  private static Optional<Account> getOrCreateAccount(Context context) {
+  public static Optional<Account> getOrCreateAccount(Context context) {
     AccountManager accountManager = AccountManager.get(context);
     Account[]      accounts       = accountManager.getAccountsByType("io.forsta.securesms");
 

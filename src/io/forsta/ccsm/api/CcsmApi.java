@@ -1,5 +1,6 @@
 package io.forsta.ccsm.api;
 
+import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.Context;
@@ -11,6 +12,11 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.SignalServiceAccountManager;
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
+
 import io.forsta.securesms.BuildConfig;
 
 import java.io.IOException;
@@ -26,7 +32,12 @@ import java.util.Set;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.util.Base64;
+import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.TextSecurePreferences;
+import io.forsta.securesms.util.Util;
 import io.forsta.util.NetworkUtils;
 
 /**
@@ -162,40 +173,58 @@ public class CcsmApi {
         return contacts;
     }
 
-    public static void syncForstaContacts(Context context, JSONObject tags) {
-        Map<String, String> contacts = getContacts(tags);
-        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
-        Cursor cursor = db.querySystemContacts(null);
+    public static void syncForstaContacts(Context context) {
+        try {
+            JSONObject tags = CcsmApi.getContacts(context);
+            TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
+            Set<String> eligibleContactNumbers = getSystemContacts(context);
 
-        if (cursor != null) {
-            while(cursor.moveToNext()) {
-                // get each contact. If there is not an entry for Forsta user, add it.
-                // Then check to see if user is registered with the TextSecure server.
-                // if they are registered, update the contact.
+            Map<String, String> contacts = getContacts(tags);
+            ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+
+            Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
+            for (Map.Entry<String, String> entry : contacts.entrySet()) {
+
+                String e164number = Util.canonicalizeNumber(context, entry.getKey());
+                if (!eligibleContactNumbers.contains(e164number)) {
+                    updateContactsDb(ops, account.get(), e164number, entry.getValue());
+                }
             }
-            cursor.close();
-        }
-
-
-        for (Map.Entry<String, String> entry : contacts.entrySet()) {
-            updateContactsDb(ops, entry.getKey(), entry.getValue());
-        }
-        try{
             ContentProviderResult[] results = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        }catch(Exception e){
+        } catch (InvalidNumberException e) {
+            e.printStackTrace();
+        } catch(Exception e){
+            Log.d(TAG, "Shit went wrong here...");
             e.printStackTrace();
         }
     }
 
-    private static void updateContactsDb(List<ContentProviderOperation> ops, String number, String name) {
+    private static Set<String> getSystemContacts(Context context) {
+        Set<String> results = new HashSet<>();
+        ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
+        Cursor cursor = db.querySystemContacts(null);
+        String[] cols = cursor.getColumnNames();
+        while (cursor.moveToNext()) {
+            String number = cursor.getString(cursor.getColumnIndex("number"));
+            try {
+                String e164number = Util.canonicalizeNumber(context, number);
+                results.add(e164number);
+            } catch (InvalidNumberException e) {
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        return results;
+    }
+
+    private static void updateContactsDb(List<ContentProviderOperation> ops, Account account, String number, String name) {
         int index = ops.size();
+
         ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.name)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.type)
                 .build());
 
-        // first and last names
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)

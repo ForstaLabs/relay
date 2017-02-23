@@ -154,9 +154,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("Address Database");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
+        options.add("Contacts");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
-        options.add("Contacts");
+
 
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
@@ -189,15 +190,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         mDebugText.setText(printDirectory());
                         break;
                     case 5:
+                        mDebugText.setText(printSystemContacts());
+                        break;
+                    case 6:
                         GetMessages getMessages = new GetMessages();
                         getMessages.execute();
                         break;
-                    case 6:
+                    case 7:
                         mDebugText.setText(printSmsMessages());
                         break;
-                    case 7:
-                        mDebugText.setText(printTextSecureContacts());
-                        break;
+
 
                 }
             }
@@ -259,9 +261,22 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
     private String printSystemContacts() {
         ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-        Cursor c = db.querySystemContacts(null);
+        String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone._ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.TYPE,
+                ContactsContract.CommonDataKinds.Phone.LABEL,
+                ContactsContract.Data.MIMETYPE,
+                ContactsContract.Data.RAW_CONTACT_ID,
+                ContactsContract.RawContacts.ACCOUNT_TYPE,
+                ContactsContract.RawContacts.ACCOUNT_NAME
+        };
+        String  sort = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+
+        Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, projection, null, null, sort);
         StringBuilder sb = new StringBuilder();
         sb.append("System Contacts: ").append(c.getCount()).append("\n");
+        sb.append("Count: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -284,6 +299,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         Cursor c = db.queryTextSecureContacts(null);
         StringBuilder sb = new StringBuilder();
         sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
+        sb.append("Count: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -300,15 +316,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return sb.toString();
     }
 
-    private Optional<RecipientPreferenceDatabase.RecipientsPreferences> getRecipientPreferences(long[] ids) {
-        RecipientPreferenceDatabase rdb = DatabaseFactory.getRecipientPreferenceDatabase(this);
-        return rdb.getRecipientsPreferences(ids);
-    }
-
     private String printDirectory() {
         TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
         Cursor cursor = dir.getAllNumbers();
         StringBuilder sb = new StringBuilder();
+        sb.append("Count: ").append(cursor.getCount()).append("\n");
         try {
             while (cursor != null && cursor.moveToNext()) {
                 for (int i=0;i<cursor.getColumnCount();i++) {
@@ -474,52 +486,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         return "MasterSecret NULL";
     }
 
-    private class GetApiContacts extends AsyncTask<Void, Void, JSONObject> {
-
-        @Override
-        protected JSONObject doInBackground(Void... params) {
-            return CcsmApi.getContacts(DashboardActivity.this);
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            List<JSONObject> contacts = new ArrayList<>();
-            List<String> addresses = new ArrayList<>();
-            StringBuilder sb = new StringBuilder();
-
-            CanonicalAddressDatabase db = CanonicalAddressDatabase.getInstance(DashboardActivity.this);
-            try {
-                JSONArray results = jsonObject.getJSONArray("results");
-                for (int i=0; i<results.length(); i++) {
-                    JSONObject obj = results.getJSONObject(i);
-                    JSONArray users = obj.getJSONArray("users");
-                    if (users.length() > 0) {
-                        for (int j=0; j<users.length(); j++) {
-                            JSONObject user = users.getJSONObject(j).getJSONObject("user");
-                            if (user.has("primary_phone")) {
-                                addresses.add(user.getString("primary_phone"));
-                                sb.append("Phone: ");
-                                sb.append(user.getString("primary_phone"));
-                            }
-                            contacts.add(user);
-                        }
-                        sb.append("\n");
-                    }
-                }
-                List<Long> ids = db.getCanonicalAddressIds(addresses); //This adds them to the canonical database...
-//                new RefreshDirectory() {
-//
-//                }.execute(addresses);
-
-            } catch (JSONException e) {
-                Log.d(TAG, "GetApiContacts. Error");
-                e.printStackTrace();
-            }
-
-            mDebugText.setText(sb.toString());
-        }
-    }
-
     private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
 
         @Override
@@ -597,8 +563,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         @Override
         protected JSONObject doInBackground(Void... voids) {
             try {
-//                JSONObject tags = CcsmApi.getContacts(DashboardActivity.this);
-//                CcsmApi.syncForstaContacts(DashboardActivity.this, tags);
+                CcsmApi.syncForstaContacts(DashboardActivity.this);
                 DirectoryHelper.refreshDirectory(DashboardActivity.this, mMasterSecret);
             } catch (IOException e) {
                 e.printStackTrace();
