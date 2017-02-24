@@ -2,10 +2,8 @@ package io.forsta.ccsm.api;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
 import android.content.Context;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -13,14 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.securesms.BuildConfig;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,13 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.securesms.contacts.ContactsDatabase;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
-import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.util.NetworkUtils;
 
@@ -153,10 +141,14 @@ public class CcsmApi {
                 JSONArray users = obj.getJSONArray("users");
                 if (users.length() > 0) {
                     for (int j=0; j<users.length(); j++) {
-                        JSONObject user = users.getJSONObject(j).getJSONObject("user");
-                        if (user.has("primary_phone")) {
-                            String name = user.getString("first_name") + " " + user.getString("last_name");
-                            contacts.put(user.getString("primary_phone"), name);
+                        JSONObject userObj = users.getJSONObject(j);
+                        String association = userObj.getString("association_type");
+                        if (association.equals("USERNAME")) {
+                            JSONObject user = userObj.getJSONObject("user");
+                            if (user.has("primary_phone")) {
+                                String name = user.getString("first_name") + " " + user.getString("last_name");
+                                contacts.put(user.getString("primary_phone"), name);
+                            }
                         }
                     }
                 }
@@ -168,14 +160,61 @@ public class CcsmApi {
         return contacts;
     }
 
-    public static JSONObject getContacts(Context context) {
+    public static void parseTagGroups(Context context) {
+        try {
+            Map<String, ForstaOrg> orgs = new HashMap<>();
+            Map<String, ForstaGroup> groups = new HashMap<>();
+            JSONObject org = getForstaOrg(context);
+            JSONArray results = org.getJSONArray("results");
+            for (int i=0; i<results.length(); i++) {
+                JSONObject organization = results.getJSONObject(i);
+                String id = organization.getString("id");
+                ForstaOrg forstaOrg = new ForstaOrg(organization);
+                orgs.put(id, forstaOrg);
+            }
+
+            JSONObject tags = getTags(context);
+            JSONArray tagResults = tags.getJSONArray("results");
+            for (int i=0; i<tagResults.length(); i++) {
+                JSONObject result = tagResults.getJSONObject(i);
+                JSONArray users = result.getJSONArray("users");
+                boolean isGroup = true;
+                for (int j=0; j<users.length(); j++) {
+                    JSONObject userObj = users.getJSONObject(j);
+                    String type = userObj.getString("association_type");
+                    if (type.equals("USERNAME")) {
+                        // This is skipping entries that have REPORTSTO
+                        isGroup = false;
+                        break;
+                    }
+                }
+
+                if (isGroup) {
+                    ForstaOrg groupOrg = orgs.get(result.getString("org"));
+                    ForstaGroup group = new ForstaGroup(groupOrg, result);
+                    String groupId = result.getString("id");
+                    groups.put(groupId, group);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static JSONObject getForstaOrg(Context context) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
+    }
+
+    public static JSONObject getTags(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
     }
 
     public static void syncForstaContacts(Context context) {
         try {
-            JSONObject tags = getContacts(context);
+            JSONObject tags = getTags(context);
             Set<String> contactNumbers = getSystemContacts(context);
 
             Map<String, String> contacts = getTagContacts(tags);
@@ -226,8 +265,8 @@ public class CcsmApi {
         int index = ops.size();
 
         ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.name)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.type)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
                 .build());
 
         ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)

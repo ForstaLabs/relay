@@ -1,8 +1,5 @@
 package io.forsta.ccsm;
 
-import android.accounts.Account;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -11,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
-import android.util.StringBuilderPrinter;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,7 +29,6 @@ import org.json.JSONObject;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -41,22 +36,20 @@ import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.RecipientPreferenceDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
+import io.forsta.securesms.groups.GroupManager;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
+
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -66,14 +59,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.TextSecurePreferences;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
@@ -151,15 +142,17 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         List<String> options = new ArrayList<String>();
         options.add("Choose an option");
         options.add("Sync Contacts");
-        options.add("Address Database");
+        options.add("Canonical Address Db");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
         options.add("TextSecure Contacts");
-        options.add("System Contacts");
+        options.add("System Contact Data");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
-
-
+        options.add("Groups");
+        options.add("Create Default Group");
+        options.add("Get API Users");
+        options.add("Get API Groups");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
         mSpinner.setAdapter(adapter);
@@ -194,7 +187,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         mDebugText.setText(printTextSecureContacts());
                         break;
                     case 6:
-                        mDebugText.setText(printSystemContacts());
+                        mDebugText.setText(printAllContacts());
                         break;
                     case 7:
                         GetMessages getMessages = new GetMessages();
@@ -203,8 +196,22 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                     case 8:
                         mDebugText.setText(printSmsMessages());
                         break;
-
-
+                    case 9:
+                        GetGroups groupsTask = new GetGroups();
+                        groupsTask.execute();
+                        break;
+                    case 10:
+                        CreateDefaultGroup createGroup = new CreateDefaultGroup();
+                        createGroup.execute();
+                        break;
+                    case 11:
+                        GetTagUsers tagTask = new GetTagUsers();
+                        tagTask.execute();
+                        break;
+                    case 12:
+                        GetTagGroups groupTask = new GetTagGroups();
+                        groupTask.execute();
+                        break;
                 }
             }
 
@@ -290,14 +297,21 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                 ContactsContract.CommonDataKinds.Phone.TYPE,
-                ContactsContract.CommonDataKinds.Phone.LABEL
+                ContactsContract.CommonDataKinds.Phone.LABEL,
+                ContactsContract.Data.MIMETYPE
         };
+        String[] proj = new String[] {
+                ContactsContract.RawContacts.SYNC1,
+                ContactsContract.RawContacts.CONTACT_ID,
+                ContactsContract.RawContacts.ACCOUNT_NAME,
+                ContactsContract.RawContacts.ACCOUNT_TYPE,
+        };
+
         String  sort = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
 
-        Cursor c = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, projection, null, null, sort);
-//        Cursor c = db.querySystemContacts(null);
+        Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, proj, null, null, sort);
         StringBuilder sb = new StringBuilder();
-        sb.append("All Contacts: ").append(c.getCount()).append("\n");
+        sb.append("Raw Contacts: ").append(c.getCount()).append("\n");
         while (c.moveToNext()) {
             String[] cols = c.getColumnNames();
             for (int i=0;i < c.getColumnCount(); i++) {
@@ -594,6 +608,170 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             mDebugText.setText(printTextSecureContacts());
+        }
+    }
+
+    private class GetTagGroups extends AsyncTask<Void, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            return CcsmApi.getTags(DashboardActivity.this);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            StringBuilder sb = new StringBuilder();
+            try {
+                JSONArray results = jsonObject.getJSONArray("results");
+                for (int i=0; i<results.length(); i++) {
+                    JSONObject result = results.getJSONObject(i);
+                    String id = result.getString("id");
+                    JSONArray users = result.getJSONArray("users");
+                    for (int j=0; j<users.length(); j++) {
+                        JSONObject userObj = users.getJSONObject(j);
+                        String association = userObj.getString("association_type");
+                        if (!association.equals("USERNAME")) {
+                            // Some kind of group.
+                            String slug = result.getString("slug");
+                            String desc = result.getString("description");
+                            String parent = result.getString("parent");
+                            String org = result.getString("org");
+                            JSONObject user = userObj.getJSONObject("user");
+                            String userId = user.getString("id");
+                            String userName = user.getString("username");
+                            String firstName = user.getString("first_name");
+                            String lastName  = user.getString("last_name");
+                            String primaryPhone = user.getString("primary_phone");
+                            sb.append(desc).append("\n");
+                            sb.append(slug).append("\n");
+                            sb.append("members: ");
+                            sb.append(users.length());
+                            sb.append("\n");
+                            break;
+                        }
+                    }
+
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            mDebugText.setText(sb.toString());
+        }
+    }
+
+    private class GetTagUsers extends AsyncTask<Void, Void, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            return CcsmApi.getTags(DashboardActivity.this);
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            Map<String, String> contacts = new HashMap<>();
+            try {
+                JSONArray results = jsonObject.getJSONArray("results");
+                for (int i=0; i<results.length(); i++) {
+                    JSONObject obj = results.getJSONObject(i);
+                    JSONArray users = obj.getJSONArray("users");
+                    if (users.length() > 0) {
+                        for (int j=0; j<users.length(); j++) {
+                            JSONObject userObj = users.getJSONObject(j);
+                            String association = userObj.getString("association_type");
+                            if (association.equals("USERNAME")) {
+                                JSONObject user = userObj.getJSONObject("user");
+                                if (user.has("primary_phone")) {
+                                    String name = user.getString("first_name") + " " + user.getString("last_name");
+                                    contacts.put(user.getString("primary_phone"), name);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, String> user : contacts.entrySet()) {
+                sb.append(user.getKey()).append(" ");
+                sb.append(user.getValue()).append("\n");
+            }
+            mDebugText.setText(sb.toString());
+        }
+    }
+
+    private class GetGroups extends AsyncTask<Void, Void, List<GroupDatabase.GroupRecord>> {
+
+        @Override
+        protected List<GroupDatabase.GroupRecord> doInBackground(Void... voids) {
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
+            GroupDatabase.Reader reader = groupDb.getGroups();
+            GroupDatabase.GroupRecord record;
+            List<GroupDatabase.GroupRecord> results = new ArrayList<>();
+            while (( record = reader.getNext()) != null) {
+                results.add(record);
+            }
+            reader.close();
+            return results;
+        }
+
+        @Override
+        protected void onPostExecute(List<GroupDatabase.GroupRecord> groupRecords) {
+            StringBuilder sb = new StringBuilder();
+            for (GroupDatabase.GroupRecord rec : groupRecords) {
+                sb.append("Title: ").append(rec.getTitle()).append("\n");
+                sb.append("ID: ").append(rec.getId()).append("\n");
+                sb.append("Members:").append("\n");
+                List<String> numbers = rec.getMembers();
+                for (String num : numbers) {
+                    sb.append(num).append("\n");
+                }
+                sb.append("\n");
+            }
+            mDebugText.setText(sb.toString());
+        }
+    }
+
+    private class CreateDefaultGroup extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
+            GroupDatabase.Reader reader = groupDb.getGroups();
+            GroupDatabase.GroupRecord record;
+            GroupDatabase.GroupRecord existing = null;
+            while ((record = reader.getNext()) != null) {
+                String title = record.getTitle();
+                if (title.equals("Forsta")) {
+                    existing = record;
+                    break;
+                }
+            }
+            if (existing == null) {
+                try {
+                    TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
+                    List<String> numbers = dir.getActiveNumbers();
+                    Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, numbers, false);
+                    Set<Recipient> members = new HashSet<>(recipients.getRecipientsList());
+                    GroupManager.createGroup(DashboardActivity.this, mMasterSecret, members, null, "Forsta");
+                    return true;
+                } catch (InvalidNumberException e) {
+                    e.printStackTrace();
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if (result) {
+                Toast.makeText(DashboardActivity.this, "Group Created", Toast.LENGTH_LONG);
+            } else {
+                Toast.makeText(DashboardActivity.this, "Group Already Exists", Toast.LENGTH_LONG);
+            }
+
         }
     }
 }
