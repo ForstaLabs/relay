@@ -132,7 +132,7 @@ public class CcsmApi {
         return authtoken;
     }
 
-    public static Map<String, String> getTagContacts(JSONObject jsonObject) {
+    public static Map<String, String> parseTagContacts(JSONObject jsonObject) {
         Map<String, String> contacts = new HashMap<>();
         try {
             JSONArray results = jsonObject.getJSONArray("results");
@@ -160,46 +160,42 @@ public class CcsmApi {
         return contacts;
     }
 
-    public static void parseTagGroups(Context context) {
-        try {
-            Map<String, ForstaOrg> orgs = new HashMap<>();
-            Map<String, ForstaGroup> groups = new HashMap<>();
-            JSONObject org = getForstaOrg(context);
-            JSONArray results = org.getJSONArray("results");
-            for (int i=0; i<results.length(); i++) {
-                JSONObject organization = results.getJSONObject(i);
-                String id = organization.getString("id");
-                ForstaOrg forstaOrg = new ForstaOrg(organization);
-                orgs.put(id, forstaOrg);
-            }
+    public static List<ForstaGroup> parseTagGroups(JSONObject jsonObject) {
+        List<ForstaGroup> groups = new ArrayList<>();
 
-            JSONObject tags = getTags(context);
-            JSONArray tagResults = tags.getJSONArray("results");
-            for (int i=0; i<tagResults.length(); i++) {
-                JSONObject result = tagResults.getJSONObject(i);
+        try {
+            JSONArray results = jsonObject.getJSONArray("results");
+            for (int i=0; i<results.length(); i++) {
+                JSONObject result = results.getJSONObject(i);
                 JSONArray users = result.getJSONArray("users");
-                boolean isGroup = true;
+                // Right now, not getting groups with no members. Leaves only.
+                Map<String, String> members = new HashMap<>();
+                boolean isGroup = false;
                 for (int j=0; j<users.length(); j++) {
                     JSONObject userObj = users.getJSONObject(j);
-                    String type = userObj.getString("association_type");
-                    if (type.equals("USERNAME")) {
-                        // This is skipping entries that have REPORTSTO
-                        isGroup = false;
-                        break;
+                    String association = userObj.getString("association_type");
+
+                    if (association.equals("MEMBEROF")) {
+                        isGroup = true;
+                        // Some kind of group member
+                        JSONObject user = userObj.getJSONObject("user");
+                        String userId = user.getString("id");
+                        String primaryPhone = user.getString("primary_phone");
+                        members.put(userId, primaryPhone);
                     }
                 }
-
                 if (isGroup) {
-                    ForstaOrg groupOrg = orgs.get(result.getString("org"));
-                    ForstaGroup group = new ForstaGroup(groupOrg, result);
-                    String groupId = result.getString("id");
-                    groups.put(groupId, group);
+                    ForstaGroup group = new ForstaGroup(result);
+                    group.addMembers(members);
+                    groups.add(group);
                 }
+
             }
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return groups;
     }
 
     public static JSONObject getForstaOrg(Context context) {
@@ -217,7 +213,7 @@ public class CcsmApi {
             JSONObject tags = getTags(context);
             Set<String> contactNumbers = getSystemContacts(context);
 
-            Map<String, String> contacts = getTagContacts(tags);
+            Map<String, String> contacts = parseTagContacts(tags);
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
             Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);

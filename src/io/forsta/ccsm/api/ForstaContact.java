@@ -7,7 +7,7 @@ import org.json.JSONObject;
  * Created by jlewis on 2/24/17.
  */
 
-public class ForstaUser {
+public class ForstaContact {
     public String id;
     public String username;
     public String firstName;
@@ -15,7 +15,7 @@ public class ForstaUser {
     public String lastName;
     public String primaryPhone;
 
-    public ForstaUser(JSONObject jsonObject) {
+    public ForstaContact(JSONObject jsonObject) {
         try {
             JSONObject user = jsonObject.getJSONObject("user");
             this.id = user.getString("id");

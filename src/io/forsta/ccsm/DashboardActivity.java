@@ -26,11 +26,14 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
@@ -44,6 +47,7 @@ import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
+import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.groups.GroupManager;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -65,6 +69,7 @@ import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.GroupUtil;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
@@ -74,6 +79,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     private Button mChangeNumberButton;
     private Button mResetNumberButton;
     private MasterSecret mMasterSecret;
+    private MasterCipher mMasterCipher;
     private Spinner mSpinner;
     private LinearLayout mChangeNumberContainer;
     private ScrollView mScrollView;
@@ -82,6 +88,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
         mMasterSecret = masterSecret;
+        mMasterCipher = new MasterCipher(mMasterSecret);
         setContentView(R.layout.activity_dashboard);
         initView();
     }
@@ -407,14 +414,61 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private String printAllMessages() {
+//        StringBuilder sb = new StringBuilder();
+//        List<Pair<Date, String>> list = getMessages();
+//        for (Pair<Date, String> record : list) {
+//            sb.append(record.second);
+//            sb.append("\n");
+//        }
+//        return sb.toString();
+        return printThreads();
+    }
+
+    private String printThreads() {
         StringBuilder sb = new StringBuilder();
-        List<Pair<Date, String>> list = getMessages();
-        for (Pair<Date, String> record : list) {
-            sb.append(record.second);
+        ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+        GroupDatabase gdb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
+        Cursor cursor = tdb.getConversationList();
+        ThreadDatabase.Reader reader = tdb.readerFor(cursor, mMasterCipher);
+
+        ThreadRecord record;
+        while ((record = reader.getNext()) != null) {
+            sb.append("Thread: ");
+            sb.append(record.getThreadId());
+            sb.append("\n");
+            sb.append("Message: ").append("\n");
+            sb.append(record.getDisplayBody().toString());
+            sb.append("\n");
+            Recipients recipients = record.getRecipients();
+            if (recipients.isGroupRecipient()) {
+                String groupId = recipients.getPrimaryRecipient().getNumber();
+                sb.append("Group Recipients").append("\n");
+                sb.append("Group ID: ").append(groupId).append("\n");
+                try {
+                    Recipients rec = gdb.getGroupMembers(GroupUtil.getDecodedId(groupId), true);
+
+                    List<Recipient> groupRecipients = rec.getRecipientsList();
+                    for (Recipient recipient : groupRecipients) {
+                        sb.append(recipient.getNumber()).append("\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                sb.append("Recipients").append("\n");
+                for (Recipient rec : recipients.getRecipientsList()) {
+                    sb.append(rec.getNumber()).append("\n");
+                }
+            }
             sb.append("\n");
         }
+        reader.close();
+
+        cursor.close();
         return sb.toString();
     }
+
+
 
     private List<Pair<Date, String>> getMessages() {
         List<Pair<Date, String>> messageList = new ArrayList<>();
@@ -425,58 +479,64 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             Cursor cc = tdb.getConversationList();
             List<Long> list = new ArrayList<>();
             while (cc.moveToNext()) {
+
                 list.add(cc.getLong(0));
             }
             cc.close();
-            for (long tId : list) {
-                Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
-                MessageRecord record;
-                MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
-
-                while ((record = reader.getNext()) != null) {
-                    StringBuilder sb = new StringBuilder();
-                    Recipient recipient = record.getIndividualRecipient();
-                    Recipients recipients = record.getRecipients();
-                    long threadId = record.getThreadId();
-                    CharSequence body = record.getDisplayBody();
-                    long timestamp = record.getTimestamp();
-                    Date dt = new Date(timestamp);
-                    List<Recipient> recipList = recipients.getRecipientsList();
-                    List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
-
-                    sb.append("ThreadId: ");
-                    sb.append(threadId);
-                    sb.append("\n");
-                    sb.append("Recipients: ");
-                    for (Recipient r : recipList) {
-                        sb.append(r.getNumber()).append(" ");
-                    }
-                    sb.append("\n");
-                    sb.append("Primary Recipient: ");
-                    sb.append(recipient.getNumber());
-                    sb.append("\n");
-                    sb.append("Date: ");
-                    sb.append(dt.toString());
-                    sb.append("\n");
-                    sb.append("Message: ");
-                    sb.append(body.toString());
-                    sb.append("\n");
-                    sb.append("Attachments:");
-                    for (DatabaseAttachment item: attachments) {
-                        sb.append(item.getDataUri()).append(" ");
-                    }
-                    sb.append("\n");
-                    messageList.add(new Pair(dt, sb.toString()));
-                }
-                cursor.close();
-                reader.close();
-            }
-            Collections.sort(messageList, new Comparator<Pair<Date, String>>() {
-                @Override
-                public int compare(Pair<Date, String> lhs, Pair<Date, String> rhs) {
-                    return rhs.first.compareTo(lhs.first);
-                }
-            });
+//            for (long tId : list) {
+//                Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
+//                MessageRecord record;
+//                MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
+//
+//                while ((record = reader.getNext()) != null) {
+//                    StringBuilder sb = new StringBuilder();
+//                    Recipient recipient = record.getIndividualRecipient();
+//                    Recipients recipients = record.getRecipients();
+//                    long threadId = record.getThreadId();
+//                    CharSequence body = record.getDisplayBody();
+//                    long timestamp = record.getTimestamp();
+//                    Date dt = new Date(timestamp);
+//                    List<Recipient> recipList = recipients.getRecipientsList();
+//                    List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
+//
+//                    sb.append("ThreadId: ");
+//                    sb.append(threadId);
+//                    sb.append("\n");
+//                    sb.append("Group").append("\n");
+//                    sb.append(recipients.isGroupRecipient());
+//                    sb.append("\n");
+//                    sb.append("Recipients: ");
+//                    for (Recipient r : recipList) {
+//                        sb.append(r.getNumber()).append(" ");
+//                    }
+//                    sb.append("\n");
+//                    sb.append("Primary Recipient: ");
+//                    sb.append(recipient.getNumber());
+//                    sb.append("\n");
+//                    sb.append(recipients.getPrimaryRecipient().getNumber());
+//                    sb.append("\n");
+//                    sb.append("Date: ");
+//                    sb.append(dt.toString());
+//                    sb.append("\n");
+//                    sb.append("Message: ");
+//                    sb.append(body.toString());
+//                    sb.append("\n");
+//                    sb.append("Attachments:");
+//                    for (DatabaseAttachment item: attachments) {
+//                        sb.append(item.getDataUri()).append(" ");
+//                    }
+//                    sb.append("\n");
+//                    messageList.add(new Pair(dt, sb.toString()));
+//                }
+//                cursor.close();
+//                reader.close();
+//            }
+//            Collections.sort(messageList, new Comparator<Pair<Date, String>>() {
+//                @Override
+//                public int compare(Pair<Date, String> lhs, Pair<Date, String> rhs) {
+//                    return rhs.first.compareTo(lhs.first);
+//                }
+//            });
         }
         return messageList;
     }
@@ -620,41 +680,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
+            List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
+
             StringBuilder sb = new StringBuilder();
-            try {
-                JSONArray results = jsonObject.getJSONArray("results");
-                for (int i=0; i<results.length(); i++) {
-                    JSONObject result = results.getJSONObject(i);
-                    String id = result.getString("id");
-                    JSONArray users = result.getJSONArray("users");
-                    for (int j=0; j<users.length(); j++) {
-                        JSONObject userObj = users.getJSONObject(j);
-                        String association = userObj.getString("association_type");
-                        if (!association.equals("USERNAME")) {
-                            // Some kind of group.
-                            String slug = result.getString("slug");
-                            String desc = result.getString("description");
-                            String parent = result.getString("parent");
-                            String org = result.getString("org");
-                            JSONObject user = userObj.getJSONObject("user");
-                            String userId = user.getString("id");
-                            String userName = user.getString("username");
-                            String firstName = user.getString("first_name");
-                            String lastName  = user.getString("last_name");
-                            String primaryPhone = user.getString("primary_phone");
-                            sb.append(desc).append("\n");
-                            sb.append(slug).append("\n");
-                            sb.append("members: ");
-                            sb.append(users.length());
-                            sb.append("\n");
-                            break;
-                        }
-                    }
-
+            for (ForstaGroup group : groups) {
+                sb.append(group.description).append("\n");
+//                sb.append(group.id).append("\n");
+                for (String number : group.getGroupNumbers()) {
+                    sb.append(number).append("\n");
                 }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
+                sb.append("\n");
             }
             mDebugText.setText(sb.toString());
         }
@@ -669,30 +704,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            Map<String, String> contacts = new HashMap<>();
-            try {
-                JSONArray results = jsonObject.getJSONArray("results");
-                for (int i=0; i<results.length(); i++) {
-                    JSONObject obj = results.getJSONObject(i);
-                    JSONArray users = obj.getJSONArray("users");
-                    if (users.length() > 0) {
-                        for (int j=0; j<users.length(); j++) {
-                            JSONObject userObj = users.getJSONObject(j);
-                            String association = userObj.getString("association_type");
-                            if (association.equals("USERNAME")) {
-                                JSONObject user = userObj.getJSONObject("user");
-                                if (user.has("primary_phone")) {
-                                    String name = user.getString("first_name") + " " + user.getString("last_name");
-                                    contacts.put(user.getString("primary_phone"), name);
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+            Map<String, String> contacts = CcsmApi.parseTagContacts(jsonObject);
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> user : contacts.entrySet()) {
                 sb.append(user.getKey()).append(" ");
@@ -723,6 +735,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             for (GroupDatabase.GroupRecord rec : groupRecords) {
                 sb.append("Title: ").append(rec.getTitle()).append("\n");
                 sb.append("ID: ").append(rec.getId()).append("\n");
+                sb.append("Encoded: ").append(rec.getEncodedId()).append("\n");
                 sb.append("Members:").append("\n");
                 List<String> numbers = rec.getMembers();
                 for (String num : numbers) {
