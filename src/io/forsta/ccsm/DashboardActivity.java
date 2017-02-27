@@ -744,7 +744,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             GroupDatabase.GroupRecord existing = null;
             while ((record = reader.getNext()) != null) {
                 String title = record.getTitle();
-                if (title.equals("Forsta")) {
+                if (title.equals("DevTeam")) {
                     existing = record;
                     break;
                 }
@@ -753,9 +753,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 try {
                     TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
                     List<String> numbers = dir.getActiveNumbers();
+                    // Remove SM number.
                     Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, numbers, false);
                     Set<Recipient> members = new HashSet<>(recipients.getRecipientsList());
-                    GroupManager.createGroup(DashboardActivity.this, mMasterSecret, members, null, "Forsta");
+                    GroupManager.createGroup(DashboardActivity.this, mMasterSecret, members, null, "DevTeam");
                     return true;
                 } catch (InvalidNumberException e) {
                     e.printStackTrace();
