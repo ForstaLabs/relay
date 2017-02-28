@@ -49,13 +49,21 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 
+import org.whispersystems.signalservice.api.SignalServiceAccountManager;
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
+import org.whispersystems.signalservice.internal.push.SignalServiceProtos;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,6 +74,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -157,7 +166,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
         options.add("Groups");
-        options.add("Create Default Group");
+        options.add("Create Default Groups");
         options.add("Get API Users");
         options.add("Get API Groups");
 
@@ -208,7 +217,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         groupsTask.execute();
                         break;
                     case 10:
-                        CreateDefaultGroup createGroup = new CreateDefaultGroup();
+                        CreateDefaultGroups createGroup = new CreateDefaultGroups();
                         createGroup.execute();
                         break;
                     case 11:
@@ -414,131 +423,106 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     private String printAllMessages() {
-//        StringBuilder sb = new StringBuilder();
-//        List<Pair<Date, String>> list = getMessages();
-//        for (Pair<Date, String> record : list) {
-//            sb.append(record.second);
-//            sb.append("\n");
-//        }
-//        return sb.toString();
-        return printThreads();
-    }
-
-    private String printThreads() {
         StringBuilder sb = new StringBuilder();
         ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+        AttachmentDatabase adb = DatabaseFactory.getAttachmentDatabase(DashboardActivity.this);
         GroupDatabase gdb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
-        Cursor cursor = tdb.getConversationList();
-        ThreadDatabase.Reader reader = tdb.readerFor(cursor, mMasterCipher);
-
-        ThreadRecord record;
-        while ((record = reader.getNext()) != null) {
+        Cursor ccursor = tdb.getConversationList();
+        ThreadDatabase.Reader treader = tdb.readerFor(ccursor, mMasterCipher);
+        ThreadRecord trecord;
+        while ((trecord = treader.getNext()) != null) {
+            long tId = trecord.getThreadId();
             sb.append("Thread: ");
-            sb.append(record.getThreadId());
+            sb.append(tId);
             sb.append("\n");
-            sb.append("Message: ").append("\n");
-            sb.append(record.getDisplayBody().toString());
+            sb.append("Thread Message: ").append("\n");
+            sb.append(trecord.getDisplayBody().toString());
             sb.append("\n");
-            Recipients recipients = record.getRecipients();
-            if (recipients.isGroupRecipient()) {
-                String groupId = recipients.getPrimaryRecipient().getNumber();
+            Recipients trecipients = trecord.getRecipients();
+
+            if (trecipients.isGroupRecipient()) {
+                String groupId = trecipients.getPrimaryRecipient().getNumber();
                 sb.append("Group Recipients").append("\n");
                 sb.append("Group ID: ").append(groupId).append("\n");
+                Log.d(TAG, "TextSecure Group: " + groupId);
                 try {
-                    Recipients rec = gdb.getGroupMembers(GroupUtil.getDecodedId(groupId), true);
+                    byte[] id = GroupUtil.getDecodedId(groupId);
+                    Log.d(TAG, "Decoded Group: " + id);
+                    GroupDatabase.GroupRecord groupRec = gdb.getGroup(id);
+                    Recipients rec = gdb.getGroupMembers(id, true);
 
-                    List<Recipient> groupRecipients = rec.getRecipientsList();
-                    for (Recipient recipient : groupRecipients) {
-                        sb.append(recipient.getNumber()).append("\n");
+                    if (groupRec != null) {
+                        sb.append("Name: ").append(groupRec.getTitle()).append("\n");
+
+                        List<Recipient> groupRecipients = rec.getRecipientsList();
+                        for (Recipient recipient : groupRecipients) {
+                            sb.append(recipient.getNumber()).append("\n");
+                        }
+                    } else {
+                        sb.append("No Group Found.").append("\n");
                     }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+
+
             } else {
                 sb.append("Recipients").append("\n");
-                for (Recipient rec : recipients.getRecipientsList()) {
+                for (Recipient rec : trecipients.getRecipientsList()) {
                     sb.append(rec.getNumber()).append("\n");
                 }
             }
-            sb.append("\n");
-        }
-        reader.close();
 
-        cursor.close();
-        return sb.toString();
-    }
+            Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
+            MessageRecord record;
+            MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
 
-
-
-    private List<Pair<Date, String>> getMessages() {
-        List<Pair<Date, String>> messageList = new ArrayList<>();
-        if (mMasterSecret != null) {
-            ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
-            AttachmentDatabase adb = DatabaseFactory.getAttachmentDatabase(DashboardActivity.this);
-
-            Cursor cc = tdb.getConversationList();
-            List<Long> list = new ArrayList<>();
-            while (cc.moveToNext()) {
-
-                list.add(cc.getLong(0));
+            while ((record = reader.getNext()) != null) {
+                Recipient recipient = record.getIndividualRecipient();
+                Recipients recipients = record.getRecipients();
+                long threadId = record.getThreadId();
+                CharSequence body = record.getDisplayBody();
+                long timestamp = record.getTimestamp();
+                Date dt = new Date(timestamp);
+                List<Recipient> recipList = recipients.getRecipientsList();
+                List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
+                sb.append("Group Update: ").append(record.isGroupUpdate());
+                sb.append("\n");
+                sb.append("Group Action: ").append(record.isGroupAction());
+                sb.append("\n");
+                sb.append("Group Quit: ").append(record.isGroupQuit());
+                sb.append("\n");
+                sb.append("Message Recipients: ").append("\n");
+                for (Recipient r : recipList) {
+                    sb.append(r.getNumber()).append(" ");
+                }
+                sb.append("\n");
+                sb.append("Primary Recipient: ");
+                sb.append(recipients.getPrimaryRecipient().getNumber());
+                sb.append("\n");
+                sb.append("Date: ");
+                sb.append(dt.toString());
+                sb.append("\n");
+                sb.append("Message: ");
+                sb.append(body.toString());
+                sb.append("\n");
+                sb.append("Attachments:");
+                for (DatabaseAttachment item: attachments) {
+                    sb.append(item.getDataUri()).append(" ");
+                }
+                sb.append("\n");
+                sb.append("\n");
             }
-            cc.close();
-//            for (long tId : list) {
-//                Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
-//                MessageRecord record;
-//                MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
-//
-//                while ((record = reader.getNext()) != null) {
-//                    StringBuilder sb = new StringBuilder();
-//                    Recipient recipient = record.getIndividualRecipient();
-//                    Recipients recipients = record.getRecipients();
-//                    long threadId = record.getThreadId();
-//                    CharSequence body = record.getDisplayBody();
-//                    long timestamp = record.getTimestamp();
-//                    Date dt = new Date(timestamp);
-//                    List<Recipient> recipList = recipients.getRecipientsList();
-//                    List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
-//
-//                    sb.append("ThreadId: ");
-//                    sb.append(threadId);
-//                    sb.append("\n");
-//                    sb.append("Group").append("\n");
-//                    sb.append(recipients.isGroupRecipient());
-//                    sb.append("\n");
-//                    sb.append("Recipients: ");
-//                    for (Recipient r : recipList) {
-//                        sb.append(r.getNumber()).append(" ");
-//                    }
-//                    sb.append("\n");
-//                    sb.append("Primary Recipient: ");
-//                    sb.append(recipient.getNumber());
-//                    sb.append("\n");
-//                    sb.append(recipients.getPrimaryRecipient().getNumber());
-//                    sb.append("\n");
-//                    sb.append("Date: ");
-//                    sb.append(dt.toString());
-//                    sb.append("\n");
-//                    sb.append("Message: ");
-//                    sb.append(body.toString());
-//                    sb.append("\n");
-//                    sb.append("Attachments:");
-//                    for (DatabaseAttachment item: attachments) {
-//                        sb.append(item.getDataUri()).append(" ");
-//                    }
-//                    sb.append("\n");
-//                    messageList.add(new Pair(dt, sb.toString()));
-//                }
-//                cursor.close();
-//                reader.close();
-//            }
-//            Collections.sort(messageList, new Comparator<Pair<Date, String>>() {
-//                @Override
-//                public int compare(Pair<Date, String> lhs, Pair<Date, String> rhs) {
-//                    return rhs.first.compareTo(lhs.first);
-//                }
-//            });
+            sb.append("\n");
+            reader.close();
         }
-        return messageList;
+        sb.append("\n");
+
+        treader.close();
+
+        return sb.toString();
     }
 
     private String printSmsMessages() {
@@ -684,8 +668,18 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
             StringBuilder sb = new StringBuilder();
             for (ForstaGroup group : groups) {
+                String groupId = group.id;
+                sb.append(groupId).append("\n");
+                String encoded = GroupUtil.getEncodedId(groupId.getBytes());
+                sb.append("Encoded Group DB ID: ").append(encoded).append("\n");
+                try {
+                    byte[] decoded = GroupUtil.getDecodedId(encoded);
+                    sb.append(decoded).append("\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 sb.append(group.description).append("\n");
-//                sb.append(group.id).append("\n");
+
                 for (String number : group.getGroupNumbers()) {
                     sb.append(number).append("\n");
                 }
@@ -734,8 +728,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             StringBuilder sb = new StringBuilder();
             for (GroupDatabase.GroupRecord rec : groupRecords) {
                 sb.append("Title: ").append(rec.getTitle()).append("\n");
-                sb.append("ID: ").append(rec.getId()).append("\n");
-                sb.append("Encoded: ").append(rec.getEncodedId()).append("\n");
+                sb.append("ID: ").append(rec.getEncodedId()).append("\n");
+                sb.append("Decoded: ").append(rec.getId()).append("\n");
                 sb.append("Members:").append("\n");
                 List<String> numbers = rec.getMembers();
                 for (String num : numbers) {
@@ -747,45 +741,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class CreateDefaultGroup extends AsyncTask<Void, Void, Boolean> {
+    private class CreateDefaultGroups extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
-            GroupDatabase.Reader reader = groupDb.getGroups();
-            GroupDatabase.GroupRecord record;
-            GroupDatabase.GroupRecord existing = null;
-            while ((record = reader.getNext()) != null) {
-                String title = record.getTitle();
-                if (title.equals("DevTeam")) {
-                    existing = record;
-                    break;
-                }
-            }
-            if (existing == null) {
-                try {
-                    TextSecureDirectory dir = TextSecureDirectory.getInstance(DashboardActivity.this);
-                    List<String> numbers = dir.getActiveNumbers();
-                    // Remove SM number.
-                    Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, numbers, false);
-                    Set<Recipient> members = new HashSet<>(recipients.getRecipientsList());
-                    GroupManager.createGroup(DashboardActivity.this, mMasterSecret, members, null, "DevTeam");
-                    return true;
-                } catch (InvalidNumberException e) {
-                    e.printStackTrace();
-                }
-            }
-            return false;
+            CcsmApi.syncForstaGroups(DashboardActivity.this, mMasterSecret);
+            return true;
         }
 
         @Override
         protected void onPostExecute(Boolean result) {
             if (result) {
-                Toast.makeText(DashboardActivity.this, "Group Created", Toast.LENGTH_LONG);
-            } else {
-                Toast.makeText(DashboardActivity.this, "Group Already Exists", Toast.LENGTH_LONG);
+                Toast.makeText(DashboardActivity.this, "Groups Created", Toast.LENGTH_LONG);
             }
-
         }
     }
 }

@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.forsta.securesms.util.GroupUtil;
+
 /**
  * Created by jlewis on 2/24/17.
  */
@@ -60,5 +62,9 @@ public class ForstaGroup {
             set.add(user.getValue());
         }
         return set;
+    }
+
+    public String getEncodedId() {
+        return GroupUtil.getEncodedId(id.getBytes());
     }
 }

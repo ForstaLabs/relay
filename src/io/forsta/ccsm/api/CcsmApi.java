@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
+import io.forsta.ccsm.DashboardActivity;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
@@ -24,6 +25,14 @@ import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.Util;
 import io.forsta.util.NetworkUtils;
@@ -180,7 +189,7 @@ public class CcsmApi {
                         // Some kind of group member
                         JSONObject user = userObj.getJSONObject("user");
                         String userId = user.getString("id");
-                        String primaryPhone = user.getString("primary_phone");
+                        String primaryPhone = user.getString("phone");
                         members.put(userId, primaryPhone);
                     }
                 }
@@ -206,6 +215,60 @@ public class CcsmApi {
     public static JSONObject getTags(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
+    }
+
+    public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+        JSONObject jsonObject = CcsmApi.getTags(context);
+        List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
+
+        Set<String> groupIds = new HashSet<>();
+        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
+        GroupDatabase.Reader reader = groupDb.getGroups();
+        GroupDatabase.GroupRecord record;
+        GroupDatabase.GroupRecord existing = null;
+        while ((record = reader.getNext()) != null) {
+            groupIds.add(record.getEncodedId());
+        }
+        reader.close();
+
+        TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+        List<String> activeNumbers = dir.getActiveNumbers();
+
+        for (ForstaGroup group : groups) {
+            // Add new groups.
+            String id = group.getEncodedId();
+            if (!groupIds.contains(id)) {
+                try {
+                    List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+                    Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+                    GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
+                } catch (InvalidNumberException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // Update the group.
+                try {
+                    List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+                    Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+                    GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+                } catch (InvalidNumberException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static Set<Recipient> getActiveRecipients(Context context, List<String> groupNumbers, List<String> activeNumbers) {
+        for (int i=0; i<groupNumbers.size(); i++) {
+            String number = groupNumbers.get(i);
+            if (!activeNumbers.contains(number)) {
+                groupNumbers.remove(number);
+            }
+        }
+        groupNumbers.remove(BuildConfig.FORSTA_SYNC_NUMBER);
+        Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, groupNumbers, false);
+        Set<Recipient> members = new HashSet<>(recipients.getRecipientsList());
+        return members;
     }
 
     public static void syncForstaContacts(Context context) {

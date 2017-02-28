@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.UriAttachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -53,6 +54,23 @@ public class GroupManager {
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
+  public static @NonNull void createForstaGroup(@NonNull  Context        context,
+                                                   @NonNull MasterSecret masterSecret,
+                                                   @NonNull ForstaGroup forstaGroup,
+                                                   @NonNull  Set<Recipient> members,
+                                                   @Nullable Bitmap         avatar,
+                                                   @Nullable String         name)
+          throws InvalidNumberException
+  {
+    final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
+    final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
+    final byte[]        groupId           = forstaGroup.id.getBytes();
+    final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+
+    groupDatabase.create(groupId, name, new LinkedList<>(memberE164Numbers), null, null);
+    groupDatabase.updateAvatar(groupId, avatarBytes);
+  }
+
   private static Set<String> getE164Numbers(Context context, Collection<Recipient> recipients)
       throws InvalidNumberException
   {
@@ -62,6 +80,24 @@ public class GroupManager {
     }
 
     return results;
+  }
+
+  public static void updateForstaGroup(@NonNull  Context        context,
+                                          @NonNull  MasterSecret   masterSecret,
+                                          @NonNull  byte[]         groupId,
+                                          @NonNull  Set<Recipient> members,
+                                          @Nullable Bitmap         avatar,
+                                          @Nullable String         name)
+          throws InvalidNumberException
+  {
+
+    final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
+    final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
+
+    groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
+    groupDatabase.updateTitle(groupId, name);
+    groupDatabase.updateAvatar(groupId, avatarBytes);
   }
 
   public static GroupActionResult updateGroup(@NonNull  Context        context,
