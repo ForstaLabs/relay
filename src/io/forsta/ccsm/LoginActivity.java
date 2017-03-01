@@ -229,14 +229,6 @@ public class LoginActivity extends BaseActionBarActivity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             if (jsonObject.has("token")) {
-                new AsyncTask<Void, Void, Void>() {
-
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        CcsmApi.syncForstaContacts(getApplicationContext());
-                        return null;
-                    }
-                }.execute();
                 finishLoginActivity();
             } else {
                 hideProgressBar();

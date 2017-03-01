@@ -107,6 +107,7 @@ public class ContactsCursorLoader extends CursorLoader {
                 "\u21e2", ContactsDatabase.NEW_TYPE});
         cursorList.add(newNumberCursor);
       }
+      reader.close();
     } catch (Exception e) {
       // Catching everything for now.
       e.printStackTrace();

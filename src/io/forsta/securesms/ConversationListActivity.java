@@ -168,6 +168,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
     case R.id.menu_dashboard:         handleDashboard();       return true;
+    case R.id.menu_sync_contacts:     handleSyncContacts();    return true;
     }
 
     return false;
@@ -195,6 +196,31 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
+  private void handleSyncContacts() {
+    new AsyncTask<Void, Void, Boolean>() {
+
+      @Override
+      protected Boolean doInBackground(Void... voids) {
+        try {
+          CcsmApi.syncForstaContacts(getApplicationContext());
+          CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
+          return true;
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        return false;
+      }
+
+      @Override
+      protected void onPostExecute(Boolean result) {
+        if (result) {
+          Toast.makeText(ConversationListActivity.this, "Contacts ready", Toast.LENGTH_LONG).show();
+        } else {
+          Toast.makeText(ConversationListActivity.this, "Contacts sync failed.", Toast.LENGTH_LONG).show();
+        }
+      }
+    }.execute();
+  }
   private void handleDashboard() {
     Intent dashIntent = new Intent(this, DashboardActivity.class);
     startActivity(dashIntent);

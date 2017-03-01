@@ -25,4 +25,7 @@
     <item android:title="About"
         android:id="@+id/menu_dashboard"/>
 
+    <item android:title="Sync Contacts"
+          android:id="@+id/menu_sync_contacts"/>
+
 </menu>
