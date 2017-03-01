@@ -157,7 +157,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
         List<String> options = new ArrayList<String>();
         options.add("Choose an option");
-        options.add("Sync Contacts");
         options.add("Canonical Address Db");
         options.add("TextSecure Recipients");
         options.add("TextSecure Directory");
@@ -165,8 +164,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("System Contact Data");
         options.add("SMS and MMS Messages");
         options.add("SMS Messages");
+        options.add("Sync Contacts");
+        options.add("Sync Forsta Groups");
         options.add("Groups");
-        options.add("Create Default Groups");
         options.add("Get API Users");
         options.add("Get API Groups");
 
@@ -185,40 +185,40 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         printLoginInformation();
                         break;
                     case 1:
-                        FetchContacts refresh = new FetchContacts();
-                        refresh.execute();
-                        break;
-                    case 2:
                         GetAddressDatabase getAddresses = new GetAddressDatabase();
                         getAddresses.execute();
                         break;
-                    case 3:
+                    case 2:
                         GetRecipientsList task = new GetRecipientsList();
                         task.execute();
                         break;
-                    case 4:
+                    case 3:
                         mDebugText.setText(printDirectory());
                         break;
-                    case 5:
+                    case 4:
                         mDebugText.setText(printTextSecureContacts());
                         break;
-                    case 6:
+                    case 5:
                         mDebugText.setText(printAllContacts());
                         break;
-                    case 7:
+                    case 6:
                         GetMessages getMessages = new GetMessages();
                         getMessages.execute();
                         break;
-                    case 8:
+                    case 7:
                         mDebugText.setText(printSmsMessages());
                         break;
-                    case 9:
-                        GetGroups groupsTask = new GetGroups();
-                        groupsTask.execute();
+                    case 8:
+                        FetchContacts refresh = new FetchContacts();
+                        refresh.execute();
                         break;
-                    case 10:
+                    case 9:
                         CreateDefaultGroups createGroup = new CreateDefaultGroups();
                         createGroup.execute();
+                        break;
+                    case 10:
+                        GetGroups groupsTask = new GetGroups();
+                        groupsTask.execute();
                         break;
                     case 11:
                         GetTagUsers tagTask = new GetTagUsers();
@@ -730,6 +730,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 sb.append("Title: ").append(rec.getTitle()).append("\n");
                 sb.append("ID: ").append(rec.getEncodedId()).append("\n");
                 sb.append("Decoded: ").append(rec.getId()).append("\n");
+                sb.append("Active: ").append(rec.isActive()).append("\n");
                 sb.append("Members:").append("\n");
                 List<String> numbers = rec.getMembers();
                 for (String num : numbers) {

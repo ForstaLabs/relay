@@ -122,4 +122,17 @@ public class CcsmSync {
 
         return json;
     }
+
+    private static void sendGroupMediaMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
+        long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+        MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
+        OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
+        Log.d(TAG, "Forsta Sync. Sending Group Join Message.");
+        try {
+            long id = mmsDatabase.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, false);
+            MessageSender.sendMediaMessage(context, masterSecret, recipients, false, id, message.getExpiresIn());
+        } catch (MmsException e) {
+            e.printStackTrace();
+        }
+    }
 }

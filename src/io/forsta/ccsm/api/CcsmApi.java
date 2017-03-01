@@ -34,6 +34,7 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.util.NetworkUtils;
 
@@ -237,23 +238,18 @@ public class CcsmApi {
         for (ForstaGroup group : groups) {
             // Add new groups.
             String id = group.getEncodedId();
-            if (!groupIds.contains(id)) {
-                try {
-                    List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
-                    Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+            List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+            Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+
+            try {
+                if (!groupIds.contains(id)) {
                     GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
-                } catch (InvalidNumberException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                // Update the group.
-                try {
-                    List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
-                    Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+                } else {
+                    // Update the group.
                     GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
-                } catch (InvalidNumberException e) {
-                    e.printStackTrace();
                 }
+            } catch (InvalidNumberException e) {
+                e.printStackTrace();
             }
         }
     }

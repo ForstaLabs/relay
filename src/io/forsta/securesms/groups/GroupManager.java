@@ -69,6 +69,8 @@ public class GroupManager {
 
     groupDatabase.create(groupId, name, new LinkedList<>(memberE164Numbers), null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
+    // Send message to group members, that you have joined the group.
+    // sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
   private static Set<String> getE164Numbers(Context context, Collection<Recipient> recipients)

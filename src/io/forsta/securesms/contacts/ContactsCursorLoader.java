@@ -28,6 +28,8 @@ import android.util.Log;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.groups.GroupManager;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -86,6 +88,28 @@ public class ContactsCursorLoader extends CursorLoader {
                                            "\u21e2", ContactsDatabase.NEW_TYPE});
 
       cursorList.add(newNumberCursor);
+    }
+
+    try {
+      GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
+      GroupDatabase.Reader reader = gdb.getGroups();
+      GroupDatabase.GroupRecord record;
+      while ((record = reader.getNext()) != null) {
+        MatrixCursor newNumberCursor = new MatrixCursor(new String[] {ContactsDatabase.ID_COLUMN,
+                ContactsDatabase.NAME_COLUMN,
+                ContactsDatabase.NUMBER_COLUMN,
+                ContactsDatabase.NUMBER_TYPE_COLUMN,
+                ContactsDatabase.LABEL_COLUMN,
+                ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
+        String title = record.getTitle();
+        newNumberCursor.addRow(new Object[] {-1L, title,
+                record.getEncodedId(), ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
+                "\u21e2", ContactsDatabase.NEW_TYPE});
+        cursorList.add(newNumberCursor);
+      }
+    } catch (Exception e) {
+      // Catching everything for now.
+      e.printStackTrace();
     }
 
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
