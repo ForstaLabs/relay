@@ -37,6 +37,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import org.json.JSONObject;
+
+import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -83,6 +85,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       refreshToken.execute();
     }
 
+    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+    startService(intent);
+
     initializeContactUpdatesReceiver();
 
     DirectoryRefreshListener.schedule(this);
@@ -94,10 +99,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
-
-    Intent intent = getIntent();
-    String action = intent.getAction();
-    String shit = "shit";
   }
 
   @Override
