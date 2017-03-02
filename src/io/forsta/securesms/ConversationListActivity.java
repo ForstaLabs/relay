@@ -41,6 +41,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.KeyCachingService;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -204,6 +205,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         try {
           CcsmApi.syncForstaContacts(getApplicationContext());
           CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
+          // DirectoryHelper.refreshDirectory(ConversationListActivity.this, masterSecret);
           return true;
         } catch (Exception e) {
           e.printStackTrace();

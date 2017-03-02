@@ -49,6 +49,7 @@ public class CcsmApi {
     private static final String API_LOGIN = API_URL + "/v1/login";
     private static final String API_USER = API_URL + "/v1/user";
     private static final String API_TAG = API_URL + "/v1/tag";
+    private static final String API_USER_TAG = API_URL + "/v1/usertag";
     private static final String API_ORG = API_URL + "/v1/org";
     private static final String API_SEND_TOKEN = API_URL + "/v1/login/send";
     private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken";
@@ -142,32 +143,34 @@ public class CcsmApi {
         return authtoken;
     }
 
-    public static Map<String, String> parseTagContacts(JSONObject jsonObject) {
-        Map<String, String> contacts = new HashMap<>();
+    public static  Map<String, String> parseUsers(JSONObject jsonObject) {
+        Map<String, String> users = new HashMap<>();
         try {
             JSONArray results = jsonObject.getJSONArray("results");
             for (int i=0; i<results.length(); i++) {
-                JSONObject obj = results.getJSONObject(i);
-                JSONArray users = obj.getJSONArray("users");
-                if (users.length() > 0) {
-                    for (int j=0; j<users.length(); j++) {
-                        JSONObject userObj = users.getJSONObject(j);
-                        String association = userObj.getString("association_type");
-                        if (association.equals("USERNAME")) {
-                            JSONObject user = userObj.getJSONObject("user");
-                            if (user.has("primary_phone")) {
-                                String name = user.getString("first_name") + " " + user.getString("last_name");
-                                contacts.put(user.getString("primary_phone"), name);
-                            }
-                        }
-                    }
+                JSONObject user = results.getJSONObject(i);
+                StringBuilder name = new StringBuilder();
+                name.append(user.getString("first_name")).append(" ");
+                if (!user.getString("middle_name").equals("")) {
+                    name.append(user.getString("middle_name")).append(" ");
+                }
+                name.append(user.getString("last_name"));
+                String phone = user.getString("phone");
+                if (!phone.equals("")) {
+                    users.put(phone, name.toString());
                 }
             }
-        } catch (JSONException e) {
+        } catch(Exception e) {
             e.printStackTrace();
         }
+        return users;
+    }
 
-        return contacts;
+    public static List<ForstaGroup> parseGroups(JSONObject apiGroups, JSONObject apiUserTags) {
+        List<ForstaGroup> groups = new ArrayList<>();
+
+
+        return groups;
     }
 
     public static List<ForstaGroup> parseTagGroups(JSONObject jsonObject) {
@@ -208,9 +211,29 @@ public class CcsmApi {
         return groups;
     }
 
+    private static List<ForstaGroup> parseTags(JSONObject tags) {
+        List<ForstaGroup> groups = new ArrayList<>();
+        try {
+            JSONArray results = tags.getJSONArray("results");
+            for (int i=0; i<results.length(); i++) {
+                JSONObject result = results.getJSONObject(i);
+                ForstaGroup group = new ForstaGroup(result);
+                groups.add(group);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return groups;
+    }
+
     public static JSONObject getForstaOrg(Context context) {
         String authKey = ForstaPreferences.getRegisteredKey(context);
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
+    }
+
+    public static JSONObject getForstaUsers(Context context) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER, null);
     }
 
     public static JSONObject getTags(Context context) {
@@ -218,39 +241,46 @@ public class CcsmApi {
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
     }
 
+    public static JSONObject getTagUsers(Context context) {
+        String authKey = ForstaPreferences.getRegisteredKey(context);
+        return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER_TAG, null);
+    }
+
     public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
-        JSONObject jsonObject = CcsmApi.getTags(context);
-        List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
+        try {
+            JSONObject jsonObject = CcsmApi.getTags(context);
+            // need to now get tags and know users by id, then who is in the tag group. /v1/usertag/
+            List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
 
-        Set<String> groupIds = new HashSet<>();
-        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-        GroupDatabase.Reader reader = groupDb.getGroups();
-        GroupDatabase.GroupRecord record;
-        GroupDatabase.GroupRecord existing = null;
-        while ((record = reader.getNext()) != null) {
-            groupIds.add(record.getEncodedId());
-        }
-        reader.close();
+            Set<String> groupIds = new HashSet<>();
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
+            GroupDatabase.Reader reader = groupDb.getGroups();
+            GroupDatabase.GroupRecord record;
+            GroupDatabase.GroupRecord existing = null;
+            while ((record = reader.getNext()) != null) {
+                groupIds.add(record.getEncodedId());
+            }
+            reader.close();
 
-        TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-        List<String> activeNumbers = dir.getActiveNumbers();
+            TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+            List<String> activeNumbers = dir.getActiveNumbers();
 
-        for (ForstaGroup group : groups) {
-            // Add new groups.
-            String id = group.getEncodedId();
-            List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
-            Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
-
-            try {
+            for (ForstaGroup group : groups) {
+                String id = group.getEncodedId();
+                List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+                Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
                 if (!groupIds.contains(id)) {
                     GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
                 } else {
-                    // Update the group.
                     GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
                 }
-            } catch (InvalidNumberException e) {
-                e.printStackTrace();
             }
+        } catch (InvalidNumberException e) {
+            Log.e(TAG, "syncForstaGroups Invalid Number exception");
+            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e(TAG, "syncForstaGroups exception: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -267,12 +297,81 @@ public class CcsmApi {
         return members;
     }
 
-    public static void syncForstaContacts(Context context) {
+    private static Set<String> getGroupIds(Context context) {
+        Set<String> groupIds = new HashSet<>();
+        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
+        GroupDatabase.Reader reader = groupDb.getGroups();
+        GroupDatabase.GroupRecord record;
+        GroupDatabase.GroupRecord existing = null;
+        while ((record = reader.getNext()) != null) {
+            groupIds.add(record.getEncodedId());
+        }
+        reader.close();
+        return groupIds;
+    }
+
+    public static void syncForstaGroupUsers(Context context, MasterSecret masterSecret) {
         try {
+            JSONObject users = getForstaUsers(context);
             JSONObject tags = getTags(context);
+            JSONObject tagusers = getTagUsers(context);
+            Set<String> existingGroupIds = getGroupIds(context);
+            syncContacts(context, users);
+            List<ForstaGroup> groups = CcsmApi.parseTags(tags);
+
+            TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+            List<String> activeNumbers = dir.getActiveNumbers();
+
+            for (ForstaGroup group : groups) {
+                String id = group.getEncodedId();
+                // This needs to get the group members from the new API endpoint.
+                List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+
+                Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+                if (!existingGroupIds.contains(id)) {
+                    GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
+                } else {
+                    GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+                }
+            }
+
+        } catch (InvalidNumberException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void syncContacts(Context context, JSONObject users) {
+        try {
             Set<String> contactNumbers = getSystemContacts(context);
 
-            Map<String, String> contacts = parseTagContacts(tags);
+            Map<String, String> contacts = parseUsers(users);
+            ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+
+            Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
+            for (Map.Entry<String, String> entry : contacts.entrySet()) {
+                try {
+                    String e164number = Util.canonicalizeNumber(context, entry.getKey());
+                    if (!contactNumbers.contains(e164number)) {
+                        updateContactsDb(ops, account.get(), e164number, entry.getValue());
+                    }
+                } catch (InvalidNumberException e){
+                    e.printStackTrace();
+                }
+            }
+            context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void syncForstaContacts(Context context) {
+        try {
+            JSONObject users = getForstaUsers(context);
+            Set<String> contactNumbers = getSystemContacts(context);
+
+            Map<String, String> contacts = parseUsers(users);
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
             Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);

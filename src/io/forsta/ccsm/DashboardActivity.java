@@ -162,10 +162,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         options.add("TextSecure Directory");
         options.add("TextSecure Contacts");
         options.add("System Contact Data");
-        options.add("SMS and MMS Messages");
+        options.add("SMS and MMS Message Threads");
         options.add("SMS Messages");
-        options.add("Sync Contacts");
-        options.add("Sync Forsta Groups");
         options.add("Groups");
         options.add("Get API Users");
         options.add("Get API Groups");
@@ -209,22 +207,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         mDebugText.setText(printSmsMessages());
                         break;
                     case 8:
-                        FetchContacts refresh = new FetchContacts();
-                        refresh.execute();
-                        break;
-                    case 9:
-                        CreateDefaultGroups createGroup = new CreateDefaultGroups();
-                        createGroup.execute();
-                        break;
-                    case 10:
                         GetGroups groupsTask = new GetGroups();
                         groupsTask.execute();
                         break;
-                    case 11:
+                    case 9:
                         GetTagUsers tagTask = new GetTagUsers();
                         tagTask.execute();
                         break;
-                    case 12:
+                    case 10:
                         GetTagGroups groupTask = new GetTagGroups();
                         groupTask.execute();
                         break;
@@ -636,25 +626,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
-    private class FetchContacts extends AsyncTask<Void, Void, JSONObject> {
-
-        @Override
-        protected JSONObject doInBackground(Void... voids) {
-            try {
-                CcsmApi.syncForstaContacts(DashboardActivity.this);
-                DirectoryHelper.refreshDirectory(DashboardActivity.this, mMasterSecret);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            mDebugText.setText(printTextSecureContacts());
-        }
-    }
-
     private class GetTagGroups extends AsyncTask<Void, Void, JSONObject> {
 
         @Override
@@ -693,12 +664,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected JSONObject doInBackground(Void... voids) {
-            return CcsmApi.getTags(DashboardActivity.this);
+            return CcsmApi.getForstaUsers(DashboardActivity.this);
         }
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            Map<String, String> contacts = CcsmApi.parseTagContacts(jsonObject);
+            Map<String, String> contacts = CcsmApi.parseUsers(jsonObject);
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> user : contacts.entrySet()) {
                 sb.append(user.getKey()).append(" ");
@@ -739,22 +710,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                 sb.append("\n");
             }
             mDebugText.setText(sb.toString());
-        }
-    }
-
-    private class CreateDefaultGroups extends AsyncTask<Void, Void, Boolean> {
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            CcsmApi.syncForstaGroups(DashboardActivity.this, mMasterSecret);
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            if (result) {
-                Toast.makeText(DashboardActivity.this, "Groups Created", Toast.LENGTH_LONG);
-            }
         }
     }
 }
