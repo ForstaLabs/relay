@@ -10,6 +10,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -249,10 +250,14 @@ public class CcsmApi {
                 String id = group.getEncodedId();
                 List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
                 Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
-                if (!groupIds.contains(id)) {
-                    GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
-                } else {
-                    GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+
+                // For now. No groups are created unless you are a member and the group has more than one other member.
+                if (members.size() > 1 && groupNumbers.contains(TextSecurePreferences.getLocalNumber(context))) {
+                    if (!groupIds.contains(id)) {
+                        GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
+                    } else {
+                        GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+                    }
                 }
             }
         } catch (InvalidNumberException e) {
@@ -278,28 +283,8 @@ public class CcsmApi {
     }
 
     public static void syncForstaContacts(Context context) {
-        try {
-            JSONObject users = getForstaUsers(context);
-            Set<String> contactNumbers = getSystemContacts(context);
-
-            Map<String, String> contacts = parseUsers(users);
-            ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-
-            Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
-            for (Map.Entry<String, String> entry : contacts.entrySet()) {
-                try {
-                    String e164number = Util.canonicalizeNumber(context, entry.getKey());
-                    if (!contactNumbers.contains(e164number)) {
-                        updateContactsDb(ops, account.get(), e164number, entry.getValue());
-                    }
-                } catch (InvalidNumberException e){
-                    e.printStackTrace();
-                }
-            }
-            context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
+        JSONObject users = getForstaUsers(context);
+        syncContacts(context, users);
     }
 
     private static Set<String> getSystemContacts(Context context) {
@@ -419,6 +404,7 @@ public class CcsmApi {
 
             Map<String, String> contacts = parseUsers(users);
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+            contacts.remove(BuildConfig.FORSTA_SYNC_NUMBER);
 
             Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
             for (Map.Entry<String, String> entry : contacts.entrySet()) {

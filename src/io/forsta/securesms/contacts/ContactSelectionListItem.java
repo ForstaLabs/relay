@@ -13,6 +13,7 @@ import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.ViewUtil;
 
 public class ContactSelectionListItem extends LinearLayout implements Recipients.RecipientsModifiedListener {
@@ -94,6 +95,10 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
       this.labelView.setVisibility(View.GONE);
     } else if (type == ContactsDatabase.PUSH_TYPE) {
       this.numberView.setText(number);
+      this.nameView.setEnabled(true);
+      this.labelView.setVisibility(View.GONE);
+    } else if(GroupUtil.isEncodedGroup(number)) {
+      this.numberView.setText("Group");
       this.nameView.setEnabled(true);
       this.labelView.setVisibility(View.GONE);
     } else {
