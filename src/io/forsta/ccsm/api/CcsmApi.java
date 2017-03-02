@@ -227,6 +227,8 @@ public class CcsmApi {
         return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER_TAG, null);
     }
 
+    // This is using the old tag API endpoint to gather groups and users.
+    // Needs to be replaced with new version.
     public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
         try {
             JSONObject jsonObject = CcsmApi.getTags(context);

@@ -16,7 +16,9 @@
  */
 package io.forsta.securesms;
 
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
@@ -24,7 +26,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
@@ -198,6 +202,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleSyncContacts() {
+    final ProgressDialog syncDialog = new ProgressDialog(ConversationListActivity.this);
+    syncDialog.setTitle("Forsta Contacts");
+    syncDialog.setMessage("Downloading and updating contacts and groups.");
+    syncDialog.show();
+
     new AsyncTask<Void, Void, Boolean>() {
 
       @Override
@@ -215,6 +224,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected void onPostExecute(Boolean result) {
+        syncDialog.dismiss();
         if (result) {
           Toast.makeText(ConversationListActivity.this, "Contacts ready", Toast.LENGTH_LONG).show();
         } else {
@@ -223,6 +233,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     }.execute();
   }
+
   private void handleDashboard() {
     Intent dashIntent = new Intent(this, DashboardActivity.class);
     startActivity(dashIntent);
