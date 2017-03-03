@@ -47,6 +47,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -456,6 +457,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
+    case R.id.menu_call_recipient:            handleCallRecipient();                             return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -475,6 +477,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   //////// Event Handlers
+
+  private void handleCallRecipient () {
+    TextView subtitle = (TextView) titleView.findViewById(R.id.subtitle);
+    String number = subtitle.getText().toString();
+    Intent intent = new Intent(Intent.ACTION_CALL);
+    intent.setData(Uri.parse("tel:" + number));
+    startActivity(intent);
+  }
 
   private void handleReturnToConversationList() {
     Intent intent = new Intent(this, (archived ? ConversationListArchiveActivity.class : ConversationListActivity.class));

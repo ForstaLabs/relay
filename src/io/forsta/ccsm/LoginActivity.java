@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.BaseActionBarActivity;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
@@ -178,8 +180,11 @@ public class LoginActivity extends BaseActionBarActivity {
     private void finishLoginActivity() {
         Intent nextIntent = getIntent().getParcelableExtra("next_intent");
         if (nextIntent == null) {
-            nextIntent = new Intent(LoginActivity.this, RegistrationActivity.class);
+            nextIntent = new Intent(LoginActivity.this, ConversationListActivity.class);
         }
+
+        Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+        startService(intent);
 
         startActivity(nextIntent);
         finish();

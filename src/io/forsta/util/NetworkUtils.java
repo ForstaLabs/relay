@@ -50,9 +50,9 @@ public class NetworkUtils {
             int response = conn.getResponseCode();
             if (response == 200) {
                 result = new JSONObject(readResult(conn.getInputStream()));
-                Log.d(TAG, result.toString());
             } else {
                 // 400 on invalid login.
+                Log.e(TAG, "API fetch. Bad response: " + String.valueOf(response));
                 result.put("error", "Bad response.");
             }
         } catch (MalformedURLException e) {

@@ -90,6 +90,8 @@
     <!-- Set image as wallpaper -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
     <permission
         android:name="io.forsta.securesms.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />

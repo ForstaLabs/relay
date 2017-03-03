@@ -38,6 +38,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -84,9 +85,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       RefreshToken refreshToken = new RefreshToken();
       refreshToken.execute();
     }
-
-    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-    startService(intent);
 
     initializeContactUpdatesReceiver();
 
