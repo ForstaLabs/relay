@@ -51,7 +51,7 @@ public class CcsmSync {
             if (GroupUtil.isEncodedGroup(primary)) {
                 recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(GroupUtil.getDecodedId(primary), false);
             }
-            // Work this out. Do we want group creation and update messages going to Forsta Sync?
+            // Filters out group create/update messages.
             if (!(message instanceof OutgoingGroupMediaMessage)) {
                 syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId());
             }
@@ -123,16 +123,4 @@ public class CcsmSync {
         return json;
     }
 
-    private static void sendGroupMediaMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
-        long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-        MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
-        OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
-        Log.d(TAG, "Forsta Sync. Sending Group Join Message.");
-        try {
-            long id = mmsDatabase.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, false);
-            MessageSender.sendMediaMessage(context, masterSecret, recipients, false, id, message.getExpiresIn());
-        } catch (MmsException e) {
-            e.printStackTrace();
-        }
-    }
 }
