@@ -211,8 +211,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       protected Boolean doInBackground(Void... voids) {
         try {
-          CcsmApi.syncForstaContacts(getApplicationContext());
-          CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
+//          CcsmApi.syncForstaContacts(getApplicationContext());
+//          CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
+          CcsmApi.syncForstaGroupUsers(getApplicationContext(), masterSecret);
           // DirectoryHelper.refreshDirectory(ConversationListActivity.this, masterSecret);
           return true;
         } catch (Exception e) {

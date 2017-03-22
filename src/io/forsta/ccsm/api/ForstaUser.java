@@ -10,9 +10,9 @@ import org.json.JSONObject;
 public class ForstaUser {
     public String id;
     public String username;
-    public String firstName;
-    public String middleName;
-    public String lastName;
+    private String firstName;
+    private String middleName;
+    private String lastName;
     public String phone;
 
     public ForstaUser(JSONObject userObj) {
@@ -28,4 +28,13 @@ public class ForstaUser {
         }
     }
 
+    public String getName() {
+        StringBuilder name = new StringBuilder();
+        name.append(firstName).append(" ");
+        if (!middleName.equals("")) {
+            name.append(middleName).append(" ");
+        }
+        name.append(lastName);
+        return name.toString();
+    }
 }

@@ -56,6 +56,10 @@ public class ForstaGroup {
         }
     }
 
+    public int getMemberCount() {
+        return users.size();
+    }
+
     public Set<String> getGroupNumbers() {
         Set<String> set = new HashSet<>();
         for (Map.Entry<String, String> user : users.entrySet()) {

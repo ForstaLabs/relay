@@ -28,7 +28,7 @@ public class LoginActivity extends BaseActionBarActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
     private Button mSubmitButton;
     private Button mSendTokenButton;
-    private Button mTryAgainButton;
+    private TextView mTryAgainButton;
     private EditText mSendTokenUsername;
     private EditText mSendTokenOrg;
     private EditText mLoginUsernameText;
@@ -132,7 +132,7 @@ public class LoginActivity extends BaseActionBarActivity {
             }
         });
 
-        mTryAgainButton = (Button) findViewById(R.id.forsta_login_tryagain);
+        mTryAgainButton = (TextView) findViewById(R.id.forsta_login_tryagain);
         mTryAgainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -213,6 +213,7 @@ public class LoginActivity extends BaseActionBarActivity {
                     Log.d(TAG, e.getMessage());
                 }
             } else {
+                showVerifyForm();
                 Toast.makeText(LoginActivity.this, "Sorry an error has occurred.", Toast.LENGTH_LONG).show();
             }
         }

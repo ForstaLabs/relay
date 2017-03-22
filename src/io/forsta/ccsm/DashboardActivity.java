@@ -28,6 +28,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.ForstaGroup;
+import io.forsta.ccsm.api.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -215,7 +216,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
                         tagTask.execute();
                         break;
                     case 10:
-                        GetTagGroups groupTask = new GetTagGroups();
+                        GetTagUserGroups groupTask = new GetTagUserGroups();
                         groupTask.execute();
                         break;
                 }
@@ -626,6 +627,40 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
     }
 
+    private class GetTagUserGroups extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            StringBuilder sb = new StringBuilder();
+            JSONObject users = CcsmApi.getForstaUsers(DashboardActivity.this);
+            JSONObject tags = CcsmApi.getTags(DashboardActivity.this);
+            JSONObject usertags = CcsmApi.getUserTags(DashboardActivity.this);
+
+            Map<String, ForstaUser> usersForsta = CcsmApi.parseForstaUsers(users);
+            Map<String, ForstaGroup> groupsForsta = CcsmApi.parseTags(tags);
+
+            CcsmApi.addUsersToGroups(usertags, usersForsta, groupsForsta);
+
+            for (Map.Entry<String, ForstaGroup> entry : groupsForsta.entrySet()) {
+                ForstaGroup group = entry.getValue();
+                sb.append(group.description).append("\n");
+                sb.append(group.getEncodedId()).append("\n");
+                sb.append("Members: ").append("\n");
+                for (String member : group.getGroupNumbers()) {
+                    sb.append(member).append("\n");
+                }
+                sb.append("\n");
+            }
+
+            return sb.toString();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            mDebugText.setText(s);
+        }
+    }
+
     private class GetTagGroups extends AsyncTask<Void, Void, JSONObject> {
 
         @Override
@@ -669,11 +704,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
-            Map<String, String> contacts = CcsmApi.parseUsers(jsonObject);
+            Map<String, ForstaUser> contacts = CcsmApi.parseForstaUsers(jsonObject);
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> user : contacts.entrySet()) {
+            for (Map.Entry<String, ForstaUser> user : contacts.entrySet()) {
                 sb.append(user.getKey()).append(" ");
-                sb.append(user.getValue()).append("\n");
+                sb.append(user.getValue().getName()).append("\n");
             }
             mDebugText.setText(sb.toString());
         }
