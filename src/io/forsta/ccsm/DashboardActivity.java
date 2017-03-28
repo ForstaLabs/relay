@@ -735,7 +735,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             for (GroupDatabase.GroupRecord rec : groupRecords) {
                 sb.append("Title: ").append(rec.getTitle()).append("\n");
                 sb.append("ID: ").append(rec.getEncodedId()).append("\n");
-                sb.append("Decoded: ").append(rec.getId()).append("\n");
+                sb.append("TagId: ").append(new String(rec.getId())).append("\n");
                 sb.append("Active: ").append(rec.isActive()).append("\n");
                 sb.append("Members:").append("\n");
                 List<String> numbers = rec.getMembers();

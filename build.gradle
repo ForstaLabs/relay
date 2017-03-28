@@ -161,14 +161,19 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "1.0.5"
-        versionCode 105
+        versionName "1.0.6"
+        versionCode 106
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
+//        buildConfigField "String", "TEXTSECURE_URL", "\"https://textsecure.forsta.services\""
         buildConfigField "String", "TEXTSECURE_URL", "\"http://forsta-relay-1307716308.us-west-2.elb.amazonaws.com\""
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "boolean", "DEV_BUILD", "true"
-        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+12086391772\""
+        // Test: +12086391772, Dev: +17017328731, Stage: +17017328732, Prod: +17017328733
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+12086391772\""
+        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
         buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
         multiDexEnabled true
     }
