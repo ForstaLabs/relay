@@ -46,7 +46,7 @@ public class LoginActivity extends BaseActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        getSupportActionBar().setTitle("Connect with Forsta");
+        getSupportActionBar().setTitle("Join Forsta");
         initializeView();
     }
 

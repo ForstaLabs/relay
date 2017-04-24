@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-    <color name="signal_primary">#faaa57</color>
+    <color name="signal_primary">#000000</color>
     <color name="signal_primary_dark">#867b6f</color>
     <color name="signal_accent">#f48009</color>
     <color name="signal_primary_alpha33">#55faaa57</color>

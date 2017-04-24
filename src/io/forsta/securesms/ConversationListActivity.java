@@ -77,8 +77,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   protected void onCreate(Bundle icicle, @NonNull MasterSecret masterSecret) {
     this.masterSecret = masterSecret;
 
-    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-    getSupportActionBar().setTitle(R.string.app_name);
+//    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+    getSupportActionBar().setDisplayShowHomeEnabled(true);
+    getSupportActionBar().setDisplayShowTitleEnabled(false);
+//    getSupportActionBar().setTitle(R.string.app_name);
     fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
