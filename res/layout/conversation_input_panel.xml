@@ -47,7 +47,7 @@
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
                     tools:visibility="invisible"
-                    tools:hint="Send TextSecure message" >
+                    tools:hint="Send Forsta message" >
                 <requestFocus />
             </io.forsta.securesms.components.ComposeText>
 
