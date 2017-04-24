@@ -40,6 +40,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
+import io.forsta.securesms.components.ComposeText;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -54,6 +55,7 @@ import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.ViewUtil;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener
@@ -295,6 +297,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     };
 
+    // Set this to watch Forsta Contacts Db.
     getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI,
                                                  true, observer);
   }

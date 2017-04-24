@@ -280,7 +280,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     composeText.setTransport(sendButton.getSelectedTransport());
 
     titleView.setTitle(recipients);
-    setActionBarColor(recipients.getColor());
+//    setActionBarColor(recipients.getColor());
     setBlockedUserState(recipients);
     calculateCharactersRemaining();
 
@@ -1414,7 +1414,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
-      buttonToggle.display(attachButton);
+      buttonToggle.display(sendButton);
       quickAttachmentToggle.show();
     } else {
       buttonToggle.display(sendButton);
