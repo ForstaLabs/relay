@@ -17,16 +17,16 @@ import io.forsta.securesms.database.TextSecureDirectory;
 
 public class DbUtils {
 
-    public static Set<String> getTextSecureGroupIds(Context context) {
-        Set<String> groupIds = new HashSet<>();
-        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-        GroupDatabase.Reader reader = groupDb.getGroups();
-        GroupDatabase.GroupRecord record;
-        GroupDatabase.GroupRecord existing = null;
-        while ((record = reader.getNext()) != null) {
-            groupIds.add(record.getEncodedId());
-        }
-        reader.close();
-        return groupIds;
+  public static Set<String> getTextSecureGroupIds(Context context) {
+    Set<String> groupIds = new HashSet<>();
+    GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
+    GroupDatabase.Reader reader = groupDb.getGroups();
+    GroupDatabase.GroupRecord record;
+    GroupDatabase.GroupRecord existing = null;
+    while ((record = reader.getNext()) != null) {
+      groupIds.add(record.getEncodedId());
     }
+    reader.close();
+    return groupIds;
+  }
 }

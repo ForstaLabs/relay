@@ -13,22 +13,23 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 public class DbHelper extends SQLiteOpenHelper {
-    private static final String DB_NAME = "relay.db";
-    private static final int VERSION = 3;
+  private static final String DB_NAME = "relay.db";
+  private static final int VERSION = 1;
 
-    public DbHelper(Context context) {
-        super(context, DB_NAME, null, VERSION);
-    }
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL(ContactDb.CREATE_TABLE);
-        db.execSQL(GroupDb.CREATE_TABLE);
-    }
+  public DbHelper(Context context) {
+    super(context, DB_NAME, null, VERSION);
+  }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + ContactDb.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + GroupDb.TABLE_NAME);
-        onCreate(db);
-    }
+  @Override
+  public void onCreate(SQLiteDatabase db) {
+    db.execSQL(ContactDb.CREATE_TABLE);
+    db.execSQL(GroupDb.CREATE_TABLE);
+  }
+
+  @Override
+  public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    db.execSQL("DROP TABLE IF EXISTS " + ContactDb.TABLE_NAME);
+    db.execSQL("DROP TABLE IF EXISTS " + GroupDb.TABLE_NAME);
+    onCreate(db);
+  }
 }
