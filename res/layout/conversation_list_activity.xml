@@ -34,6 +34,9 @@
                 android:text="Drawer Content"/>
 
         </LinearLayout>
-
+        <FrameLayout android:id="@+id/forsta_contacts_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </FrameLayout>
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout>

@@ -88,6 +88,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
 //    fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    contactsFragment = initFragment(R.id.forsta_contacts_list, new ForstaContactsFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
