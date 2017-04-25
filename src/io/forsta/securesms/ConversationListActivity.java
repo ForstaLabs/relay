@@ -79,10 +79,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   protected void onCreate(Bundle icicle, @NonNull MasterSecret masterSecret) {
     this.masterSecret = masterSecret;
 
-//    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-    getSupportActionBar().setDisplayShowHomeEnabled(true);
-    getSupportActionBar().setDisplayShowTitleEnabled(false);
+//    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE)
 //    getSupportActionBar().setTitle(R.string.app_name);
+    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
+
     fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
@@ -172,7 +172,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     case R.id.menu_settings:          handleDisplaySettings(); return true;
     case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
     case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
-    case R.id.menu_import_export:     handleImportExport();    return true;
+//    case R.id.menu_import_export:     handleImportExport();    return true;
     case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
     case R.id.menu_dashboard:         handleDashboard();       return true;

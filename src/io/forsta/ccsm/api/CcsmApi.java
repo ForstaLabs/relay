@@ -435,6 +435,7 @@ public class CcsmApi {
                 Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
                 try {
                     // Only groups with more than one member and ones that the user is a member of
+                    // Rework this to add groups to the local forsta group database.
                     if (members.size() > 1 && groupNumbers.contains(TextSecurePreferences.getLocalNumber(context))) {
                         if (!existingGroupIds.contains(id)) {
                             GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
@@ -498,6 +499,8 @@ public class CcsmApi {
                     ForstaUser item = entry.getValue();
                     String e164number = Util.canonicalizeNumber(context, item.phone);
                     boolean isSuperman = isSuperMan(e164number);
+                    // Rework this to add users only to the local contact db,
+                    // not the phone contacts db.
                     if (!contactNumbers.contains(e164number) && !isSuperman) {
                         updateContactsDb(ops, account.get(), e164number, item.getName());
                     }

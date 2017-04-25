@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
@@ -100,6 +101,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         mMasterSecret = masterSecret;
         mMasterCipher = new MasterCipher(mMasterSecret);
         setContentView(R.layout.activity_dashboard);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
         initView();
     }
 

@@ -1,5 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
+    <color name="forsta_primary">#FFFFFF</color>
+    <color name="forsta_primary_dark">#000000</color>
+    <color name="forsta_accent">#CACACA</color>
+    <color name="forsta_accent2">#9F9F9F</color>
+    <color name="forsta_accent3">#606161</color>
+    <color name="forsta_accent4">#4B4B4B</color>
+    <color name="forsta_pop">#B0D23F</color>
+    <color name="forsta_pop2">#F47D20</color>
+    <color name="forsta_pop3">#80CEFF</color>
+    <color name="forsta_pop4">#2BACE2</color>
+
     <color name="signal_primary">#000000</color>
     <color name="signal_primary_dark">#867b6f</color>
     <color name="signal_accent">#f48009</color>

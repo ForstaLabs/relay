@@ -68,7 +68,8 @@ public class ConversationTitleView extends LinearLayout {
       } else {
         this.title.setText(recipient.getName());
         this.subtitle.setText(recipient.getNumber());
-        this.subtitle.setVisibility(View.VISIBLE);
+        // Remove subtitle phone from actionbar display
+        this.subtitle.setVisibility(View.GONE);
       }
     } else {
       String groupName = (!TextUtils.isEmpty(recipient.getName())) ?

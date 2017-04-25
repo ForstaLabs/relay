@@ -29,6 +29,7 @@
               android:layout_gravity="center_vertical|start"
               android:gravity="center_vertical"
               android:textDirection="ltr"
+              android:visibility="gone"
               style="@style/TextSecure.SubtitleTextStyle"/>
 
 </io.forsta.securesms.ConversationTitleView>

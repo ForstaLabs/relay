@@ -7,7 +7,8 @@
         android:focusable="true"
         android:nextFocusRight="@+id/fab"
         android:nextFocusLeft="@+id/container"
-        android:layout_height="70dp">
+        android:layout_height="70dp"
+        android:layout_marginBottom="5dp">
 
     <io.forsta.securesms.components.AvatarImageView
         android:id="@+id/contact_photo_image"

@@ -11,7 +11,9 @@
         android:orientation="horizontal"
         android:clickable="true"
         android:background="?android:windowBackground"
-        android:padding="5dp"
+        android:padding="0dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -24,18 +26,30 @@
             <LinearLayout android:id="@+id/compose_bubble"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/sent_bubble"
+                android:background="@drawable/compose_background"
                 android:layout_gravity="top"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/forsta_accent"
+                    android:padding="10dp"
+                    android:layout_margin="1dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TYPE:" />
+                </LinearLayout>
 
                 <io.forsta.securesms.components.ComposeText
                     style="@style/ComposeEditText"
                     android:id="@+id/embedded_text_editor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="100dp"
+                    android:minHeight="80dp"
                     android:layout_weight="1"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
@@ -48,7 +62,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_gravity="bottom" android:background="@color/gray10">
+                    android:layout_gravity="bottom">
 
                 <io.forsta.securesms.components.emoji.EmojiToggle
                     android:id="@+id/emoji_toggle"
@@ -69,7 +83,7 @@
                         android:layout_width="37dp"
                         android:layout_height="37dp"
                         android:layout_gravity="bottom"
-                        android:background="@drawable/circle_touch_highlight_background"
+                        android:background="@drawable/touch_highlight_background"
                         android:src="@drawable/ic_attach_grey600_24dp"
                         android:contentDescription="@string/ConversationActivity_add_attachment"
                         android:nextFocusLeft="@+id/embedded_text_editor" />
@@ -123,12 +137,12 @@
 
                     <io.forsta.securesms.components.SendButton
                         android:id="@+id/send_button"
+                        android:background="@drawable/touch_highlight_background"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:contentDescription="@string/conversation_activity__send"
                         android:nextFocusLeft="@+id/embedded_text_editor"
-                        android:src="?conversation_transport_sms_indicator"
-                        />
+                        android:src="?conversation_transport_push_indicator" />
 
                 </io.forsta.securesms.components.AnimatingToggle>
                 </RelativeLayout>
