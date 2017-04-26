@@ -1,17 +1,27 @@
 package io.forsta.ccsm;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaUser;
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;
 
 /**
@@ -21,6 +31,9 @@ import io.forsta.securesms.R;
 public class ForstaContactsFragment extends Fragment {
 
   private RecyclerView list;
+  private ImageButton refreshContacts;
+  private ForstaContactsAdapter adapter;
+  private ProgressBar loading;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,10 +42,36 @@ public class ForstaContactsFragment extends Fragment {
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.forsta_contacts_fragment, container, false);
+    final View view = inflater.inflate(R.layout.forsta_contacts_list, container, false);
 
     list = (RecyclerView) view.findViewById(R.id.forsta_contacts_recycler_view);
     list.setLayoutManager(new LinearLayoutManager(getActivity()));
+    loading = (ProgressBar) view.findViewById(R.id.forsta_contacts_loading);
+    refreshContacts = (ImageButton) view.findViewById(R.id.forsta_update_contacts);
+    refreshContacts.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        loading.setVisibility(View.VISIBLE);
+
+        new AsyncTask<Void, Void, Void>() {
+          @Override
+          protected Void doInBackground(Void... voids) {
+            CcsmApi.syncForstaContactsDb(getActivity().getApplicationContext());
+            return null;
+          }
+
+          @Override
+          protected void onPostExecute(Void aVoid) {
+            ContactDb db = DbFactory.getContactDb(getActivity());
+            List<ForstaUser> contacts = db.getUsers();
+            db.close();
+            adapter.contacts = contacts;
+            adapter.notifyDataSetChanged();
+            loading.setVisibility(View.GONE);
+          }
+        }.execute();
+      }
+    });
 
     return view;
   }
@@ -48,14 +87,55 @@ public class ForstaContactsFragment extends Fragment {
   public void onResume() {
     super.onResume();
 
-//    updateReminders();
 //    list.getAdapter().notifyDataSetChanged();
   }
 
   private void initializeAdapter() {
-    List<String> contacts = new ArrayList<>();
-    contacts.add("One");
-    contacts.add("Two");
-    list.setAdapter(new ForstaContactsAdapter(contacts));
+    ContactDb db = DbFactory.getContactDb(getActivity());
+    List<ForstaUser> contacts = db.getUsers();
+    db.close();
+    adapter = new ForstaContactsAdapter(contacts);
+    list.setAdapter(adapter);
+  }
+
+  private class ForstaContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
+    private List<ForstaUser> contacts;
+
+    public ForstaContactsAdapter(List<ForstaUser> contacts) {
+      this.contacts = contacts;
+    }
+
+    @Override
+    public ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      LayoutInflater inflater = LayoutInflater.from(getActivity());
+      View view = inflater.inflate(R.layout.forsta_contacts_list_item, parent, false);
+      return new ContactHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(ContactHolder holder, int position) {
+      ForstaUser item = contacts.get(position);
+      holder.name.setText(item.getName());
+      holder.number.setText(item.phone);
+      holder.registered.setVisibility(item.tsRegistered ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public int getItemCount() {
+      return contacts.size();
+    }
+  }
+
+  private class ContactHolder extends RecyclerView.ViewHolder {
+    public TextView name;
+    public TextView number;
+    public ImageView registered;
+
+    public ContactHolder(View itemView) {
+      super(itemView);
+      name = (TextView) itemView.findViewById(R.id.forsta_contact_name);
+      number = (TextView) itemView.findViewById(R.id.forsta_contact_number);
+      registered = (ImageView) itemView.findViewById(R.id.forsta_contact_registered);
+    }
   }
 }

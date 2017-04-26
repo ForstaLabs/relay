@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
-    <FrameLayout android:id="@+id/forsta_conversation_list"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </FrameLayout>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp"
+            android:text="ORGANIZATION NAME"
+            android:textAlignment="center" />
+
+        <include layout="@layout/conversation_input_panel_large" />
+
+        <FrameLayout android:id="@+id/forsta_conversation_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </FrameLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="250dp"
@@ -31,12 +46,12 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Drawer Content"/>
-
+                android:text="Forsta Contacts"/>
+            <FrameLayout android:id="@+id/forsta_contacts_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </FrameLayout>
         </LinearLayout>
-        <FrameLayout android:id="@+id/forsta_contacts_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </FrameLayout>
-    </LinearLayout>
+        </LinearLayout>
+
 </android.support.v4.widget.DrawerLayout>

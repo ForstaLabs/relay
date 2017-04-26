@@ -7,7 +7,8 @@ import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import io.forsta.ccsm.api.ForstaUser;
 
 /**
  * Created by jlewis on 3/23/17.
@@ -16,33 +17,45 @@ import java.util.Map;
 public class ContactDb extends DbBase {
   public static final String TABLE_NAME = "contacts";
 
-  public static final String NAME = "name";
+  public static final String FIRSTNAME = "firstname";
+  public static final String LASTNAME = "lastname";
+  public static final String MIDDLENAME = "middlename";
+  public static final String EMAIL = "email";
   public static final String NUMBER = "number";
-  public static final String SLUG = "slug";
+  public static final String USERNAME = "username";
   public static final String UID = "uid";
   public static final String ORGID = "orgid";
   public static final String DATE = "date";
+  public static final String TSREGISTERED = "tsregistered";
 
   public static final String CREATE_TABLE = "create table " +
       TABLE_NAME + "(" +
       "_id integer primary key autoincrement, " +
-      NAME + ", " +
+      FIRSTNAME + ", " +
+      MIDDLENAME + ", " +
+      LASTNAME + ", " +
+      EMAIL + ", " +
       NUMBER + ", " +
-      SLUG + ", " +
+      USERNAME + ", " +
       UID + ", " +
       ORGID + ", " +
       DATE + ", " +
+      TSREGISTERED + " integer default 0, " +
       "CONSTRAINT item_number_unique UNIQUE (" + NUMBER + ")" +
       ")";
 
   public static String[] allColumns = {
       "_id",
-      NAME,
+      FIRSTNAME,
+      MIDDLENAME,
+      LASTNAME,
+      EMAIL,
       NUMBER,
-      SLUG,
+      USERNAME,
       UID,
       ORGID,
-      DATE
+      DATE,
+      TSREGISTERED
   };
 
   public ContactDb(Context context, DbHelper dbHelper) {
@@ -56,10 +69,10 @@ public class ContactDb extends DbBase {
   public HashMap<String, String> getContactSlugs() {
     HashMap<String, String> contacts = new HashMap<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, NAME);
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, USERNAME);
       while (c.moveToNext()) {
         int index = c.getColumnIndex(NUMBER);
-        int slugIndex = c.getColumnIndex(SLUG);
+        int slugIndex = c.getColumnIndex(USERNAME);
         contacts.put(c.getString(slugIndex), c.getString(index));
       }
       c.close();
@@ -72,7 +85,7 @@ public class ContactDb extends DbBase {
   public List<String> getNumbers() {
     List<String> numbers = new ArrayList<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, NAME);
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, NUMBER);
       while (c.moveToNext()) {
         int index = c.getColumnIndex(NUMBER);
         numbers.add(c.getString(index));
@@ -84,10 +97,40 @@ public class ContactDb extends DbBase {
     return numbers;
   }
 
+  public List<String> getIds() {
+    List<String> ids = new ArrayList<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
+      while (c.moveToNext()) {
+        int index = c.getColumnIndex(UID);
+        ids.add(c.getString(index));
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return ids;
+  }
+
+  public List<ForstaUser> getUsers() {
+    List<ForstaUser> users = new ArrayList<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, LASTNAME);
+      while (c.moveToNext()) {
+        ForstaUser user = new ForstaUser(c);
+        users.add(user);
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return users;
+  }
+
   @Override
   public Cursor get() {
     try {
-      return getRecords(TABLE_NAME, allColumns, null, null, NAME);
+      return getRecords(TABLE_NAME, allColumns, null, null, LASTNAME);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -97,7 +140,7 @@ public class ContactDb extends DbBase {
   @Override
   public Cursor getById(String id) {
     try {
-      return getRecords(TABLE_NAME, allColumns, "_id= ?", new String[]{id}, NAME);
+      return getRecords(TABLE_NAME, allColumns, "_id= ?", new String[]{id}, LASTNAME);
     } catch (Exception e) {
       e.printStackTrace();
     }

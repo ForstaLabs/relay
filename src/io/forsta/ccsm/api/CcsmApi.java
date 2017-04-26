@@ -2,6 +2,7 @@ package io.forsta.ccsm.api;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
@@ -13,6 +14,8 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
@@ -519,5 +522,62 @@ public class CcsmApi {
   private static boolean isSuperMan(String e164Number) {
     // May need to filter all SM numbers
     return e164Number.equals(BuildConfig.FORSTA_SYNC_NUMBER);
+  }
+
+  public static void syncForstaContactsDb(Context context) {
+    JSONObject users = getForstaUsers(context);
+    Map<String, ForstaUser> forstaUsers = parseForstaUsers(users);
+
+    ContactDb db = DbFactory.getContactDb(context);
+    List<String> ids = db.getIds();
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+
+    for (Map.Entry<String, ForstaUser> entry : forstaUsers.entrySet()) {
+      try {
+        ForstaUser item = entry.getValue();
+        String id = entry.getKey();
+        String e164number = Util.canonicalizeNumber(context, item.phone);
+
+        boolean isSuperman = isSuperMan(e164number);
+        // Add users if they are not in the system and not supername number
+        if (!isSuperman) {
+          if (!ids.contains(id)) {
+            ContentValues values = new ContentValues();
+            values.put(ContactDb.UID, id);
+            values.put(ContactDb.FIRSTNAME, item.firstName);
+            values.put(ContactDb.MIDDLENAME, item.middleName);
+            values.put(ContactDb.LASTNAME, item.lastName);
+            values.put(ContactDb.ORGID, item.orgId);
+            values.put(ContactDb.NUMBER, item.phone);
+            values.put(ContactDb.USERNAME, item.username);
+            values.put(ContactDb.DATE, new Date().toString());
+            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
+            db.add(values);
+          } else {
+            // Update the user's registered status and name
+            ContentValues values = new ContentValues();
+            values.put(ContactDb.FIRSTNAME, item.firstName);
+            values.put(ContactDb.MIDDLENAME, item.middleName);
+            values.put(ContactDb.LASTNAME, item.lastName);
+            values.put(ContactDb.ORGID, item.orgId);
+            values.put(ContactDb.NUMBER, item.phone);
+            values.put(ContactDb.USERNAME, item.username);
+            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
+            db.update(id, values);
+          }
+        }
+      } catch (InvalidNumberException e) {
+        e.printStackTrace();
+      }
+
+      // Remove users who are no longer in the API result set.
+      for (String id : ids) {
+        if (!forstaUsers.containsKey(id)) {
+          db.remove(id);
+        }
+      }
+    }
+    db.close();
   }
 }

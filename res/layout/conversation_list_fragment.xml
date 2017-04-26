@@ -12,16 +12,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="5dp"
-            android:text="ORGANIZATION NAME"
-            android:textAlignment="center" />
-
-        <include layout="@layout/conversation_input_panel_large" />
-
         <io.forsta.securesms.components.reminder.ReminderView
             android:id="@+id/reminder"
             android:layout_width="match_parent"

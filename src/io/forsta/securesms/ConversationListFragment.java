@@ -52,6 +52,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 import io.forsta.securesms.ConversationListAdapter.ItemClickListener;
+import io.forsta.securesms.components.ComposeText;
+import io.forsta.securesms.components.InputPanel;
 import io.forsta.securesms.components.reminder.DefaultSmsReminder;
 import io.forsta.securesms.components.reminder.ExpiredBuildReminder;
 import io.forsta.securesms.components.reminder.OutdatedBuildReminder;

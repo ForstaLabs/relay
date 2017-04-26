@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -88,6 +89,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
 //    fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    FragmentManager fm = getSupportFragmentManager();
+    Fragment fragment = fm.findFragmentById(R.id.forsta_contacts_list);
+
     contactsFragment = initFragment(R.id.forsta_contacts_list, new ForstaContactsFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
