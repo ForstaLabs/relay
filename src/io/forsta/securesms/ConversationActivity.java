@@ -1414,7 +1414,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
-      buttonToggle.display(sendButton);
+      buttonToggle.display(attachButton);
       quickAttachmentToggle.show();
     } else {
       buttonToggle.display(sendButton);
