@@ -530,6 +530,7 @@ public class CcsmApi {
 
     ContactDb db = DbFactory.getContactDb(context);
     List<String> ids = db.getIds();
+    List<ForstaUser> dbUsers = db.getUsers();
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();
 
@@ -540,9 +541,12 @@ public class CcsmApi {
         String e164number = Util.canonicalizeNumber(context, item.phone);
 
         boolean isSuperman = isSuperMan(e164number);
-        // Add users if they are not in the system and not supername number
+        // Add users if they are not in the system and not superman number
         if (!isSuperman) {
           if (!ids.contains(id)) {
+//            item.tsRegistered = activeNumbers.contains(e164number) ? true : false;
+//            db.addUser(item);
+
             ContentValues values = new ContentValues();
             values.put(ContactDb.UID, id);
             values.put(ContactDb.FIRSTNAME, item.firstName);

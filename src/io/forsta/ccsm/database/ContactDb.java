@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -125,6 +126,32 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return users;
+  }
+
+  public long addUser(ForstaUser user) {
+    ContentValues values = new ContentValues();
+    values.put(ContactDb.UID, user.id);
+    values.put(ContactDb.FIRSTNAME, user.firstName);
+    values.put(ContactDb.MIDDLENAME, user.middleName);
+    values.put(ContactDb.LASTNAME, user.lastName);
+    values.put(ContactDb.ORGID, user.orgId);
+    values.put(ContactDb.NUMBER, user.phone);
+    values.put(ContactDb.USERNAME, user.username);
+    values.put(ContactDb.DATE, new Date().toString());
+    values.put(ContactDb.TSREGISTERED, user.tsRegistered);
+    return add(values);
+  }
+
+  public int updateUser(String id, ForstaUser user) {
+    ContentValues values = new ContentValues();
+    values.put(ContactDb.FIRSTNAME, user.firstName);
+    values.put(ContactDb.MIDDLENAME, user.middleName);
+    values.put(ContactDb.LASTNAME, user.lastName);
+    values.put(ContactDb.ORGID, user.orgId);
+    values.put(ContactDb.NUMBER, user.phone);
+    values.put(ContactDb.USERNAME, user.username);
+    values.put(ContactDb.TSREGISTERED, user.tsRegistered);
+    return update(id, values);
   }
 
   @Override
