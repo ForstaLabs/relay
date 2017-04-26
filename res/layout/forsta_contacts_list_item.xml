@@ -14,11 +14,12 @@
         <TextView android:id="@+id/forsta_contact_number"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="An Item" />
+            android:text="An Item Phone"
+            style="@style/ForstaSmallText"/>
     </LinearLayout>
     <ImageView android:id="@+id/forsta_contact_registered"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:src="@drawable/icon"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"

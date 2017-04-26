@@ -233,4 +233,8 @@
         <item name="android:textSize">17sp</item>
     </style>
 
+    <style name="ForstaSmallText">
+        <item name="android:textSize">10sp</item>
+    </style>
+
 </resources>
