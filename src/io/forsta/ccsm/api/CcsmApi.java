@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -229,6 +230,32 @@ public class CcsmApi {
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER_TAG, null);
   }
 
+  public static void parseUsers(Context context) {
+    try {
+      ContactsDatabase cdb = DatabaseFactory.getContactsDatabase(context);
+      cdb.querySystemContacts(null);
+      JSONObject users = getForstaUsers(context);
+      JSONArray results = users.getJSONArray("results");
+      for (int i = 0; i < results.length(); i++) {
+        JSONObject item = results.getJSONObject(i);
+        if (item.getBoolean("is_active")) {
+          // Update the local contacts database
+
+          // Update the local contacts system
+
+          ForstaUser user = new ForstaUser(item);
+//          list.put(user.id, user);
+        }
+      }
+
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+  }
+
+
+
+  // Everything below is CRAP.
   // This is using the old tag API endpoint to gather groups and users.
   // Needs to be replaced with new version.
   private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
@@ -584,4 +611,6 @@ public class CcsmApi {
     }
     db.close();
   }
+
+  // New
 }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <io.forsta.securesms.components.InputPanel
         android:id="@+id/bottom_panel"
@@ -32,7 +34,7 @@
                 android:clipToPadding="false"
                 android:orientation="vertical">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/forsta_accent"
@@ -41,8 +43,15 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TYPE:" />
-                </LinearLayout>
+                        android:text="TYPE:"
+                        android:layout_alignParentLeft="true"/>
+
+                    <ImageButton android:id="@+id/forsta_quick_directory"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_group_grey600_24dp"
+                        android:layout_alignParentRight="true"/>
+                </RelativeLayout>
 
                 <io.forsta.securesms.components.ComposeText
                     style="@style/ComposeEditText"
@@ -191,4 +200,4 @@
         </FrameLayout>
 
     </io.forsta.securesms.components.InputPanel>
-</merge>
+</LinearLayout>

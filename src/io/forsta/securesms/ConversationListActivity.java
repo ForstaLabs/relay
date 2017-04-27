@@ -40,7 +40,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.ForstaContactsFragment;
+import io.forsta.ccsm.ForstaInputFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.components.ComposeText;
@@ -69,7 +71,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   private ConversationListFragment fragment;
-  private ForstaContactsFragment contactsFragment;
+  private ForstaInputFragment inputFragment;
   private ContentObserver observer;
   private MasterSecret masterSecret;
 
@@ -89,10 +91,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
 //    fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    FragmentManager fm = getSupportFragmentManager();
-    Fragment fragment = fm.findFragmentById(R.id.forsta_contacts_list);
-
-    contactsFragment = initFragment(R.id.forsta_contacts_list, new ForstaContactsFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
@@ -184,6 +183,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 //    case R.id.menu_import_export:     handleImportExport();    return true;
     case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
+    case R.id.menu_directory:         handleDirectory();       return true;
     case R.id.menu_dashboard:         handleDashboard();       return true;
     case R.id.menu_sync_contacts:     handleSyncContacts();    return true;
     }
@@ -245,6 +245,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         }
       }
     }.execute();
+  }
+
+  private void handleDirectory() {
+    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
+    startActivity(directoryIntent);
   }
 
   private void handleDashboard() {

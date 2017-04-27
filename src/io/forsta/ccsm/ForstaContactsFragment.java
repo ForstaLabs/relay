@@ -1,27 +1,29 @@
 package io.forsta.ccsm;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 
 /**
@@ -31,7 +33,9 @@ import io.forsta.securesms.R;
 public class ForstaContactsFragment extends Fragment {
 
   private RecyclerView list;
-  private ImageButton refreshContacts;
+  private Button refreshContacts;
+  private Button refreshUsers;
+  private Button refreshGroups;
   private ForstaContactsAdapter adapter;
   private ProgressBar loading;
 
@@ -42,12 +46,28 @@ public class ForstaContactsFragment extends Fragment {
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.forsta_contacts_list, container, false);
+    final View view = inflater.inflate(R.layout.forsta_contacts_fragment, container, false);
 
     list = (RecyclerView) view.findViewById(R.id.forsta_contacts_recycler_view);
     list.setLayoutManager(new LinearLayoutManager(getActivity()));
     loading = (ProgressBar) view.findViewById(R.id.forsta_contacts_loading);
-    refreshContacts = (ImageButton) view.findViewById(R.id.forsta_update_contacts);
+    refreshUsers = (Button) view.findViewById(R.id.forsta_directory_users);
+    refreshUsers.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+      }
+    });
+
+    refreshGroups = (Button) view.findViewById(R.id.forsta_directory_groups);
+    refreshGroups.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+
+      }
+    });
+
+    refreshContacts = (Button) view.findViewById(R.id.forsta_update_contacts);
     refreshContacts.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -90,16 +110,27 @@ public class ForstaContactsFragment extends Fragment {
 //    list.getAdapter().notifyDataSetChanged();
   }
 
+  private void initView() {
+
+  }
+
   private void initializeAdapter() {
     ContactDb db = DbFactory.getContactDb(getActivity());
     List<ForstaUser> contacts = db.getUsers();
     db.close();
     adapter = new ForstaContactsAdapter(contacts);
     list.setAdapter(adapter);
+    list.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Toast.makeText(getActivity(), "Clicked", Toast.LENGTH_LONG);
+      }
+    });
   }
 
   private class ForstaContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
     private List<ForstaUser> contacts;
+
 
     public ForstaContactsAdapter(List<ForstaUser> contacts) {
       this.contacts = contacts;
@@ -136,6 +167,12 @@ public class ForstaContactsFragment extends Fragment {
       name = (TextView) itemView.findViewById(R.id.forsta_contact_name);
       number = (TextView) itemView.findViewById(R.id.forsta_contact_number);
       registered = (ImageView) itemView.findViewById(R.id.forsta_contact_registered);
+      registered.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+
+        }
+      });
     }
   }
 }

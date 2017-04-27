@@ -2,10 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <ImageButton android:id="@+id/forsta_update_contacts"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_group_grey600_24dp"/>
+        android:orientation="horizontal">
+        <Button android:id="@+id/forsta_directory_users"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Users"/>
+        <Button android:id="@+id/forsta_directory_groups"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="3dp"
+            android:text="Groups"/>
+        <Button android:id="@+id/forsta_update_contacts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="3dp"
+            android:text="Contacts"/>
+    </LinearLayout>
+
 <ProgressBar android:id="@+id/forsta_contacts_loading"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"

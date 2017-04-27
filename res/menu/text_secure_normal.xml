@@ -22,6 +22,9 @@
     <item android:title="@string/text_secure_normal__help"
           android:id="@+id/menu_help"/>
 
+    <item android:title="Directory"
+        android:id="@+id/menu_directory"/>
+
     <item android:title="About"
         android:id="@+id/menu_dashboard"/>
 

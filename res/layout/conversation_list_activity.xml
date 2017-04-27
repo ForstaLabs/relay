@@ -13,7 +13,11 @@
             android:text="ORGANIZATION NAME"
             android:textAlignment="center" />
 
-        <include layout="@layout/conversation_input_panel_large" />
+        <LinearLayout android:id="@+id/forsta_input_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+        </LinearLayout>
 
         <FrameLayout android:id="@+id/forsta_conversation_list"
             android:layout_width="match_parent"
@@ -47,10 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Forsta Contacts"/>
-            <FrameLayout android:id="@+id/forsta_contacts_list"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-            </FrameLayout>
+
         </LinearLayout>
         </LinearLayout>
 
