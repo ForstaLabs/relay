@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -147,22 +146,15 @@ public class CcsmApi {
     return authtoken;
   }
 
-  public static Map<String, String> parseUsers(JSONObject jsonObject) {
-    Map<String, String> users = new HashMap<>();
+  public static List<ForstaUser> parseUsers(JSONObject jsonObject) {
+    List<ForstaUser> users = new ArrayList<>();
     try {
       JSONArray results = jsonObject.getJSONArray("results");
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
-        StringBuilder name = new StringBuilder();
-        name.append(user.getString("first_name")).append(" ");
-        if (!user.getString("middle_name").equals("")) {
-          name.append(user.getString("middle_name")).append(" ");
-        }
-        name.append(user.getString("last_name"));
-        String phone = user.getString("phone");
-
-        if (!phone.equals("") && user.getBoolean("is_active")) {
-          users.put(phone, name.toString());
+        if (user.getBoolean("is_active")) {
+          ForstaUser forstaUser = new ForstaUser(user);
+          users.add(forstaUser);
         }
       }
     } catch (Exception e) {
@@ -210,12 +202,13 @@ public class CcsmApi {
     return groups;
   }
 
+  // These should all be private.
   public static JSONObject getForstaOrg(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
   }
 
-  public static JSONObject getForstaUsers(Context context) {
+  public static JSONObject getUsers(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER, null);
   }
@@ -230,34 +223,11 @@ public class CcsmApi {
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER_TAG, null);
   }
 
-  public static void parseUsers(Context context) {
-    try {
-      ContactsDatabase cdb = DatabaseFactory.getContactsDatabase(context);
-      cdb.querySystemContacts(null);
-      JSONObject users = getForstaUsers(context);
-      JSONArray results = users.getJSONArray("results");
-      for (int i = 0; i < results.length(); i++) {
-        JSONObject item = results.getJSONObject(i);
-        if (item.getBoolean("is_active")) {
-          // Update the local contacts database
-
-          // Update the local contacts system
-
-          ForstaUser user = new ForstaUser(item);
-//          list.put(user.id, user);
-        }
-      }
-
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
+  private static boolean isSuperMan(String e164Number) {
+    // May need to filter all SM numbers
+    return e164Number.equals(BuildConfig.FORSTA_SYNC_NUMBER);
   }
 
-
-
-  // Everything below is CRAP.
-  // This is using the old tag API endpoint to gather groups and users.
-  // Needs to be replaced with new version.
   private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
     try {
       JSONObject jsonObject = getTags(context);
@@ -300,25 +270,21 @@ public class CcsmApi {
     }
   }
 
-  private static void syncForstaContacts(Context context) {
-    JSONObject users = getForstaUsers(context);
-    syncContacts(context, users);
-  }
-
-  private static void syncContacts(Context context, JSONObject users) {
+  public static void syncForstaContacts(Context context) {
     try {
-      Set<String> contactNumbers = getSystemContacts(context);
+      JSONObject users = getUsers(context);
+      Set<String> systemContacts = getSystemContacts(context);
 
-      Map<String, String> contacts = parseUsers(users);
+      List<ForstaUser> forstaContacts = parseUsers(users);
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-      contacts.remove(BuildConfig.FORSTA_SYNC_NUMBER);
+      forstaContacts.remove(BuildConfig.FORSTA_SYNC_NUMBER);
 
       Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
-      for (Map.Entry<String, String> entry : contacts.entrySet()) {
+      for (ForstaUser user : forstaContacts) {
         try {
-          String e164number = Util.canonicalizeNumber(context, entry.getKey());
-          if (!contactNumbers.contains(e164number)) {
-            updateContactsDb(ops, account.get(), e164number, entry.getValue());
+          String e164number = Util.canonicalizeNumber(context, user.phone);
+          if (!systemContacts.contains(e164number)) {
+            updateContactsDb(ops, account.get(), e164number, user.getName());
           }
         } catch (InvalidNumberException e) {
           e.printStackTrace();
@@ -326,11 +292,10 @@ public class CcsmApi {
       }
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
     } catch (Exception e) {
-      Log.e(TAG, "syncForstaGroupUsers exception: " + e.getMessage());
+      Log.e(TAG, "syncContacts exception: " + e.getMessage());
       e.printStackTrace();
     }
   }
-  // Remove the above methods once testing is complete.
 
   private static Set<Recipient> getActiveRecipients(Context context, List<String> groupNumbers, List<String> activeNumbers) {
     for (int i = 0; i < groupNumbers.size(); i++) {
@@ -391,7 +356,76 @@ public class CcsmApi {
         .build());
   }
 
-  // Reworking API endpoint changes and parsing.
+    // Save in case we want a local cache of contacts.
+  public static void syncForstaContactsDb(Context context) {
+    JSONObject users = getUsers(context);
+    Map<String, ForstaUser> forstaUsers = parseForstaUsers(users);
+
+    ContactDb db = DbFactory.getContactDb(context);
+    List<String> ids = db.getIds();
+    List<ForstaUser> dbUsers = db.getUsers();
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+
+    for (Map.Entry<String, ForstaUser> entry : forstaUsers.entrySet()) {
+      try {
+        ForstaUser item = entry.getValue();
+        String id = entry.getKey();
+        String e164number = Util.canonicalizeNumber(context, item.phone);
+
+        boolean isSuperman = isSuperMan(e164number);
+        // Add users if they are not in the system and not superman number
+        if (!isSuperman) {
+          if (!ids.contains(id)) {
+//            item.tsRegistered = activeNumbers.contains(e164number) ? true : false;
+//            db.addUser(item);
+
+            ContentValues values = new ContentValues();
+            values.put(ContactDb.UID, id);
+            values.put(ContactDb.FIRSTNAME, item.firstName);
+            values.put(ContactDb.MIDDLENAME, item.middleName);
+            values.put(ContactDb.LASTNAME, item.lastName);
+            values.put(ContactDb.ORGID, item.orgId);
+            values.put(ContactDb.NUMBER, item.phone);
+            values.put(ContactDb.USERNAME, item.username);
+            values.put(ContactDb.DATE, new Date().toString());
+            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
+            db.add(values);
+          } else {
+            // Update the user's registered status and name
+            ContentValues values = new ContentValues();
+            values.put(ContactDb.FIRSTNAME, item.firstName);
+            values.put(ContactDb.MIDDLENAME, item.middleName);
+            values.put(ContactDb.LASTNAME, item.lastName);
+            values.put(ContactDb.ORGID, item.orgId);
+            values.put(ContactDb.NUMBER, item.phone);
+            values.put(ContactDb.USERNAME, item.username);
+            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
+            db.update(id, values);
+          }
+        }
+      } catch (InvalidNumberException e) {
+        e.printStackTrace();
+      }
+
+      // Remove users who are no longer in the API result set.
+      for (String id : ids) {
+        if (!forstaUsers.containsKey(id)) {
+          db.remove(id);
+        }
+      }
+    }
+    db.close();
+  }
+
+
+
+
+
+
+  // These are no longer used.
+  //
+  //
   private static Set<String> getGroupIds(Context context) {
     Set<String> groupIds = new HashSet<>();
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
@@ -441,7 +475,7 @@ public class CcsmApi {
 
   public static void syncForstaGroupUsers(Context context, MasterSecret masterSecret) {
     try {
-      JSONObject users = getForstaUsers(context);
+      JSONObject users = getUsers(context);
       JSONObject tags = getTags(context);
       JSONObject usertags = getUserTags(context);
       Set<String> existingGroupIds = getGroupIds(context);
@@ -504,21 +538,6 @@ public class CcsmApi {
     }
   }
 
-  private static Map<String, JSONObject> parseObjects(JSONObject jsonObject) {
-    Map<String, JSONObject> items = new HashMap<>();
-    try {
-      JSONArray results = jsonObject.getJSONArray("results");
-      for (int i = 0; i < results.length(); i++) {
-        JSONObject item = results.getJSONObject(i);
-        items.put(item.getString("id"), item);
-      }
-    } catch (Exception e) {
-      Log.e(TAG, "parseObjects exception: " + e.getMessage());
-      e.printStackTrace();
-    }
-    return items;
-  }
-
   private static void syncForstaContacts(Context context, Map<String, ForstaUser> users) {
     try {
       Set<String> contactNumbers = getSystemContacts(context);
@@ -546,71 +565,4 @@ public class CcsmApi {
     }
   }
 
-  private static boolean isSuperMan(String e164Number) {
-    // May need to filter all SM numbers
-    return e164Number.equals(BuildConfig.FORSTA_SYNC_NUMBER);
-  }
-
-  public static void syncForstaContactsDb(Context context) {
-    JSONObject users = getForstaUsers(context);
-    Map<String, ForstaUser> forstaUsers = parseForstaUsers(users);
-
-    ContactDb db = DbFactory.getContactDb(context);
-    List<String> ids = db.getIds();
-    List<ForstaUser> dbUsers = db.getUsers();
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-
-    for (Map.Entry<String, ForstaUser> entry : forstaUsers.entrySet()) {
-      try {
-        ForstaUser item = entry.getValue();
-        String id = entry.getKey();
-        String e164number = Util.canonicalizeNumber(context, item.phone);
-
-        boolean isSuperman = isSuperMan(e164number);
-        // Add users if they are not in the system and not superman number
-        if (!isSuperman) {
-          if (!ids.contains(id)) {
-//            item.tsRegistered = activeNumbers.contains(e164number) ? true : false;
-//            db.addUser(item);
-
-            ContentValues values = new ContentValues();
-            values.put(ContactDb.UID, id);
-            values.put(ContactDb.FIRSTNAME, item.firstName);
-            values.put(ContactDb.MIDDLENAME, item.middleName);
-            values.put(ContactDb.LASTNAME, item.lastName);
-            values.put(ContactDb.ORGID, item.orgId);
-            values.put(ContactDb.NUMBER, item.phone);
-            values.put(ContactDb.USERNAME, item.username);
-            values.put(ContactDb.DATE, new Date().toString());
-            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
-            db.add(values);
-          } else {
-            // Update the user's registered status and name
-            ContentValues values = new ContentValues();
-            values.put(ContactDb.FIRSTNAME, item.firstName);
-            values.put(ContactDb.MIDDLENAME, item.middleName);
-            values.put(ContactDb.LASTNAME, item.lastName);
-            values.put(ContactDb.ORGID, item.orgId);
-            values.put(ContactDb.NUMBER, item.phone);
-            values.put(ContactDb.USERNAME, item.username);
-            values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
-            db.update(id, values);
-          }
-        }
-      } catch (InvalidNumberException e) {
-        e.printStackTrace();
-      }
-
-      // Remove users who are no longer in the API result set.
-      for (String id : ids) {
-        if (!forstaUsers.containsKey(id)) {
-          db.remove(id);
-        }
-      }
-    }
-    db.close();
-  }
-
-  // New
 }

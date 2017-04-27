@@ -1,6 +1,7 @@
 package io.forsta.ccsm;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
@@ -25,6 +27,9 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.util.DirectoryHelper;
 
 /**
  * Created by jlewis on 4/25/17.
@@ -51,14 +56,6 @@ public class ForstaContactsFragment extends Fragment {
     list = (RecyclerView) view.findViewById(R.id.forsta_contacts_recycler_view);
     list.setLayoutManager(new LinearLayoutManager(getActivity()));
     loading = (ProgressBar) view.findViewById(R.id.forsta_contacts_loading);
-    refreshUsers = (Button) view.findViewById(R.id.forsta_directory_users);
-    refreshUsers.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-
-      }
-    });
-
     refreshGroups = (Button) view.findViewById(R.id.forsta_directory_groups);
     refreshGroups.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -76,15 +73,13 @@ public class ForstaContactsFragment extends Fragment {
         new AsyncTask<Void, Void, Void>() {
           @Override
           protected Void doInBackground(Void... voids) {
-            CcsmApi.syncForstaContactsDb(getActivity().getApplicationContext());
+            CcsmApi.syncForstaContacts(getActivity().getApplicationContext());
             return null;
           }
 
           @Override
           protected void onPostExecute(Void aVoid) {
-            ContactDb db = DbFactory.getContactDb(getActivity());
-            List<ForstaUser> contacts = db.getUsers();
-            db.close();
+            List<ForstaUser> contacts = getContacts();
             adapter.contacts = contacts;
             adapter.notifyDataSetChanged();
             loading.setVisibility(View.GONE);
@@ -114,18 +109,21 @@ public class ForstaContactsFragment extends Fragment {
 
   }
 
+  private List<ForstaUser> getContacts() {
+    ContactsDatabase db = DatabaseFactory.getContactsDatabase(getActivity());
+    Cursor c = db.queryTextSecureContacts(null);
+    List<ForstaUser> contacts = new ArrayList<>();
+    while (c.moveToNext()) {
+      ForstaUser user = new ForstaUser(c);
+      contacts.add(user);
+    }
+    return contacts;
+  }
+
   private void initializeAdapter() {
-    ContactDb db = DbFactory.getContactDb(getActivity());
-    List<ForstaUser> contacts = db.getUsers();
-    db.close();
+    List<ForstaUser> contacts = getContacts();
     adapter = new ForstaContactsAdapter(contacts);
     list.setAdapter(adapter);
-    list.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Toast.makeText(getActivity(), "Clicked", Toast.LENGTH_LONG);
-      }
-    });
   }
 
   private class ForstaContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
@@ -146,7 +144,7 @@ public class ForstaContactsFragment extends Fragment {
     @Override
     public void onBindViewHolder(ContactHolder holder, int position) {
       ForstaUser item = contacts.get(position);
-      holder.name.setText(item.getName());
+      holder.name.setText(item.username);
       holder.number.setText(item.phone);
       holder.registered.setVisibility(item.tsRegistered ? View.VISIBLE : View.GONE);
     }

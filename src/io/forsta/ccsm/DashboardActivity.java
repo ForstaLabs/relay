@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,8 +23,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.ForstaGroup;
@@ -50,36 +47,18 @@ import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
-import io.forsta.securesms.groups.GroupManager;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
-import org.whispersystems.signalservice.internal.push.SignalServiceProtos;
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.GroupUtil;
 
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
@@ -633,7 +612,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     @Override
     protected String doInBackground(Void... voids) {
       StringBuilder sb = new StringBuilder();
-      JSONObject users = CcsmApi.getForstaUsers(DashboardActivity.this);
+      JSONObject users = CcsmApi.getUsers(DashboardActivity.this);
       JSONObject tags = CcsmApi.getTags(DashboardActivity.this);
       JSONObject usertags = CcsmApi.getUserTags(DashboardActivity.this);
 
@@ -700,7 +679,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getForstaUsers(DashboardActivity.this);
+      return CcsmApi.getUsers(DashboardActivity.this);
     }
 
     @Override
