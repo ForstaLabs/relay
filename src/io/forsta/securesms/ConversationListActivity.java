@@ -91,7 +91,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
 //    fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+//    inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
@@ -124,7 +124,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     inflater.inflate(R.menu.text_secure_normal, menu);
 
-    menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
+//    menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
 
     inflater.inflate(R.menu.conversation_list, menu);
     MenuItem menuItem = menu.findItem(R.id.menu_search);
@@ -176,16 +176,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-    case R.id.menu_new_group:         createGroup();           return true;
+//    case R.id.menu_new_group:         createGroup();           return true;
     case R.id.menu_settings:          handleDisplaySettings(); return true;
-    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
-    case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
+//    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
+//    case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
 //    case R.id.menu_import_export:     handleImportExport();    return true;
-    case R.id.menu_invite:            handleInvite();          return true;
+//    case R.id.menu_invite:            handleInvite();          return true;
     case R.id.menu_help:              handleHelp();            return true;
     case R.id.menu_directory:         handleDirectory();       return true;
     case R.id.menu_dashboard:         handleDashboard();       return true;
-    case R.id.menu_sync_contacts:     handleSyncContacts();    return true;
     }
 
     return false;
@@ -211,40 +210,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void createGroup() {
     Intent intent = new Intent(this, GroupCreateActivity.class);
     startActivity(intent);
-  }
-
-  private void handleSyncContacts() {
-    final ProgressDialog syncDialog = new ProgressDialog(ConversationListActivity.this);
-    syncDialog.setTitle("Forsta Contacts");
-    syncDialog.setMessage("Downloading and updating contacts and groups.");
-    syncDialog.show();
-
-    new AsyncTask<Void, Void, Boolean>() {
-
-      @Override
-      protected Boolean doInBackground(Void... voids) {
-        try {
-//          CcsmApi.syncForstaContacts(getApplicationContext());
-//          CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
-          CcsmApi.syncForstaGroupUsers(getApplicationContext(), masterSecret);
-          // DirectoryHelper.refreshDirectory(ConversationListActivity.this, masterSecret);
-          return true;
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        return false;
-      }
-
-      @Override
-      protected void onPostExecute(Boolean result) {
-        syncDialog.dismiss();
-        if (result) {
-          Toast.makeText(ConversationListActivity.this, "Contacts ready", Toast.LENGTH_LONG).show();
-        } else {
-          Toast.makeText(ConversationListActivity.this, "Contacts sync failed.", Toast.LENGTH_LONG).show();
-        }
-      }
-    }.execute();
   }
 
   private void handleDirectory() {

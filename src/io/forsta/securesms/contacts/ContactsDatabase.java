@@ -91,9 +91,6 @@ public class ContactsDatabase {
     for (ContactTokenDetails registeredContact : registeredContacts) {
       String registeredNumber = registeredContact.getNumber();
 
-      if (registeredNumber.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
-        continue;
-      }
       registeredNumbers.put(registeredNumber, registeredContact);
       boolean isSyncNumber = registeredNumber.equals(BuildConfig.FORSTA_SYNC_NUMBER);
 

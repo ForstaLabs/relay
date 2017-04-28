@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -22,13 +23,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.ccsm.api.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.crypto.MasterCipher;
+import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.util.DirectoryHelper;
 
 /**
@@ -37,16 +42,18 @@ import io.forsta.securesms.util.DirectoryHelper;
 
 public class ForstaContactsFragment extends Fragment {
 
+  private MasterSecret masterSecret;
   private RecyclerView list;
+  private RecyclerView groupList;
   private Button refreshContacts;
-  private Button refreshUsers;
-  private Button refreshGroups;
   private ForstaContactsAdapter adapter;
+  private ForstaGroupsAdapter groupAdapter;
   private ProgressBar loading;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    this.masterSecret = getArguments().getParcelable("master_secret");
   }
 
   @Override
@@ -55,39 +62,17 @@ public class ForstaContactsFragment extends Fragment {
 
     list = (RecyclerView) view.findViewById(R.id.forsta_contacts_recycler_view);
     list.setLayoutManager(new LinearLayoutManager(getActivity()));
+    groupList = (RecyclerView) view.findViewById(R.id.forsta_groups_recycler_view);
+    groupList.setLayoutManager(new LinearLayoutManager(getActivity()));
+
     loading = (ProgressBar) view.findViewById(R.id.forsta_contacts_loading);
-    refreshGroups = (Button) view.findViewById(R.id.forsta_directory_groups);
-    refreshGroups.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-
-      }
-    });
-
     refreshContacts = (Button) view.findViewById(R.id.forsta_update_contacts);
     refreshContacts.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        loading.setVisibility(View.VISIBLE);
-
-        new AsyncTask<Void, Void, Void>() {
-          @Override
-          protected Void doInBackground(Void... voids) {
-            CcsmApi.syncForstaContacts(getActivity().getApplicationContext());
-            return null;
-          }
-
-          @Override
-          protected void onPostExecute(Void aVoid) {
-            List<ForstaUser> contacts = getContacts();
-            adapter.contacts = contacts;
-            adapter.notifyDataSetChanged();
-            loading.setVisibility(View.GONE);
-          }
-        }.execute();
+        handleSyncContacts();
       }
     });
-
     return view;
   }
 
@@ -101,12 +86,6 @@ public class ForstaContactsFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
-
-//    list.getAdapter().notifyDataSetChanged();
-  }
-
-  private void initView() {
-
   }
 
   private List<ForstaUser> getContacts() {
@@ -117,13 +96,72 @@ public class ForstaContactsFragment extends Fragment {
       ForstaUser user = new ForstaUser(c);
       contacts.add(user);
     }
+    c.close();
     return contacts;
+  }
+
+  private List<ForstaGroup> getGroups() {
+    List<ForstaGroup> groups = new ArrayList<>();
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(getActivity());
+    GroupDatabase.Reader reader = db.getGroups();
+    GroupDatabase.GroupRecord record;
+    GroupDatabase.GroupRecord existing = null;
+    while ((record = reader.getNext()) != null) {
+      ForstaGroup group = new ForstaGroup(record);
+      groups.add(group);
+    }
+    reader.close();
+    return groups;
   }
 
   private void initializeAdapter() {
     List<ForstaUser> contacts = getContacts();
     adapter = new ForstaContactsAdapter(contacts);
     list.setAdapter(adapter);
+
+    List<ForstaGroup> groups = getGroups();
+    groupAdapter = new ForstaGroupsAdapter(groups);
+    groupList.setAdapter(groupAdapter);
+  }
+
+  private void handleSyncContacts() {
+    final ProgressDialog syncDialog = new ProgressDialog(getActivity());
+    syncDialog.setTitle("Forsta Contacts");
+    syncDialog.setMessage("Downloading and updating contacts and groups.");
+    syncDialog.show();
+
+    new AsyncTask<Void, Void, Boolean>() {
+
+      @Override
+      protected Boolean doInBackground(Void... voids) {
+        try {
+          CcsmApi.syncForstaContacts(getActivity().getApplicationContext());
+          CcsmApi.syncForstaGroups(getActivity().getApplicationContext(), masterSecret);
+          // DirectoryHelper.refreshDirectory(ConversationListActivity.this, masterSecret);
+          return true;
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        return false;
+      }
+
+      @Override
+      protected void onPostExecute(Boolean result) {
+        syncDialog.dismiss();
+        List<ForstaUser> contacts = getContacts();
+        adapter.contacts = contacts;
+        adapter.notifyDataSetChanged();
+
+        List<ForstaGroup> groups = getGroups();
+        groupAdapter.groups = groups;
+        groupAdapter.notifyDataSetChanged();
+      }
+
+      @Override
+      protected void onCancelled() {
+        syncDialog.dismiss();
+      }
+    }.execute();
   }
 
   private class ForstaContactsAdapter extends RecyclerView.Adapter<ContactHolder> {
@@ -171,6 +209,44 @@ public class ForstaContactsFragment extends Fragment {
 
         }
       });
+    }
+  }
+
+  private class ForstaGroupsAdapter extends RecyclerView.Adapter<GroupHolder> {
+    private List<ForstaGroup> groups;
+
+    public ForstaGroupsAdapter(List<ForstaGroup> groups) {
+      this.groups = groups;
+    }
+
+    @Override
+    public GroupHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      LayoutInflater inflater = LayoutInflater.from(getActivity());
+      View view = inflater.inflate(R.layout.forsta_groups_list_item, parent, false);
+      return new GroupHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(GroupHolder holder, int position) {
+      ForstaGroup item = groups.get(position);
+      holder.name.setText(item.description);
+      holder.number.setText(item.id);
+    }
+
+    @Override
+    public int getItemCount() {
+      return groups.size();
+    }
+  }
+
+  private class GroupHolder extends RecyclerView.ViewHolder {
+    public TextView name;
+    public TextView number;
+
+    public GroupHolder(View itemView) {
+      super(itemView);
+      name = (TextView) itemView.findViewById(R.id.forsta_group_name);
+      number = (TextView) itemView.findViewById(R.id.forsta_group_number);
     }
   }
 }

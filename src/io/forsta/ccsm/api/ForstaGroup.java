@@ -5,9 +5,11 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.util.GroupUtil;
 
 /**
@@ -21,6 +23,7 @@ public class ForstaGroup {
   public String description;
   public String parent;
   private Map<String, String> users;
+  private List<String> members;
 
   public ForstaGroup(JSONObject jsonObject) {
     try {
@@ -34,7 +37,12 @@ public class ForstaGroup {
     } catch (JSONException e) {
       e.printStackTrace();
     }
+  }
 
+  public ForstaGroup(GroupDatabase.GroupRecord record) {
+    this.description = record.getTitle();
+    this.id = record.getEncodedId();
+    this.members = record.getMembers();
   }
 
   public void addUser(String id, String number) {

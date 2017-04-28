@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -46,6 +47,7 @@ public class LoginActivity extends BaseActionBarActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_login);
+    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
     getSupportActionBar().setTitle("Join Forsta");
     initializeView();
   }
@@ -196,7 +198,7 @@ public class LoginActivity extends BaseActionBarActivity {
     protected JSONObject doInBackground(String... params) {
       String org = params[0];
       String uname = params[1];
-      JSONObject response = CcsmApi.forstaSendToken(org, uname);
+      JSONObject response = CcsmApi.forstaSendToken(org.trim(), uname.trim());
       return response;
     }
 

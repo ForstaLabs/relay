@@ -94,7 +94,7 @@ public class DirectoryHelper {
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
         eligibleContactNumbers.remove(activeToken.getNumber());
-        activeToken.setNumber(activeToken.getNumber());
+        activeToken.setNumber(activeToken.getNumber()); //Huh?
       }
 
       directory.setNumbers(activeTokens, eligibleContactNumbers);

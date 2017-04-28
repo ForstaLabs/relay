@@ -9,9 +9,9 @@
                 android:title="@string/preferences__notifications"
                 android:icon="?pref_ic_notifications"/>
 
-    <Preference android:key="preference_category_app_protection"
-                android:title="@string/preferences__privacy"
-                android:icon="?pref_ic_app_protection"/>
+    <!--<Preference android:key="preference_category_app_protection"-->
+                <!--android:title="@string/preferences__privacy"-->
+                <!--android:icon="?pref_ic_app_protection"/>-->
 
     <Preference android:key="preference_category_appearance"
                 android:title="@string/preferences__appearance"

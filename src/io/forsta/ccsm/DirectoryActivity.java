@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -8,9 +9,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterCipher;
@@ -37,20 +40,10 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
 
     if (fragment == null) {
       contactsFragment = new ForstaContactsFragment();
+      Bundle args = new Bundle();
+      args.putParcelable("master_secret", masterSecret);
+      contactsFragment.setArguments(args);
       fm.beginTransaction().add(R.id.forsta_contacts_list, contactsFragment).commit();
     }
-
-//    new AsyncTask<MasterSecret, Void, Void>() {
-//
-//      @Override
-//      protected Void doInBackground(MasterSecret... params) {
-//        try {
-//          DirectoryHelper.refreshDirectory(getApplicationContext(), params[0]);
-//        } catch (IOException e) {
-//          Log.w(TAG, e);
-//        }
-//        return null;
-//      }
-//    }.execute(mMasterSecret);
   }
 }
