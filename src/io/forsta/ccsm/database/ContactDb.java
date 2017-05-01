@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.forsta.ccsm.api.ForstaUser;
 
@@ -98,13 +99,14 @@ public class ContactDb extends DbBase {
     return numbers;
   }
 
-  public List<String> getIds() {
-    List<String> ids = new ArrayList<>();
+  public Map<String, String> getIds() {
+    Map<String, String> ids = new HashMap<>();
+//    List<String> ids = new ArrayList<>();
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
         int index = c.getColumnIndex(UID);
-        ids.add(c.getString(index));
+        ids.put(c.getString(c.getColumnIndex(UID)), c.getString(c.getColumnIndex("_id")));
       }
       c.close();
     } catch (Exception e) {

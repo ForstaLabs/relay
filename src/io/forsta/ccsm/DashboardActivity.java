@@ -1,8 +1,12 @@
 package io.forsta.ccsm;
 
+import android.accounts.Account;
+import android.content.ContentProviderOperation;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
@@ -24,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
+import org.whispersystems.libsignal.util.guava.Optional;
 
 import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.ccsm.api.ForstaUser;
@@ -281,26 +286,38 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   }
 
   private String printAllContacts() {
-    String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone._ID,
-        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-        ContactsContract.CommonDataKinds.Phone.NUMBER,
-        ContactsContract.CommonDataKinds.Phone.TYPE,
-        ContactsContract.CommonDataKinds.Phone.LABEL,
+    String[] projection = new String[]{
+        ContactsContract.Data.CONTACT_ID,
+        ContactsContract.Data._ID,
+        ContactsContract.Data.RAW_CONTACT_ID,
+        ContactsContract.Data.DISPLAY_NAME,
+        ContactsContract.Data.DATA1,
         ContactsContract.Data.MIMETYPE
     };
     String[] proj = new String[]{
-        ContactsContract.RawContacts.SYNC1,
+        ContactsContract.RawContacts._ID,
         ContactsContract.RawContacts.CONTACT_ID,
         ContactsContract.RawContacts.ACCOUNT_NAME,
         ContactsContract.RawContacts.ACCOUNT_TYPE,
-        ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY
+        ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY,
+        ContactsContract.RawContacts.DATA_SET,
+        ContactsContract.RawContacts.DISPLAY_NAME_ALTERNATIVE,
+        ContactsContract.RawContacts.DISPLAY_NAME_SOURCE,
+        ContactsContract.RawContacts.SYNC1,
+        ContactsContract.RawContacts.SYNC2
     };
 
-    String sort = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
+    Uri currentContactsUri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
+        .build();
+    String qs = ContactsContract.Data.MIMETYPE + " = ?";
+    String[] q = new String[] {"vnd.android.cursor.item/name"};
+    String deleted = ContactsContract.RawContacts.DELETED + "<>1";
 
-    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, proj, null, null, sort);
+    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
     StringBuilder sb = new StringBuilder();
-    sb.append("Raw Contacts: ").append(c.getCount()).append("\n");
+    sb.append("Records: ").append(c.getCount()).append("\n");
     while (c.moveToNext()) {
       String[] cols = c.getColumnNames();
       for (int i = 0; i < c.getColumnCount(); i++) {
@@ -312,10 +329,22 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
         sb.append("\n");
       }
+      sb.append("\n");
     }
     c.close();
 
     return sb.toString();
+  }
+
+  private void removeContact(String id) {
+    ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
+    operations.add(ContentProviderOperation.newDelete(ContactsContract.RawContacts.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
+        .withYieldAllowed(true)
+        .withSelection(BaseColumns._ID + " = ?", new String[] {id})
+        .build());
   }
 
   private String printTextSecureContacts() {

@@ -316,8 +316,9 @@ public class ContactsDatabase {
                                                                    @NonNull String localNumber)
   {
     Uri currentContactsUri = RawContacts.CONTENT_URI.buildUpon()
-                                                    .appendQueryParameter(RawContacts.ACCOUNT_NAME, account.name)
-                                                    .appendQueryParameter(RawContacts.ACCOUNT_TYPE, account.type).build();
+        .appendQueryParameter(RawContacts.ACCOUNT_NAME, account.name)
+        .appendQueryParameter(RawContacts.ACCOUNT_TYPE, account.type)
+        .build();
 
     Map<String, SignalContact> signalContacts = new HashMap<>();
     Cursor                     cursor         = null;

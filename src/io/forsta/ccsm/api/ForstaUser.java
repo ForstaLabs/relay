@@ -42,14 +42,14 @@ public class ForstaUser {
 
   // Mapper for Db to UI object
   public ForstaUser(Cursor cursor) {
-    this.id = cursor.getString(cursor.getColumnIndex(ContactsDatabase.ID_COLUMN));
-//    this.orgId = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
-    this.username = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NAME_COLUMN));
-//    this.firstName = cursor.getString(cursor.getColumnIndex(ContactDb.FIRSTNAME));
-//    this.middleName = cursor.getString(cursor.getColumnIndex(ContactDb.MIDDLENAME));
-//    this.lastName = cursor.getString(cursor.getColumnIndex(ContactDb.LASTNAME));
-//    this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
-    this.phone = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
+    this.id = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
+    this.orgId = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.username = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
+    this.firstName = cursor.getString(cursor.getColumnIndex(ContactDb.FIRSTNAME));
+    this.middleName = cursor.getString(cursor.getColumnIndex(ContactDb.MIDDLENAME));
+    this.lastName = cursor.getString(cursor.getColumnIndex(ContactDb.LASTNAME));
+    this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
+    this.phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
     this.tsRegistered = true;
   }
 

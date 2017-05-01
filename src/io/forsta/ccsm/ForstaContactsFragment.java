@@ -89,14 +89,17 @@ public class ForstaContactsFragment extends Fragment {
   }
 
   private List<ForstaUser> getContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(getActivity());
-    Cursor c = db.queryTextSecureContacts(null);
-    List<ForstaUser> contacts = new ArrayList<>();
-    while (c.moveToNext()) {
-      ForstaUser user = new ForstaUser(c);
-      contacts.add(user);
-    }
-    c.close();
+    ContactDb db = DbFactory.getContactDb(getActivity());
+    List<ForstaUser> contacts = db.getUsers();
+    db.close();
+//    ContactsDatabase db = DatabaseFactory.getContactsDatabase(getActivity());
+//    Cursor c = db.queryTextSecureContacts(null);
+//    List<ForstaUser> contacts = new ArrayList<>();
+//    while (c.moveToNext()) {
+//      ForstaUser user = new ForstaUser(c);
+//      contacts.add(user);
+//    }
+//    c.close();
     return contacts;
   }
 
@@ -182,7 +185,7 @@ public class ForstaContactsFragment extends Fragment {
     @Override
     public void onBindViewHolder(ContactHolder holder, int position) {
       ForstaUser item = contacts.get(position);
-      holder.name.setText(item.username);
+      holder.name.setText(item.getName());
       holder.number.setText(item.phone);
       holder.registered.setVisibility(item.tsRegistered ? View.VISIBLE : View.GONE);
     }
