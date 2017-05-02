@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 
 public abstract class DbBase {
-  private SQLiteOpenHelper mDbHelper;
+  protected SQLiteOpenHelper mDbHelper;
 
   protected DbBase(Context context, DbHelper dbHelper) {
     mDbHelper = dbHelper;

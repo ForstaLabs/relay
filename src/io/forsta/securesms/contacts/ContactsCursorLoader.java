@@ -116,10 +116,10 @@ public class ContactsCursorLoader extends CursorLoader {
     groupCursor.close();
 
     ContactDb contactDb = DbFactory.getContactDb(getContext());
-    Cursor contactsCursor = contactDb.get();
+    Cursor contactsCursor = contactDb.getActiveRecipients();
     while (contactsCursor.moveToNext()) {
       forstaContactsCursor.addRow(new Object[] {
-          contactsCursor.getString(contactsCursor.getColumnIndex("_id")),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NUMBER)),
           ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,

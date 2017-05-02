@@ -12,6 +12,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -89,6 +91,8 @@ public class DirectoryHelper {
   {
     TextSecureDirectory directory              = TextSecureDirectory.getInstance(context);
     Set<String>               eligibleContactNumbers = directory.getPushEligibleContactNumbers(localNumber);
+    ContactDb db = DbFactory.getContactDb(context);
+    eligibleContactNumbers.addAll(db.getEligibleNumbers());
     List<ContactTokenDetails> activeTokens           = accountManager.getContacts(eligibleContactNumbers);
 
     if (activeTokens != null) {
@@ -98,6 +102,7 @@ public class DirectoryHelper {
       }
 
       directory.setNumbers(activeTokens, eligibleContactNumbers);
+      db.updateForstaContacts(activeTokens);
       return updateContactsDatabase(context, localNumber, activeTokens, true);
     }
 

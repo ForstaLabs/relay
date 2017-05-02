@@ -3,12 +3,17 @@ package io.forsta.ccsm.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.forsta.ccsm.api.ForstaUser;
 
@@ -124,6 +129,16 @@ public class ContactDb extends DbBase {
     return users;
   }
 
+  public List<String> updateForstaContacts(List<ContactTokenDetails> activeTokens) {
+    for (ContactTokenDetails details : activeTokens) {
+      SQLiteDatabase db = mDbHelper.getWritableDatabase();
+      ContentValues values = new ContentValues();
+      values.put(TSREGISTERED, 1);
+      db.update(TABLE_NAME, values, NUMBER + "=?", new String[] { details.getNumber() });
+    }
+    return null;
+  }
+
   public long addUser(ForstaUser user) {
     ContentValues values = new ContentValues();
     values.put(ContactDb.UID, user.uid);
@@ -144,6 +159,34 @@ public class ContactDb extends DbBase {
     values.put(ContactDb.USERNAME, user.username);
     values.put(ContactDb.TSREGISTERED, user.tsRegistered);
     return update(id, values);
+  }
+
+  public Cursor getActiveRecipients() {
+    try {
+      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public Cursor getInactiveRecipients() {
+    try {
+      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=0", null, NAME);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public Set<String> getEligibleNumbers() {
+    Set<String> numbers = new HashSet<>();
+    Cursor cursor = get();
+    while (cursor !=null && cursor.moveToNext()) {
+      numbers.add(cursor.getString(cursor.getColumnIndex(NUMBER)));
+    }
+    cursor.close();
+    return numbers;
   }
 
   @Override
