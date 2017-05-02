@@ -13,16 +13,10 @@
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
 
-    <fragment android:id="@+id/forsta_contact"
+    <fragment android:id="@+id/contact_selection_list_fragment"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:layout_weight="2"
-              android:name="io.forsta.ccsm.ForstaContactSelectFragment" />
-
-    <!--<fragment android:id="@+id/contact_selection_list_fragment"-->
-              <!--android:layout_width="match_parent"-->
-              <!--android:layout_height="wrap_content"-->
-              <!--android:layout_weight="1"-->
-              <!--android:name="io.forsta.securesms.ContactSelectionListFragment" />-->
+              android:layout_weight="1"
+              android:name="io.forsta.securesms.ContactSelectionListFragment" />
 
 </LinearLayout>

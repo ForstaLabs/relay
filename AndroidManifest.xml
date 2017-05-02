@@ -184,20 +184,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="ccsm-dev.forsta.io"
-                    android:scheme="https" />
-                <data
-                    android:host="ccsm-dev.forsta.io"
-                    android:scheme="http" />
-            </intent-filter>
-
             <meta-data
                 android:name="com.sec.minimode.icon.portrait.normal"
                 android:resource="@drawable/icon" />
@@ -550,7 +536,22 @@
 
         <activity
             android:name="io.forsta.ccsm.LoginActivity"
-            android:label="@string/title_activity_login" />
+            android:label="@string/title_activity_login"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="ccsm-dev.forsta.io"
+                    android:scheme="https" />
+                <data
+                    android:host="ccsm-dev.forsta.io"
+                    android:scheme="http" />
+            </intent-filter>
+        </activity>
         <activity
             android:name="io.forsta.ccsm.DashboardActivity"
             android:parentActivityName=".ConversationListActivity">

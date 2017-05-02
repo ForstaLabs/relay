@@ -13,6 +13,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sync Contacts"/>
+
+        <Button android:id="@+id/forsta_clear_contacts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear Contacts"
+            android:layout_marginLeft="10dp"/>
     </LinearLayout>
 
     <ProgressBar android:id="@+id/forsta_contacts_loading"

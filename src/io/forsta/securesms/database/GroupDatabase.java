@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.util.Pair;
 
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -44,6 +45,8 @@ public class GroupDatabase extends Database {
   private static final String AVATAR_CONTENT_TYPE = "avatar_content_type";
   private static final String AVATAR_RELAY        = "avatar_relay";
   private static final String TIMESTAMP           = "timestamp";
+  private static final String ORG_ID              = "org_id";
+  private static final String SLUG                = "slug";
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -58,6 +61,8 @@ public class GroupDatabase extends Database {
           AVATAR_CONTENT_TYPE + " TEXT, " +
           AVATAR_RELAY + " TEXT, " +
           TIMESTAMP + " INTEGER, " +
+          ORG_ID + " TEXT, " +
+          SLUG + " TEXT, " +
           ACTIVE + " INTEGER DEFAULT 1);";
 
   public static final String[] CREATE_INDEXS = {
@@ -92,6 +97,15 @@ public class GroupDatabase extends Database {
   public Reader getGroups() {
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
     return new Reader(cursor);
+  }
+
+  public Cursor getForstaGroups() {
+    String[] projection = {
+        ID,
+        TITLE,
+        GROUP_ID
+    };
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, projection, null, null, null, null, null);
   }
 
   public @NonNull

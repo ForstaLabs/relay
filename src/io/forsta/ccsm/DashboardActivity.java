@@ -32,6 +32,8 @@ import org.whispersystems.libsignal.util.guava.Optional;
 
 import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.ccsm.api.ForstaUser;
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -151,6 +153,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
     options.add("SMS Messages");
+    options.add("Forsta Contacts");
     options.add("Groups");
     options.add("Get API Users");
     options.add("Get API Groups");
@@ -194,14 +197,18 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printSmsMessages());
             break;
           case 8:
-            GetGroups groupsTask = new GetGroups();
-            groupsTask.execute();
+            mDebugText.setText(printForstaContacts());
             break;
           case 9:
+            mDebugText.setText(printGroups());
+//            GetGroups groupsTask = new GetGroups();
+//            groupsTask.execute();
+            break;
+          case 10:
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 10:
+          case 11:
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
@@ -365,6 +372,38 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
     }
     c.close();
+    return sb.toString();
+  }
+
+  private String printGroups() {
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(getApplicationContext());
+    Cursor cursor = db.getForstaGroups();
+    StringBuilder sb = new StringBuilder();
+    while (cursor.moveToNext()) {
+      int cols = cursor.getColumnCount();
+      for (int i=0; i<cols; i++) {
+        sb.append(cursor.getColumnName(i)).append(": ");
+        sb.append(cursor.getString(i));
+        sb.append("\n");
+      }
+    }
+    cursor.close();
+    return sb.toString();
+  }
+
+  private String printForstaContacts() {
+    ContactDb db = DbFactory.getContactDb(getApplicationContext());
+    Cursor cursor = db.get();
+    StringBuilder sb = new StringBuilder();
+    while (cursor.moveToNext()) {
+      int cols = cursor.getColumnCount();
+      for (int i=0; i<cols; i++) {
+        sb.append(cursor.getColumnName(i)).append(": ");
+        sb.append(cursor.getString(i));
+        sb.append("\n");
+      }
+    }
+    cursor.close();
     return sb.toString();
   }
 

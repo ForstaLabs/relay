@@ -3,6 +3,9 @@ package io.forsta.ccsm.database;
 import android.content.Context;
 import android.database.Cursor;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,5 +31,18 @@ public class DbUtils {
     }
     reader.close();
     return groupIds;
+  }
+
+  public static String getContactName(JSONObject userObject) throws JSONException {
+    StringBuilder name = new StringBuilder();
+    String firstName = userObject.getString("first_name");
+    String middleName = userObject.getString("middle_name");
+    String lastName = userObject.getString("last_name");
+    name.append(firstName).append(" ");
+    if (!middleName.equals("")) {
+      name.append(middleName).append(" ");
+    }
+    name.append(lastName);
+    return name.toString();
   }
 }

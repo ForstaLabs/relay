@@ -19,9 +19,8 @@ import io.forsta.ccsm.api.ForstaUser;
 public class ContactDb extends DbBase {
   public static final String TABLE_NAME = "contacts";
 
-  public static final String FIRSTNAME = "firstname";
-  public static final String LASTNAME = "lastname";
-  public static final String MIDDLENAME = "middlename";
+  public static final String ID = "_id";
+  public static final String NAME = "name";
   public static final String EMAIL = "email";
   public static final String NUMBER = "number";
   public static final String USERNAME = "username";
@@ -33,9 +32,7 @@ public class ContactDb extends DbBase {
   public static final String CREATE_TABLE = "create table " +
       TABLE_NAME + "(" +
       "_id integer primary key autoincrement, " +
-      FIRSTNAME + ", " +
-      MIDDLENAME + ", " +
-      LASTNAME + ", " +
+      NAME + ", " +
       EMAIL + ", " +
       NUMBER + ", " +
       USERNAME + ", " +
@@ -47,10 +44,8 @@ public class ContactDb extends DbBase {
       ")";
 
   public static String[] allColumns = {
-      "_id",
-      FIRSTNAME,
-      MIDDLENAME,
-      LASTNAME,
+      ID,
+      NAME,
       EMAIL,
       NUMBER,
       USERNAME,
@@ -105,8 +100,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
-        int index = c.getColumnIndex(UID);
-        ids.put(c.getString(c.getColumnIndex(UID)), c.getString(c.getColumnIndex("_id")));
+        ids.put(c.getString(c.getColumnIndex(UID)), c.getString(c.getColumnIndex(ID)));
       }
       c.close();
     } catch (Exception e) {
@@ -118,7 +112,7 @@ public class ContactDb extends DbBase {
   public List<ForstaUser> getUsers() {
     List<ForstaUser> users = new ArrayList<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, LASTNAME);
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, NAME);
       while (c.moveToNext()) {
         ForstaUser user = new ForstaUser(c);
         users.add(user);
@@ -132,10 +126,8 @@ public class ContactDb extends DbBase {
 
   public long addUser(ForstaUser user) {
     ContentValues values = new ContentValues();
-    values.put(ContactDb.UID, user.id);
-    values.put(ContactDb.FIRSTNAME, user.firstName);
-    values.put(ContactDb.MIDDLENAME, user.middleName);
-    values.put(ContactDb.LASTNAME, user.lastName);
+    values.put(ContactDb.UID, user.uid);
+    values.put(ContactDb.NAME, user.name);
     values.put(ContactDb.ORGID, user.orgId);
     values.put(ContactDb.NUMBER, user.phone);
     values.put(ContactDb.USERNAME, user.username);
@@ -146,9 +138,7 @@ public class ContactDb extends DbBase {
 
   public int updateUser(String id, ForstaUser user) {
     ContentValues values = new ContentValues();
-    values.put(ContactDb.FIRSTNAME, user.firstName);
-    values.put(ContactDb.MIDDLENAME, user.middleName);
-    values.put(ContactDb.LASTNAME, user.lastName);
+    values.put(ContactDb.NAME, user.name);
     values.put(ContactDb.ORGID, user.orgId);
     values.put(ContactDb.NUMBER, user.phone);
     values.put(ContactDb.USERNAME, user.username);
@@ -159,7 +149,7 @@ public class ContactDb extends DbBase {
   @Override
   public Cursor get() {
     try {
-      return getRecords(TABLE_NAME, allColumns, null, null, LASTNAME);
+      return getRecords(TABLE_NAME, allColumns, null, null, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -169,7 +159,7 @@ public class ContactDb extends DbBase {
   @Override
   public Cursor getById(String id) {
     try {
-      return getRecords(TABLE_NAME, allColumns, "_id= ?", new String[]{id}, LASTNAME);
+      return getRecords(TABLE_NAME, allColumns, "_id= ?", new String[]{id}, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }

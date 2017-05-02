@@ -1,7 +1,10 @@
 package io.forsta.ccsm;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,14 +57,30 @@ public class LoginActivity extends BaseActionBarActivity {
 
   @Override
   protected void onResume() {
+    mSendTokenOrg.setText(ForstaPreferences.getForstaOrgName(this));
+    mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this));
     super.onResume();
+    // handleBroadcastIntent();
     if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
       showVerifyForm();
-      handleBroadcastIntent();
     } else if (!ForstaPreferences.getRegisteredKey(LoginActivity.this).equals("")) {
       Intent intent = new Intent(LoginActivity.this, ConversationListActivity.class);
       startActivity(intent);
       finish();
+    }
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+  }
+
+  private class LoginReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      String authtoken = intent.getDataString();
+      String nothing = "";
     }
   }
 
@@ -116,12 +135,14 @@ public class LoginActivity extends BaseActionBarActivity {
     mSubmitButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (mLoginSecurityCode.getText().length() < 3) {
+        if (mLoginSecurityCode.getText().length() != 6) {
           Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
+          String token = mSendTokenUsername.getText().toString() + ":" + mLoginSecurityCode.getText().toString();
           CCSMLogin task = new CCSMLogin();
-          task.execute(mLoginUsernameText.getText().toString(), mLoginPasswordText.getText().toString(), mLoginSecurityCode.getText().toString());
+
+          task.execute(mLoginUsernameText.getText().toString(), mLoginPasswordText.getText().toString(), token);
         }
       }
     });
@@ -185,8 +206,8 @@ public class LoginActivity extends BaseActionBarActivity {
       nextIntent = new Intent(LoginActivity.this, ConversationListActivity.class);
     }
 
-    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-    startService(intent);
+//    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+//    startService(intent);
 
     startActivity(nextIntent);
     finish();
@@ -198,6 +219,8 @@ public class LoginActivity extends BaseActionBarActivity {
     protected JSONObject doInBackground(String... params) {
       String org = params[0];
       String uname = params[1];
+      ForstaPreferences.setForstaOrgName(getApplicationContext(), org);
+      ForstaPreferences.setForstaUsername(getApplicationContext(), uname);
       JSONObject response = CcsmApi.forstaSendToken(org.trim(), uname.trim());
       return response;
     }

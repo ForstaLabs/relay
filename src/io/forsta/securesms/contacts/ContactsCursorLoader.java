@@ -66,7 +66,7 @@ public class ContactsCursorLoader extends CursorLoader {
   public Cursor loadInBackground() {
     ContactsDatabase  contactsDatabase = DatabaseFactory.getContactsDatabase(getContext());
 
-    ArrayList<Cursor> cursorList       = new ArrayList<>(3);
+    ArrayList<Cursor> cursorList       = new ArrayList<>(4);
 
     if (mode != MODE_OTHER_ONLY) {
       cursorList.add(contactsDatabase.queryTextSecureContacts(filter));
@@ -94,30 +94,41 @@ public class ContactsCursorLoader extends CursorLoader {
     }
 
     //Get cursors from the forsta contacts and group databases.
+    MatrixCursor forstaContactsCursor = new MatrixCursor(new String[] {ContactsDatabase.ID_COLUMN,
+        ContactsDatabase.NAME_COLUMN,
+        ContactsDatabase.NUMBER_COLUMN,
+        ContactsDatabase.NUMBER_TYPE_COLUMN,
+        ContactsDatabase.LABEL_COLUMN,
+        ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
 
-//    try {
-//      MatrixCursor newNumberCursor = new MatrixCursor(new String[] {ContactsDatabase.ID_COLUMN,
-//          ContactsDatabase.NAME_COLUMN,
-//          ContactsDatabase.NUMBER_COLUMN,
-//          ContactsDatabase.NUMBER_TYPE_COLUMN,
-//          ContactsDatabase.LABEL_COLUMN,
-//          ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
-//
-//      GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
-//      GroupDatabase.Reader reader = gdb.getGroups();
-//      GroupDatabase.GroupRecord record;
-//      while ((record = reader.getNext()) != null) {
-//        String title = record.getTitle();
-//        newNumberCursor.addRow(new Object[] {-1L, title,
-//                record.getEncodedId(), ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
-//                "\u21e2", ContactsDatabase.NORMAL_TYPE});
-//        cursorList.add(newNumberCursor);
-//      }
-//      reader.close();
-//    } catch (Exception e) {
-//      // Catching everything for now.
-//      e.printStackTrace();
-//    }
+    GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
+    Cursor groupCursor = gdb.getForstaGroups();
+    while (groupCursor.moveToNext()) {
+      forstaContactsCursor.addRow(new Object[] {
+          groupCursor.getString(groupCursor.getColumnIndex("_id")),
+          groupCursor.getString(groupCursor.getColumnIndex("title")),
+          groupCursor.getString(groupCursor.getColumnIndex("group_id")),
+          ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
+          "\u21e2",
+          ContactsDatabase.NORMAL_TYPE
+      });
+    }
+    groupCursor.close();
+
+    ContactDb contactDb = DbFactory.getContactDb(getContext());
+    Cursor contactsCursor = contactDb.get();
+    while (contactsCursor.moveToNext()) {
+      forstaContactsCursor.addRow(new Object[] {
+          contactsCursor.getString(contactsCursor.getColumnIndex("_id")),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NUMBER)),
+          ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+          "\u21e2",
+          ContactsDatabase.NORMAL_TYPE
+      });
+    }
+    contactsCursor.close();
+    cursorList.add(forstaContactsCursor);
 
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
   }
