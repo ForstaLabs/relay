@@ -246,7 +246,7 @@ public class ContactsDatabase {
                                            .build());
   }
 
-  private void addTextSecureRawContact(List<ContentProviderOperation> operations,
+  public void addTextSecureRawContact(List<ContentProviderOperation> operations,
                                        Account account, String e164number,
                                        long aggregateId, boolean supportsVoice)
   {
@@ -324,7 +324,7 @@ public class ContactsDatabase {
     Cursor                     cursor         = null;
 
     try {
-      cursor = context.getContentResolver().query(currentContactsUri, new String[] {BaseColumns._ID, RawContacts.SYNC1, RawContacts.SYNC4}, null, null, null);
+      cursor = context.getContentResolver().query(currentContactsUri, new String[] {BaseColumns._ID, RawContacts.SYNC1, RawContacts.SYNC4}, ContactsContract.RawContacts.DELETED + "<>1", null, null);
 
       while (cursor != null && cursor.moveToNext()) {
         String currentNumber;

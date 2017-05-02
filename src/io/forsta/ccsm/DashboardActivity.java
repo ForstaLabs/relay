@@ -201,8 +201,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             break;
           case 9:
             mDebugText.setText(printGroups());
-//            GetGroups groupsTask = new GetGroups();
-//            groupsTask.execute();
             break;
           case 10:
             GetTagUsers tagTask = new GetTagUsers();
@@ -320,9 +318,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         .build();
     String qs = ContactsContract.Data.MIMETYPE + " = ?";
     String[] q = new String[] {"vnd.android.cursor.item/name"};
-    String deleted = ContactsContract.RawContacts.DELETED + "<>1";
+    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
 
-    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
+    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, notDeleted, null, null);
     StringBuilder sb = new StringBuilder();
     sb.append("Records: ").append(c.getCount()).append("\n");
     while (c.moveToNext()) {

@@ -10,8 +10,26 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="io.forsta.ccsm.DirectoryActivity">
 
-    <FrameLayout android:id="@+id/forsta_contacts_list"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </FrameLayout>
+        android:layout_height="wrap_content"
+        android:text="Directory Page"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="10dp">
+        <Button android:id="@+id/forsta_update_contacts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sync Contacts"/>
+
+        <Button android:id="@+id/forsta_clear_contacts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear Contacts"
+                android:layout_marginLeft="10dp"/>
+    </LinearLayout>
 </RelativeLayout>

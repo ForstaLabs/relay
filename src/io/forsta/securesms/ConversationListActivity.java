@@ -16,9 +16,7 @@
  */
 package io.forsta.securesms;
 
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
@@ -26,11 +24,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
@@ -41,11 +35,7 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.DirectoryActivity;
-import io.forsta.ccsm.ForstaContactsFragment;
 import io.forsta.ccsm.ForstaInputFragment;
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
-import io.forsta.securesms.components.ComposeText;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -54,13 +44,10 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.KeyCachingService;
-import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
-import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.securesms.util.ViewUtil;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener

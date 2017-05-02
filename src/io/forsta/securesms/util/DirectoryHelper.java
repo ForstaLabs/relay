@@ -91,8 +91,6 @@ public class DirectoryHelper {
   {
     TextSecureDirectory directory              = TextSecureDirectory.getInstance(context);
     Set<String>               eligibleContactNumbers = directory.getPushEligibleContactNumbers(localNumber);
-    ContactDb db = DbFactory.getContactDb(context);
-    eligibleContactNumbers.addAll(db.getEligibleNumbers());
     List<ContactTokenDetails> activeTokens           = accountManager.getContacts(eligibleContactNumbers);
 
     if (activeTokens != null) {
@@ -102,7 +100,6 @@ public class DirectoryHelper {
       }
 
       directory.setNumbers(activeTokens, eligibleContactNumbers);
-      db.updateForstaContacts(activeTokens);
       return updateContactsDatabase(context, localNumber, activeTokens, true);
     }
 

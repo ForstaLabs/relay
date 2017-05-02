@@ -270,8 +270,8 @@ public class CcsmApi {
     }
   }
 
-
-  public static void syncForstaContacts(Context context) {
+  // No longer used. Use System contacts.
+  public static void syncForstaContactsLocal(Context context) {
     JSONObject users = getUsers(context);
     List<ForstaUser> forstaUsers = parseUsers(users);
 
@@ -340,7 +340,8 @@ public class CcsmApi {
 
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();
-    String[] projection = new String[]{ContactsContract.CommonDataKinds.Phone._ID,
+    String[] projection = new String[]{
+        ContactsContract.CommonDataKinds.Phone._ID,
         ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
         ContactsContract.CommonDataKinds.Phone.NUMBER,
         ContactsContract.CommonDataKinds.Phone.TYPE,
@@ -362,7 +363,7 @@ public class CcsmApi {
     return results;
   }
 
-  public static void syncForstaSystemContacts(Context context) {
+  public static void syncForstaContacts(Context context) {
     ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
     try {
       JSONObject users = getUsers(context);
@@ -372,7 +373,15 @@ public class CcsmApi {
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 
       Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
+
+      Set<String> forstaUids = new HashSet<>();
+
       for (ForstaUser user : forstaContacts) {
+
+        // Temporary fix because of duplicates returning from API.
+        if (forstaUids.contains(user.uid)) {
+          continue;
+        }
         try {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           if (!systemContacts.contains(e164number)) {
@@ -382,6 +391,7 @@ public class CcsmApi {
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
+        forstaUids.add(user.uid);
       }
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
     } catch (Exception e) {
@@ -398,8 +408,10 @@ public class CcsmApi {
         .build();
 
     ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
+        .withValue(ContactsContract.RawContacts.SYNC1, number)
+        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(false))
         .build());
 
     ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
@@ -414,15 +426,14 @@ public class CcsmApi {
         .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
         .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
         .build());
-    // This creates duplicates. Must not be completely correct to be recognized as a Forsta entry.
-//    ops.add(ContentProviderOperation.newInsert(dataUri)
-//        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-//        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
-//        .withValue(ContactsContract.Data.DATA1, number)
-//        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
-//        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, number))
-//        .withYieldAllowed(true)
-//        .build());
+    ops.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
+        .withValue(ContactsContract.Data.DATA1, number)
+        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
+        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, number))
+        .withYieldAllowed(true)
+        .build());
   }
 
   }
