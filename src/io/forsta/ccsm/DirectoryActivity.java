@@ -16,6 +16,8 @@ import android.widget.Toast;
 import java.io.IOException;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterCipher;
@@ -29,6 +31,8 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
   private MasterSecret mMasterSecret;
   private MasterCipher mMasterCipher;
   private Button mRefresh;
+  private Button mClear;
+  private ForstaContactsFragment contactsFragment;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -36,49 +40,16 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
     mMasterCipher = new MasterCipher(mMasterSecret);
     setContentView(R.layout.activity_directory);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
-    initView();
-  }
 
-  private void initView() {
-    mRefresh = (Button) findViewById(R.id.forsta_update_contacts);
-    mRefresh.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        handleSyncContacts();
-      }
-    });
-  }
+    FragmentManager fm = getSupportFragmentManager();
+    Fragment fragment = fm.findFragmentById(R.id.forsta_contacts_list);
 
-  private void handleSyncContacts() {
-    final ProgressDialog syncDialog = new ProgressDialog(this);
-    syncDialog.setTitle("Forsta Contacts");
-    syncDialog.setMessage("Downloading and updating contacts and groups.");
-    syncDialog.show();
-
-    new AsyncTask<Void, Void, Boolean>() {
-
-      @Override
-      protected Boolean doInBackground(Void... voids) {
-        try {
-          CcsmApi.syncForstaContacts(getApplicationContext());
-          DirectoryHelper.refreshDirectory(getApplicationContext(), mMasterSecret);
-          CcsmApi.syncForstaGroups(getApplicationContext(), mMasterSecret);
-          return true;
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        return false;
-      }
-
-      @Override
-      protected void onPostExecute(Boolean result) {
-        syncDialog.dismiss();
-      }
-
-      @Override
-      protected void onCancelled() {
-        syncDialog.dismiss();
-      }
-    }.execute();
+    if (fragment == null) {
+      contactsFragment = new ForstaContactsFragment();
+      Bundle args = new Bundle();
+      args.putParcelable("master_secret", masterSecret);
+      contactsFragment.setArguments(args);
+      fm.beginTransaction().add(R.id.forsta_contacts_list, contactsFragment).commit();
+    }
   }
 }

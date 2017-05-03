@@ -150,6 +150,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
     options.add("TextSecure Contacts");
+    options.add("System Contact RawContacts");
     options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
     options.add("SMS Messages");
@@ -187,26 +188,29 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printTextSecureContacts());
             break;
           case 5:
-            mDebugText.setText(printAllContacts());
+            mDebugText.setText(printAllRawContacts());
             break;
           case 6:
+            mDebugText.setText(printAllContactData());
+            break;
+          case 7:
             GetMessages getMessages = new GetMessages();
             getMessages.execute();
             break;
-          case 7:
+          case 8:
             mDebugText.setText(printSmsMessages());
             break;
-          case 8:
+          case 9:
             mDebugText.setText(printForstaContacts());
             break;
-          case 9:
+          case 10:
             mDebugText.setText(printGroups());
             break;
-          case 10:
+          case 11:
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 11:
+          case 12:
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
@@ -290,37 +294,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return sb.toString();
   }
 
-  private String printAllContacts() {
-    String[] projection = new String[]{
-        ContactsContract.Data.CONTACT_ID,
-        ContactsContract.Data._ID,
-        ContactsContract.Data.RAW_CONTACT_ID,
-        ContactsContract.Data.DISPLAY_NAME,
-        ContactsContract.Data.DATA1,
-        ContactsContract.Data.MIMETYPE
-    };
-    String[] proj = new String[]{
-        ContactsContract.RawContacts._ID,
-        ContactsContract.RawContacts.CONTACT_ID,
-        ContactsContract.RawContacts.ACCOUNT_NAME,
-        ContactsContract.RawContacts.ACCOUNT_TYPE,
-        ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY,
-        ContactsContract.RawContacts.DATA_SET,
-        ContactsContract.RawContacts.DISPLAY_NAME_ALTERNATIVE,
-        ContactsContract.RawContacts.DISPLAY_NAME_SOURCE,
-        ContactsContract.RawContacts.SYNC1,
-        ContactsContract.RawContacts.SYNC2
-    };
-
-    Uri currentContactsUri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
-        .build();
-    String qs = ContactsContract.Data.MIMETYPE + " = ?";
-    String[] q = new String[] {"vnd.android.cursor.item/name"};
-    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
-
-    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, notDeleted, null, null);
+  private String printAllRawContacts() {
+    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, null, null, null);
     StringBuilder sb = new StringBuilder();
     sb.append("Records: ").append(c.getCount()).append("\n");
     while (c.moveToNext()) {
@@ -341,15 +316,30 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return sb.toString();
   }
 
-  private void removeContact(String id) {
-    ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
-    operations.add(ContentProviderOperation.newDelete(ContactsContract.RawContacts.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
-        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build())
-        .withYieldAllowed(true)
-        .withSelection(BaseColumns._ID + " = ?", new String[] {id})
-        .build());
+  private String printAllContactData() {
+    String qs = ContactsContract.Data.MIMETYPE + " = ?";
+    String[] q = new String[] {"vnd.android.cursor.item/name"};
+    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
+
+    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
+    StringBuilder sb = new StringBuilder();
+    sb.append("Records: ").append(c.getCount()).append("\n");
+    while (c.moveToNext()) {
+      String[] cols = c.getColumnNames();
+      for (int i = 0; i < c.getColumnCount(); i++) {
+        sb.append(c.getColumnName(i)).append(": ");
+        try {
+          sb.append(c.getString(i)).append(" ");
+        } catch (Exception e) {
+          sb.append(c.getInt(i)).append(" ");
+        }
+        sb.append("\n");
+      }
+      sb.append("\n");
+    }
+    c.close();
+
+    return sb.toString();
   }
 
   private String printTextSecureContacts() {
@@ -717,7 +707,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      List<ForstaUser> contacts = CcsmApi.parseUsers(jsonObject);
+      List<ForstaUser> contacts = CcsmApi.parseUsers(getApplicationContext(), jsonObject);
       StringBuilder sb = new StringBuilder();
       for (ForstaUser user : contacts) {
         sb.append(user.phone).append(" ");

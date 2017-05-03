@@ -48,7 +48,7 @@ public class ForstaUser {
     this.name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
     this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
     this.phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
-    this.tsRegistered = cursor.getString(cursor.getColumnIndex(ContactDb.TSREGISTERED)) == "1" ? true : false;
+    this.tsRegistered = cursor.getInt(cursor.getColumnIndex(ContactDb.TSREGISTERED)) == 1 ? true : false;
   }
 
   public String getName() {

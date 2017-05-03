@@ -4,8 +4,11 @@ import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.RemoteException;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -17,7 +20,6 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.DbUtils;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
@@ -169,7 +171,9 @@ public class CcsmApi {
     return authtoken;
   }
 
-  public static List<ForstaUser> parseUsers(JSONObject jsonObject) {
+  public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
     List<ForstaUser> users = new ArrayList<>();
 
     try {
@@ -178,6 +182,9 @@ public class CcsmApi {
         JSONObject user = results.getJSONObject(i);
         if (user.getBoolean("is_active")) {
           ForstaUser forstaUser = new ForstaUser(user);
+          if (activeNumbers.contains(forstaUser.phone)) {
+            forstaUser.tsRegistered = true;
+          }
           users.add(forstaUser);
         }
       }
@@ -270,16 +277,12 @@ public class CcsmApi {
     }
   }
 
-  // No longer used. Use System contacts.
-  public static void syncForstaContactsLocal(Context context) {
-    JSONObject users = getUsers(context);
-    List<ForstaUser> forstaUsers = parseUsers(users);
-
+  // This is for syncing a local Forsta ContactDb, separate from the ContactsContract system database.
+  public static void syncForstaContactsLocal(Context context, List<ForstaUser> forstaUsers) {
     ContactDb db = DbFactory.getContactDb(context);
-    Map<String, String> uids = db.getIds();
+    Map<String, String> uids = db.getUids();
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();
-
     Set<String> forstaUids = new HashSet<>();
 
     for (ForstaUser item : forstaUsers) {
@@ -364,45 +367,104 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(context);
     try {
       JSONObject users = getUsers(context);
+      List<ForstaUser> forstaContacts = parseUsers(context, users);
+
       Set<String> systemContacts = getSystemContacts(context);
-
-      List<ForstaUser> forstaContacts = parseUsers(users);
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-
       Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
-
       Set<String> forstaUids = new HashSet<>();
 
       for (ForstaUser user : forstaContacts) {
-
         // Temporary fix because of duplicates returning from API.
         if (forstaUids.contains(user.uid)) {
           continue;
         }
+        forstaUids.add(user.uid);
         try {
           String e164number = Util.canonicalizeNumber(context, user.phone);
+          // Create contact if it doesn't exist, but don't try to update.
           if (!systemContacts.contains(e164number)) {
-            updateContactsDb(context, ops, account.get(), e164number, user.getName(), user.username);
+            createPhoneContact(context, ops, account.get(), e164number, user.name, user.username);
           }
-
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
-        forstaUids.add(user.uid);
       }
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+
+      ContactDb forstaDb = DbFactory.getContactDb(context);
+      forstaDb.updateUsers(forstaContacts);
+      // Now remove entries that are no longer valid.
+      Map<String, String> uids = forstaDb.getUids();
+      for (String uid : uids.keySet()) {
+        if (!forstaUids.contains(uid)) {
+          forstaDb.removeByUid(uid);
+        }
+      }
     } catch (Exception e) {
       Log.e(TAG, "syncContacts exception: " + e.getMessage());
       e.printStackTrace();
     }
   }
 
-  private static void updateContactsDb(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String slug) {
+  // These can be moved to the ContactsDatabase after testing.
+  private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
+    ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+        .withSelection(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME_ALTERNATIVE + " = ?", new String[] { username })
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .build());
+  }
+
+  public static void removeAllContacts(Context context) {
+    ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
+    Uri uri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+
+    operations.add(ContentProviderOperation.newDelete(uri)
+        .withYieldAllowed(true)
+        .build());
+    try {
+      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
     int index = ops.size();
 
+    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+        .build();
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+        .build());
+  }
+
+  private static void createContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
+    int index = ops.size();
     Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
         .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
         .build();
@@ -418,6 +480,7 @@ public class CcsmApi {
         .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
         .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
         .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME_ALTERNATIVE, username)
         .build());
 
     ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
@@ -426,6 +489,7 @@ public class CcsmApi {
         .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
         .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
         .build());
+
     ops.add(ContentProviderOperation.newInsert(dataUri)
         .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
         .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
@@ -435,5 +499,4 @@ public class CcsmApi {
         .withYieldAllowed(true)
         .build());
   }
-
-  }
+}

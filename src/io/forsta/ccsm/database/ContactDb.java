@@ -36,7 +36,7 @@ public class ContactDb extends DbBase {
 
   public static final String CREATE_TABLE = "create table " +
       TABLE_NAME + "(" +
-      "_id integer primary key autoincrement, " +
+      ID + " integer primary key autoincrement, " +
       NAME + ", " +
       EMAIL + ", " +
       NUMBER + ", " +
@@ -45,7 +45,7 @@ public class ContactDb extends DbBase {
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
-      "CONSTRAINT item_number_unique UNIQUE (" + NUMBER + ")" +
+      "CONSTRAINT item_uid_unique UNIQUE (" + UID + ")" +
       ")";
 
   public static String[] allColumns = {
@@ -99,7 +99,7 @@ public class ContactDb extends DbBase {
     return numbers;
   }
 
-  public Map<String, String> getIds() {
+  public Map<String, String> getUids() {
     Map<String, String> ids = new HashMap<>();
 //    List<String> ids = new ArrayList<>();
     try {
@@ -129,36 +129,32 @@ public class ContactDb extends DbBase {
     return users;
   }
 
-  public List<String> updateForstaContacts(List<ContactTokenDetails> activeTokens) {
-    for (ContactTokenDetails details : activeTokens) {
-      SQLiteDatabase db = mDbHelper.getWritableDatabase();
+  public void updateUsers(List<ForstaUser> users) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    for (ForstaUser user : users) {
       ContentValues values = new ContentValues();
-      values.put(TSREGISTERED, 1);
-      db.update(TABLE_NAME, values, NUMBER + "=?", new String[] { details.getNumber() });
+      values.put(ContactDb.UID, user.uid);
+      values.put(ContactDb.NAME, user.name);
+      values.put(ContactDb.ORGID, user.orgId);
+      values.put(ContactDb.NUMBER, user.phone);
+      values.put(ContactDb.USERNAME, user.username);
+      values.put(ContactDb.TSREGISTERED, user.tsRegistered);
+      Cursor cursor = db.query(TABLE_NAME, null, UID + "=?", new String[] { user.uid }, null, null, null, null);
+      if (cursor != null && cursor.moveToNext()) {
+        String id = cursor.getString(cursor.getColumnIndex(ID));
+        db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
+      } else {
+        db.insert(TABLE_NAME, null, values);
+      }
+      cursor.close();
     }
-    return null;
+    db.close();
   }
 
-  public long addUser(ForstaUser user) {
-    ContentValues values = new ContentValues();
-    values.put(ContactDb.UID, user.uid);
-    values.put(ContactDb.NAME, user.name);
-    values.put(ContactDb.ORGID, user.orgId);
-    values.put(ContactDb.NUMBER, user.phone);
-    values.put(ContactDb.USERNAME, user.username);
-    values.put(ContactDb.DATE, new Date().toString());
-    values.put(ContactDb.TSREGISTERED, user.tsRegistered);
-    return add(values);
-  }
-
-  public int updateUser(String id, ForstaUser user) {
-    ContentValues values = new ContentValues();
-    values.put(ContactDb.NAME, user.name);
-    values.put(ContactDb.ORGID, user.orgId);
-    values.put(ContactDb.NUMBER, user.phone);
-    values.put(ContactDb.USERNAME, user.username);
-    values.put(ContactDb.TSREGISTERED, user.tsRegistered);
-    return update(id, values);
+  public void removeByUid(String uid) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+    mDbHelper.close();
   }
 
   public Cursor getActiveRecipients() {
