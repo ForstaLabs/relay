@@ -175,6 +175,8 @@ public class CcsmApi {
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();
     List<ForstaUser> users = new ArrayList<>();
+    // Temporary to remove duplicates returning from API
+    Set<String> forstaUids = new HashSet<>();
 
     try {
       JSONArray results = jsonObject.getJSONArray("results");
@@ -182,6 +184,11 @@ public class CcsmApi {
         JSONObject user = results.getJSONObject(i);
         if (user.getBoolean("is_active")) {
           ForstaUser forstaUser = new ForstaUser(user);
+          // Temporary to remove duplicates returning from API
+          if (forstaUids.contains(forstaUser.uid)) {
+            continue;
+          }
+          forstaUids.add(forstaUser.uid);
           if (activeNumbers.contains(forstaUser.phone)) {
             forstaUser.tsRegistered = true;
           }
@@ -374,14 +381,8 @@ public class CcsmApi {
       Set<String> systemContacts = getSystemContacts(context);
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
       Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
-      Set<String> forstaUids = new HashSet<>();
 
       for (ForstaUser user : forstaContacts) {
-        // Temporary fix because of duplicates returning from API.
-        if (forstaUids.contains(user.uid)) {
-          continue;
-        }
-        forstaUids.add(user.uid);
         try {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           // Create contact if it doesn't exist, but don't try to update.
@@ -394,15 +395,9 @@ public class CcsmApi {
       }
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
 
+      // Now sync the local contact Db.
       ContactDb forstaDb = DbFactory.getContactDb(context);
       forstaDb.updateUsers(forstaContacts);
-      // Now remove entries that are no longer valid.
-      Map<String, String> uids = forstaDb.getUids();
-      for (String uid : uids.keySet()) {
-        if (!forstaUids.contains(uid)) {
-          forstaDb.removeByUid(uid);
-        }
-      }
     } catch (Exception e) {
       Log.e(TAG, "syncContacts exception: " + e.getMessage());
       e.printStackTrace();

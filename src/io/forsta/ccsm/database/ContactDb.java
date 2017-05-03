@@ -73,9 +73,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, USERNAME);
       while (c.moveToNext()) {
-        int index = c.getColumnIndex(NUMBER);
-        int slugIndex = c.getColumnIndex(USERNAME);
-        contacts.put(c.getString(slugIndex), c.getString(index));
+        contacts.put(c.getString(c.getColumnIndex(USERNAME)), c.getString(c.getColumnIndex(NUMBER)));
       }
       c.close();
     } catch (Exception e) {
@@ -131,7 +129,9 @@ public class ContactDb extends DbBase {
 
   public void updateUsers(List<ForstaUser> users) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    Set<String> forstaUids = new HashSet<>();
     for (ForstaUser user : users) {
+      forstaUids.add(user.uid);
       ContentValues values = new ContentValues();
       values.put(ContactDb.UID, user.uid);
       values.put(ContactDb.NAME, user.name);
@@ -148,13 +148,21 @@ public class ContactDb extends DbBase {
       }
       cursor.close();
     }
+
+    // Now remove entries that are no longer valid.
+    Map<String, String> uids = getUids();
+    for (String uid : uids.keySet()) {
+      if (!forstaUids.contains(uid)) {
+        removeByUid(uid);
+      }
+    }
     db.close();
   }
 
   public void removeByUid(String uid) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
-    mDbHelper.close();
+    db.close();
   }
 
   public Cursor getActiveRecipients() {
@@ -173,16 +181,6 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return null;
-  }
-
-  public Set<String> getEligibleNumbers() {
-    Set<String> numbers = new HashSet<>();
-    Cursor cursor = get();
-    while (cursor !=null && cursor.moveToNext()) {
-      numbers.add(cursor.getString(cursor.getColumnIndex(NUMBER)));
-    }
-    cursor.close();
-    return numbers;
   }
 
   @Override
