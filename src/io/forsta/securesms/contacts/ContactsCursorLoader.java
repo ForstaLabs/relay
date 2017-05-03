@@ -66,11 +66,12 @@ public class ContactsCursorLoader extends CursorLoader {
   public Cursor loadInBackground() {
     ContactsDatabase  contactsDatabase = DatabaseFactory.getContactsDatabase(getContext());
 
-    ArrayList<Cursor> cursorList       = new ArrayList<>(4);
+    ArrayList<Cursor> cursorList       = new ArrayList<>(3);
 
-    if (mode != MODE_OTHER_ONLY) {
-      cursorList.add(contactsDatabase.queryTextSecureContacts(filter));
-    }
+    // Increase cursorList to 4 when using this again.
+//    if (mode != MODE_OTHER_ONLY) {
+//      cursorList.add(contactsDatabase.queryTextSecureContacts(filter));
+//    }
 
     if (mode == MODE_ALL) {
       cursorList.add(contactsDatabase.querySystemContacts(filter));

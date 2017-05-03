@@ -57,9 +57,9 @@ public class LoginActivity extends BaseActionBarActivity {
 
   @Override
   protected void onResume() {
+    super.onResume();
     mSendTokenOrg.setText(ForstaPreferences.getForstaOrgName(this));
     mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this));
-    super.onResume();
     // handleBroadcastIntent();
     if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
       showVerifyForm();
@@ -126,7 +126,8 @@ public class LoginActivity extends BaseActionBarActivity {
           Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-
+          ForstaPreferences.setForstaOrgName(getApplicationContext(), mSendTokenOrg.getText().toString().trim());
+          ForstaPreferences.setForstaUsername(getApplicationContext(), mSendTokenUsername.getText().toString().trim());
           CCSMSendToken getToken = new CCSMSendToken();
           getToken.execute(mSendTokenOrg.getText().toString(), mSendTokenUsername.getText().toString());
         }
@@ -139,7 +140,8 @@ public class LoginActivity extends BaseActionBarActivity {
           Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-          String token = mSendTokenUsername.getText().toString() + ":" + mLoginSecurityCode.getText().toString();
+
+          String token = mLoginSecurityCode.getText().toString();
           CCSMLogin task = new CCSMLogin();
 
           task.execute(mLoginUsernameText.getText().toString(), mLoginPasswordText.getText().toString(), token);
@@ -206,8 +208,8 @@ public class LoginActivity extends BaseActionBarActivity {
       nextIntent = new Intent(LoginActivity.this, ConversationListActivity.class);
     }
 
-//    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-//    startService(intent);
+    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+    startService(intent);
 
     startActivity(nextIntent);
     finish();
@@ -219,8 +221,6 @@ public class LoginActivity extends BaseActionBarActivity {
     protected JSONObject doInBackground(String... params) {
       String org = params[0];
       String uname = params[1];
-      ForstaPreferences.setForstaOrgName(getApplicationContext(), org);
-      ForstaPreferences.setForstaUsername(getApplicationContext(), uname);
       JSONObject response = CcsmApi.forstaSendToken(org.trim(), uname.trim());
       return response;
     }
@@ -230,7 +230,7 @@ public class LoginActivity extends BaseActionBarActivity {
       if (jsonObject.has("msg")) {
         try {
           // If we've requested a new login, we need to logout.
-          ForstaPreferences.clearPreferences(LoginActivity.this);
+          ForstaPreferences.clearLogin(LoginActivity.this);
           ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
           showVerifyForm();
           Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();
@@ -251,7 +251,9 @@ public class LoginActivity extends BaseActionBarActivity {
       String uname = params[0];
       String pass = params[1];
       String authtoken = params[2];
+      String username = ForstaPreferences.getForstaUsername(getApplicationContext());
       authtoken = CcsmApi.parseLoginToken(authtoken);
+      authtoken = username.trim() + ":" + authtoken;
 
       JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);
       return token;

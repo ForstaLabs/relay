@@ -12,6 +12,7 @@ import java.util.Date;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.service.KeyCachingService;
+import io.forsta.securesms.util.DirectoryHelper;
 
 /**
  * Created by jlewis
@@ -37,6 +38,7 @@ public class ForstaContactsSyncIntentService extends IntentService {
       Context context = getApplicationContext();
       MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
       CcsmApi.syncForstaContacts(getApplicationContext());
+      DirectoryHelper.refreshDirectory(getApplicationContext(), masterSecret);
       CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
       ForstaPreferences.setForstaContactSync(context, new Date().toString());
     } catch (Exception e) {

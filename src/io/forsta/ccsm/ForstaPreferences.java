@@ -46,6 +46,13 @@ public class ForstaPreferences {
         .apply();
   }
 
+  public static void clearLogin(Context context) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    prefs.edit().putString(API_KEY, "")
+        .putString(API_LAST_LOGIN, "")
+        .apply();
+  }
+
   public static boolean isRegisteredForsta(Context context) {
     return ForstaPreferences.getRegisteredKey(context) != "";
   }

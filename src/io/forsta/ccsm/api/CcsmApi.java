@@ -284,57 +284,6 @@ public class CcsmApi {
     }
   }
 
-  // This is for syncing a local Forsta ContactDb, separate from the ContactsContract system database.
-  public static void syncForstaContactsLocal(Context context, List<ForstaUser> forstaUsers) {
-    ContactDb db = DbFactory.getContactDb(context);
-    Map<String, String> uids = db.getUids();
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    Set<String> forstaUids = new HashSet<>();
-
-    for (ForstaUser item : forstaUsers) {
-      try {
-        String e164number = Util.canonicalizeNumber(context, item.phone);
-
-        if (forstaUids.contains(item.id)) {
-          // Temporary fix to remove duplicates coming from API.
-          continue;
-        }
-        if (!uids.containsKey(item.uid)) {
-          ContentValues values = new ContentValues();
-          values.put(ContactDb.UID, item.uid);
-          values.put(ContactDb.NAME, item.name);
-          values.put(ContactDb.ORGID, item.orgId);
-          values.put(ContactDb.NUMBER, item.phone);
-          values.put(ContactDb.USERNAME, item.username);
-          values.put(ContactDb.DATE, new Date().toString());
-          values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
-          item.id = String.valueOf(db.add(values));
-        } else {
-          // Update the user's registered status and name
-          ContentValues values = new ContentValues();
-          values.put(ContactDb.NAME, item.name);
-          values.put(ContactDb.TSREGISTERED, activeNumbers.contains(e164number) ? 1 : 0);
-          db.update(uids.get(item.uid), values);
-        }
-      } catch (InvalidNumberException e) {
-        e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      // Remove users who are no longer in the API result set.
-      forstaUids.add(item.uid);
-    }
-
-    for (String entry : uids.keySet()) {
-      if (!forstaUids.contains(entry)) {
-        db.remove(entry);
-      }
-    }
-
-    db.close();
-  }
-
   private static Set<Recipient> getActiveRecipients(Context context, List<String> groupNumbers, List<String> activeNumbers) {
     for (int i = 0; i < groupNumbers.size(); i++) {
       String number = groupNumbers.get(i);
