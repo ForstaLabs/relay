@@ -29,7 +29,7 @@ public class ForstaPreferences {
   private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
   private static final String FORSTA_ORG_NAME = "forsta_org_name";
   private static final String FORSTA_USER_NAME = "forsta_user_name";
-  private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync";
+  private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
   private static final String CCSM_DEBUG = "ccsm_debug";
 
   public static void clearPreferences(Context context) {
@@ -42,7 +42,7 @@ public class ForstaPreferences {
         .putString(FORSTA_ORG_NAME, "")
         .putString(FORSTA_USER_NAME, "")
         .putBoolean(CCSM_DEBUG, false)
-        .putString(FORSTA_CONTACT_SYNC, "")
+        .putLong(FORSTA_CONTACT_SYNC, -1l)
         .apply();
   }
 
@@ -130,12 +130,12 @@ public class ForstaPreferences {
     return getStringPreference(context, FORSTA_ORG_NAME);
   }
 
-  public static String getForstaContactSync(Context context) {
-    return getStringPreference(context, FORSTA_CONTACT_SYNC);
+  public static long getForstaContactSync(Context context) {
+    return getLongPreference(context, FORSTA_CONTACT_SYNC);
   }
 
-  public static void setForstaContactSync(Context context, String dateTime) {
-    setStringPreference(context, FORSTA_CONTACT_SYNC, dateTime);
+  public static void setForstaContactSync(Context context, long dateTime) {
+    setLongPreference(context, FORSTA_CONTACT_SYNC, dateTime);
   }
 
   private static void setStringPreference(Context context, String key, String value) {
@@ -154,6 +154,15 @@ public class ForstaPreferences {
 
   private static boolean getBooleanPreference(Context context, String key) {
     return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(key, false);
+  }
+
+  private static void setLongPreference(Context context, String key, long value) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    prefs.edit().putLong(key, value).apply();
+  }
+
+  private static long getLongPreference(Context context, String key) {
+    return PreferenceManager.getDefaultSharedPreferences(context).getLong(key, -1l);
   }
 
 }

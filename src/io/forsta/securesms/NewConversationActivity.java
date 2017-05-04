@@ -24,11 +24,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.DirectoryHelper;
 
 /**
  * Activity container for starting a new conversation.
@@ -46,6 +54,21 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    refreshContacts(masterSecret);
+  }
+
+  private void refreshContacts(MasterSecret masterSecret) {
+    long lastSync = ForstaPreferences.getForstaContactSync(getApplicationContext());
+    if (lastSync != -1) {
+      Calendar cal = Calendar.getInstance();
+      Date dt = cal.getTime();
+      long now = dt.getTime();
+      long diff = now-lastSync;
+      if (false) {
+        Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+        startService(intent);
+      }
+    }
   }
 
   @Override

@@ -108,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/forsta_login_security_code_label"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="40dp"/>
+                android:layout_marginBottom="20dp"/>
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -116,11 +116,15 @@
                 android:ems="10"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="15dp"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp"
                 android:id="@+id/forsta_login_security_code"
+                android:layout_gravity="center_horizontal"
                 android:visibility="visible"/>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:id="@+id/forsta_login_submit_button"
                 android:text="@string/forsta_login_login_button"
                 android:visibility="visible"/>
@@ -132,6 +136,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
                 android:text="If you do not receive an email, click below to try again."/>
             <TextView
                 android:layout_width="match_parent"

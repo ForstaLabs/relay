@@ -40,7 +40,7 @@ public class ForstaContactsSyncIntentService extends IntentService {
       CcsmApi.syncForstaContacts(getApplicationContext());
       DirectoryHelper.refreshDirectory(getApplicationContext(), masterSecret);
       CcsmApi.syncForstaGroups(getApplicationContext(), masterSecret);
-      ForstaPreferences.setForstaContactSync(context, new Date().toString());
+      ForstaPreferences.setForstaContactSync(context, new Date().getTime());
     } catch (Exception e) {
       e.printStackTrace();
     }

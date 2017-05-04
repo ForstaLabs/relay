@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
@@ -157,6 +158,7 @@ public class ForstaContactsFragment extends Fragment {
           CcsmApi.syncForstaContacts(getActivity().getApplicationContext());
           CcsmApi.syncForstaGroups(getActivity().getApplicationContext(), masterSecret);
           DirectoryHelper.refreshDirectory(getActivity().getApplicationContext(), masterSecret);
+          ForstaPreferences.setForstaContactSync(getActivity().getApplicationContext(), new Date().getTime());
           return true;
         } catch (Exception e) {
           e.printStackTrace();

@@ -148,7 +148,7 @@ public class CcsmApi {
     return result;
   }
 
-  // These should all be private.
+  // These should all be private. They are exposed right now
   public static JSONObject getForstaOrg(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
