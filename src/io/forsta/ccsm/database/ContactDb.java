@@ -45,7 +45,7 @@ public class ContactDb extends DbBase {
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
-      "CONSTRAINT item_uid_unique UNIQUE (" + UID + ")" +
+      "CONSTRAINT item_number_unique UNIQUE (" + NUMBER + ")" +
       ")";
 
   public static String[] allColumns = {
@@ -82,13 +82,12 @@ public class ContactDb extends DbBase {
     return contacts;
   }
 
-  public List<String> getNumbers() {
-    List<String> numbers = new ArrayList<>();
+  public Set<String> getNumbers() {
+    Set<String> numbers = new HashSet<>();
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, NUMBER);
       while (c.moveToNext()) {
-        int index = c.getColumnIndex(NUMBER);
-        numbers.add(c.getString(index));
+        numbers.add(c.getString(c.getColumnIndex(NUMBER)));
       }
       c.close();
     } catch (Exception e) {
@@ -159,9 +158,30 @@ public class ContactDb extends DbBase {
     db.close();
   }
 
+  public void updateUser(ForstaUser user) {
+    ContentValues values = new ContentValues();
+    values.put(NAME, user.name);
+    values.put(NUMBER, user.phone);
+    values.put(TSREGISTERED, user.tsRegistered);
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
+  }
+
   public void removeByUid(String uid) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+    db.close();
+  }
+
+  public void setActiveForstaNumbers(List<ContactTokenDetails> activeTokens) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
+    for (ContactTokenDetails token : activeTokens) {
+      String number = token.getNumber();
+      ContentValues values = new ContentValues();
+      values.put(TSREGISTERED, true);
+      db.update(TABLE_NAME, values, NUMBER + "=?", new String[] { number });
+    }
     db.close();
   }
 

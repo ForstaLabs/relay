@@ -97,7 +97,7 @@ public class LoginActivity extends BaseActionBarActivity {
       @Override
       public void onClick(View v) {
         String org = mSendTokenOrg.getText().toString().trim();
-        String username = mSendTokenOrg.getText().toString().trim();
+        String username = mSendTokenUsername.getText().toString().trim();
         if (org.length() < 3 || username.length() < 3) {
           Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
         } else {
@@ -138,6 +138,7 @@ public class LoginActivity extends BaseActionBarActivity {
     mTryAgainButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
+        ForstaPreferences.clearLogin(LoginActivity.this);
         showSendLinkForm();
       }
     });
@@ -208,7 +209,6 @@ public class LoginActivity extends BaseActionBarActivity {
         try {
           // If we've requested a new login, we need to logout.
           // We want to clear login on
-          ForstaPreferences.clearLogin(LoginActivity.this);
           ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
           showVerifyForm();
           Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();

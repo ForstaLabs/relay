@@ -155,8 +155,8 @@ public class ForstaContactsFragment extends Fragment {
       protected Boolean doInBackground(Void... voids) {
         try {
           CcsmApi.syncForstaContacts(getActivity().getApplicationContext());
-          DirectoryHelper.refreshDirectory(getActivity().getApplicationContext(), masterSecret);
           CcsmApi.syncForstaGroups(getActivity().getApplicationContext(), masterSecret);
+          DirectoryHelper.refreshDirectory(getActivity().getApplicationContext(), masterSecret);
           return true;
         } catch (Exception e) {
           e.printStackTrace();

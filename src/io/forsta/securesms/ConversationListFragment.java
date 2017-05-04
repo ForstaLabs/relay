@@ -147,7 +147,7 @@ public class ConversationListFragment extends Fragment
   public void onResume() {
     super.onResume();
 
-    updateReminders();
+    // updateReminders();
     list.getAdapter().notifyDataSetChanged();
   }
 

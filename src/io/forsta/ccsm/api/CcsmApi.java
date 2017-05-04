@@ -173,8 +173,6 @@ public class CcsmApi {
   }
 
   public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
     List<ForstaUser> users = new ArrayList<>();
     // Temporary to remove duplicates returning from API
     Set<String> forstaUids = new HashSet<>();
@@ -190,9 +188,6 @@ public class CcsmApi {
             continue;
           }
           forstaUids.add(forstaUser.uid);
-          if (activeNumbers.contains(forstaUser.phone)) {
-            forstaUser.tsRegistered = true;
-          }
           users.add(forstaUser);
         }
       }
@@ -251,40 +246,6 @@ public class CcsmApi {
     return groupIds;
   }
 
-  public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
-    try {
-      // Get groups from API
-      JSONObject jsonObject = getTags(context);
-      List<ForstaGroup> groups = parseTagGroups(jsonObject);
-
-      // Get existing groups and active numbers
-      Set<String> groupIds = getGroupIds(context);
-      TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-      List<String> activeNumbers = dir.getActiveNumbers();
-
-      for (ForstaGroup group : groups) {
-        String id = group.getEncodedId();
-        List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
-        Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
-
-        // For now. No groups are created unless you are a member and the group has more than one other member.
-        if (members.size() > 1 && groupNumbers.contains(TextSecurePreferences.getLocalNumber(context))) {
-          if (!groupIds.contains(id)) {
-            GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
-          } else {
-            GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
-          }
-        }
-      }
-    } catch (InvalidNumberException e) {
-      Log.e(TAG, "syncForstaGroups Invalid Number exception");
-      e.printStackTrace();
-    } catch (Exception e) {
-      Log.e(TAG, "syncForstaGroups exception: " + e.getMessage());
-      e.printStackTrace();
-    }
-  }
-
   private static Set<Recipient> getActiveRecipients(Context context, List<String> groupNumbers, List<String> activeNumbers) {
     for (int i = 0; i < groupNumbers.size(); i++) {
       String number = groupNumbers.get(i);
@@ -323,16 +284,13 @@ public class CcsmApi {
     return results;
   }
 
-  public static void syncForstaContacts(Context context) {
+  public static void createSystemContacts(Context context, List<ForstaUser> contacts) {
     try {
-      JSONObject users = getUsers(context);
-      List<ForstaUser> forstaContacts = parseUsers(context, users);
-
       Set<String> systemContacts = getSystemContacts(context);
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
       Optional<Account> account = DirectoryHelper.getOrCreateAccount(context);
 
-      for (ForstaUser user : forstaContacts) {
+      for (ForstaUser user : contacts) {
         try {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           // Create contact if it doesn't exist, but don't try to update.
@@ -344,12 +302,54 @@ public class CcsmApi {
         }
       }
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-
-      // Now sync the local contact Db.
-      ContactDb forstaDb = DbFactory.getContactDb(context);
-      forstaDb.updateUsers(forstaContacts);
     } catch (Exception e) {
       Log.e(TAG, "syncContacts exception: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  public static void syncForstaContacts(Context context) {
+    JSONObject users = getUsers(context);
+    List<ForstaUser> forstaContacts = parseUsers(context, users);
+    createSystemContacts(context, forstaContacts);
+    syncForstaContactsDb(context, forstaContacts);
+  }
+
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts) {
+    ContactDb forstaDb = DbFactory.getContactDb(context);
+    forstaDb.updateUsers(contacts);
+    forstaDb.close();
+  }
+
+  public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+    try {
+      JSONObject jsonObject = getTags(context);
+      List<ForstaGroup> groups = parseTagGroups(jsonObject);
+
+      // Get existing groups and active numbers
+      Set<String> groupIds = getGroupIds(context);
+      TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+      List<String> activeNumbers = dir.getActiveNumbers();
+
+      for (ForstaGroup group : groups) {
+        String id = group.getEncodedId();
+        List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+        Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+
+        // For now. No groups are created unless you are a member and the group has more than one other member.
+        if (members.size() > 1 && groupNumbers.contains(TextSecurePreferences.getLocalNumber(context))) {
+          if (!groupIds.contains(id)) {
+            GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
+          } else {
+            GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+          }
+        }
+      }
+    } catch (InvalidNumberException e) {
+      Log.e(TAG, "syncForstaGroups Invalid Number exception");
+      e.printStackTrace();
+    } catch (Exception e) {
+      Log.e(TAG, "syncForstaGroups exception: " + e.getMessage());
       e.printStackTrace();
     }
   }
@@ -359,7 +359,7 @@ public class CcsmApi {
     ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
         .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
         .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
         .build());
   }
 

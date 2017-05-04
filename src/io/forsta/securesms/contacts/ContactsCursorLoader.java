@@ -102,6 +102,20 @@ public class ContactsCursorLoader extends CursorLoader {
         ContactsDatabase.LABEL_COLUMN,
         ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
 
+    ContactDb contactDb = DbFactory.getContactDb(getContext());
+    Cursor contactsCursor = contactDb.getActiveRecipients();
+    while (contactsCursor.moveToNext()) {
+      forstaContactsCursor.addRow(new Object[] {
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NUMBER)),
+          ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+          "\u21e2",
+          ContactsDatabase.NORMAL_TYPE
+      });
+    }
+    contactsCursor.close();
+
     GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
     Cursor groupCursor = gdb.getForstaGroups();
     while (groupCursor.moveToNext()) {
@@ -116,19 +130,6 @@ public class ContactsCursorLoader extends CursorLoader {
     }
     groupCursor.close();
 
-    ContactDb contactDb = DbFactory.getContactDb(getContext());
-    Cursor contactsCursor = contactDb.getActiveRecipients();
-    while (contactsCursor.moveToNext()) {
-      forstaContactsCursor.addRow(new Object[] {
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NUMBER)),
-          ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
-          "\u21e2",
-          ContactsDatabase.NORMAL_TYPE
-      });
-    }
-    contactsCursor.close();
     cursorList.add(forstaContactsCursor);
 
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
