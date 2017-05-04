@@ -63,9 +63,8 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = API_URL + "/v1/login/send/";
   private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
-  // Remove this. It is already in ContactsDatabase. Needs to move when contact methods are moved.
+  // Remove these. It is already in ContactsDatabase. Needs to move when contact methods are moved.
   private static final String SYNC = "__TS";
-
   private static final String CONTACT_MIMETYPE = "vnd.android.cursor.item/vnd.io.forsta.securesms.contact";
 
   private CcsmApi() {
@@ -338,8 +337,8 @@ public class CcsmApi {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           // Create contact if it doesn't exist, but don't try to update.
           if (!systemContacts.contains(e164number)) {
-            createForstaPhoneContact(context, ops, account.get(), e164number, user.name, user.username);
-          }
+            createForstaPhoneContact(context, ops, account.get(), e164number, user.name);
+          } // else updateContact(context, ops, account.get(), e164number, user.name)
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
@@ -356,9 +355,9 @@ public class CcsmApi {
   }
 
   // These can be moved to the ContactsDatabase after testing.
-  private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
+  private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name) {
     ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-        .withSelection(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME_ALTERNATIVE + " = ?", new String[] { username })
+        .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
         .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
         .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
         .build());
@@ -383,41 +382,46 @@ public class CcsmApi {
     }
   }
 
-  private static void createForstaPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
-    int index = ops.size();
+  private static void createForstaPhoneContact(Context context, List<ContentProviderOperation> operations, Account account, String e164number, String name) {
+    int index = operations.size();
 
     Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
         .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
         .build();
 
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+    operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
         .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
-        .withValue(ContactsContract.RawContacts.SYNC1, number)
-        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(false))
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+        .withValue(ContactsContract.RawContacts.SYNC1, e164number)
+        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(true))
         .build());
 
-    ops.add(ContentProviderOperation.newInsert(dataUri)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(dataUri)
+    operations.add(ContentProviderOperation.newInsert(dataUri)
         .withValueBackReference(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID, index)
         .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, e164number)
         .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_OTHER)
         .withValue(ContactsContract.Data.SYNC2, SYNC)
+        .build());
+
+    operations.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
+        .withValue(ContactsContract.Data.DATA1, e164number)
+        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
+        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, e164number))
+        .withYieldAllowed(true)
+        .build());
+
+    operations.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
         .build());
   }
 
   private static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
     int index = ops.size();
-
-    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
-        .build();
 
     ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
         .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
@@ -435,43 +439,6 @@ public class CcsmApi {
         .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
         .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
         .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
-        .build());
-  }
-
-  private static void createContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
-    int index = ops.size();
-    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
-        .build();
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
-        .withValue(ContactsContract.RawContacts.SYNC1, number)
-        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(false))
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME_ALTERNATIVE, username)
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
-        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(dataUri)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
-        .withValue(ContactsContract.Data.DATA1, number)
-        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
-        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, number))
-        .withYieldAllowed(true)
         .build());
   }
 }
