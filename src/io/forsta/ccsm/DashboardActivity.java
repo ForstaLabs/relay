@@ -103,14 +103,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.menu_dashboard_logout: {
-        ForstaPreferences.clearPreferences(DashboardActivity.this);
+        ForstaPreferences.clearLogin(DashboardActivity.this);
         startLoginIntent();
-        break;
-      }
-
-      case R.id.menu_dashboard_token_refresh: {
-        RefreshApiToken refresh = new RefreshApiToken();
-        refresh.execute();
         break;
       }
     }

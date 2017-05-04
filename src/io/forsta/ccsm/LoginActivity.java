@@ -75,32 +75,6 @@ public class LoginActivity extends BaseActionBarActivity {
     super.onPause();
   }
 
-  private class LoginReceiver extends BroadcastReceiver {
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      String authtoken = intent.getDataString();
-      String nothing = "";
-    }
-  }
-
-  private void handleBroadcastIntent() {
-    Intent intent = getIntent();
-    Intent nextIntent = intent.getParcelableExtra("next_intent");
-    if (nextIntent != null) {
-      String action = nextIntent.getAction();
-      if (action != null && action.equalsIgnoreCase(Intent.ACTION_VIEW)) {
-        String authtoken = nextIntent.getDataString();
-        // LoginPending must be set. User has requested a new login.
-        if (ForstaPreferences.getForstaLoginPending(this)) {
-          showProgressBar();
-          CCSMLogin loginAction = new CCSMLogin();
-          loginAction.execute("", "", authtoken);
-        }
-      }
-    }
-  }
-
   private void initializeView() {
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
     mSendLinkFormContainer = (LinearLayout) findViewById(R.id.forsta_login_send_link_container);
@@ -122,29 +96,32 @@ public class LoginActivity extends BaseActionBarActivity {
     mSendTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (mSendTokenOrg.getText().length() < 3 || mSendTokenUsername.getText().length() < 3) {
+        String org = mSendTokenOrg.getText().toString().trim();
+        String username = mSendTokenOrg.getText().toString().trim();
+        if (org.length() < 3 || username.length() < 3) {
           Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-          ForstaPreferences.setForstaOrgName(getApplicationContext(), mSendTokenOrg.getText().toString().trim());
-          ForstaPreferences.setForstaUsername(getApplicationContext(), mSendTokenUsername.getText().toString().trim());
+          ForstaPreferences.setForstaOrgName(getApplicationContext(),org);
+          ForstaPreferences.setForstaUsername(getApplicationContext(), username);
           CCSMSendToken getToken = new CCSMSendToken();
-          getToken.execute(mSendTokenOrg.getText().toString(), mSendTokenUsername.getText().toString());
+          getToken.execute(org, username);
         }
       }
     });
     mSubmitButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (mLoginSecurityCode.getText().length() != 6) {
+        String code = mLoginSecurityCode.getText().toString().trim();
+        if (code.length() != 6) {
           Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
 
-          String token = mLoginSecurityCode.getText().toString();
+          String token = code;
           CCSMLogin task = new CCSMLogin();
 
-          task.execute(mLoginUsernameText.getText().toString(), mLoginPasswordText.getText().toString(), token);
+          task.execute(mLoginUsernameText.getText().toString().trim(), mLoginPasswordText.getText().toString().trim(), token);
         }
       }
     });
@@ -230,6 +207,7 @@ public class LoginActivity extends BaseActionBarActivity {
       if (jsonObject.has("msg")) {
         try {
           // If we've requested a new login, we need to logout.
+          // We want to clear login on
           ForstaPreferences.clearLogin(LoginActivity.this);
           ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
           showVerifyForm();
@@ -253,7 +231,7 @@ public class LoginActivity extends BaseActionBarActivity {
       String authtoken = params[2];
       String username = ForstaPreferences.getForstaUsername(getApplicationContext());
       authtoken = CcsmApi.parseLoginToken(authtoken);
-      authtoken = username.trim() + ":" + authtoken;
+      authtoken = username + ":" + authtoken;
 
       JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);
       return token;

@@ -3,8 +3,4 @@
 
     <item android:title="Logout"
           android:id="@+id/menu_dashboard_logout"/>
-
-    <item android:title="Refresh Token"
-          android:id="@+id/menu_dashboard_token_refresh"/>
-
 </menu>

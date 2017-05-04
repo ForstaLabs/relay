@@ -63,6 +63,8 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = API_URL + "/v1/login/send/";
   private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
+  // Remove this. It is already in ContactsDatabase. Needs to move when contact methods are moved.
+  private static final String SYNC = "__TS";
 
   private static final String CONTACT_MIMETYPE = "vnd.android.cursor.item/vnd.io.forsta.securesms.contact";
 
@@ -336,7 +338,7 @@ public class CcsmApi {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           // Create contact if it doesn't exist, but don't try to update.
           if (!systemContacts.contains(e164number)) {
-            createPhoneContact(context, ops, account.get(), e164number, user.name, user.username);
+            createForstaPhoneContact(context, ops, account.get(), e164number, user.name, user.username);
           }
         } catch (InvalidNumberException e) {
           e.printStackTrace();
@@ -379,6 +381,35 @@ public class CcsmApi {
     } catch (OperationApplicationException e) {
       e.printStackTrace();
     }
+  }
+
+  private static void createForstaPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
+    int index = ops.size();
+
+    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+        .build();
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
+        .withValue(ContactsContract.RawContacts.SYNC1, number)
+        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(false))
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_OTHER)
+        .withValue(ContactsContract.Data.SYNC2, SYNC)
+        .build());
   }
 
   private static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {

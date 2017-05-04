@@ -51,6 +51,7 @@ public class ForstaContactsFragment extends Fragment {
   private RecyclerView groupList;
   private Button refreshContacts;
   private Button clearContacts;
+  private Button clearSystemContacts;
   private ForstaContactsAdapter adapter;
   private ForstaGroupsAdapter groupAdapter;
   private ProgressBar loading;
@@ -82,12 +83,18 @@ public class ForstaContactsFragment extends Fragment {
     clearContacts.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-//        CcsmApi.removeAllContacts(getActivity().getApplicationContext());
         ContactDb db = DbFactory.getContactDb(getActivity());
         db.removeAll();
         List<ForstaUser> contacts = db.getUsers();
         adapter.contacts = contacts;
         adapter.notifyDataSetChanged();
+      }
+    });
+    clearSystemContacts = (Button) view.findViewById(R.id.forsta_clear_system_contacts);
+    clearSystemContacts.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        CcsmApi.removeAllContacts(getActivity().getApplicationContext());
       }
     });
 

@@ -12,13 +12,18 @@
         <Button android:id="@+id/forsta_update_contacts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sync Contacts"/>
+            android:text="Sync"/>
 
         <Button android:id="@+id/forsta_clear_contacts"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Clear Contacts"
+                android:text="Clear"
             android:layout_marginLeft="10dp"/>
+        <Button android:id="@+id/forsta_clear_system_contacts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear System"
+                android:layout_marginLeft="10dp"/>
     </LinearLayout>
 
     <ProgressBar android:id="@+id/forsta_contacts_loading"

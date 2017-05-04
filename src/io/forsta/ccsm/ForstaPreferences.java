@@ -50,6 +50,7 @@ public class ForstaPreferences {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     prefs.edit().putString(API_KEY, "")
         .putString(API_LAST_LOGIN, "")
+        .putBoolean(FORSTA_LOGIN_PENDING, false)
         .apply();
   }
 
