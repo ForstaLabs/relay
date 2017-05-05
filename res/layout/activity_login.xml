@@ -122,6 +122,8 @@
                 android:layout_gravity="center_horizontal"
                 android:visibility="visible"/>
             <Button
+                android:drawableLeft="@drawable/ic_security_white_24dp"
+                android:drawableStart="@drawable/ic_security_white_24dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -137,7 +139,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="If you do not receive an email, click below to try again."/>
+                android:text="If you do not receive an sms, click below to try again."/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

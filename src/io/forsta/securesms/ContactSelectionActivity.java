@@ -23,6 +23,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -35,6 +37,7 @@ import io.forsta.securesms.util.ViewUtil;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Date;
 
 /**
  * Base activity container for selecting a list of contacts.
@@ -138,6 +141,10 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     protected Void doInBackground(Context... params) {
 
       try {
+        CcsmApi.syncForstaContacts(params[0]);
+        CcsmApi.syncForstaGroups(params[0], masterSecret);
+        ForstaPreferences.setForstaContactSync(params[0], new Date().getTime());
+
         DirectoryHelper.refreshDirectory(params[0], masterSecret);
       } catch (IOException e) {
         Log.w(TAG, e);

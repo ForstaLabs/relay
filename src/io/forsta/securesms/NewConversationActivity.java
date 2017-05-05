@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -64,9 +65,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
       Date dt = cal.getTime();
       long now = dt.getTime();
       long diff = now-lastSync;
-      if (false) {
+      long updateDiff = 1000l * 60 * 60;
+      boolean shouldUpdate = diff > updateDiff;
+      if (shouldUpdate) {
         Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
         startService(intent);
+        Toast.makeText(this, "Refreshing Contacts", Toast.LENGTH_LONG);
       }
     }
   }
@@ -96,7 +100,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     case android.R.id.home:   super.onBackPressed(); return true;
     case R.id.menu_refresh:   handleManualRefresh(); return true;
     case R.id.menu_new_group: handleCreateGroup();   return true;
-    case R.id.menu_invite:    handleInvite();        return true;
+//    case R.id.menu_invite:    handleInvite();        return true;
     }
 
     return false;

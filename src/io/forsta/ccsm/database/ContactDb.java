@@ -129,32 +129,45 @@ public class ContactDb extends DbBase {
   public void updateUsers(List<ForstaUser> users) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Set<String> forstaUids = new HashSet<>();
-    for (ForstaUser user : users) {
-      forstaUids.add(user.uid);
-      ContentValues values = new ContentValues();
-      values.put(ContactDb.UID, user.uid);
-      values.put(ContactDb.NAME, user.name);
-      values.put(ContactDb.ORGID, user.orgId);
-      values.put(ContactDb.NUMBER, user.phone);
-      values.put(ContactDb.USERNAME, user.username);
-      values.put(ContactDb.TSREGISTERED, user.tsRegistered);
-      Cursor cursor = db.query(TABLE_NAME, null, UID + "=?", new String[] { user.uid }, null, null, null, null);
-      if (cursor != null && cursor.moveToNext()) {
-        String id = cursor.getString(cursor.getColumnIndex(ID));
-        db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
-      } else {
-        db.insert(TABLE_NAME, null, values);
+    db.beginTransaction();
+    try {
+      for (ForstaUser user : users) {
+        forstaUids.add(user.uid);
+        ContentValues values = new ContentValues();
+        values.put(ContactDb.UID, user.uid);
+        values.put(ContactDb.NAME, user.name);
+        values.put(ContactDb.ORGID, user.orgId);
+        values.put(ContactDb.NUMBER, user.phone);
+        values.put(ContactDb.USERNAME, user.username);
+        values.put(ContactDb.TSREGISTERED, user.tsRegistered);
+        Cursor cursor = db.query(TABLE_NAME, null, UID + "=?", new String[] { user.uid }, null, null, null, null);
+        if (cursor != null && cursor.moveToNext()) {
+          String id = cursor.getString(cursor.getColumnIndex(ID));
+          db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
+        } else {
+          db.insert(TABLE_NAME, null, values);
+        }
+        cursor.close();
       }
-      cursor.close();
+      db.setTransactionSuccessful();
+    }
+    finally {
+      db.endTransaction();
+    }
+    db.beginTransaction();
+    try {
+      // Now remove entries that are no longer valid.
+      Map<String, String> uids = getUids();
+      for (String uid : uids.keySet()) {
+        if (!forstaUids.contains(uid)) {
+          db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+        }
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
     }
 
-    // Now remove entries that are no longer valid.
-    Map<String, String> uids = getUids();
-    for (String uid : uids.keySet()) {
-      if (!forstaUids.contains(uid)) {
-        removeByUid(uid);
-      }
-    }
     db.close();
   }
 
@@ -165,12 +178,6 @@ public class ContactDb extends DbBase {
     values.put(TSREGISTERED, user.tsRegistered);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
-  }
-
-  public void removeByUid(String uid) {
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
-    db.close();
   }
 
   public void setActiveForstaNumbers(List<ContactTokenDetails> activeTokens) {
