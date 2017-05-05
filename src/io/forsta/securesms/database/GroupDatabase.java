@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class GroupDatabase extends Database {
 
@@ -207,6 +208,25 @@ public class GroupDatabase extends Database {
 
     databaseHelper.getWritableDatabase().update(TABLE_NAME, contents, GROUP_ID + " = ?",
                                                 new String[] {GroupUtil.getEncodedId(id)});
+  }
+
+  public void removeGroup(String id) {
+    databaseHelper.getWritableDatabase().delete(TABLE_NAME, GROUP_ID + "=?", new String[] {id});
+  }
+
+  public void removeGroups(Set<String> groupIds) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.beginTransaction();
+    try {
+
+      for (String id : groupIds) {
+        db.delete(TABLE_NAME, GROUP_ID + "=?", new String[] {id});
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+    db.close();
   }
 
   private List<String> getCurrentMembers(byte[] id) {

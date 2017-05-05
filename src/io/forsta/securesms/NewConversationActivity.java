@@ -55,24 +55,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    refreshContacts(masterSecret);
-  }
-
-  private void refreshContacts(MasterSecret masterSecret) {
-    long lastSync = ForstaPreferences.getForstaContactSync(getApplicationContext());
-    if (lastSync != -1) {
-      Calendar cal = Calendar.getInstance();
-      Date dt = cal.getTime();
-      long now = dt.getTime();
-      long diff = now-lastSync;
-      long updateDiff = 1000l * 60 * 60;
-      boolean shouldUpdate = diff > updateDiff;
-      if (shouldUpdate) {
-        Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-        startService(intent);
-        Toast.makeText(this, "Refreshing Contacts", Toast.LENGTH_LONG);
-      }
-    }
   }
 
   @Override

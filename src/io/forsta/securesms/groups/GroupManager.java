@@ -102,6 +102,16 @@ public class GroupManager {
     groupDatabase.updateAvatar(groupId, avatarBytes);
   }
 
+  public static void removeForstaGroup(Context context, String groupId) {
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    db.removeGroup(groupId);
+  }
+
+  public static void removeForstaGroups(Context context, Set<String> groupIds) {
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    db.removeGroups(groupIds);
+  }
+
   public static GroupActionResult updateGroup(@NonNull  Context        context,
                                               @NonNull  MasterSecret   masterSecret,
                                               @NonNull  byte[]         groupId,

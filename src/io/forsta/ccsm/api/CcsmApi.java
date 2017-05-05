@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,6 +68,7 @@ public class CcsmApi {
   // Remove these. It is already in ContactsDatabase. Needs to move when contact methods are moved.
   private static final String SYNC = "__TS";
   private static final String CONTACT_MIMETYPE = "vnd.android.cursor.item/vnd.io.forsta.securesms.contact";
+  private static final long CONTACT_SYNC_INTERVAL = 1000l * 60 * 60 * 12;
 
   private CcsmApi() {
   }
@@ -335,16 +338,20 @@ public class CcsmApi {
         String id = group.getEncodedId();
         List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
         Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
+        String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
         // For now. No groups are created unless you are a member and the group has more than one other member.
-        if (members.size() > 1 && groupNumbers.contains(TextSecurePreferences.getLocalNumber(context))) {
+        if (members.size() > 1 && groupNumbers.contains(thisNumber)) {
           if (!groupIds.contains(id)) {
             GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
           } else {
             GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
           }
+          groupIds.remove(id);
         }
       }
+      GroupManager.removeForstaGroups(context, groupIds);
+
     } catch (InvalidNumberException e) {
       Log.e(TAG, "syncForstaGroups Invalid Number exception");
       e.printStackTrace();
@@ -352,6 +359,18 @@ public class CcsmApi {
       Log.e(TAG, "syncForstaGroups exception: " + e.getMessage());
       e.printStackTrace();
     }
+  }
+
+  public static boolean refreshContacts(Context context, MasterSecret masterSecret) {
+    long lastSync = ForstaPreferences.getForstaContactSync(context);
+    if (lastSync != -1) {
+      long now = System.currentTimeMillis();
+      long diff = now-lastSync;
+      long updateDiff = CONTACT_SYNC_INTERVAL;
+      boolean shouldUpdate = diff > updateDiff;
+      return shouldUpdate;
+    }
+    return true;
   }
 
   // These can be moved to the ContactsDatabase after testing.

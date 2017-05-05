@@ -129,6 +129,8 @@ public class ContactDb extends DbBase {
   public void updateUsers(List<ForstaUser> users) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Set<String> forstaUids = new HashSet<>();
+
+    Map<String, String> uids = getUids();
     db.beginTransaction();
     try {
       for (ForstaUser user : users) {
@@ -147,6 +149,7 @@ public class ContactDb extends DbBase {
         } else {
           db.insert(TABLE_NAME, null, values);
         }
+        uids.remove(user.uid);
         cursor.close();
       }
       db.setTransactionSuccessful();
@@ -157,11 +160,8 @@ public class ContactDb extends DbBase {
     db.beginTransaction();
     try {
       // Now remove entries that are no longer valid.
-      Map<String, String> uids = getUids();
       for (String uid : uids.keySet()) {
-        if (!forstaUids.contains(uid)) {
-          db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
-        }
+        db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
       }
       db.setTransactionSuccessful();
     } finally {

@@ -36,6 +36,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.ForstaInputFragment;
+import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -83,6 +84,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
       refreshToken.execute();
+    }
+
+    if (CcsmApi.refreshContacts(this, masterSecret)) {
+      Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+      startService(intent);
     }
 
     initializeContactUpdatesReceiver();
