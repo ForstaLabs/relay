@@ -5,12 +5,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <TextView
+        <TextView android:id="@+id/forsta_org_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="5dp"
-            android:text="ORGANIZATION NAME"
+            android:text="RECENT CONVERSATIONS"
             android:textAlignment="center" />
 
         <LinearLayout android:id="@+id/forsta_input_panel"
