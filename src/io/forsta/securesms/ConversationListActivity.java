@@ -113,8 +113,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       List<PeriodicSync> periodicSyncs;
       periodicSyncs = ContentResolver.getPeriodicSyncs(newAccount, "io.forsta.provider.ccsm");
 
-      ContentResolver.requestSync(newAccount, "io.forsta.provider.ccsm", settingsBundle);
-//      ContentResolver.addPeriodicSync(newAccount, "io.forsta.provider.ccsm", Bundle.EMPTY, 60l * 60l); // Set to 4 hours.
+      if (periodicSyncs.size() == 0) {
+        ContentResolver.requestSync(newAccount, "io.forsta.provider.ccsm", settingsBundle);
+        ContentResolver.addPeriodicSync(newAccount, "io.forsta.provider.ccsm", Bundle.EMPTY, 60l * 60l); // Set to 4 hours.
+      }
     }
 
     initializeContactUpdatesReceiver();
