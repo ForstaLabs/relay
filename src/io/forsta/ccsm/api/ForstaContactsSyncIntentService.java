@@ -1,6 +1,8 @@
 package io.forsta.ccsm.api;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
 import android.util.Log;
@@ -18,6 +20,9 @@ import io.forsta.securesms.util.DirectoryHelper;
  * Created by jlewis
  */
 public class ForstaContactsSyncIntentService extends IntentService {
+
+  private static final int SYNC_INTERVAL = 1000 * 60 * 60 * 4; // Four hours
+
   private static final String TAG = ForstaContactsSyncIntentService.class.getSimpleName();
 
   public ForstaContactsSyncIntentService() {
@@ -35,6 +40,7 @@ public class ForstaContactsSyncIntentService extends IntentService {
   @Override
   protected void onHandleIntent(Intent intent) {
     try {
+      Log.d(TAG, "Syncing Forsta Contacts");
       Context context = getApplicationContext();
       MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
       CcsmApi.syncForstaContacts(getApplicationContext());

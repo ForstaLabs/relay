@@ -40,6 +40,7 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.READ_SYNC_STATS"/>
     <uses-permission android:name="io.forsta.securesms.ACCESS_SECRETS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.WRITE_PROFILE" />
@@ -379,6 +380,16 @@
             </intent-filter>
         </service>
         <service
+            android:name="io.forsta.ccsm.api.ForstaAccountAuthenticator"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/forstaauthenticator" />
+        </service>
+        <service
             android:name=".service.AccountAuthenticatorService"
             android:exported="true">
             <intent-filter>
@@ -402,6 +413,18 @@
             <meta-data
                 android:name="android.provider.CONTACTS_STRUCTURE"
                 android:resource="@xml/contactsformat" />
+        </service>
+
+        <service
+            android:name="io.forsta.ccsm.api.ForstaSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/forstasyncadapter" />
         </service>
 
         <receiver
@@ -473,6 +496,12 @@
         <provider
             android:name=".providers.MmsBodyProvider"
             android:authorities="io.forsta.provider.securesms.mms"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <provider
+            android:name="io.forsta.ccsm.api.ForstaProvider"
+            android:authorities="io.forsta.provider.ccsm"
             android:exported="false"
             android:grantUriPermissions="true" />
 

@@ -16,11 +16,19 @@
  */
 package io.forsta.securesms;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.PeriodicSync;
+import android.content.SyncInfo;
+import android.content.SyncRequest;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -34,8 +42,11 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import org.json.JSONObject;
 
+import java.util.List;
+
 import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.ForstaInputFragment;
+import io.forsta.ccsm.api.ForstaAccountAuthenticator;
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -86,9 +97,24 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       refreshToken.execute();
     }
 
-    if (CcsmApi.refreshContacts(this, masterSecret)) {
-      Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-      startService(intent);
+//    if (CcsmApi.refreshContacts(this, masterSecret)) {
+//      Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+//      startService(intent);
+//    }
+
+    Account newAccount = ForstaAccountAuthenticator.getAccount(this);
+    if (newAccount != null) {
+      Bundle settingsBundle = new Bundle();
+      settingsBundle.putBoolean(
+          ContentResolver.SYNC_EXTRAS_MANUAL, true);
+      settingsBundle.putBoolean(
+          ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+
+      List<PeriodicSync> periodicSyncs;
+      periodicSyncs = ContentResolver.getPeriodicSyncs(newAccount, "io.forsta.provider.ccsm");
+
+      ContentResolver.requestSync(newAccount, "io.forsta.provider.ccsm", settingsBundle);
+//      ContentResolver.addPeriodicSync(newAccount, "io.forsta.provider.ccsm", Bundle.EMPTY, 60l * 60l); // Set to 4 hours.
     }
 
     initializeContactUpdatesReceiver();
@@ -269,7 +295,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     };
 
-    // Set this to watch Forsta Contacts Db.
+
     getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI,
                                                  true, observer);
   }
