@@ -41,6 +41,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.List;
 
@@ -56,6 +57,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.KeyCachingService;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.ccsm.DashboardActivity;
@@ -84,41 +86,35 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   protected void onCreate(Bundle icicle, @NonNull MasterSecret masterSecret) {
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
-//    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE)
-//    getSupportActionBar().setTitle(R.string.app_name);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
-//    fragment = initFragment(android.R.id.content, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-//    inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
       refreshToken.execute();
     }
 
-//    if (CcsmApi.refreshContacts(this, masterSecret)) {
-//      Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-//      startService(intent);
+//    Optional<Account> newAccount = DirectoryHelper.getOrCreateAccount(this);
+//    String AUTHORITY = "io.forsta.provider.ccsm";
+//
+//    if (newAccount != null) {
+//      Bundle settingsBundle = new Bundle();
+//      settingsBundle.putBoolean(
+//          ContentResolver.SYNC_EXTRAS_MANUAL, true);
+//      settingsBundle.putBoolean(
+//          ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+//
+//      List<PeriodicSync> periodicSyncs;
+//      periodicSyncs = ContentResolver.getPeriodicSyncs(newAccount.get(), AUTHORITY);
+//
+//      if (periodicSyncs.size() == 0) {
+//        ContentResolver.requestSync(newAccount.get(), AUTHORITY, settingsBundle);
+//        ContentResolver.addPeriodicSync(newAccount.get(), AUTHORITY, Bundle.EMPTY, 60l * 60l); // Set to 4 hours.
+//      }
 //    }
-
-    Account newAccount = ForstaAccountAuthenticator.getAccount(this);
-    if (newAccount != null) {
-      Bundle settingsBundle = new Bundle();
-      settingsBundle.putBoolean(
-          ContentResolver.SYNC_EXTRAS_MANUAL, true);
-      settingsBundle.putBoolean(
-          ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-
-      List<PeriodicSync> periodicSyncs;
-      periodicSyncs = ContentResolver.getPeriodicSyncs(newAccount, "io.forsta.provider.ccsm");
-
-      if (periodicSyncs.size() == 0) {
-        ContentResolver.requestSync(newAccount, "io.forsta.provider.ccsm", settingsBundle);
-        ContentResolver.addPeriodicSync(newAccount, "io.forsta.provider.ccsm", Bundle.EMPTY, 60l * 60l); // Set to 4 hours.
-      }
-    }
-
+//
     initializeContactUpdatesReceiver();
 
     DirectoryRefreshListener.schedule(this);

@@ -6,6 +6,7 @@ import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -92,6 +93,7 @@ public class ForstaAccountAuthenticator extends Service {
     if (accounts.length == 0) {
       account = new Account("Forsta", "io.forsta.ccsm");
       if (accountManager.addAccountExplicitly(account, null, null)) {
+        ContentResolver.setIsSyncable(account, "io.forsta.provider.ccsm", 1);
         return account;
       }
     } else {

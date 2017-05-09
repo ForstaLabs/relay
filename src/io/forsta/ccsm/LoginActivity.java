@@ -1,13 +1,16 @@
 package io.forsta.ccsm;
 
+import android.accounts.Account;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +23,7 @@ import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.util.guava.Optional;
 
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.securesms.BaseActionBarActivity;
@@ -27,6 +31,7 @@ import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.RegistrationActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.DirectoryHelper;
 
 public class LoginActivity extends BaseActionBarActivity {
   private static final String TAG = LoginActivity.class.getSimpleName();
@@ -186,8 +191,10 @@ public class LoginActivity extends BaseActionBarActivity {
       nextIntent = new Intent(LoginActivity.this, ConversationListActivity.class);
     }
 
-    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
-    startService(intent);
+//    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
+//    startService(intent);
+    Optional<Account> account = DirectoryHelper.getOrCreateAccount(this);
+    ContentResolver.requestSync(account.get(), ContactsContract.AUTHORITY, Bundle.EMPTY);
 
     startActivity(nextIntent);
     finish();

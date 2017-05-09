@@ -30,18 +30,6 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
     contentResolver = context.getContentResolver();
   }
 
-//  public ForstaSyncAdapter(
-//      Context context,
-//      boolean autoInitialize,
-//      boolean allowParallelSyncs) {
-//    super(context, autoInitialize, allowParallelSyncs);
-//        /*
-//         * If your app uses a content resolver, get an instance of it
-//         * from the incoming Context
-//         */
-//    contentResolver = context.getContentResolver();
-//  }
-
   @Override
   public void onPerformSync(Account account, Bundle bundle, String s, ContentProviderClient contentProviderClient, SyncResult syncResult) {
     Log.w(TAG, "onPerformSync(" + s +")");
@@ -50,9 +38,11 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
       try {
         CcsmApi.syncForstaContacts(getContext());
         DirectoryHelper.refreshDirectory(getContext(), KeyCachingService.getMasterSecret(getContext()));
+        CcsmApi.syncForstaGroups(getContext(), KeyCachingService.getMasterSecret(getContext()));
       } catch (IOException e) {
-        Log.w(TAG, e);
+        e.printStackTrace();
       }
+
     }
   }
 }

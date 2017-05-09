@@ -380,16 +380,6 @@
             </intent-filter>
         </service>
         <service
-            android:name="io.forsta.ccsm.api.ForstaAccountAuthenticator"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/forstaauthenticator" />
-        </service>
-        <service
             android:name=".service.AccountAuthenticatorService"
             android:exported="true">
             <intent-filter>
@@ -415,17 +405,17 @@
                 android:resource="@xml/contactsformat" />
         </service>
 
-        <service
-            android:name="io.forsta.ccsm.api.ForstaSyncService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
+        <!--<service-->
+            <!--android:name="io.forsta.ccsm.api.ForstaSyncService"-->
+            <!--android:exported="true">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.content.SyncAdapter" />-->
+            <!--</intent-filter>-->
 
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/forstasyncadapter" />
-        </service>
+            <!--<meta-data-->
+                <!--android:name="android.content.SyncAdapter"-->
+                <!--android:resource="@xml/forstasyncadapter" />-->
+        <!--</service>-->
 
         <receiver
             android:name=".gcm.GcmBroadcastReceiver"
@@ -499,11 +489,11 @@
             android:exported="false"
             android:grantUriPermissions="true" />
 
-        <provider
-            android:name="io.forsta.ccsm.api.ForstaProvider"
-            android:authorities="io.forsta.provider.ccsm"
-            android:exported="false"
-            android:grantUriPermissions="true" />
+        <!--<provider-->
+            <!--android:name="io.forsta.ccsm.api.ForstaProvider"-->
+            <!--android:authorities="io.forsta.provider.ccsm"-->
+            <!--android:exported="false"-->
+            <!--android:grantUriPermissions="true" />-->
 
         <receiver
             android:name=".service.RegistrationNotifier"

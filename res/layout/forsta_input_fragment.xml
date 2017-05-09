@@ -14,8 +14,8 @@
         android:clickable="true"
         android:background="?android:windowBackground"
         android:padding="0dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -38,13 +38,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/forsta_accent"
-                    android:padding="10dp"
+                    android:padding="5dp"
                     android:layout_margin="1dp">
-                    <TextView
+                    <TextView android:id="@+id/forsta_input_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TYPE:"
-                        android:layout_alignParentLeft="true"/>
+                        android:layout_alignParentLeft="true"
+                        android:layout_centerVertical="true"/>
 
                     <ImageButton android:id="@+id/forsta_quick_directory"
                         android:layout_width="30dp"
@@ -58,7 +59,7 @@
                     android:id="@+id/embedded_text_editor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="80dp"
+                    android:minHeight="60dp"
                     android:layout_weight="1"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"

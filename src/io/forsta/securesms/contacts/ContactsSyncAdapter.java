@@ -8,6 +8,8 @@ import android.content.SyncResult;
 import android.os.Bundle;
 import android.util.Log;
 
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -29,8 +31,11 @@ public class ContactsSyncAdapter extends AbstractThreadedSyncAdapter {
     Log.w(TAG, "onPerformSync(" + authority +")");
 
     if (TextSecurePreferences.isPushRegistered(getContext())) {
+      MasterSecret ms = KeyCachingService.getMasterSecret(getContext());
       try {
-        DirectoryHelper.refreshDirectory(getContext(), KeyCachingService.getMasterSecret(getContext()));
+        CcsmApi.syncForstaContacts(getContext());
+        DirectoryHelper.refreshDirectory(getContext(), ms);
+        CcsmApi.syncForstaGroups(getContext(), ms);
       } catch (IOException e) {
         Log.w(TAG, e);
       }
