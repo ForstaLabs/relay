@@ -142,10 +142,9 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
       try {
         CcsmApi.syncForstaContacts(params[0]);
+        DirectoryHelper.refreshDirectory(params[0], masterSecret);
         CcsmApi.syncForstaGroups(params[0], masterSecret);
         ForstaPreferences.setForstaContactSync(params[0], new Date().getTime());
-
-        DirectoryHelper.refreshDirectory(params[0], masterSecret);
       } catch (IOException e) {
         Log.w(TAG, e);
       }

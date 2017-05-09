@@ -31,11 +31,8 @@ public class ContactsSyncAdapter extends AbstractThreadedSyncAdapter {
     Log.w(TAG, "onPerformSync(" + authority +")");
 
     if (TextSecurePreferences.isPushRegistered(getContext())) {
-      MasterSecret ms = KeyCachingService.getMasterSecret(getContext());
       try {
-        CcsmApi.syncForstaContacts(getContext());
-        DirectoryHelper.refreshDirectory(getContext(), ms);
-        CcsmApi.syncForstaGroups(getContext(), ms);
+        DirectoryHelper.refreshDirectory(getContext(), KeyCachingService.getMasterSecret(getContext()));
       } catch (IOException e) {
         Log.w(TAG, e);
       }

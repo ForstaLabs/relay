@@ -255,10 +255,6 @@ public class DirectoryHelper {
       ContentResolver.setSyncAutomatically(account.get(), ContactsContract.AUTHORITY, true);
     }
 
-//    if (account.isPresent() && !ContentResolver.getSyncAutomatically(account.get(), "io.forsta.provider.ccsm")) {
-//      ContentResolver.setSyncAutomatically(account.get(), "io.forsta.provider.ccsm", true);
-//    }
-
     return account;
   }
 

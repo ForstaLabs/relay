@@ -405,17 +405,17 @@
                 android:resource="@xml/contactsformat" />
         </service>
 
-        <!--<service-->
-            <!--android:name="io.forsta.ccsm.api.ForstaSyncService"-->
-            <!--android:exported="true">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.content.SyncAdapter" />-->
-            <!--</intent-filter>-->
+        <service
+            android:name="io.forsta.ccsm.api.ForstaSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
 
-            <!--<meta-data-->
-                <!--android:name="android.content.SyncAdapter"-->
-                <!--android:resource="@xml/forstasyncadapter" />-->
-        <!--</service>-->
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/forstasyncadapter" />
+        </service>
 
         <receiver
             android:name=".gcm.GcmBroadcastReceiver"
@@ -489,11 +489,12 @@
             android:exported="false"
             android:grantUriPermissions="true" />
 
-        <!--<provider-->
-            <!--android:name="io.forsta.ccsm.api.ForstaProvider"-->
-            <!--android:authorities="io.forsta.provider.ccsm"-->
-            <!--android:exported="false"-->
-            <!--android:grantUriPermissions="true" />-->
+        <provider
+            android:name="io.forsta.ccsm.api.ForstaProvider"
+            android:authorities="io.forsta.provider.ccsm"
+            android:exported="false"
+            android:label="Forsta Contacts"
+            android:grantUriPermissions="true" />
 
         <receiver
             android:name=".service.RegistrationNotifier"

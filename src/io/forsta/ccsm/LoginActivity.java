@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
+import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.BaseActionBarActivity;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
@@ -193,8 +194,8 @@ public class LoginActivity extends BaseActionBarActivity {
 
 //    Intent intent = ForstaContactsSyncIntentService.newIntent(getApplicationContext());
 //    startService(intent);
-    Optional<Account> account = DirectoryHelper.getOrCreateAccount(this);
-    ContentResolver.requestSync(account.get(), ContactsContract.AUTHORITY, Bundle.EMPTY);
+    Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+    ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
 
     startActivity(nextIntent);
     finish();
