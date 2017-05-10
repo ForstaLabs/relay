@@ -72,7 +72,13 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
 
     if (account != null && !ContentResolver.getSyncAutomatically(account, AUTHORITY)) {
       ContentResolver.setSyncAutomatically(account, AUTHORITY, true);
-      ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, 60l * 60l * 4);
+      // ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, 60l * 60l * 4);
+    }
+
+    List<PeriodicSync> syncs = ContentResolver.getPeriodicSyncs(account, AUTHORITY);
+    // Have this look for the one day sync 86,400 and change to our setting.
+    if (syncs.size() == 1) {
+      syncs.set(0, new PeriodicSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY, 60l * 60l * 4l));
     }
 
     return account;
