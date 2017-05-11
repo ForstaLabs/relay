@@ -42,7 +42,7 @@ public class ForstaInputFragment extends Fragment {
   private ImageButton sendButton;
   private ComposeText messageInput;
   private TextView messageType;
-  private Set<String> recipients = new HashSet<>();
+  private Map<String, String> recipients = new HashMap<>();
   private Map<String, String> slugMap = new HashMap<>();
   private static final int DIRECTORY_PICK = 13;
 
@@ -81,10 +81,18 @@ public class ForstaInputFragment extends Fragment {
         if (recipients.size() > 0) {
           // Take all of the new recipients and groups and create a new group for them.
 
-          for (String recipient : recipients) {
-            // There will be phone numbers and group IDs in the recipients list.
+          if (recipients.size() == 1) {
+            // Send a single recipient message
 
 
+          } else {
+            // Create a new group, using all the recipients.
+            // Use the tags and usernames as the new group title... @john-lewis, @dev-team
+            // Need to stop other users from modifying the group.
+            String title = "";
+            for (Map.Entry<String, String> entry : recipients.entrySet()) {
+              title += entry.getKey();
+            }
           }
 
         } else {
@@ -117,10 +125,10 @@ public class ForstaInputFragment extends Fragment {
           String recipient = m.group();
           recipient = recipient.substring(1);
           if (slugMap.containsKey(recipient)) {
-            recipients.add(slugMap.get(recipient));
+            recipients.put(recipient, slugMap.get(recipient));
           }
         }
-        messageType.setText(recipients.toString());
+        messageType.setText(recipients.values().toString());
         Log.d(TAG, "Recipients: " + recipients.size());
       }
 

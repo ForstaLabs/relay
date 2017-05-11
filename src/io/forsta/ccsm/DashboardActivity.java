@@ -710,39 +710,5 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       mDebugText.setText(sb.toString());
     }
   }
-
-  private class GetGroups extends AsyncTask<Void, Void, List<GroupDatabase.GroupRecord>> {
-
-    @Override
-    protected List<GroupDatabase.GroupRecord> doInBackground(Void... voids) {
-      GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
-      GroupDatabase.Reader reader = groupDb.getGroups();
-      GroupDatabase.GroupRecord record;
-      List<GroupDatabase.GroupRecord> results = new ArrayList<>();
-      while ((record = reader.getNext()) != null) {
-        results.add(record);
-      }
-      reader.close();
-      return results;
-    }
-
-    @Override
-    protected void onPostExecute(List<GroupDatabase.GroupRecord> groupRecords) {
-      StringBuilder sb = new StringBuilder();
-      for (GroupDatabase.GroupRecord rec : groupRecords) {
-        sb.append("Title: ").append(rec.getTitle()).append("\n");
-        sb.append("ID: ").append(rec.getEncodedId()).append("\n");
-        sb.append("TagId: ").append(new String(rec.getId())).append("\n");
-        sb.append("Active: ").append(rec.isActive()).append("\n");
-        sb.append("Members:").append("\n");
-        List<String> numbers = rec.getMembers();
-        for (String num : numbers) {
-          sb.append(num).append("\n");
-        }
-        sb.append("\n");
-      }
-      mDebugText.setText(sb.toString());
-    }
-  }
 }
 
