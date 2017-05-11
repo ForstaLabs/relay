@@ -16,5 +16,15 @@
             android:layout_height="wrap_content"
             android:text="An Item Phone"
             style="@style/ForstaSmallText"/>
+        <TextView android:id="@+id/forsta_group_slug"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="An Item Phone"
+                  style="@style/ForstaSmallText"/>
+        <TextView android:id="@+id/forsta_group_members"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="An Item Phone"
+                  style="@style/ForstaSmallText"/>
     </LinearLayout>
 </RelativeLayout>

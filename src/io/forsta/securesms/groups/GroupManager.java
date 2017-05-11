@@ -1,6 +1,7 @@
 package io.forsta.securesms.groups;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -29,8 +30,10 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import ws.com.google.android.mms.ContentType;
@@ -56,22 +59,23 @@ public class GroupManager {
 
   public static @NonNull void createForstaGroup(@NonNull  Context        context,
                                                    @NonNull MasterSecret masterSecret,
-                                                   @NonNull ForstaGroup forstaGroup,
+                                                   @NonNull  byte[]         groupId,
                                                    @NonNull  Set<Recipient> members,
                                                    @Nullable Bitmap         avatar,
-                                                   @Nullable String         name)
+                                                   @Nullable String         name,
+                                                   @Nullable String         slug)
           throws InvalidNumberException
   {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
-    final byte[]        groupId           = forstaGroup.id.getBytes();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
 
-    groupDatabase.create(groupId, name, new LinkedList<>(memberE164Numbers), null, null);
+    groupDatabase.createForstaGroup(groupId, name, slug, new LinkedList<>(memberE164Numbers), null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
     // Send message to group members, that you have joined the group.
     // sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
+
 
   private static Set<String> getE164Numbers(Context context, Collection<Recipient> recipients)
       throws InvalidNumberException
@@ -89,7 +93,8 @@ public class GroupManager {
                                           @NonNull  byte[]         groupId,
                                           @NonNull  Set<Recipient> members,
                                           @Nullable Bitmap         avatar,
-                                          @Nullable String         name)
+                                          @Nullable String         name,
+                                          @Nullable String         slug)
           throws InvalidNumberException
   {
 
@@ -99,6 +104,7 @@ public class GroupManager {
 
     groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
     groupDatabase.updateTitle(groupId, name);
+    groupDatabase.updateSlug(groupId, slug);
     groupDatabase.updateAvatar(groupId, avatarBytes);
   }
 

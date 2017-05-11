@@ -43,7 +43,7 @@
                     <TextView android:id="@+id/forsta_input_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TYPE:"
+                        android:text="Recipients:"
                         android:layout_alignParentLeft="true"
                         android:layout_centerVertical="true"/>
 
@@ -61,6 +61,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="60dp"
                     android:layout_weight="1"
+                    android:padding="10dp"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
                     tools:visibility="invisible"
@@ -145,7 +146,7 @@
                     android:layout_alignParentRight="true">
 
                     <io.forsta.securesms.components.SendButton
-                        android:id="@+id/send_button"
+                        android:id="@+id/forsta_send_button"
                         android:background="@drawable/touch_highlight_background"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

@@ -25,8 +25,10 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPoin
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class GroupDatabase extends Database {
@@ -101,12 +103,7 @@ public class GroupDatabase extends Database {
   }
 
   public Cursor getForstaGroups() {
-    String[] projection = {
-        ID,
-        TITLE,
-        GROUP_ID
-    };
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, projection, null, null, null, null, null);
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
   }
 
   public @NonNull
@@ -124,6 +121,38 @@ public class GroupDatabase extends Database {
     }
 
     return RecipientFactory.getRecipientsFor(context, recipients, false);
+  }
+
+  public void createForstaGroup(byte[] groupId, String title, String slug, List<String> members,
+                     SignalServiceAttachmentPointer avatar, String relay)
+  {
+    ContentValues contentValues = new ContentValues();
+    contentValues.put(GROUP_ID, GroupUtil.getEncodedId(groupId));
+    contentValues.put(TITLE, title);
+    contentValues.put(SLUG, slug);
+    contentValues.put(MEMBERS, Util.join(members, ","));
+
+    if (avatar != null) {
+      contentValues.put(AVATAR_ID, avatar.getId());
+      contentValues.put(AVATAR_KEY, avatar.getKey());
+      contentValues.put(AVATAR_CONTENT_TYPE, avatar.getContentType());
+    }
+
+    contentValues.put(AVATAR_RELAY, relay);
+    contentValues.put(TIMESTAMP, System.currentTimeMillis());
+    contentValues.put(ACTIVE, 1);
+
+    databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
+  }
+
+  public Map<String, String> getGroupSlugs() {
+    Map<String, String> groups = new HashMap<>();
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      groups.put(cursor.getString(cursor.getColumnIndex(SLUG)), cursor.getString(cursor.getColumnIndex(GROUP_ID)));
+    }
+    cursor.close();
+    return groups;
   }
 
   public void create(byte[] groupId, String title, List<String> members,
@@ -160,6 +189,16 @@ public class GroupDatabase extends Database {
     databaseHelper.getWritableDatabase().update(TABLE_NAME, contentValues,
                                                 GROUP_ID + " = ?",
                                                 new String[] {GroupUtil.getEncodedId(groupId)});
+
+    RecipientFactory.clearCache(context);
+    notifyDatabaseListeners();
+  }
+
+  public void updateSlug(byte[] groupId, String slug) {
+    ContentValues contentValues = new ContentValues();
+    contentValues.put(SLUG, slug);
+    databaseHelper.getWritableDatabase().update(TABLE_NAME, contentValues, GROUP_ID +  " = ?",
+        new String[] {GroupUtil.getEncodedId(groupId)});
 
     RecipientFactory.clearCache(context);
     notifyDatabaseListeners();
@@ -260,7 +299,6 @@ public class GroupDatabase extends Database {
     values.put(ACTIVE, active ? 1 : 0);
     database.update(TABLE_NAME, values, GROUP_ID + " = ?", new String[] {GroupUtil.getEncodedId(id)});
   }
-
 
   public byte[] allocateGroupId() {
     try {

@@ -210,7 +210,7 @@ public class CcsmApi {
         JSONObject result = results.getJSONObject(i);
         JSONArray users = result.getJSONArray("users");
         // Right now, not getting groups with no members. Leaves only.
-        Map<String, String> members = new HashMap<>();
+        Set<String> members = new HashSet<>();
         boolean isGroup = false;
         for (int j = 0; j < users.length(); j++) {
           JSONObject userObj = users.getJSONObject(j);
@@ -221,7 +221,7 @@ public class CcsmApi {
             JSONObject user = userObj.getJSONObject("user");
             String userId = user.getString("id");
             String primaryPhone = user.getString("phone");
-            members.put(userId, primaryPhone);
+            members.add(primaryPhone);
           }
         }
         if (isGroup) {
@@ -336,16 +336,16 @@ public class CcsmApi {
 
       for (ForstaGroup group : groups) {
         String id = group.getEncodedId();
-        List<String> groupNumbers = new ArrayList<>(group.getGroupNumbers());
+        List<String> groupNumbers = new ArrayList<>(group.members);
         Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
         // For now. No groups are created unless you are a member and the group has more than one other member.
         if (members.size() > 1 && groupNumbers.contains(thisNumber)) {
           if (!groupIds.contains(id)) {
-            GroupManager.createForstaGroup(context, masterSecret, group, members, null, group.description);
+            GroupManager.createForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
           } else {
-            GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description);
+            GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
           }
           groupIds.remove(id);
         }

@@ -123,14 +123,12 @@ public class ForstaContactsFragment extends Fragment {
   private List<ForstaGroup> getGroups() {
     List<ForstaGroup> groups = new ArrayList<>();
     GroupDatabase db = DatabaseFactory.getGroupDatabase(getActivity());
-    GroupDatabase.Reader reader = db.getGroups();
-    GroupDatabase.GroupRecord record;
-    GroupDatabase.GroupRecord existing = null;
-    while ((record = reader.getNext()) != null) {
-      ForstaGroup group = new ForstaGroup(record);
+    Cursor cursor = db.getForstaGroups();
+    while (cursor != null && cursor.moveToNext()) {
+      ForstaGroup group = new ForstaGroup(cursor);
       groups.add(group);
     }
-    reader.close();
+    cursor.close();
     return groups;
   }
 
@@ -252,6 +250,8 @@ public class ForstaContactsFragment extends Fragment {
       ForstaGroup item = groups.get(position);
       holder.name.setText(item.description);
       holder.number.setText(item.id);
+      holder.slug.setText(item.slug);
+      holder.members.setText(item.members.toString());
     }
 
     @Override
@@ -263,11 +263,15 @@ public class ForstaContactsFragment extends Fragment {
   private class GroupHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TextView number;
+    public TextView slug;
+    public TextView members;
 
     public GroupHolder(View itemView) {
       super(itemView);
       name = (TextView) itemView.findViewById(R.id.forsta_group_name);
       number = (TextView) itemView.findViewById(R.id.forsta_group_number);
+      slug = (TextView) itemView.findViewById(R.id.forsta_group_slug);
+      members = (TextView) itemView .findViewById(R.id.forsta_group_members);
     }
   }
 }

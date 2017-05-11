@@ -683,7 +683,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
         sb.append(group.description).append("\n");
 
-        for (String number : group.getGroupNumbers()) {
+        for (String number : group.members) {
           sb.append(number).append("\n");
         }
         sb.append("\n");

@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,9 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.ComposeText;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.groups.GroupManager;
 
 /**
  * Created by jlewis on 4/27/17.
@@ -35,8 +39,11 @@ public class ForstaInputFragment extends Fragment {
   private static final String TAG = ForstaInputFragment.class.getSimpleName();
 
   private ImageButton directoryButton;
+  private ImageButton sendButton;
   private ComposeText messageInput;
   private TextView messageType;
+  private Set<String> recipients = new HashSet<>();
+  private Map<String, String> slugMap = new HashMap<>();
   private static final int DIRECTORY_PICK = 13;
 
 
@@ -49,7 +56,43 @@ public class ForstaInputFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     final View view = inflater.inflate(R.layout.forsta_input_fragment, container, false);
+    sendButton = (ImageButton) view.findViewById(R.id.forsta_send_button);
     directoryButton = (ImageButton) view.findViewById(R.id.forsta_quick_directory);
+    messageType = (TextView) view.findViewById(R.id.forsta_input_type);
+    messageInput = (ComposeText) view.findViewById(R.id.embedded_text_editor);
+
+    initializeSlugs();
+
+    initializeListeners();
+    return view;
+  }
+
+  private void initializeSlugs() {
+    ContactDb db = DbFactory.getContactDb(getActivity());
+    GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(getActivity());
+    slugMap = db.getContactSlugs();
+    slugMap.putAll(groupDb.getGroupSlugs());
+  }
+
+  private void initializeListeners() {
+    sendButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (recipients.size() > 0) {
+          // Take all of the new recipients and groups and create a new group for them.
+
+          for (String recipient : recipients) {
+            // There will be phone numbers and group IDs in the recipients list.
+
+
+          }
+
+        } else {
+          Toast.makeText(getActivity(), "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
+        }
+      }
+    });
+
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -57,9 +100,7 @@ public class ForstaInputFragment extends Fragment {
         startActivityForResult(intent, DIRECTORY_PICK);
       }
     });
-    messageType = (TextView) view.findViewById(R.id.forsta_input_type);
 
-    messageInput = (ComposeText) view.findViewById(R.id.embedded_text_editor);
     messageInput.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -68,11 +109,8 @@ public class ForstaInputFragment extends Fragment {
 
       @Override
       public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        ContactDb db = DbFactory.getContactDb(getActivity());
-        Map<String, String> slugMap = db.getContactSlugs();
         Map<String, String> matched = new HashMap<String, String>();
 
-        Set<String> recipients = new HashSet<String>();
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
         while (m.find()) {
@@ -91,6 +129,5 @@ public class ForstaInputFragment extends Fragment {
 
       }
     });
-    return view;
   }
 }

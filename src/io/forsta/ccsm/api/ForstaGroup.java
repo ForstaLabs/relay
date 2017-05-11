@@ -1,8 +1,11 @@
 package io.forsta.ccsm.api;
 
+import android.database.Cursor;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,8 +25,7 @@ public class ForstaGroup {
   public String slug;
   public String description;
   public String parent;
-  private Map<String, String> users;
-  private List<String> members;
+  public Set<String> members = new HashSet<>();
 
   public ForstaGroup(JSONObject jsonObject) {
     try {
@@ -32,48 +34,24 @@ public class ForstaGroup {
       this.slug = jsonObject.getString("slug");
       this.description = jsonObject.getString("description");
       this.parent = jsonObject.getString("parent");
-
-      this.users = new HashMap<>();
     } catch (JSONException e) {
       e.printStackTrace();
     }
   }
 
-  public ForstaGroup(GroupDatabase.GroupRecord record) {
-    this.description = record.getTitle();
-    this.id = record.getEncodedId();
-    this.members = record.getMembers();
+  public ForstaGroup(Cursor cursor) {
+    this.id = cursor.getString(cursor.getColumnIndex("group_id"));
+    this.slug = cursor.getString(cursor.getColumnIndex("slug"));
+    this.description = cursor.getString(cursor.getColumnIndex("title"));
+    String members = cursor.getString(cursor.getColumnIndex("members"));
+    String[] memberArray = members.split(",");
+    this.members = new HashSet<>(Arrays.asList(memberArray));
   }
 
-  public void addUser(String id, String number) {
-    users.put(id, number);
-  }
-
-  public void removeUser(String id) {
-    for (Map.Entry<String, String> user : users.entrySet()) {
-      if (user.getKey().equals(id)) {
-        users.remove(user);
-        break;
-      }
+  public void addMembers(Set<String> numbers) {
+    for (String number : numbers) {
+      members.add(number);
     }
-  }
-
-  public void addMembers(Map<String, String> numbers) {
-    for (Map.Entry<String, String> number : numbers.entrySet()) {
-      users.put(number.getKey(), number.getValue());
-    }
-  }
-
-  public int getMemberCount() {
-    return users.size();
-  }
-
-  public Set<String> getGroupNumbers() {
-    Set<String> set = new HashSet<>();
-    for (Map.Entry<String, String> user : users.entrySet()) {
-      set.add(user.getValue());
-    }
-    return set;
   }
 
   public String getEncodedId() {

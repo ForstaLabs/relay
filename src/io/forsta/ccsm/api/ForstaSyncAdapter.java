@@ -6,6 +6,7 @@ import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.PeriodicSync;
 import android.content.SyncResult;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -13,6 +14,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.R;
