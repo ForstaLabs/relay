@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,13 @@ public class GroupDatabase extends Database {
 
   public Cursor getForstaGroups() {
     return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
+  }
+
+  public Set<String> getGroupMembers(byte[] groupId) {
+    Set<String> numbers = new HashSet<>();
+    List<String>    members     = getCurrentMembers(groupId);
+    numbers.addAll(members);
+    return numbers;
   }
 
   public @NonNull

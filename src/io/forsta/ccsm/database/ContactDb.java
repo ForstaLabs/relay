@@ -98,7 +98,6 @@ public class ContactDb extends DbBase {
 
   public Map<String, String> getUids() {
     Map<String, String> ids = new HashMap<>();
-//    List<String> ids = new ArrayList<>();
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
@@ -129,8 +128,8 @@ public class ContactDb extends DbBase {
   public void updateUsers(List<ForstaUser> users) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Set<String> forstaUids = new HashSet<>();
-
     Map<String, String> uids = getUids();
+
     db.beginTransaction();
     try {
       for (ForstaUser user : users) {
@@ -142,15 +141,13 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
-        Cursor cursor = db.query(TABLE_NAME, null, UID + "=?", new String[] { user.uid }, null, null, null, null);
-        if (cursor != null && cursor.moveToNext()) {
-          String id = cursor.getString(cursor.getColumnIndex(ID));
+        if (uids.containsKey(user.uid)) {
+          String id = uids.get(user.uid);
           db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
         } else {
           db.insert(TABLE_NAME, null, values);
         }
         uids.remove(user.uid);
-        cursor.close();
       }
       db.setTransactionSuccessful();
     }

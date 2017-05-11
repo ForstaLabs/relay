@@ -325,6 +325,7 @@ public class CcsmApi {
   }
 
   public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+    // Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
     try {
       JSONObject jsonObject = getTags(context);
       List<ForstaGroup> groups = parseTagGroups(jsonObject);
@@ -334,6 +335,7 @@ public class CcsmApi {
       TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
       List<String> activeNumbers = dir.getActiveNumbers();
 
+      // Batch all of these transactions.
       for (ForstaGroup group : groups) {
         String id = group.getEncodedId();
         List<String> groupNumbers = new ArrayList<>(group.members);
@@ -345,6 +347,7 @@ public class CcsmApi {
           if (!groupIds.contains(id)) {
             GroupManager.createForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
           } else {
+            // This is doing an update even if nothing has changed.
             GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
           }
           groupIds.remove(id);
