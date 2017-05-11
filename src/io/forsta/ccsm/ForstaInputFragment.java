@@ -174,22 +174,38 @@ public class ForstaInputFragment extends Fragment {
     });
   }
 
-  private void sendGroupMessage(String message, Set<String> numbers, String title) {
+  private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
     // Need to check here to see if these numbers are already part of an existing group.
     //
     //
-    try {
-      Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(getActivity(), new ArrayList<String>(numbers), false);
-      List<Recipient> validRecipients = messageRecipients.getRecipientsList();
-      GroupManager.GroupActionResult result = GroupManager.createGroup(getActivity(), masterSecret,  new HashSet<>(validRecipients), null, title);
-      Recipients groupRecipient = result.getGroupRecipient();
-      sendMessage(message, groupRecipient);
-    } catch (InvalidNumberException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      Log.d(TAG, "sendGroupMessage failed");
-      e.printStackTrace();
-    }
+    new AsyncTask<Set<String>, Void, Recipients>() {
+
+      @Override
+      protected Recipients doInBackground(Set<String>... numbers) {
+        try {
+          return RecipientFactory.getRecipientsFromStrings(getActivity(), new ArrayList<String>(numbers[0]), false);
+        } catch (Exception e) {
+          Log.d(TAG, "sendGroupMessage failed");
+          e.printStackTrace();
+        }
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(Recipients recipients) {
+        if (recipients != null) {
+
+          try {
+            List<Recipient> validRecipients = recipients.getRecipientsList();
+            GroupManager.GroupActionResult result = GroupManager.createGroup(getActivity(), masterSecret,  new HashSet<>(validRecipients), null, title);
+            Recipients groupRecipient = result.getGroupRecipient();
+            sendMessage(message, groupRecipient);
+          } catch (InvalidNumberException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }.execute(numbers);
   }
 
   private void sendMessage(String message, Recipients messageRecipients) {
