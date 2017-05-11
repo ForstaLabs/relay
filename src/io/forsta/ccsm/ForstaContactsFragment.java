@@ -203,6 +203,7 @@ public class ForstaContactsFragment extends Fragment {
       ForstaUser item = contacts.get(position);
       holder.name.setText(item.getName());
       holder.number.setText(item.phone);
+      holder.slug.setText(item.username);
       holder.registered.setVisibility(item.tsRegistered ? View.VISIBLE : View.GONE);
     }
 
@@ -215,12 +216,14 @@ public class ForstaContactsFragment extends Fragment {
   private class ContactHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TextView number;
+    public TextView slug;
     public ImageView registered;
 
     public ContactHolder(View itemView) {
       super(itemView);
       name = (TextView) itemView.findViewById(R.id.forsta_contact_name);
       number = (TextView) itemView.findViewById(R.id.forsta_contact_number);
+      slug = (TextView) itemView.findViewById(R.id.forsta_contact_slug);
       registered = (ImageView) itemView.findViewById(R.id.forsta_contact_registered);
       registered.setOnClickListener(new View.OnClickListener() {
         @Override

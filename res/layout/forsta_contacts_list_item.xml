@@ -11,6 +11,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="An Item"/>
+        <TextView android:id="@+id/forsta_contact_slug"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="An Item"/>
         <TextView android:id="@+id/forsta_contact_number"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
