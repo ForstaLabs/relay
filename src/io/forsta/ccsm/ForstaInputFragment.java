@@ -186,6 +186,9 @@ public class ForstaInputFragment extends Fragment {
       sendMessage(message, groupRecipient);
     } catch (InvalidNumberException e) {
       e.printStackTrace();
+    } catch (Exception e) {
+      Log.d(TAG, "sendGroupMessage failed");
+      e.printStackTrace();
     }
   }
 
