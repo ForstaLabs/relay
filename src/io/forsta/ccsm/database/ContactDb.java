@@ -71,7 +71,7 @@ public class ContactDb extends DbBase {
   public HashMap<String, String> getContactSlugs() {
     HashMap<String, String> contacts = new HashMap<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, USERNAME);
+      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
         contacts.put(c.getString(c.getColumnIndex(USERNAME)), c.getString(c.getColumnIndex(NUMBER)));
       }

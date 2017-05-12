@@ -1,10 +1,13 @@
 package io.forsta.ccsm;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -12,7 +15,11 @@ import android.util.StringBuilderPrinter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +36,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.forsta.ccsm.api.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;
@@ -67,6 +75,7 @@ public class ForstaInputFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     this.masterSecret = getArguments().getParcelable("master_secret");
+    getSlugs();
   }
 
   @Nullable
@@ -77,8 +86,6 @@ public class ForstaInputFragment extends Fragment {
     directoryButton = (ImageButton) view.findViewById(R.id.forsta_quick_directory);
     recipientCount = (TextView) view.findViewById(R.id.forsta_input_recipients);
     messageInput = (ComposeText) view.findViewById(R.id.embedded_text_editor);
-
-    getSlugs();
 
     initializeListeners();
     return view;
@@ -139,7 +146,42 @@ public class ForstaInputFragment extends Fragment {
       public void onClick(View view) {
 //        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
 //        startActivityForResult(intent, DIRECTORY_PICK);
-        Dialo
+        Set<String> options = slugMap.keySet();
+
+        CharSequence[] selectChoices = options.toArray(new CharSequence[options.size()]);
+        final List<Integer> chosenSlugs = new ArrayList();
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Choose a recipient");
+        builder.setMultiChoiceItems(selectChoices, null, new DialogInterface.OnMultiChoiceClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+            if (b) {
+              chosenSlugs.add(i);
+            } else if (chosenSlugs.contains(i)) {
+              chosenSlugs.remove(chosenSlugs.indexOf(i));
+            }
+          }
+        });
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            StringBuilder slugs = new StringBuilder();
+            for (Integer slug : chosenSlugs) {
+              slugs.append("@").append(slugMap.keySet().toArray()[slug]).append(" ");
+            }
+            messageInput.append(slugs);
+            messageInput.setSelection(messageInput.getText().length());
+          }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            dialogInterface.dismiss();
+          }
+        });
+        builder.show();
       }
     });
 
@@ -164,7 +206,7 @@ public class ForstaInputFragment extends Fragment {
           }
         }
         recipients = matched;
-        recipientCount.setText(recipients.size());
+        recipientCount.setText("" + recipients.size());
         Log.d(TAG, "Recipients: " + recipients.size());
       }
 
