@@ -194,7 +194,6 @@ public class ForstaInputFragment extends Fragment {
       @Override
       protected void onPostExecute(Recipients recipients) {
         if (recipients != null) {
-
           try {
             List<Recipient> validRecipients = recipients.getRecipientsList();
             GroupManager.GroupActionResult result = GroupManager.createGroup(getActivity(), masterSecret,  new HashSet<>(validRecipients), null, title);
@@ -209,7 +208,6 @@ public class ForstaInputFragment extends Fragment {
   }
 
   private void sendMessage(String message, Recipients messageRecipients) {
-//    Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(getActivity(), numbers, false);
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
     OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, message, new LinkedList<Attachment>(), System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);

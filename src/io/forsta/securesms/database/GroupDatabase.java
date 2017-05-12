@@ -267,7 +267,8 @@ public class GroupDatabase extends Database {
     try {
 
       for (String id : groupIds) {
-        db.delete(TABLE_NAME, GROUP_ID + "=?", new String[] {id});
+        // Don't delete locally created groups.
+        db.delete(TABLE_NAME, GROUP_ID + "=? AND " + SLUG + " IS NOT NULL", new String[] {id});
       }
       db.setTransactionSuccessful();
     } finally {

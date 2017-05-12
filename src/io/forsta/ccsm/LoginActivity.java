@@ -192,9 +192,6 @@ public class LoginActivity extends BaseActionBarActivity {
       nextIntent = new Intent(LoginActivity.this, ConversationListActivity.class);
     }
 
-    Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
-    ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
-
     startActivity(nextIntent);
     finish();
   }

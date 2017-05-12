@@ -98,6 +98,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     forstaOrg = (TextView) findViewById(R.id.forsta_org_name);
     forstaOrg.setText(ForstaPreferences.getForstaOrgName(this));
 
+    if (ForstaPreferences.getForstaContactSync(this) == -1) {
+      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+      ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
+    }
+
     Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
 
     initializeContactUpdatesReceiver();
