@@ -89,22 +89,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    forstaOrg = (TextView) findViewById(R.id.forsta_org_name);
+    forstaOrg.setText(ForstaPreferences.getForstaOrgName(this));
 
     if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
       RefreshToken refreshToken = new RefreshToken();
       refreshToken.execute();
     }
 
-    forstaOrg = (TextView) findViewById(R.id.forsta_org_name);
-    forstaOrg.setText(ForstaPreferences.getForstaOrgName(this));
-
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
-
-    Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
-    List<PeriodicSync> syncs = ContentResolver.getPeriodicSyncs(account, ForstaSyncAdapter.AUTHORITY);
 
     initializeContactUpdatesReceiver();
 

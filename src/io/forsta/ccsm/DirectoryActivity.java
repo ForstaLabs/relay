@@ -11,9 +11,11 @@ import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.Date;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
@@ -30,6 +32,7 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
 
   private MasterSecret mMasterSecret;
   private MasterCipher mMasterCipher;
+  private TextView lastSync;
   private Button mRefresh;
   private Button mClear;
   private ForstaContactsFragment contactsFragment;
@@ -40,6 +43,10 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
     mMasterCipher = new MasterCipher(mMasterSecret);
     setContentView(R.layout.activity_directory);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
+    lastSync = (TextView) findViewById(R.id.forsta_directory_sync);
+    long syncTime = ForstaPreferences.getForstaContactSync(getApplicationContext());
+    Date dt = new Date(syncTime);
+    lastSync.setText("Last Sync: " + dt.toString());
 
     FragmentManager fm = getSupportFragmentManager();
     Fragment fragment = fm.findFragmentById(R.id.forsta_contacts_list);

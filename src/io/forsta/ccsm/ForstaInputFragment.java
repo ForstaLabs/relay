@@ -56,7 +56,7 @@ public class ForstaInputFragment extends Fragment {
   private ImageButton directoryButton;
   private ImageButton sendButton;
   private ComposeText messageInput;
-  private TextView messageType;
+  private TextView recipientCount;
   private Map<String, String> recipients = new HashMap<>();
   private Map<String, String> slugMap = new HashMap<>();
   private static final int DIRECTORY_PICK = 13;
@@ -75,7 +75,7 @@ public class ForstaInputFragment extends Fragment {
     final View view = inflater.inflate(R.layout.forsta_input_fragment, container, false);
     sendButton = (ImageButton) view.findViewById(R.id.forsta_send_button);
     directoryButton = (ImageButton) view.findViewById(R.id.forsta_quick_directory);
-    messageType = (TextView) view.findViewById(R.id.forsta_input_type);
+    recipientCount = (TextView) view.findViewById(R.id.forsta_input_recipients);
     messageInput = (ComposeText) view.findViewById(R.id.embedded_text_editor);
 
     getSlugs();
@@ -137,8 +137,9 @@ public class ForstaInputFragment extends Fragment {
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
-        startActivityForResult(intent, DIRECTORY_PICK);
+//        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
+//        startActivityForResult(intent, DIRECTORY_PICK);
+        Dialo
       }
     });
 
@@ -163,7 +164,7 @@ public class ForstaInputFragment extends Fragment {
           }
         }
         recipients = matched;
-        messageType.setText(recipients.values().toString());
+        recipientCount.setText(recipients.size());
         Log.d(TAG, "Recipients: " + recipients.size());
       }
 
@@ -220,9 +221,13 @@ public class ForstaInputFragment extends Fragment {
 
       @Override
       protected Void doInBackground(OutgoingMediaMessage... params) {
-        // This will create a threadId if there is not one already.
-        final long threadId = DatabaseFactory.getThreadDatabase(getActivity()).getThreadIdFor(params[0].getRecipients());
-        MessageSender.send(getActivity(), masterSecret, params[0], threadId, false);
+        try {
+          // This will create a threadId if there is not one already.
+          final long threadId = DatabaseFactory.getThreadDatabase(getActivity()).getThreadIdFor(params[0].getRecipients());
+          MessageSender.send(getActivity(), masterSecret, params[0], threadId, false);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         return null;
       }
     }.execute(mediaMessage);
