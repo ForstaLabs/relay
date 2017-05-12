@@ -104,6 +104,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
 
     Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+    List<PeriodicSync> syncs = ContentResolver.getPeriodicSyncs(account, ForstaSyncAdapter.AUTHORITY);
 
     initializeContactUpdatesReceiver();
 
