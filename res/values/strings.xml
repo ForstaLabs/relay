@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Forsta Relay v4.c [DEV]</string>
+    <string name="app_name">Forsta</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="delete">Delete</string>
     <string name="please_wait">Please wait...</string>
 
+    <!-- Forsta Strings -->
+    <string name="forsta_login_title">Join Forsta</string>
+    <string name="forsta_login_username_label">Username</string>
+    <string name="forsta_login_password_label">Password</string>
+    <string name="forsta_login_org_label">Organization</string>
+    <string name="forsta_login_security_code_label">Enter your security code.</string>
+    <string name="forsta_login_send_link_button">Send Verify Link</string>
+    <string name="forsta_login_login_button">Login</string>
+    <string name="forsta_login_verify_token_button">Verify Token</string>
+    <string name="forsta_login_tryagain_button">Try Again</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 
@@ -715,7 +725,7 @@
     <!-- expiration -->
 
     <string name="expiration_off">Off</string>
-    
+
     <plurals name="expiration_seconds">
         <item quantity="one">1 second</item>
         <item quantity="other">%d seconds</item>
@@ -921,7 +931,7 @@
     <!-- verify_display_fragment -->
     <string name="verify_display_fragment__scan_the_code_on_your_contact_s_phone_or_ask_them_to_scan_your_code_to_verify_that_your_messages_are_end_to_end_encrypted_you_can_alternately_compare_the_number_above">If you wish to verify the security of your end-to-end encryption with %s, compare the numbers above with the numbers on their device. Alternately, you can scan the code on their phone, or ask them to scan your code.</string>
     <string name="verify_display_fragment__tap_to_scan">Tap to scan</string>
-    
+
     <!-- message_details_header -->
     <string name="message_details_header__issues_need_your_attention">Some issues need your attention.</string>
     <string name="message_details_header__sent">Sent</string>
@@ -1243,6 +1253,7 @@
 
     <!-- transport_selection_list_item -->
     <string name="transport_selection_list_item__transport_icon">Transport icon</string>
+    <string name="title_activity_login">Login To Forsta</string>
 
 
     <!-- EOF -->

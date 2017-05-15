@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_dashboard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="io.forsta.ccsm.DashboardActivity">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="13dp"
+        android:paddingTop="0dp">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Sync Messages"
+            android:id="@+id/dashboard_toggle_sync_messages"/>
+        <TextView android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/dashboard_login_info"
+            android:textSize="10sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Development Dashboard Options"
+            android:layout_marginTop="10dp"/>
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/dashboard_selector"
+            android:spinnerMode="dialog"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="30dp"
+            android:id="@+id/dashboard_change_number_container">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Forsta Sync Number:"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:ems="10"
+                android:id="@+id/dashboard_sync_number"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <Button android:id="@+id/dashboard_change_number_button"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:text="Save"
+                        style="@style/Widget.AppCompat.Button.Small"
+                    android:layout_marginRight="10dp"/>
+                <Button android:id="@+id/dashboard_reset_number_button"
+                        android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:text="Reset"
+                        style="@style/Widget.AppCompat.Button.Small"/>
+            </LinearLayout>
+
+        </LinearLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:id="@+id/dashboard_scrollview"
+            android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/debug_text" />
+        </ScrollView>
+    </LinearLayout>
+</RelativeLayout>
