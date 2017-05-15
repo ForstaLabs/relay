@@ -309,6 +309,14 @@ public class ConversationListFragment extends Fragment
     ((ConversationSelectedListener)getActivity()).onCreateConversation(threadId, recipients, distributionType);
   }
 
+  public void showNewMessageFab(boolean visible) {
+    if (visible) {
+      fab.setVisibility(View.VISIBLE);
+    } else {
+      fab.setVisibility(View.GONE);
+    }
+  }
+
   @Override
   public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
     return new ConversationListLoader(getActivity(), queryFilter, archive);
