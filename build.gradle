@@ -161,7 +161,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "1.0.8"
+        versionName "1.0.9"
         versionCode 107
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
