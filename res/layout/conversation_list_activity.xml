@@ -3,27 +3,24 @@
     android:layout_width="match_parent" android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
-        <TextView android:id="@+id/forsta_org_name"
-                  android:textAllCaps="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="5dp"
-            android:text=""
-            android:textAlignment="center" />
-
-        <LinearLayout android:id="@+id/forsta_input_panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
 
         <FrameLayout android:id="@+id/forsta_conversation_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1"
+             android:layout_marginTop="10dp">
         </FrameLayout>
+
+        <LinearLayout android:id="@+id/forsta_input_panel"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="vertical"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="10dp">
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -38,11 +35,13 @@
             android:layout_height="wrap_content"
             android:background="@color/forsta_accent4"
             android:padding="10dp">
-            <TextView android:id="@+id/drawer_header_title"
+            <TextView android:id="@+id/forsta_org_name"
+                      android:textAllCaps="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                  android:textAlignment="center"
                 android:textColor="@color/forsta_primary"
-                android:text="Current User"/>
+                android:text="Organzation"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"

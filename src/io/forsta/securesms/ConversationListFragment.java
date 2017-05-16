@@ -122,7 +122,10 @@ public class ConversationListFragment extends Fragment
     });
 
     list.setHasFixedSize(true);
-    list.setLayoutManager(new LinearLayoutManager(getActivity()));
+    LinearLayoutManager lm = new LinearLayoutManager(getActivity());
+    lm.setStackFromEnd(true);
+    list.setLayoutManager(lm);
+//    list.setLayoutManager(new LinearLayoutManager(getActivity()));
 
     new ItemTouchHelper(new ArchiveListenerCallback()).attachToRecyclerView(list);
 
