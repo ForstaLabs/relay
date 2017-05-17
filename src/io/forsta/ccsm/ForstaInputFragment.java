@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import io.forsta.ccsm.api.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.securesms.NewConversationActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.components.ComposeText;
@@ -63,6 +64,7 @@ public class ForstaInputFragment extends Fragment {
 
   private ImageButton directoryButton;
   private ImageButton sendButton;
+  private ImageButton newConversationButton;
   private ComposeText messageInput;
   private TextView recipientCount;
   private Map<String, String> recipients = new HashMap<>();
@@ -84,6 +86,7 @@ public class ForstaInputFragment extends Fragment {
     final View view = inflater.inflate(R.layout.forsta_input_fragment, container, false);
     sendButton = (ImageButton) view.findViewById(R.id.forsta_send_button);
     directoryButton = (ImageButton) view.findViewById(R.id.forsta_quick_directory);
+    newConversationButton = (ImageButton) view.findViewById(R.id.forsta_single_recipient);
     recipientCount = (TextView) view.findViewById(R.id.forsta_input_recipients);
     messageInput = (ComposeText) view.findViewById(R.id.embedded_text_editor);
 
@@ -182,6 +185,13 @@ public class ForstaInputFragment extends Fragment {
           }
         });
         builder.show();
+      }
+    });
+
+    newConversationButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        startActivity(new Intent(getActivity(), NewConversationActivity.class));
       }
     });
 

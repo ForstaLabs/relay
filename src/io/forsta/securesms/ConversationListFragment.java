@@ -114,6 +114,8 @@ public class ConversationListFragment extends Fragment
     if (archive) fab.setVisibility(View.GONE);
     else         fab.setVisibility(View.VISIBLE);
 
+    fab.setVisibility(View.GONE);
+
     reminderView.setOnDismissListener(new ReminderView.OnDismissListener() {
       @Override
       public void onDismiss() {
