@@ -17,18 +17,12 @@
 package io.forsta.securesms;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.annotation.TargetApi;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.PeriodicSync;
-import android.content.SyncInfo;
-import android.content.SyncRequest;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -42,7 +36,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONObject;
-import java.util.List;
 
 import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.ForstaInputFragment;
@@ -91,11 +84,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     inputFragment = initFragment(R.id.forsta_input_panel, new ForstaInputFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     forstaOrg = (TextView) findViewById(R.id.forsta_org_name);
     forstaOrg.setText(ForstaPreferences.getForstaOrgName(this));
-
-    if (CcsmApi.tokenNeedsRefresh(ConversationListActivity.this)) {
-      RefreshToken refreshToken = new RefreshToken();
-      refreshToken.execute();
-    }
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
@@ -282,18 +270,5 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI,
                                                  true, observer);
-  }
-
-  private class RefreshToken extends AsyncTask<Void, Void, JSONObject> {
-
-    @Override
-    protected JSONObject doInBackground(Void... params) {
-      return CcsmApi.forstaRefreshToken(getApplicationContext());
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject jsonObject) {
-      // Notify UI that something has happened?
-    }
   }
 }

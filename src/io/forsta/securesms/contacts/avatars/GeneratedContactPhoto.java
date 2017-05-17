@@ -37,12 +37,26 @@ public class GeneratedContactPhoto implements ContactPhoto {
   }
 
   private String getCharacter(String name) {
+    String first = "";
+    String last = "";
+    String initials = "";
+    String[] splitName = name.split(" ");
+    if (splitName.length > 0) {
+      first = splitName[0];
+      initials = String.valueOf(first.charAt(0));
+    }
+    if (splitName.length > 1) {
+      last = splitName[splitName.length - 1];
+      initials += String.valueOf(last.charAt(0));
+    }
+
     String cleanedName = name.replaceFirst("[^\\p{L}\\p{Nd}\\p{P}\\p{S}]+", "");
 
     if (cleanedName.isEmpty()) {
       return "#";
     } else {
-      return String.valueOf(cleanedName.charAt(0));
+     return initials;
+//      return String.valueOf(cleanedName.charAt(0));
     }
   }
 
