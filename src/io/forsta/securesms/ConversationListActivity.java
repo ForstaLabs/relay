@@ -41,9 +41,13 @@ import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.ForstaInputFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
+import io.forsta.securesms.components.AttachmentTypeSelector;
+import io.forsta.securesms.components.KeyboardAwareLinearLayout;
 import io.forsta.securesms.components.RatingManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.mms.AttachmentManager;
+import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -53,6 +57,7 @@ import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener
@@ -67,6 +72,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private ForstaInputFragment inputFragment;
   private ContentObserver observer;
   private MasterSecret masterSecret;
+
 
   @Override
   protected void onPreCreate() {
@@ -116,7 +122,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     inflater.inflate(R.menu.text_secure_normal, menu);
 
-//    menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
+    menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
 
     inflater.inflate(R.menu.conversation_list, menu);
     MenuItem menuItem = menu.findItem(R.id.menu_search);
@@ -168,9 +174,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-//    case R.id.menu_new_group:         createGroup();           return true;
+    case R.id.menu_new_group:         createGroup();           return true;
     case R.id.menu_settings:          handleDisplaySettings(); return true;
-//    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
+    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
     case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
     case R.id.menu_import_export:     handleImportExport();    return true;
 //    case R.id.menu_invite:            handleInvite();          return true;
