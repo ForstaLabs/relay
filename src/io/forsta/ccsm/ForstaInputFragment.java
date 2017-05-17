@@ -77,7 +77,6 @@ public class ForstaInputFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     this.masterSecret = getArguments().getParcelable("master_secret");
-    getSlugs();
   }
 
   @Nullable
@@ -92,6 +91,12 @@ public class ForstaInputFragment extends Fragment {
 
     initializeListeners();
     return view;
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    getSlugs();
   }
 
   private void getSlugs() {
