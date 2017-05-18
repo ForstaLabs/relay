@@ -51,6 +51,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -398,7 +399,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       public void onClick(View view) {
 //        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
 //        startActivityForResult(intent, DIRECTORY_PICK);
-        Set<String> options = slugMap.keySet();
+        List<String> options = new ArrayList<String>(slugMap.keySet());
+        Collections.sort(options);
 
         CharSequence[] selectChoices = options.toArray(new CharSequence[options.size()]);
         final List<Integer> chosenSlugs = new ArrayList();
