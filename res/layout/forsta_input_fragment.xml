@@ -114,16 +114,6 @@
                         android:contentDescription="@string/ConversationActivity_add_attachment"
                         android:nextFocusLeft="@+id/embedded_text_editor" />
 
-                    <ImageButton
-                        android:id="@+id/quick_camera_toggle"
-                        android:layout_width="37dp"
-                        android:layout_height="37dp"
-                        android:layout_gravity="bottom"
-                        android:src="?quick_camera_icon"
-                        android:background="@drawable/touch_highlight_background"
-                        android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
-                        android:padding="10dp"/>
-
                     <io.forsta.securesms.components.MicrophoneRecorderView
                         android:id="@+id/recorder_view"
                         android:layout_width="37dp"
