@@ -62,7 +62,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.forsta.ccsm.DirectoryActivity;
-import io.forsta.ccsm.ForstaInputFragment;
+import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
@@ -102,7 +102,6 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.ccsm.DashboardActivity;
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -126,6 +125,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private Map<String, String> forstaRecipients = new HashMap<>();
   private Map<String, String> slugMap = new HashMap<>();
   private ConversationListFragment fragment;
+  private DrawerFragment drawerFragment;
   private ContentObserver observer;
   private MasterSecret masterSecret;
 
@@ -138,25 +138,27 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private static final int ADD_CONTACT       = 7;
   private static final int PICK_LOCATION     = 8;
 
+  // TODO implement receivers.
   private BroadcastReceiver securityUpdateReceiver;
   private BroadcastReceiver recipientsStaleReceiver;
 
   protected ComposeText composeText;
-  private AnimatingToggle buttonToggle;
   private ImageButton sendButton;
   private ImageButton attachButton;
   private TextView charactersLeft;
-  private Button unblockButton;
   private InputAwareLayout container;
   private View composePanel;
+  // TODO decide on use of Reminders.
   protected ReminderView reminderView;
   private EmojiDrawer emojiDrawer;
   private InputPanel inputPanel;
 
   private AttachmentTypeSelector attachmentTypeSelector;
   private AttachmentManager attachmentManager;
+  // TODO audioRecorder does not seem to be
   private AudioRecorder audioRecorder;
 
+  // TODO use these or remove them. These are copy pasta from ConversationActivity.
   private Recipients recipients;
   private long threadId;
   private int distributionType;
@@ -178,6 +180,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
@@ -189,6 +192,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     initializeContactUpdatesReceiver();
 
     DirectoryRefreshListener.schedule(this);
+    // TODO decide on use of the rating manager
 //    RatingManager.showRatingDialogIfNecessary(this);
   }
 

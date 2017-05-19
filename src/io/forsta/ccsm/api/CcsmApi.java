@@ -2,14 +2,11 @@ package io.forsta.ccsm.api;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -24,17 +21,13 @@ import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.R;
-import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -46,7 +39,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
-import io.forsta.util.NetworkUtils;
+import io.forsta.ccsm.util.NetworkUtils;
 
 /**
  * Created by jlewis on 1/18/17.
@@ -65,7 +58,8 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = API_URL + "/v1/login/send/";
   private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
-  // Remove these. It is already in ContactsDatabase. Needs to move when contact methods are moved.
+
+  // TODO Remove these. It is already in ContactsDatabase. Needs to move when contact methods are moved.
   private static final String SYNC = "__TS";
   private static final String CONTACT_MIMETYPE = "vnd.android.cursor.item/vnd.io.forsta.securesms.contact";
   private static final long CONTACT_SYNC_INTERVAL = 1000l * 60 * 60 * 12;
@@ -109,6 +103,7 @@ public class CcsmApi {
     return result;
   }
 
+  // TODO Is there a reason to ever refresh the token.
   public static boolean tokenNeedsRefresh(Context context) {
     Date expireDate = ForstaPreferences.getTokenExpireDate(context);
     if (expireDate == null) {
@@ -151,7 +146,7 @@ public class CcsmApi {
     return result;
   }
 
-  // These should all be private. They are exposed right now
+  // TODO These should all be private. They are exposed right now
   public static JSONObject getForstaOrg(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
@@ -177,7 +172,7 @@ public class CcsmApi {
 
   public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
     List<ForstaUser> users = new ArrayList<>();
-    // Temporary to remove duplicates returning from API
+    // TODO Temporary to remove duplicates returning from API
     Set<String> forstaUids = new HashSet<>();
 
     try {
@@ -209,7 +204,7 @@ public class CcsmApi {
       for (int i = 0; i < results.length(); i++) {
         JSONObject result = results.getJSONObject(i);
         JSONArray users = result.getJSONArray("users");
-        // Right now, not getting groups with no members. Leaves only.
+        // TODO Right now, not getting groups with no members. Leaves only.
         Set<String> members = new HashSet<>();
         boolean isGroup = false;
         for (int j = 0; j < users.length(); j++) {
@@ -299,7 +294,8 @@ public class CcsmApi {
           // Create contact if it doesn't exist, but don't try to update.
           if (!systemContacts.contains(e164number)) {
             createForstaPhoneContact(context, ops, account.get(), e164number, user.name);
-          } // else updateContact(context, ops, account.get(), e164number, user.name)
+          } // TODO Update system contacts?
+            // else updateContact(context, ops, account.get(), e164number, user.name)
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
@@ -325,7 +321,7 @@ public class CcsmApi {
   }
 
   public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
-    // Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
+    // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
     try {
       JSONObject jsonObject = getTags(context);
       List<ForstaGroup> groups = parseTagGroups(jsonObject);
@@ -342,7 +338,7 @@ public class CcsmApi {
         Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
-        // For now. No groups are created unless you are a member and the group has more than one other member.
+        // TODO For now. No groups are created unless you are a member and the group has more than one other member.
         if (members.size() > 1 && groupNumbers.contains(thisNumber)) {
           if (!groupIds.contains(id)) {
             GroupManager.createForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
@@ -364,6 +360,7 @@ public class CcsmApi {
     }
   }
 
+  // This code is obsolete. Contacts are refreshed by the SyncAdapater services.
   public static boolean refreshContacts(Context context, MasterSecret masterSecret) {
     long lastSync = ForstaPreferences.getForstaContactSync(context);
     if (lastSync != -1) {
@@ -376,7 +373,7 @@ public class CcsmApi {
     return true;
   }
 
-  // These can be moved to the ContactsDatabase after testing.
+  // TODO These can be moved to the ContactsDatabase after testing.
   private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name) {
     ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
         .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
@@ -442,6 +439,7 @@ public class CcsmApi {
         .build());
   }
 
+  // This code is obsolete, but could be used to create generic contact database entries for non TSS registered users.
   private static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
     int index = ops.size();
 

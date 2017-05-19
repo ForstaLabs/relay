@@ -19,6 +19,8 @@ import io.forsta.securesms.util.DirectoryHelper;
 /**
  * Created by jlewis
  */
+
+//TODO remove this code. This has been replaced by the SyncAdapter services.
 public class ForstaContactsSyncIntentService extends IntentService {
 
   private static final int SYNC_INTERVAL = 1000 * 60 * 60 * 4; // Four hours

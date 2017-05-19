@@ -66,6 +66,7 @@ public class LoginActivity extends BaseActionBarActivity {
     super.onResume();
     mSendTokenOrg.setText(ForstaPreferences.getForstaOrgName(this));
     mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this));
+    // TODO we can listen for SMS messages and respond, without the user having to type in the authemtication code manually.
     // handleBroadcastIntent();
     if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
       showVerifyForm();

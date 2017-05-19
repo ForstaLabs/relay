@@ -72,35 +72,15 @@
     </io.forsta.securesms.components.InputAwareLayout>
 
     <LinearLayout
+        android:id="@+id/left_drawer"
         android:layout_width="250dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_gravity="start"
-        android:id="@+id/left_drawer"
-        android:background="@color/forsta_primary">
-        <LinearLayout
+        android:background="@color/forsta_primary"
+        android:orientation="vertical">
+        <FrameLayout
+            android:id="@+id/forsta_drawer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/forsta_accent4"
-            android:padding="10dp">
-            <TextView
-                android:id="@+id/forsta_org_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Organzation"
-                android:textAlignment="center"
-                android:textAllCaps="true"
-                android:textColor="@color/forsta_primary"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="10dp"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="CONVERSATIONS"/>
-        </LinearLayout>
+            android:layout_height="match_parent" />
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout>

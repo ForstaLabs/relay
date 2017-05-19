@@ -68,6 +68,8 @@ import java.util.Map;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.GroupUtil;
 
+
+// TODO Remove all of this code for production release. This is for discovery and debug use.
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private static final String TAG = DashboardActivity.class.getSimpleName();
   private TextView mDebugText;
