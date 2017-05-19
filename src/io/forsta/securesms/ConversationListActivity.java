@@ -39,14 +39,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 
-import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
@@ -54,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,21 +61,16 @@ import java.util.regex.Pattern;
 import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.audio.AudioRecorder;
-import io.forsta.securesms.components.AnimatingToggle;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
-import io.forsta.securesms.components.HidingLinearLayout;
 import io.forsta.securesms.components.InputAwareLayout;
 import io.forsta.securesms.components.InputPanel;
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
-import io.forsta.securesms.components.RatingManager;
-import io.forsta.securesms.components.SendButton;
-import io.forsta.securesms.components.camera.QuickAttachmentDrawer;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.location.SignalPlace;
 import io.forsta.securesms.components.reminder.ReminderView;
@@ -105,7 +97,6 @@ import io.forsta.ccsm.DashboardActivity;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.ViewUtil;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener,
@@ -124,6 +115,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private TextView recipientCount;
   private Map<String, String> forstaRecipients = new HashMap<>();
   private Map<String, String> slugMap = new HashMap<>();
+  private List<ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
   private ContentObserver observer;
@@ -410,7 +402,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         final List<Integer> chosenSlugs = new ArrayList();
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(ConversationListActivity.this);
-        builder.setTitle("Choose a recipient");
+        builder.setTitle("Choose recipients");
         builder.setMultiChoiceItems(selectChoices, null, new DialogInterface.OnMultiChoiceClickListener() {
 
           @Override
