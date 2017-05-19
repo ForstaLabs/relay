@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<org.thoughtcrime.securesms.ConversationItem
+<io.forsta.securesms.ConversationItem
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -19,7 +19,7 @@
                     android:layout_marginBottom="6dp"
                     android:layout_marginRight="0dp">
 
-        <org.thoughtcrime.securesms.components.AlertView
+        <io.forsta.securesms.components.AlertView
                 android:id="@+id/indicators_parent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
                       android:background="@drawable/sent_bubble"
                       android:orientation="vertical">
 
-            <org.thoughtcrime.securesms.components.ThumbnailView
+            <io.forsta.securesms.components.ThumbnailView
                     android:id="@+id/image_view"
                     android:layout_width="@dimen/media_bubble_height"
                     android:layout_height="@dimen/media_bubble_height"
@@ -51,14 +51,14 @@
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="visible" />
 
-            <org.thoughtcrime.securesms.components.AudioView
+            <io.forsta.securesms.components.AudioView
                     android:id="@+id/audio_view"
                     android:layout_width="210dp"
                     android:layout_height="wrap_content"
                     app:tintColor="@color/grey_500"
                     android:visibility="gone"/>
 
-            <org.thoughtcrime.securesms.components.emoji.EmojiTextView
+            <io.forsta.securesms.components.emoji.EmojiTextView
                     android:id="@+id/conversation_item_body"
                     android:autoLink="all"
                     android:layout_width="wrap_content"
@@ -147,14 +147,14 @@
                           tools:visibility="visible"
                           tools:text="to SIM1"/>
 
-                <org.thoughtcrime.securesms.components.DeliveryStatusView
+                <io.forsta.securesms.components.DeliveryStatusView
                         android:id="@+id/delivery_status"
                         android:layout_width="20dp"
                         android:layout_height="wrap_content"
                         android:alpha=".7"
                         app:iconColor="?conversation_item_sent_text_secondary_color"/>
 
-                <org.thoughtcrime.securesms.components.ExpirationTimerView
+                <io.forsta.securesms.components.ExpirationTimerView
                         android:id="@+id/expiration_indicator"
                         app:empty="@drawable/ic_hourglass_empty_white_18dp"
                         app:full="@drawable/ic_hourglass_full_white_18dp"
@@ -202,4 +202,4 @@
             android:visibility="gone" />
 
     </RelativeLayout>
-</org.thoughtcrime.securesms.ConversationItem>
+</io.forsta.securesms.ConversationItem>

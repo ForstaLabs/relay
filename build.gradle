@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.android.tools.build:gradle:2.3.1'
         classpath files('libs/gradle-witness.jar')
     }
 }
@@ -152,30 +152,35 @@ dependencyVerification {
     ]
 }
 
-
 android {
     compileSdkVersion 22
-    buildToolsVersion '24.0.2'
-
+    buildToolsVersion '25.0.0'
     dexOptions {
         javaMaxHeapSize "4g"
     }
-
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        applicationId "io.forsta.relay.v4"
+        versionName "1.0.9"
+        versionCode 109
+        applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
+//        buildConfigField "String", "TEXTSECURE_URL", "\"https://textsecure.forsta.services\""
         buildConfigField "String", "TEXTSECURE_URL", "\"http://forsta-relay-1307716308.us-west-2.elb.amazonaws.com\""
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "boolean", "DEV_BUILD", "true"
+        // Test: +12086391772, Dev: +17017328731, Stage: +17017328732, Prod: +17017328733
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+12086391772\""
+        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
+        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
+        multiDexEnabled true
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
-
     packagingOptions {
         exclude 'LICENSE.txt'
         exclude 'LICENSE'
@@ -184,11 +189,11 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
     signingConfigs {
-        release
-    }
+        release {
 
+        }
+    }
     buildTypes {
         debug {
             minifyEnabled true
@@ -225,7 +230,6 @@ android {
             zipAlignEnabled true
         }
     }
-
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -244,9 +248,12 @@ android {
             java.srcDirs = ['test/unitTest/java']
         }
     }
-
-     lintOptions {
+    lintOptions {
+        disable 'MissingTranslation'
+        disable 'ResourceType'
         abortOnError false
+    }
+    productFlavors {
     }
 }
 
@@ -271,14 +278,21 @@ def getLastCommitTimestamp() {
 def Properties props = new Properties()
 def propFile = new File('signing.properties')
 
-if (propFile.canRead()){
+if (System.getenv('STORE_FILE') && System.getenv('STORE_PASSWORD') && System.getenv('KEY_ALIAS') && System.getenv('KEY_PASSWORD')) {
+    println 'Environment variables found for signature'
+    android.signingConfigs.release.storeFile = file(System.getenv('STORE_FILE'))
+    android.signingConfigs.release.storePassword = System.getenv('STORE_PASSWORD')
+    android.signingConfigs.release.keyAlias = System.getenv('KEY_ALIAS')
+    android.signingConfigs.release.keyPassword = System.getenv('KEY_PASSWORD')
+} else if (propFile.canRead()) {
+    println 'Props file found for signature'
     props.load(new FileInputStream(propFile))
 
-    if (props !=null &&
-        props.containsKey('STORE_FILE')     &&
-        props.containsKey('STORE_PASSWORD') &&
-        props.containsKey('KEY_ALIAS')      &&
-        props.containsKey('KEY_PASSWORD'))
+    if (props != null &&
+            props.containsKey('STORE_FILE') &&
+            props.containsKey('STORE_PASSWORD') &&
+            props.containsKey('KEY_ALIAS') &&
+            props.containsKey('KEY_PASSWORD'))
     {
         android.signingConfigs.release.storeFile = file(props['STORE_FILE'])
         android.signingConfigs.release.storePassword = props['STORE_PASSWORD']
@@ -288,8 +302,7 @@ if (propFile.canRead()){
         println 'signing.properties found but some entries are missing'
         android.buildTypes.release.signingConfig = null
     }
-}else {
+} else {
     println 'signing.properties not found'
-    android.buildTypes.release.signingConfig = null
 }
 

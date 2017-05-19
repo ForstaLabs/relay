@@ -39,7 +39,7 @@
                       android:layout_width="match_parent"
                       android:layout_height="wrap_content"
                       android:minLines="2"
-                      tools:text="Let's switch to Signal: https://sgnl.link/asdfdfsa"
+                      tools:text="Let's switch to Forsta: "
                       android:background="@drawable/sent_bubble"
                       android:paddingTop="10dp"
                       android:paddingBottom="10dp"
@@ -84,7 +84,7 @@
                   android:orientation="vertical"
                   android:visibility="gone">
 
-        <org.thoughtcrime.securesms.components.ContactFilterToolbar
+        <io.forsta.securesms.components.ContactFilterToolbar
             android:id="@+id/contact_filter"
             android:layout_height="?attr/actionBarSize"
             android:layout_width="match_parent"
@@ -96,7 +96,7 @@
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
                   android:layout_weight="1"
-                  android:name="org.thoughtcrime.securesms.ContactSelectionListFragment"
+                  android:name="io.forsta.securesms.ContactSelectionListFragment"
                   tools:layout="@layout/contact_selection_list_fragment"/>
 
         <LinearLayout android:layout_width="match_parent"

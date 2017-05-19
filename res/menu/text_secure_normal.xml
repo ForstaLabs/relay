@@ -10,16 +10,22 @@
     <item android:title="@string/text_secure_normal__mark_all_as_read"
           android:id="@+id/menu_mark_all_read" />
 
-    <item android:title="@string/text_secure_normal__invite_friends"
-          android:id="@+id/menu_invite" />
+    <!--<item android:title="@string/text_secure_normal__invite_friends"-->
+          <!--android:id="@+id/menu_invite" />-->
 
     <item android:title="@string/arrays__import_export"
           android:id="@+id/menu_import_export" />
+
+    <item android:title="Directory"
+        android:id="@+id/menu_directory"/>
 
     <item android:title="@string/text_secure_normal__menu_settings"
           android:id="@+id/menu_settings" />
 
     <item android:title="@string/text_secure_normal__help"
           android:id="@+id/menu_help"/>
+
+    <item android:title="About"
+        android:id="@+id/menu_dashboard"/>
 
 </menu>

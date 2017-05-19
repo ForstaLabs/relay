@@ -19,13 +19,15 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent">
 
-   <org.thoughtcrime.redphone.ui.CallCard android:id="@+id/callCard"
-                                          android:layout_width="match_parent"
-                                          android:layout_height="match_parent"/>
+   <io.forsta.redphone.ui.CallCard
+       android:id="@+id/callCard"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"/>
 
-    <org.thoughtcrime.redphone.ui.CallControls android:id="@+id/callControls"
-                                               android:layout_width="match_parent"
-                                               android:layout_height="match_parent"
+    <io.forsta.redphone.ui.CallControls
+        android:id="@+id/callControls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
             />
 
 </FrameLayout>
