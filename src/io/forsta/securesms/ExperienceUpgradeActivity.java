@@ -34,7 +34,7 @@ public class ExperienceUpgradeActivity extends BaseActionBarActivity {
 
   private enum ExperienceUpgrade {
     SIGNAL_REBRANDING(157,
-                      new IntroPage(0xFF2090EA,
+                      new IntroPage(0xFFFFFFFF,
                                     BasicIntroFragment.newInstance(R.drawable.splash_logo,
                                                                    R.string.ExperienceUpgradeActivity_welcome_to_signal_dgaf,
                                                                    R.string.ExperienceUpgradeActivity_textsecure_is_now_called_signal)),
