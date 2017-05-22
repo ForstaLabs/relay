@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
@@ -59,6 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.forsta.ccsm.DirectoryActivity;
+import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.ForstaRecipient;
@@ -393,45 +395,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-//        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
-//        startActivityForResult(intent, DIRECTORY_PICK);
-        List<String> options = new ArrayList<String>(slugMap.keySet());
-        Collections.sort(options);
-
-        CharSequence[] selectChoices = options.toArray(new CharSequence[options.size()]);
-        final List<Integer> chosenSlugs = new ArrayList();
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(ConversationListActivity.this);
-        builder.setTitle("Choose recipients");
-        builder.setMultiChoiceItems(selectChoices, null, new DialogInterface.OnMultiChoiceClickListener() {
-
+        DirectoryDialogFragment fragment = new DirectoryDialogFragment();
+        fragment.show(getSupportFragmentManager(), "directoryDialog");
+        fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
           @Override
-          public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-            if (b) {
-              chosenSlugs.add(i);
-            } else if (chosenSlugs.contains(i)) {
-              chosenSlugs.remove(chosenSlugs.indexOf(i));
+          public void onComplete(Set<ForstaRecipient> recipients) {
+            StringBuilder sb = new StringBuilder();
+            for (ForstaRecipient recipient : recipients) {
+              sb.append("@").append(recipient.slug).append(" ");
             }
+            composeText.setText(sb.toString());
           }
         });
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            StringBuilder slugs = new StringBuilder();
-            for (Integer slug : chosenSlugs) {
-              slugs.append("@").append(slugMap.keySet().toArray()[slug]).append(" ");
-            }
-            composeText.append(slugs);
-            composeText.setSelection(composeText.getText().length());
-          }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            dialogInterface.dismiss();
-          }
-        });
-        builder.show();
       }
     });
 

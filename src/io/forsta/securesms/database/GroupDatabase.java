@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
+import io.forsta.ccsm.api.ForstaRecipient;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -25,6 +26,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPoin
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -161,6 +163,16 @@ public class GroupDatabase extends Database {
     }
     cursor.close();
     return groups;
+  }
+
+  public List<ForstaRecipient> getGroupRecipients() {
+    List<ForstaRecipient> recipients = new ArrayList<>();
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG))));
+    }
+    cursor.close();
+    return recipients;
   }
 
   public void create(byte[] groupId, String title, List<String> members,

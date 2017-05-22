@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.forsta.ccsm.api.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaUser;
 
 /**
@@ -123,6 +124,21 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return users;
+  }
+
+  public List<ForstaRecipient> getRecipients() {
+    List<ForstaRecipient> recipients = new ArrayList<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
+      while (c.moveToNext()) {
+        ForstaRecipient recipient = new ForstaRecipient(c);
+        recipients.add(recipient);
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return recipients;
   }
 
   public void updateUsers(List<ForstaUser> users) {
