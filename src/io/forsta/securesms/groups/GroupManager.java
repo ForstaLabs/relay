@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -165,6 +166,27 @@ public class GroupManager {
     long                      threadId        = MessageSender.send(context, masterSecret, outgoingMessage, -1, false);
 
     return new GroupActionResult(groupRecipient, threadId);
+  }
+
+  public static String getGroupIdFromRecipients(Context context, Recipients recipients) {
+    GroupDatabase groupDatabase = DatabaseFactory.getGroupDatabase(context);
+    // The order stored in the database appears to be consistent. Can I match the concatenated members string in the db
+    // to find an existing group?
+    List<String> items = recipients.toNumberStringList(false);
+    String localNumber = TextSecurePreferences.getLocalNumber(context);
+    String stringItems = "";
+    if (!items.contains(localNumber)) {
+      stringItems = TextSecurePreferences.getLocalNumber(context) + ",";
+    }
+    for (int i=0; i<items.size(); i++) {
+      stringItems += items.get(i);
+      if (i < items.size() -1) {
+        stringItems += ",";
+      }
+    }
+
+    String groupId = groupDatabase.getGroupId(stringItems);
+    return groupId;
   }
 
   public static class GroupActionResult {

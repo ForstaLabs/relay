@@ -84,7 +84,7 @@ import java.util.Set;
  *
  * @author Jake McGinty
  */
-public class GroupCreateActivity extends PassphraseRequiredActionBarActivity
+public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
                                  implements SelectedRecipientsAdapter.OnRecipientDeletedListener,
                                             RecipientsPanelChangedListener
 {

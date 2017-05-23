@@ -25,9 +25,8 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Cont
   List<ForstaRecipient> recipientList;
   ItemClickListener clickListener;
 
-  public DirectoryAdapter(List<ForstaRecipient> recipients, ItemClickListener listener) {
+  public DirectoryAdapter(List<ForstaRecipient> recipients) {
     this.recipientList = recipients;
-    this.clickListener = listener;
   }
 
   @Override
@@ -56,6 +55,10 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Cont
   @Override
   public int getItemCount() {
     return recipientList.size();
+  }
+
+  public void setItemClickListener(ItemClickListener listener) {
+    this.clickListener = listener;
   }
 
   public interface ItemClickListener {

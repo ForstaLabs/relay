@@ -175,6 +175,17 @@ public class GroupDatabase extends Database {
     return recipients;
   }
 
+  public String getGroupId(String members) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    Cursor cursor = db.query(TABLE_NAME, null, MEMBERS + "=?", new String[] {members}, null, null, null);
+    String id = "";
+    if (cursor != null && cursor.moveToNext()) {
+      id = cursor.getString(cursor.getColumnIndex(ID));
+    }
+    cursor.close();
+    return id;
+  }
+
   public void create(byte[] groupId, String title, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {

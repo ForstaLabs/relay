@@ -263,7 +263,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-//    case R.id.menu_new_group:         createGroup();           return true;
+    case R.id.menu_new_group:         createGroup();           return true;
     case R.id.menu_settings:          handleDisplaySettings(); return true;
     case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
     case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
@@ -382,7 +382,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
               }
             }
             // Add this phone's user to the end of the list.
-            title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+            String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
+            if (!forstaRecipients.keySet().contains(thisUser)) {
+              title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+            }
             // Now create new group and send to the new groupId.
             sendGroupMessage(message, numbers, title.toString());
           }
@@ -400,11 +403,40 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
           @Override
           public void onComplete(Set<ForstaRecipient> recipients) {
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
+
+            Set<String> numbers = new HashSet<String>();
             StringBuilder sb = new StringBuilder();
+            sb.append(composeText.getText().toString());
             for (ForstaRecipient recipient : recipients) {
+              if (GroupUtil.isEncodedGroup(recipient.number)) {
+                Set<String> members = null;
+                try {
+                  members = groupDb.getGroupMembers(GroupUtil.getDecodedId(recipient.number));
+                  numbers.addAll(members);
+                } catch (IOException e) {
+                  e.printStackTrace();
+                }
+              } else {
+                numbers.add(recipient.number);
+              }
               sb.append("@").append(recipient.slug).append(" ");
             }
             composeText.setText(sb.toString());
+            composeText.setSelection(composeText.getText().length());
+
+            new AsyncTask<Set<String>, Void, Recipients>() {
+
+              @Override
+              protected Recipients doInBackground(Set<String>... params) {
+                return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(params[0]), false);
+              }
+
+              @Override
+              protected void onPostExecute(Recipients recipients) {
+                String groupId = GroupManager.getGroupIdFromRecipients(ConversationListActivity.this, recipients);
+              }
+            }.execute(numbers);
           }
         });
       }
@@ -691,7 +723,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         try {
           return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
         } catch (Exception e) {
-          Log.d(TAG, "sendGroupMessage failed");
+          Log.d(TAG, "sendGroupMessage failed. No valid Recipients.");
           e.printStackTrace();
         }
         return null;
@@ -701,8 +733,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       protected void onPostExecute(Recipients recipients) {
         if (recipients != null) {
           try {
-            List<Recipient> validRecipients = recipients.getRecipientsList();
-            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(validRecipients), null, title);
+            // Now find out if these numbers are part of an existing group. Create a new group if there is not one of this composition of numbers.
+
+            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
             Recipients groupRecipient = result.getGroupRecipient();
             sendMessage(message, groupRecipient);
           } catch (InvalidNumberException e) {

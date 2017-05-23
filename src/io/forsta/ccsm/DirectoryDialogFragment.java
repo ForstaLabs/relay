@@ -99,7 +99,8 @@ public class DirectoryDialogFragment extends DialogFragment {
     @Override
     protected void onPostExecute(List<ForstaRecipient> forstaRecipients) {
 
-      adapter = new DirectoryAdapter(forstaRecipients, new DirectoryAdapter.ItemClickListener() {
+      adapter = new DirectoryAdapter(forstaRecipients);
+      adapter.setItemClickListener(new DirectoryAdapter.ItemClickListener() {
         @Override
         public void onItemClick(ForstaRecipient recipient, boolean selected) {
           if (selected) {
