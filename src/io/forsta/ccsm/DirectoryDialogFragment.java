@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +23,6 @@ import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.util.DirectoryHelper;
 
 /**
  * Created by jlewis on 5/22/17.
@@ -48,7 +46,7 @@ public class DirectoryDialogFragment extends DialogFragment {
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.forsta_directory_fragment, container, false);
+    View view = inflater.inflate(R.layout.forsta_directory_dialog_fragment, container, false);
     progress = (ProgressBar) view.findViewById(R.id.forsta_directory_progress);
     progress.setVisibility(View.VISIBLE);
     recyclerView = (RecyclerView) view.findViewById(R.id.forsta_directory_recycler_view);
