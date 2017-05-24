@@ -30,6 +30,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -51,9 +52,12 @@ public class GroupManager {
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final byte[]        groupId           = groupDatabase.allocateGroupId();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    // Sort the list so that we can find a group based on the member list stored in table.
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
 
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
-    groupDatabase.create(groupId, name, new LinkedList<>(memberE164Numbers), null, null);
+    groupDatabase.create(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
@@ -70,10 +74,13 @@ public class GroupManager {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    // Sort the list so that we can find a group based on the member list stored in table.
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
 
-    groupDatabase.createForstaGroup(groupId, name, slug, new LinkedList<>(memberE164Numbers), null, null);
+    groupDatabase.createForstaGroup(groupId, name, slug, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
-    // Send message to group members, that you have joined the group.
+    // For Forsta tags. Don't send group update messages. Clients will get the group ID and name from the CCSM end point.
     // sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
@@ -168,24 +175,17 @@ public class GroupManager {
     return new GroupActionResult(groupRecipient, threadId);
   }
 
-  public static String getGroupIdFromRecipients(Context context, Recipients recipients) {
-    GroupDatabase groupDatabase = DatabaseFactory.getGroupDatabase(context);
-    // The order stored in the database appears to be consistent. Can I match the concatenated members string in the db
-    // to find an existing group?
-    List<String> items = recipients.toNumberStringList(false);
-    String localNumber = TextSecurePreferences.getLocalNumber(context);
-    String stringItems = "";
-    if (!items.contains(localNumber)) {
-      stringItems = TextSecurePreferences.getLocalNumber(context) + ",";
-    }
-    for (int i=0; i<items.size(); i++) {
-      stringItems += items.get(i);
-      if (i < items.size() -1) {
-        stringItems += ",";
+  public static String getGroupIdFromMembers(Context context, List<String> members) {
+    Collections.sort(members);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    StringBuilder sb = new StringBuilder();
+    for (int i=0; i<members.size(); i++) {
+      sb.append(members.get(i));
+      if (i < members.size() -1) {
+        sb.append(",");
       }
     }
-
-    String groupId = groupDatabase.getGroupId(stringItems);
+    String groupId = db.getGroupId(sb.toString());
     return groupId;
   }
 

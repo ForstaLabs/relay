@@ -53,6 +53,7 @@ public class GroupDatabase extends Database {
   private static final String TIMESTAMP           = "timestamp";
   private static final String ORG_ID              = "org_id";
   private static final String SLUG                = "slug";
+  private static final String SLUG_IDS            = "slug_ids"; // Both tag and user ids from message recipients. Does not include unsecure recipients.
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -69,6 +70,7 @@ public class GroupDatabase extends Database {
           TIMESTAMP + " INTEGER, " +
           ORG_ID + " TEXT, " +
           SLUG + " TEXT, " +
+          SLUG_IDS + " TEXT, " +
           ACTIVE + " INTEGER DEFAULT 1);";
 
   public static final String[] CREATE_INDEXS = {
@@ -165,7 +167,7 @@ public class GroupDatabase extends Database {
     return groups;
   }
 
-  public List<ForstaRecipient> getGroupRecipients() {
+  public List<ForstaRecipient> getForstaGroupRecipients() {
     List<ForstaRecipient> recipients = new ArrayList<>();
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
@@ -180,7 +182,7 @@ public class GroupDatabase extends Database {
     Cursor cursor = db.query(TABLE_NAME, null, MEMBERS + "=?", new String[] {members}, null, null, null);
     String id = "";
     if (cursor != null && cursor.moveToNext()) {
-      id = cursor.getString(cursor.getColumnIndex(ID));
+      id = cursor.getString(cursor.getColumnIndex(GROUP_ID));
     }
     cursor.close();
     return id;

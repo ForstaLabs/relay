@@ -91,7 +91,7 @@ public class DirectoryDialogFragment extends DialogFragment {
       ContactDb db = DbFactory.getContactDb(getActivity());
       recipients = db.getRecipients();
       GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(getActivity());
-      groups = groupDb.getGroupRecipients();
+      groups = groupDb.getForstaGroupRecipients();
       recipients.addAll(groups);
       return recipients;
     }

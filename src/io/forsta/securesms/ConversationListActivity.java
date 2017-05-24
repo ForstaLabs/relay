@@ -142,14 +142,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private TextView charactersLeft;
   private InputAwareLayout container;
   private View composePanel;
+
   // TODO decide on use of Reminders.
   protected ReminderView reminderView;
+
   private EmojiDrawer emojiDrawer;
   private InputPanel inputPanel;
-
   private AttachmentTypeSelector attachmentTypeSelector;
   private AttachmentManager attachmentManager;
-  // TODO audioRecorder does not seem to be
+
+  // TODO audioRecorder does not seem to be used in ConversationActivity.
   private AudioRecorder audioRecorder;
 
   // TODO use these or remove them. These are copy pasta from ConversationActivity.
@@ -158,7 +160,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private int distributionType;
   private boolean archived;
   private boolean isSecureText;
-  private boolean isSecureVoice;
   private boolean isMmsEnabled = true;
 
   @Override
@@ -352,6 +353,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void initializeListeners() {
+    // TODO factor this code.
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -403,40 +405,24 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
           @Override
           public void onComplete(Set<ForstaRecipient> recipients) {
-            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
 
-            Set<String> numbers = new HashSet<String>();
+            List<String> numbers = new ArrayList<String>();
+
             StringBuilder sb = new StringBuilder();
             sb.append(composeText.getText().toString());
             for (ForstaRecipient recipient : recipients) {
-              if (GroupUtil.isEncodedGroup(recipient.number)) {
-                Set<String> members = null;
-                try {
-                  members = groupDb.getGroupMembers(GroupUtil.getDecodedId(recipient.number));
-                  numbers.addAll(members);
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              } else {
-                numbers.add(recipient.number);
-              }
+              numbers.add(recipient.number);
               sb.append("@").append(recipient.slug).append(" ");
             }
             composeText.setText(sb.toString());
             composeText.setSelection(composeText.getText().length());
 
-            new AsyncTask<Set<String>, Void, Recipients>() {
+            String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, numbers);
+            try {
+            } catch (Exception e) {
+              Log.d(TAG, e.getMessage());
+            }
 
-              @Override
-              protected Recipients doInBackground(Set<String>... params) {
-                return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(params[0]), false);
-              }
-
-              @Override
-              protected void onPostExecute(Recipients recipients) {
-                String groupId = GroupManager.getGroupIdFromRecipients(ConversationListActivity.this, recipients);
-              }
-            }.execute(numbers);
           }
         });
       }
@@ -470,6 +456,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           }
         }
         forstaRecipients = matched;
+
+        // TODO remove this. For development only.
         recipientCount.setText("" + forstaRecipients.size());
       }
 
@@ -706,24 +694,32 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         if (recipients != null) {
           sendMessage(message, recipients);
         } else {
-          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG);
+          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG).show();
         }
       }
     }.execute(numbers);
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
-    // Need to check here to see if these numbers are already part of an existing group.
-    //
-    //
     new AsyncTask<Set<String>, Void, Recipients>() {
 
       @Override
       protected Recipients doInBackground(Set<String>... numbers) {
         try {
-          return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
+          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
+          if (!groupId.equals("")) {
+            List<String> groupNumber = new ArrayList<String>();
+            groupNumber.add(groupId);
+            return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, groupNumber, false);
+          } else {
+            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
+            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
+            return result.getGroupRecipient();
+          }
+        } catch (InvalidNumberException e) {
+          e.printStackTrace();
         } catch (Exception e) {
-          Log.d(TAG, "sendGroupMessage failed. No valid Recipients.");
+          Log.d(TAG, "sendGroupMessage failed getting recipients.");
           e.printStackTrace();
         }
         return null;
@@ -732,17 +728,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       protected void onPostExecute(Recipients recipients) {
         if (recipients != null) {
-          try {
-            // Now find out if these numbers are part of an existing group. Create a new group if there is not one of this composition of numbers.
-
-            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
-            Recipients groupRecipient = result.getGroupRecipient();
-            sendMessage(message, groupRecipient);
-          } catch (InvalidNumberException e) {
-            e.printStackTrace();
-          }
+          sendMessage(message, recipients);
         } else {
-          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG);
+          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG).show();
         }
       }
     }.execute(numbers);

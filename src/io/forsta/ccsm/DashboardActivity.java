@@ -149,7 +149,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     options.add("System Contact RawContacts");
     options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
-    options.add("SMS Messages");
+    options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
     options.add("Get API Users");
@@ -194,7 +194,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             getMessages.execute();
             break;
           case 8:
-            mDebugText.setText(printSmsMessages());
+            mDebugText.setText(printThreads());
             break;
           case 9:
             mDebugText.setText(printForstaContacts());
@@ -444,6 +444,20 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       sb.append("\n");
     }
     cdb.close();
+    return sb.toString();
+  }
+
+  private String printThreads() {
+    StringBuilder sb = new StringBuilder();
+    ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+    Cursor cursor = tdb.getConversationList();
+    while (cursor != null && cursor.moveToNext()) {
+      for (int i=0; i<cursor.getColumnCount(); i++) {
+        sb.append(cursor.getColumnName(i)).append(": ");
+        sb.append(cursor.getString(i)).append("\n");
+      }
+      sb.append("\n");
+    }
     return sb.toString();
   }
 
