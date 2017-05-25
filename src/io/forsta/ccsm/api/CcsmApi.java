@@ -18,6 +18,8 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 
 import java.util.ArrayList;
@@ -324,6 +326,8 @@ public class CcsmApi {
     // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
     try {
       JSONObject jsonObject = getTags(context);
+      // TODO Need to return an error code here if the API is not available.
+      // so that groups are not removed if there is no response.
       List<ForstaGroup> groups = parseTagGroups(jsonObject);
 
       // Get existing groups and active numbers

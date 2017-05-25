@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.forsta.ccsm.api.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;

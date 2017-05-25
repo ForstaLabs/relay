@@ -1,12 +1,8 @@
 package io.forsta.ccsm;
 
-import android.accounts.Account;
-import android.content.ContentProviderOperation;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
@@ -28,10 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
-import org.whispersystems.libsignal.util.guava.Optional;
 
-import io.forsta.ccsm.api.ForstaGroup;
-import io.forsta.ccsm.api.ForstaUser;
+import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;

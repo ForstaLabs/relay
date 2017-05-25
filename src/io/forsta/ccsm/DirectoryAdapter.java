@@ -1,20 +1,16 @@
 package io.forsta.ccsm;
 
-import android.support.v7.internal.widget.AdapterViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import java.util.List;
 
-import io.forsta.ccsm.api.ForstaRecipient;
-import io.forsta.securesms.ExpirationDialog;
+import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.securesms.R;
 
 /**

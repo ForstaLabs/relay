@@ -1,7 +1,6 @@
 package io.forsta.securesms.groups;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -9,7 +8,6 @@ import android.support.annotation.Nullable;
 
 import com.google.protobuf.ByteString;
 
-import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.UriAttachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -31,11 +29,9 @@ import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupC
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import ws.com.google.android.mms.ContentType;
