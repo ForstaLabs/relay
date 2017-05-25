@@ -45,6 +45,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
@@ -60,6 +61,7 @@ import java.util.regex.Pattern;
 import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
@@ -177,6 +179,25 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
+
+    new AsyncTask<Void, Void, Boolean>() {
+
+      @Override
+      protected Boolean doInBackground(Void... voids) {
+        return CcsmApi.checkForstaAuth(getApplicationContext());
+      }
+
+      @Override
+      protected void onPostExecute(Boolean isError) {
+        if (isError) {
+          // Not authorized. Start intent for LoginActivity to re-auth.
+          Log.d(TAG, "Not Authorized");
+        } else {
+          Log.d(TAG, "Authorized");
+        }
+      }
+    }.execute();
+
 
     initializeViews();
     initializeListeners();

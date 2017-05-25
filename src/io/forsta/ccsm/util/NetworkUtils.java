@@ -39,12 +39,6 @@ public class NetworkUtils {
     JSONObject result = new JSONObject();
     HttpURLConnection conn = null;
     try {
-      // Make it error.
-//      if (true) {
-//        result.put("error", "" + 401);
-//        return result;
-//      }
-
       URL url = new URL(fixApiPath(path));
       conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod(method.toString());

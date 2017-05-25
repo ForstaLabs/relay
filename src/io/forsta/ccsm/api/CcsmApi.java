@@ -170,6 +170,11 @@ public class CcsmApi {
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 
+  public static boolean checkForstaAuth(Context context) {
+    JSONObject response = getForstaOrg(context);
+    return isErrorResponse(response);
+  }
+
   // TODO These should all be private. They are exposed right now for the debug dashboard.
   public static JSONObject getForstaOrg(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
