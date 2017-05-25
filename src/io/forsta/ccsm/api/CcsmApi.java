@@ -3,6 +3,7 @@ package io.forsta.ccsm.api;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
@@ -16,12 +17,14 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
+import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -148,7 +151,26 @@ public class CcsmApi {
     return result;
   }
 
-  // TODO These should all be private. They are exposed right now
+  public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
+    // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
+    JSONObject response = getUsers(context);
+    if (isErrorResponse(response)) {
+      Log.d(TAG, "Bad response from API");
+      return;
+    }
+    List<ForstaUser> forstaContacts = parseUsers(context, response);
+    createSystemContacts(context, forstaContacts);
+    syncForstaContactsDb(context, forstaContacts);
+    try {
+      DirectoryHelper.refreshDirectory(context, masterSecret);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    CcsmApi.syncForstaGroups(context, masterSecret);
+    ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+  }
+
+  // TODO These should all be private. They are exposed right now for the debug dashboard.
   public static JSONObject getForstaOrg(Context context) {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
@@ -284,7 +306,7 @@ public class CcsmApi {
     return results;
   }
 
-  public static void createSystemContacts(Context context, List<ForstaUser> contacts) {
+  private static void createSystemContacts(Context context, List<ForstaUser> contacts) {
     try {
       Set<String> systemContacts = getSystemContacts(context);
       ArrayList<ContentProviderOperation> ops = new ArrayList<>();
@@ -309,27 +331,17 @@ public class CcsmApi {
     }
   }
 
-  public static void syncForstaContacts(Context context) {
-    JSONObject users = getUsers(context);
-    List<ForstaUser> forstaContacts = parseUsers(context, users);
-    createSystemContacts(context, forstaContacts);
-    syncForstaContactsDb(context, forstaContacts);
-  }
-
   private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts) {
     ContactDb forstaDb = DbFactory.getContactDb(context);
     forstaDb.updateUsers(contacts);
     forstaDb.close();
   }
 
-  public static void syncForstaGroups(Context context, MasterSecret masterSecret) {
-    // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
+  private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
     try {
-      JSONObject jsonObject = getTags(context);
-      // TODO Need to return an error code here if the API is not available.
-      // so that groups are not removed if there is no response.
-      List<ForstaGroup> groups = parseTagGroups(jsonObject);
-
+      JSONObject response = getTags(context);
+      // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
+      List<ForstaGroup> groups = parseTagGroups(response);
       // Get existing groups and active numbers
       Set<String> groupIds = getGroupIds(context);
       TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
@@ -364,20 +376,21 @@ public class CcsmApi {
     }
   }
 
-  // This code is obsolete. Contacts are refreshed by the SyncAdapater services.
-  public static boolean refreshContacts(Context context, MasterSecret masterSecret) {
-    long lastSync = ForstaPreferences.getForstaContactSync(context);
-    if (lastSync != -1) {
-      long now = System.currentTimeMillis();
-      long diff = now-lastSync;
-      long updateDiff = CONTACT_SYNC_INTERVAL;
-      boolean shouldUpdate = diff > updateDiff;
-      return shouldUpdate;
+  private static boolean isErrorResponse(JSONObject response) {
+    if (response.has("error")) {
+      try {
+        String error = response.getString("error");
+        if (error.equals("401")) {
+          return true;
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
     }
-    return true;
+    return false;
   }
 
-  // TODO These can be moved to the ContactsDatabase after testing.
+  // TODO These can be moved to the ContactsDatabase after testing. These are DB utility functions.
   private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name) {
     ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
         .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
@@ -386,7 +399,7 @@ public class CcsmApi {
         .build());
   }
 
-  public static void removeAllContacts(Context context) {
+  private static void removeAllContacts(Context context) {
     ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
     Uri uri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
         .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
