@@ -343,6 +343,15 @@ public class CcsmApi {
   }
 
   private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+    JSONObject response = getTags(context);
+    List<ForstaGroup> groups = parseTagGroups(response);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+    db.updateGroups(groups, activeNumbers);
+  }
+
+  private static void syncForstaGroups_SAVE(Context context, MasterSecret masterSecret) {
     try {
       JSONObject response = getTags(context);
       // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
