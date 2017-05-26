@@ -212,6 +212,7 @@ public class CcsmApi {
           ForstaUser forstaUser = new ForstaUser(user);
           // Temporary to remove duplicates returning from API
           if (forstaUids.contains(forstaUser.uid)) {
+            Log.d(TAG, "Duplicate user entry");
             continue;
           }
           forstaUids.add(forstaUser.uid);
