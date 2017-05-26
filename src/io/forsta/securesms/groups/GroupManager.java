@@ -48,11 +48,11 @@ public class GroupManager {
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final byte[]        groupId           = groupDatabase.allocateGroupId();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
     // Sort the list so that we can find a group based on the member list stored in table.
     final List<String> memberList = new LinkedList<>(memberE164Numbers);
     Collections.sort(memberList);
 
-    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
     groupDatabase.create(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
@@ -70,6 +70,7 @@ public class GroupManager {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
     // Sort the list so that we can find a group based on the member list stored in table.
     final List<String> memberList = new LinkedList<>(memberE164Numbers);
     Collections.sort(memberList);
@@ -106,7 +107,11 @@ public class GroupManager {
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
 
-    groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
+    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
+
+    groupDatabase.updateMembers(groupId, memberList);
     groupDatabase.updateTitle(groupId, name);
     groupDatabase.updateSlug(groupId, slug);
     groupDatabase.updateAvatar(groupId, avatarBytes);
@@ -135,7 +140,10 @@ public class GroupManager {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
 
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
-    groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
+
+    groupDatabase.updateMembers(groupId, memberList);
     groupDatabase.updateTitle(groupId, name);
     groupDatabase.updateAvatar(groupId, avatarBytes);
 

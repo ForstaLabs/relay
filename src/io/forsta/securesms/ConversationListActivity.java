@@ -400,7 +400,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
                 numbers.add(entry.getValue());
               }
             }
-            // Add this phone's user to the end of the list.
+            // Add this phone's user to the end of the title. createGroup will append the number.
             String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
             if (!forstaRecipients.keySet().contains(thisUser)) {
               title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
@@ -723,6 +723,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       protected Recipients doInBackground(Set<String>... numbers) {
         try {
+          numbers[0].add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
           String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
           if (!groupId.equals("")) {
             List<String> groupNumber = new ArrayList<String>();
@@ -745,6 +746,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       protected void onPostExecute(Recipients recipients) {
         if (recipients != null) {
+          Log.d(TAG, "Recipients");
           sendMessage(message, recipients);
         } else {
           Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG).show();
