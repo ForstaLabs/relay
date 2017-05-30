@@ -182,25 +182,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
 
-    new AsyncTask<Void, Void, Boolean>() {
-
-      @Override
-      protected Boolean doInBackground(Void... voids) {
-        return CcsmApi.checkForstaAuth(getApplicationContext());
-      }
-
-      @Override
-      protected void onPostExecute(Boolean isError) {
-        if (isError) {
-          // Not authorized. Start intent for LoginActivity to re-auth.
-          Log.d(TAG, "Not Authorized");
-        } else {
-          Log.d(TAG, "Authorized");
-        }
-      }
-    }.execute();
-
-
     initializeViews();
     initializeListeners();
     initializeContactUpdatesReceiver();
