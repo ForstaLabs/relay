@@ -39,8 +39,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,34 +51,29 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.forsta.ccsm.DirectoryActivity;
+import io.forsta.ccsm.DirectoryAdapter;
+import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.audio.AudioRecorder;
-import io.forsta.securesms.components.AnimatingToggle;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
-import io.forsta.securesms.components.HidingLinearLayout;
 import io.forsta.securesms.components.InputAwareLayout;
 import io.forsta.securesms.components.InputPanel;
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
-import io.forsta.securesms.components.RatingManager;
-import io.forsta.securesms.components.SendButton;
-import io.forsta.securesms.components.camera.QuickAttachmentDrawer;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.location.SignalPlace;
 import io.forsta.securesms.components.reminder.ReminderView;
@@ -93,7 +88,6 @@ import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.DirectoryRefreshListener;
@@ -105,7 +99,6 @@ import io.forsta.ccsm.DashboardActivity;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.ViewUtil;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener,
@@ -124,6 +117,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private TextView recipientCount;
   private Map<String, String> forstaRecipients = new HashMap<>();
   private Map<String, String> slugMap = new HashMap<>();
+  private List<ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
   private ContentObserver observer;
@@ -148,14 +142,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private TextView charactersLeft;
   private InputAwareLayout container;
   private View composePanel;
+
   // TODO decide on use of Reminders.
   protected ReminderView reminderView;
+
   private EmojiDrawer emojiDrawer;
   private InputPanel inputPanel;
-
   private AttachmentTypeSelector attachmentTypeSelector;
   private AttachmentManager attachmentManager;
-  // TODO audioRecorder does not seem to be
+
+  // TODO audioRecorder does not seem to be used in ConversationActivity.
   private AudioRecorder audioRecorder;
 
   // TODO use these or remove them. These are copy pasta from ConversationActivity.
@@ -164,7 +160,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private int distributionType;
   private boolean archived;
   private boolean isSecureText;
-  private boolean isSecureVoice;
   private boolean isMmsEnabled = true;
 
   @Override
@@ -333,6 +328,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
+  private void initSpinner() {
+
+  }
+
   private void initializeViews() {
 
     directoryButton = (ImageButton) findViewById(R.id.forsta_quick_directory);
@@ -358,6 +357,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void initializeListeners() {
+    // TODO factor this code.
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -387,8 +387,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
                 numbers.add(entry.getValue());
               }
             }
-            // Add this phone's user to the end of the list.
-            title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+            // Add this phone's user to the end of the title. createGroup will append the number.
+            String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
+            if (!forstaRecipients.keySet().contains(thisUser)) {
+              title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+            }
             // Now create new group and send to the new groupId.
             sendGroupMessage(message, numbers, title.toString());
           }
@@ -401,45 +404,31 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-//        Intent intent = new Intent(getActivity(), DirectoryActivity.class);
-//        startActivityForResult(intent, DIRECTORY_PICK);
-        List<String> options = new ArrayList<String>(slugMap.keySet());
-        Collections.sort(options);
-
-        CharSequence[] selectChoices = options.toArray(new CharSequence[options.size()]);
-        final List<Integer> chosenSlugs = new ArrayList();
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(ConversationListActivity.this);
-        builder.setTitle("Choose a recipient");
-        builder.setMultiChoiceItems(selectChoices, null, new DialogInterface.OnMultiChoiceClickListener() {
-
+        DirectoryDialogFragment fragment = new DirectoryDialogFragment();
+        fragment.show(getSupportFragmentManager(), "directoryDialog");
+        fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
           @Override
-          public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-            if (b) {
-              chosenSlugs.add(i);
-            } else if (chosenSlugs.contains(i)) {
-              chosenSlugs.remove(chosenSlugs.indexOf(i));
+          public void onComplete(Set<ForstaRecipient> recipients) {
+
+            List<String> numbers = new ArrayList<String>();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(composeText.getText().toString());
+            for (ForstaRecipient recipient : recipients) {
+              numbers.add(recipient.number);
+              sb.append("@").append(recipient.slug).append(" ");
             }
-          }
-        });
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            StringBuilder slugs = new StringBuilder();
-            for (Integer slug : chosenSlugs) {
-              slugs.append("@").append(slugMap.keySet().toArray()[slug]).append(" ");
-            }
-            composeText.append(slugs);
+            composeText.setText(sb.toString());
             composeText.setSelection(composeText.getText().length());
+
+            String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, numbers);
+            try {
+            } catch (Exception e) {
+              Log.d(TAG, e.getMessage());
+            }
+
           }
         });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            dialogInterface.dismiss();
-          }
-        });
-        builder.show();
       }
     });
 
@@ -471,6 +460,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           }
         }
         forstaRecipients = matched;
+
+        // TODO remove this. For development only.
         recipientCount.setText("" + forstaRecipients.size());
       }
 
@@ -524,7 +515,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleDirectory() {
-    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
+    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
     startActivity(directoryIntent);
   }
 
@@ -707,24 +698,33 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         if (recipients != null) {
           sendMessage(message, recipients);
         } else {
-          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG);
+          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG).show();
         }
       }
     }.execute(numbers);
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
-    // Need to check here to see if these numbers are already part of an existing group.
-    //
-    //
     new AsyncTask<Set<String>, Void, Recipients>() {
 
       @Override
       protected Recipients doInBackground(Set<String>... numbers) {
         try {
-          return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
+          numbers[0].add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
+          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
+          if (!groupId.equals("")) {
+            List<String> groupNumber = new ArrayList<String>();
+            groupNumber.add(groupId);
+            return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, groupNumber, false);
+          } else {
+            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
+            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
+            return result.getGroupRecipient();
+          }
+        } catch (InvalidNumberException e) {
+          e.printStackTrace();
         } catch (Exception e) {
-          Log.d(TAG, "sendGroupMessage failed");
+          Log.d(TAG, "sendGroupMessage failed getting recipients.");
           e.printStackTrace();
         }
         return null;
@@ -733,16 +733,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       protected void onPostExecute(Recipients recipients) {
         if (recipients != null) {
-          try {
-            List<Recipient> validRecipients = recipients.getRecipientsList();
-            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(validRecipients), null, title);
-            Recipients groupRecipient = result.getGroupRecipient();
-            sendMessage(message, groupRecipient);
-          } catch (InvalidNumberException e) {
-            e.printStackTrace();
-          }
+          Log.d(TAG, "Recipients");
+          sendMessage(message, recipients);
         } else {
-          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG);
+          Toast.makeText(ConversationListActivity.this, "Error sending message. No recipients found.", Toast.LENGTH_LONG).show();
         }
       }
     }.execute(numbers);

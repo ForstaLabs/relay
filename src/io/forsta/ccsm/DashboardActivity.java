@@ -1,12 +1,8 @@
 package io.forsta.ccsm;
 
-import android.accounts.Account;
-import android.content.ContentProviderOperation;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
@@ -28,10 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
-import org.whispersystems.libsignal.util.guava.Optional;
 
-import io.forsta.ccsm.api.ForstaGroup;
-import io.forsta.ccsm.api.ForstaUser;
+import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.BuildConfig;
@@ -149,7 +144,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     options.add("System Contact RawContacts");
     options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
-    options.add("SMS Messages");
+    options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
     options.add("Get API Users");
@@ -194,7 +189,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             getMessages.execute();
             break;
           case 8:
-            mDebugText.setText(printSmsMessages());
+            mDebugText.setText(printThreads());
             break;
           case 9:
             mDebugText.setText(printForstaContacts());
@@ -444,6 +439,20 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       sb.append("\n");
     }
     cdb.close();
+    return sb.toString();
+  }
+
+  private String printThreads() {
+    StringBuilder sb = new StringBuilder();
+    ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+    Cursor cursor = tdb.getConversationList();
+    while (cursor != null && cursor.moveToNext()) {
+      for (int i=0; i<cursor.getColumnCount(); i++) {
+        sb.append(cursor.getColumnName(i)).append(": ");
+        sb.append(cursor.getString(i)).append("\n");
+      }
+      sb.append("\n");
+    }
     return sb.toString();
   }
 

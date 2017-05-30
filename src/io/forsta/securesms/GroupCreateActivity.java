@@ -84,7 +84,7 @@ import java.util.Set;
  *
  * @author Jake McGinty
  */
-public class GroupCreateActivity extends PassphraseRequiredActionBarActivity
+public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
                                  implements SelectedRecipientsAdapter.OnRecipientDeletedListener,
                                             RecipientsPanelChangedListener
 {
@@ -165,6 +165,9 @@ public class GroupCreateActivity extends PassphraseRequiredActionBarActivity
       getSupportActionBar().setTitle(groupToUpdate.isPresent()
                                      ? R.string.GroupCreateActivity_actionbar_update_title
                                      : R.string.GroupCreateActivity_actionbar_title);
+      if (groupToUpdate.isPresent()) {
+        groupName.setEnabled(false);
+      }
     }
   }
 

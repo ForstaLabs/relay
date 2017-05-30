@@ -1,4 +1,4 @@
-package io.forsta.ccsm.api;
+package io.forsta.ccsm.database.model;
 
 import android.database.Cursor;
 import android.provider.ContactsContract;

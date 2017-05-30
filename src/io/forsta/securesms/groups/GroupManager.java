@@ -1,7 +1,6 @@
 package io.forsta.securesms.groups;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -9,7 +8,6 @@ import android.support.annotation.Nullable;
 
 import com.google.protobuf.ByteString;
 
-import io.forsta.ccsm.api.ForstaGroup;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.UriAttachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -30,10 +28,10 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import ws.com.google.android.mms.ContentType;
@@ -50,9 +48,12 @@ public class GroupManager {
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final byte[]        groupId           = groupDatabase.allocateGroupId();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
-
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
-    groupDatabase.create(groupId, name, new LinkedList<>(memberE164Numbers), null, null);
+    // Sort the list so that we can find a group based on the member list stored in table.
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
+
+    groupDatabase.create(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
@@ -69,10 +70,14 @@ public class GroupManager {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
+    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
+    // Sort the list so that we can find a group based on the member list stored in table.
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
 
-    groupDatabase.createForstaGroup(groupId, name, slug, new LinkedList<>(memberE164Numbers), null, null);
+    groupDatabase.createForstaGroup(groupId, name, slug, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
-    // Send message to group members, that you have joined the group.
+    // For Forsta tags. Don't send group update messages. Clients will get the group ID and name from the CCSM end point.
     // sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
@@ -102,7 +107,11 @@ public class GroupManager {
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
 
-    groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
+    memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
+
+    groupDatabase.updateMembers(groupId, memberList);
     groupDatabase.updateTitle(groupId, name);
     groupDatabase.updateSlug(groupId, slug);
     groupDatabase.updateAvatar(groupId, avatarBytes);
@@ -131,7 +140,10 @@ public class GroupManager {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
 
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
-    groupDatabase.updateMembers(groupId, new LinkedList<>(memberE164Numbers));
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
+    Collections.sort(memberList);
+
+    groupDatabase.updateMembers(groupId, memberList);
     groupDatabase.updateTitle(groupId, name);
     groupDatabase.updateAvatar(groupId, avatarBytes);
 
@@ -165,6 +177,20 @@ public class GroupManager {
     long                      threadId        = MessageSender.send(context, masterSecret, outgoingMessage, -1, false);
 
     return new GroupActionResult(groupRecipient, threadId);
+  }
+
+  public static String getGroupIdFromMembers(Context context, List<String> members) {
+    Collections.sort(members);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    StringBuilder sb = new StringBuilder();
+    for (int i=0; i<members.size(); i++) {
+      sb.append(members.get(i));
+      if (i < members.size() -1) {
+        sb.append(",");
+      }
+    }
+    String groupId = db.getGroupId(sb.toString());
+    return groupId;
   }
 
   public static class GroupActionResult {

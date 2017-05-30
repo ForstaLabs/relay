@@ -11,8 +11,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.util.Pair;
 
+import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -25,6 +27,8 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPoin
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -51,6 +55,7 @@ public class GroupDatabase extends Database {
   private static final String TIMESTAMP           = "timestamp";
   private static final String ORG_ID              = "org_id";
   private static final String SLUG                = "slug";
+  private static final String SLUG_IDS            = "slug_ids"; // Both tag and user ids from message recipients. Does not include unsecure recipients.
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -67,6 +72,7 @@ public class GroupDatabase extends Database {
           TIMESTAMP + " INTEGER, " +
           ORG_ID + " TEXT, " +
           SLUG + " TEXT, " +
+          SLUG_IDS + " TEXT, " +
           ACTIVE + " INTEGER DEFAULT 1);";
 
   public static final String[] CREATE_INDEXS = {
@@ -131,6 +137,69 @@ public class GroupDatabase extends Database {
     return RecipientFactory.getRecipientsFor(context, recipients, false);
   }
 
+  public void updateGroups(List<ForstaGroup> groups, List<String> activeNumbers) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    Set<String> groupIds = new HashSet<>();
+    // Don't get locally created groups.
+    Cursor cursor = db.query(TABLE_NAME, new String[]{GROUP_ID}, SLUG + " IS NOT NULL", null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      String groupId = cursor.getString(cursor.getColumnIndex(GROUP_ID));
+      groupIds.add(groupId);
+    }
+    cursor.close();
+
+    db.beginTransaction();
+    try {
+      for (ForstaGroup group : groups) {
+        String id = group.getEncodedId();
+        List<String> members = new ArrayList<>(group.members);
+        for (int i=0; i<members.size(); i++) {
+          if (!activeNumbers.contains(members.get(i))) {
+            members.remove(i);
+          }
+        }
+        members.remove(BuildConfig.FORSTA_SYNC_NUMBER);
+        Collections.sort(members);
+        String thisNumber = TextSecurePreferences.getLocalNumber(context);
+
+        if (members.size() > 1 && members.contains(thisNumber)) {
+          ContentValues contentValues = new ContentValues();
+          contentValues.put(TITLE, group.description);
+          contentValues.put(ORG_ID, group.org);
+          contentValues.put(SLUG, group.slug);
+          contentValues.put(MEMBERS, Util.join(members, ","));
+          contentValues.put(TIMESTAMP, System.currentTimeMillis());
+          contentValues.put(ACTIVE, 1);
+          if (!groupIds.contains(id)) {
+            contentValues.put(GROUP_ID, id);
+            db.insert(TABLE_NAME, null, contentValues);
+          } else {
+            db.update(TABLE_NAME, contentValues, GROUP_ID + "=?", new String[] {id});
+          }
+          // Remove this id from the set and delete remaining from local db.
+          groupIds.remove(id);
+        }
+      }
+      db.setTransactionSuccessful();
+    }
+    finally {
+      db.endTransaction();
+    }
+
+    db.beginTransaction();
+    try {
+      // Now remove entries that are no longer valid.
+      for (String groupId : groupIds) {
+        db.delete(TABLE_NAME, GROUP_ID + "=?", new String[] {groupId});
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+
+    db.close();
+  }
+
   public void createForstaGroup(byte[] groupId, String title, String slug, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {
@@ -161,6 +230,27 @@ public class GroupDatabase extends Database {
     }
     cursor.close();
     return groups;
+  }
+
+  public List<ForstaRecipient> getForstaGroupRecipients() {
+    List<ForstaRecipient> recipients = new ArrayList<>();
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG))));
+    }
+    cursor.close();
+    return recipients;
+  }
+
+  public String getGroupId(String members) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    Cursor cursor = db.query(TABLE_NAME, null, MEMBERS + "=?", new String[] {members}, null, null, null);
+    String id = "";
+    if (cursor != null && cursor.moveToNext()) {
+      id = cursor.getString(cursor.getColumnIndex(GROUP_ID));
+    }
+    cursor.close();
+    return id;
   }
 
   public void create(byte[] groupId, String title, List<String> members,

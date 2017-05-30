@@ -1,4 +1,4 @@
-package io.forsta.ccsm.api;
+package io.forsta.ccsm.database.model;
 
 import android.database.Cursor;
 
@@ -42,6 +42,7 @@ public class ForstaGroup {
   public ForstaGroup(Cursor cursor) {
     this.id = cursor.getString(cursor.getColumnIndex("group_id"));
     this.slug = cursor.getString(cursor.getColumnIndex("slug"));
+    this.org = cursor.getString(cursor.getColumnIndex("org"));
     this.description = cursor.getString(cursor.getColumnIndex("title"));
     String members = cursor.getString(cursor.getColumnIndex("members"));
     String[] memberArray = members.split(",");

@@ -8,14 +8,14 @@ import android.database.sqlite.SQLiteDatabase;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.forsta.ccsm.api.ForstaUser;
+import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaUser;
 
 /**
  * Created by jlewis on 3/23/17.
@@ -123,6 +123,21 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return users;
+  }
+
+  public List<ForstaRecipient> getRecipients() {
+    List<ForstaRecipient> recipients = new ArrayList<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
+      while (c.moveToNext()) {
+        ForstaRecipient recipient = new ForstaRecipient(c);
+        recipients.add(recipient);
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return recipients;
   }
 
   public void updateUsers(List<ForstaUser> users) {
