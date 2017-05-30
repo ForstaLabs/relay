@@ -33,6 +33,7 @@ import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.R;
+import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -63,11 +64,6 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = API_URL + "/v1/login/send/";
   private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
-
-  // TODO Remove these. It is already in ContactsDatabase. Needs to move when contact methods are moved.
-  private static final String SYNC = "__TS";
-  private static final String CONTACT_MIMETYPE = "vnd.android.cursor.item/vnd.io.forsta.securesms.contact";
-  private static final long CONTACT_SYNC_INTERVAL = 1000l * 60 * 60 * 12;
 
   private CcsmApi() {
   }
@@ -261,32 +257,6 @@ public class CcsmApi {
     return groups;
   }
 
-  private static Set<String> getGroupIds(Context context) {
-    Set<String> groupIds = new HashSet<>();
-    GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-    GroupDatabase.Reader reader = groupDb.getGroups();
-    GroupDatabase.GroupRecord record;
-    GroupDatabase.GroupRecord existing = null;
-    while ((record = reader.getNext()) != null) {
-      groupIds.add(record.getEncodedId());
-    }
-    reader.close();
-    return groupIds;
-  }
-
-  private static Set<Recipient> getActiveRecipients(Context context, List<String> groupNumbers, List<String> activeNumbers) {
-    for (int i = 0; i < groupNumbers.size(); i++) {
-      String number = groupNumbers.get(i);
-      if (!activeNumbers.contains(number)) {
-        groupNumbers.remove(number);
-      }
-    }
-    groupNumbers.remove(BuildConfig.FORSTA_SYNC_NUMBER);
-    Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, groupNumbers, false);
-    Set<Recipient> members = new HashSet<>(recipients.getRecipientsList());
-    return members;
-  }
-
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();
     String[] projection = new String[]{
@@ -323,9 +293,9 @@ public class CcsmApi {
           String e164number = Util.canonicalizeNumber(context, user.phone);
           // Create contact if it doesn't exist, but don't try to update.
           if (!systemContacts.contains(e164number)) {
-            createForstaPhoneContact(context, ops, account.get(), e164number, user.name);
+            ContactsDatabase.createForstaPhoneContact(context, ops, account.get(), e164number, user.name);
           } // TODO Update system contacts?
-            // else updateContact(context, ops, account.get(), e164number, user.name)
+            // else ContactsDatabase.updateContact(context, ops, account.get(), e164number, user.name)
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
@@ -352,45 +322,6 @@ public class CcsmApi {
     db.updateGroups(groups, activeNumbers);
   }
 
-  private static void syncForstaGroups_SAVE(Context context, MasterSecret masterSecret) {
-    try {
-      JSONObject response = getTags(context);
-      // TODO Move this processing into the GroupDatabase so transactions can be batched. See syncForstaContactsDb.
-      List<ForstaGroup> groups = parseTagGroups(response);
-      // Get existing groups and active numbers
-      Set<String> groupIds = getGroupIds(context);
-      TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-      List<String> activeNumbers = dir.getActiveNumbers();
-
-      // Batch all of these transactions.
-      for (ForstaGroup group : groups) {
-        String id = group.getEncodedId();
-        List<String> groupNumbers = new ArrayList<>(group.members);
-        Set<Recipient> members = getActiveRecipients(context, groupNumbers, activeNumbers);
-        String thisNumber = TextSecurePreferences.getLocalNumber(context);
-
-        // TODO For now. No groups are created unless you are a member and the group has more than one other member.
-        if (members.size() > 1 && groupNumbers.contains(thisNumber)) {
-          if (!groupIds.contains(id)) {
-            GroupManager.createForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
-          } else {
-            // This is doing an update even if nothing has changed.
-            GroupManager.updateForstaGroup(context, masterSecret, group.id.getBytes(), members, null, group.description, group.slug);
-          }
-          groupIds.remove(id);
-        }
-      }
-      GroupManager.removeForstaGroups(context, groupIds);
-
-    } catch (InvalidNumberException e) {
-      Log.e(TAG, "syncForstaGroups Invalid Number exception");
-      e.printStackTrace();
-    } catch (Exception e) {
-      Log.e(TAG, "syncForstaGroups exception: " + e.getMessage());
-      e.printStackTrace();
-    }
-  }
-
   private static boolean isErrorResponse(JSONObject response) {
     if (response.has("error")) {
       try {
@@ -403,94 +334,5 @@ public class CcsmApi {
       }
     }
     return false;
-  }
-
-  // TODO These can be moved to the ContactsDatabase after testing. These are DB utility functions.
-  private static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name) {
-    ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-        .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-        .build());
-  }
-
-  private static void removeAllContacts(Context context) {
-    ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
-    Uri uri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
-        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
-        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-
-    operations.add(ContentProviderOperation.newDelete(uri)
-        .withYieldAllowed(true)
-        .build());
-    try {
-      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations);
-    } catch (RemoteException e) {
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private static void createForstaPhoneContact(Context context, List<ContentProviderOperation> operations, Account account, String e164number, String name) {
-    int index = operations.size();
-
-    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
-        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
-        .build();
-
-    operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
-        .withValue(ContactsContract.RawContacts.SYNC1, e164number)
-        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(true))
-        .build());
-
-    operations.add(ContentProviderOperation.newInsert(dataUri)
-        .withValueBackReference(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, e164number)
-        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_OTHER)
-        .withValue(ContactsContract.Data.SYNC2, SYNC)
-        .build());
-
-    operations.add(ContentProviderOperation.newInsert(dataUri)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
-        .withValue(ContactsContract.Data.DATA1, e164number)
-        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
-        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, e164number))
-        .withYieldAllowed(true)
-        .build());
-
-    operations.add(ContentProviderOperation.newInsert(dataUri)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
-        .build());
-  }
-
-  // This code is obsolete, but could be used to create generic contact database entries for non TSS registered users.
-  private static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
-    int index = ops.size();
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
-        .build());
-
-    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
-        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
-        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
-        .build());
   }
 }

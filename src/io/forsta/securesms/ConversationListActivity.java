@@ -40,6 +40,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +59,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.forsta.ccsm.DirectoryAdapter;
 import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
@@ -343,6 +345,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   public void onSwitchToArchive() {
     Intent intent = new Intent(this, ConversationListArchiveActivity.class);
     startActivity(intent);
+  }
+
+  private void initSpinner() {
+
   }
 
   private void initializeViews() {

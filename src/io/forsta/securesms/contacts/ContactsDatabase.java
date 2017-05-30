@@ -517,4 +517,93 @@ public class ContactsDatabase {
       return "true".equals(supportsVoice);
     }
   }
+
+  // Forsta Contacts utility functions.
+  public static void updateContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name) {
+    ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+        .withSelection(ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] { number })
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+        .build());
+  }
+
+  public static void removeAllContacts(Context context) {
+    ArrayList<ContentProviderOperation> operations        = new ArrayList<>();
+    Uri uri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_NAME, "Forsta")
+        .appendQueryParameter(ContactsContract.RawContacts.ACCOUNT_TYPE, "io.forsta.securesms")
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+
+    operations.add(ContentProviderOperation.newDelete(uri)
+        .withYieldAllowed(true)
+        .build());
+    try {
+      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void createForstaPhoneContact(Context context, List<ContentProviderOperation> operations, Account account, String e164number, String name) {
+    int index = operations.size();
+
+    Uri dataUri = ContactsContract.Data.CONTENT_URI.buildUpon()
+        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+        .build();
+
+    operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, account.name)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, account.type)
+        .withValue(ContactsContract.RawContacts.SYNC1, e164number)
+        .withValue(ContactsContract.RawContacts.SYNC4, String.valueOf(true))
+        .build());
+
+    operations.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, e164number)
+        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_OTHER)
+        .withValue(ContactsContract.Data.SYNC2, SYNC)
+        .build());
+
+    operations.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, CONTACT_MIMETYPE)
+        .withValue(ContactsContract.Data.DATA1, e164number)
+        .withValue(ContactsContract.Data.DATA2, context.getString(R.string.app_name))
+        .withValue(ContactsContract.Data.DATA3, context.getString(R.string.ContactsDatabase_message_s, e164number))
+        .withYieldAllowed(true)
+        .build());
+
+    operations.add(ContentProviderOperation.newInsert(dataUri)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+        .build());
+  }
+
+  // This code is obsolete, but could be used to create generic contact database entries for non TSS registered users.
+  public static void createPhoneContact(Context context, List<ContentProviderOperation> ops, Account account, String number, String name, String username) {
+    int index = ops.size();
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Forsta-" + name)
+        .build());
+
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, index)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+        .build());
+  }
 }
