@@ -18,7 +18,7 @@ import io.forsta.securesms.R;
  * Created by jlewis on 5/22/17.
  */
 
-public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.ContactHolder>{
+public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.ContactHolder> {
   List<ForstaRecipient> recipientList;
   ItemClickListener clickListener;
 

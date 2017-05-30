@@ -30,6 +30,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -39,7 +40,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -120,6 +125,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private List<ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
+  private LinearLayoutCompat layout;
   private ContentObserver observer;
   private MasterSecret masterSecret;
 
@@ -199,7 +205,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         }
       }
     }.execute();
-
 
     initializeViews();
     initializeListeners();
@@ -363,8 +368,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     composePanel = findViewById(R.id.bottom_panel);
     container = (InputAwareLayout) findViewById(R.id.layout_container);
     inputPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    container.addOnKeyboardShownListener(this);
+    layout = (LinearLayoutCompat) findViewById(R.id.layout_container);
 
+    container.addOnKeyboardShownListener(this);
     inputPanel.setListener(this, emojiDrawer);
     attachmentTypeSelector = new AttachmentTypeSelector(this, new AttachmentTypeListener());
     attachmentManager = new AttachmentManager(this, this);
