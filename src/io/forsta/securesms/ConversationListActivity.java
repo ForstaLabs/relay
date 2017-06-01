@@ -352,10 +352,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
-  private void initSpinner() {
-
-  }
-
   private void initializeViews() {
 
     directoryButton = (ImageButton) findViewById(R.id.forsta_quick_directory);
@@ -434,24 +430,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
           @Override
           public void onComplete(Set<ForstaRecipient> recipients) {
-
-            List<String> numbers = new ArrayList<String>();
-
             StringBuilder sb = new StringBuilder();
             sb.append(composeText.getText().toString());
             for (ForstaRecipient recipient : recipients) {
-              numbers.add(recipient.number);
               sb.append("@").append(recipient.slug).append(" ");
             }
             composeText.setText(sb.toString());
             composeText.setSelection(composeText.getText().length());
 
-            String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, numbers);
             try {
             } catch (Exception e) {
               Log.d(TAG, e.getMessage());
             }
-
           }
         });
       }
@@ -659,6 +649,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     if (uri == null) return;
     attachmentManager.setMedia(masterSecret, uri, mediaType, getCurrentMediaConstraints());
   }
+
   private MediaConstraints getCurrentMediaConstraints() {
     return MediaConstraints.PUSH_CONSTRAINTS;
 //    return sendButton.getSelectedTransport().getType() == TransportOption.Type.TEXTSECURE

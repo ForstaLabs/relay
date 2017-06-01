@@ -55,7 +55,7 @@ public class GroupDatabase extends Database {
   private static final String TIMESTAMP           = "timestamp";
   private static final String ORG_ID              = "org_id";
   private static final String SLUG                = "slug";
-  private static final String SLUG_IDS            = "slug_ids"; // Both tag and user ids from message recipients. Does not include unsecure recipients.
+  private static final String SLUG_IDS            = "slug_ids";
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =

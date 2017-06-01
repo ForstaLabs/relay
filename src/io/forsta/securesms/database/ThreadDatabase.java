@@ -342,7 +342,7 @@ public class ThreadDatabase extends Database {
 
   public Cursor getArchivedConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + " DESC");
+    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
 
     setNotifyConverationListListeners(cursor);
 
