@@ -28,6 +28,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutCompat;
@@ -42,13 +44,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 import org.json.JSONObject;
@@ -64,8 +69,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.DirectoryAdapter;
 import io.forsta.ccsm.DirectoryDialogFragment;
+import io.forsta.ccsm.DirectoryFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
@@ -126,6 +133,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
   private LinearLayoutCompat layout;
+
   private ContentObserver observer;
   private MasterSecret masterSecret;
 
@@ -454,6 +462,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     });
 
+
     composeText.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -530,7 +539,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleDirectory() {
-    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
+//    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
+    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
   }
 

@@ -35,7 +35,7 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
   private TextView lastSync;
   private Button mRefresh;
   private Button mClear;
-//  private DirectoryFragment fragment;
+  private DirectoryFragment fragment;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -48,15 +48,15 @@ public class DirectoryActivity extends PassphraseRequiredActionBarActivity {
     Date dt = new Date(syncTime);
     lastSync.setText("Last Sync: " + dt.toString());
 
-//    FragmentManager fm = getSupportFragmentManager();
-//    Fragment fragment = fm.findFragmentById(R.id.forsta_directory_list);
-//
-//    if (fragment == null) {
-//      fragment = new DirectoryFragment();
-//      Bundle args = new Bundle();
-//      args.putParcelable("master_secret", masterSecret);
-//      fragment.setArguments(args);
-//      fm.beginTransaction().add(R.id.forsta_contacts_list, fragment).commit();
-//    }
+    FragmentManager fm = getSupportFragmentManager();
+    Fragment fragment = fm.findFragmentById(R.id.forsta_contacts_list);
+
+    if (fragment == null) {
+      fragment = new DirectoryFragment();
+      Bundle args = new Bundle();
+      args.putParcelable("master_secret", masterSecret);
+      fragment.setArguments(args);
+      fm.beginTransaction().add(R.id.forsta_contacts_list, fragment).commit();
+    }
   }
 }
