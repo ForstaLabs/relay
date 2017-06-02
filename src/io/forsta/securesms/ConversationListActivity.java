@@ -132,6 +132,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private List<ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
+  private DirectoryDialogFragment directoryFragment;
   private LinearLayoutCompat layout;
 
   private ContentObserver observer;
@@ -190,6 +191,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    directoryFragment = new DirectoryDialogFragment();
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
@@ -387,6 +389,34 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private void initializeListeners() {
     // TODO factor this code.
+    directoryFragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
+      @Override
+      public void onComplete(Set<ForstaRecipient> recipients) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(composeText.getText().toString());
+        int index = 0;
+        for (ForstaRecipient recipient : recipients) {
+          if (index > 0) {
+            sb.append(" @");
+          }
+          index++;
+          sb.append(recipient.slug);
+        }
+        composeText.setText(sb.toString());
+        composeText.setSelection(composeText.getText().length());
+
+        try {
+        } catch (Exception e) {
+          Log.d(TAG, e.getMessage());
+        }
+      }
+
+      @Override
+      public void onCancel() {
+
+      }
+    });
+
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -433,25 +463,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        DirectoryDialogFragment fragment = new DirectoryDialogFragment();
-        fragment.show(getSupportFragmentManager(), "directoryDialog");
-        fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
-          @Override
-          public void onComplete(Set<ForstaRecipient> recipients) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(composeText.getText().toString());
-            for (ForstaRecipient recipient : recipients) {
-              sb.append("@").append(recipient.slug).append(" ");
-            }
-            composeText.setText(sb.toString());
-            composeText.setSelection(composeText.getText().length());
-
-            try {
-            } catch (Exception e) {
-              Log.d(TAG, e.getMessage());
-            }
-          }
-        });
+        composeText.setText(composeText.getText() + " @");
       }
     });
 
@@ -475,6 +487,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
+
+        if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
+          directoryFragment.show(getSupportFragmentManager(), "directoryDialog");
+        }
 
         while (m.find()) {
           String slug = m.group();

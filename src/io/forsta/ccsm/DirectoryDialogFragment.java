@@ -57,6 +57,7 @@ public class DirectoryDialogFragment extends DialogFragment {
       public void onClick(View view) {
         if (onCompleteListener != null) {
           onCompleteListener.onComplete(selectedRecipients);
+          selectedRecipients.clear();
         }
         dismiss();
       }
@@ -65,6 +66,7 @@ public class DirectoryDialogFragment extends DialogFragment {
     cancelButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
+        onCompleteListener.onCancel();
         dismiss();
       }
     });
@@ -80,6 +82,7 @@ public class DirectoryDialogFragment extends DialogFragment {
 
   public interface OnCompleteListener {
     void onComplete(Set<ForstaRecipient> recipients);
+    void onCancel();
   }
 
   class GetRecipients extends AsyncTask<Void, Void, List<ForstaRecipient>> {
