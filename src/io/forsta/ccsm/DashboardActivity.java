@@ -716,7 +716,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       StringBuilder sb = new StringBuilder();
       for (ForstaUser user : contacts) {
         sb.append(user.phone).append(" ");
-        sb.append(user.getName()).append("\n");
+        sb.append(user.email).append(" ");
+        sb.append(user.username).append("\n");
       }
       mDebugText.setText(sb.toString());
     }
