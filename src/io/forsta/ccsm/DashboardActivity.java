@@ -362,7 +362,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       int cols = cursor.getColumnCount();
       for (int i=0; i<cols; i++) {
         sb.append(cursor.getColumnName(i)).append(": ");
-        sb.append(cursor.getString(i));
+        try {
+          sb.append(cursor.getString(i));
+        } catch (Exception e) {
+
+        }
         sb.append("\n");
       }
     }

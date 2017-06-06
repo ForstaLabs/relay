@@ -58,27 +58,28 @@ public class GroupManager {
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
-  public static @NonNull void createForstaGroup(@NonNull  Context        context,
+  public static @NonNull GroupActionResult createForstaDistribution(@NonNull  Context        context,
                                                    @NonNull MasterSecret masterSecret,
-                                                   @NonNull  byte[]         groupId,
                                                    @NonNull  Set<Recipient> members,
                                                    @Nullable Bitmap         avatar,
-                                                   @Nullable String         name,
-                                                   @Nullable String         slug)
+                                                   @Nullable String         name)
           throws InvalidNumberException
   {
     final byte[]        avatarBytes       = BitmapUtil.toByteArray(avatar);
     final GroupDatabase groupDatabase     = DatabaseFactory.getGroupDatabase(context);
+    final byte[]        groupId           = groupDatabase.allocateGroupId();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
     // Sort the list so that we can find a group based on the member list stored in table.
     final List<String> memberList = new LinkedList<>(memberE164Numbers);
     Collections.sort(memberList);
 
-    groupDatabase.createForstaGroup(groupId, name, slug, memberList, null, null);
+    // This is the only difference between this method and the one above.
+    // More modifications are planned and could affect this in the future.
+    groupDatabase.createForstaGroup(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
-    // For Forsta tags. Don't send group update messages. Clients will get the group ID and name from the CCSM end point.
-    // sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
+
+    return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
 

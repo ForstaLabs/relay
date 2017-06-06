@@ -128,8 +128,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private ImageButton newConversationButton;
   private TextView recipientCount;
   private Map<String, String> forstaRecipients = new HashMap<>();
-  private Map<String, String> slugMap = new HashMap<>();
-  private List<ForstaRecipient> forstaSlugs;
+  private Map<String, ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
   private DirectoryDialogFragment directoryFragment;
@@ -432,6 +431,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             // Use the tags and usernames as the new group title... @john-lewis, @dev-team
             // Need to stop other users from modifying the group.
             StringBuilder title = new StringBuilder();
+            StringBuilder slugIds = new StringBuilder();
             Set<String> numbers = new HashSet<String>();
             for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
               title.append(entry.getKey()).append(", ");
@@ -483,8 +483,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        Map<String, String> matched = new HashMap<String, String>();
-
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
 
@@ -495,11 +493,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         while (m.find()) {
           String slug = m.group();
           slug = slug.substring(1);
-          if (slugMap.containsKey(slug)) {
-            matched.put(slug, slugMap.get(slug));
+          if (forstaSlugs.containsKey(slug)) {
+            forstaRecipients.put(slug, forstaSlugs.get(slug).number);
           }
         }
-        forstaRecipients = matched;
 
         // TODO remove this. For development only.
         recipientCount.setText("" + forstaRecipients.size());
@@ -515,8 +512,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void getSlugs() {
     ContactDb db = DbFactory.getContactDb(ConversationListActivity.this);
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-    slugMap = db.getContactSlugs();
-    slugMap.putAll(groupDb.getGroupSlugs());
+    forstaSlugs = db.getContactRecipients();
+    forstaSlugs.putAll(groupDb.getForstaRecipients());
   }
 
   private void addAttachmentContactInfo(Uri contactUri) {
@@ -760,7 +757,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, groupNumber, false);
           } else {
             Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
-            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
+            GroupManager.GroupActionResult result = GroupManager.createForstaDistribution(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
             return result.getGroupRecipient();
           }
         } catch (InvalidNumberException e) {

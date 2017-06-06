@@ -56,6 +56,7 @@ public class GroupDatabase extends Database {
   private static final String ORG_ID              = "org_id";
   private static final String SLUG                = "slug";
   private static final String SLUG_IDS            = "slug_ids";
+  private static final String GROUP_DISTRIBUTION  = "group_distribution";
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -73,6 +74,7 @@ public class GroupDatabase extends Database {
           ORG_ID + " TEXT, " +
           SLUG + " TEXT, " +
           SLUG_IDS + " TEXT, " +
+          GROUP_DISTRIBUTION + " INTEGER DEFAULT 0, " +
           ACTIVE + " INTEGER DEFAULT 1);";
 
   public static final String[] CREATE_INDEXS = {
@@ -200,13 +202,12 @@ public class GroupDatabase extends Database {
     db.close();
   }
 
-  public void createForstaGroup(byte[] groupId, String title, String slug, List<String> members,
+  public void createForstaGroup(byte[] groupId, String title, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {
     ContentValues contentValues = new ContentValues();
     contentValues.put(GROUP_ID, GroupUtil.getEncodedId(groupId));
     contentValues.put(TITLE, title);
-    contentValues.put(SLUG, slug);
     contentValues.put(MEMBERS, Util.join(members, ","));
 
     if (avatar != null) {
@@ -217,6 +218,7 @@ public class GroupDatabase extends Database {
 
     contentValues.put(AVATAR_RELAY, relay);
     contentValues.put(TIMESTAMP, System.currentTimeMillis());
+    contentValues.put(GROUP_DISTRIBUTION, 1);
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
@@ -236,7 +238,33 @@ public class GroupDatabase extends Database {
     List<ForstaRecipient> recipients = new ArrayList<>();
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG))));
+      String uuid = "";
+      try {
+        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
+        uuid = new String(id);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
+    }
+    cursor.close();
+    return recipients;
+  }
+
+  public Map<String, ForstaRecipient> getForstaRecipients() {
+    Map<String, ForstaRecipient> recipients = new HashMap<>();
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      String uuid = "";
+      try {
+        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
+        uuid = new String(id);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
     }
     cursor.close();
     return recipients;

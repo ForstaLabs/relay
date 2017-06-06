@@ -82,6 +82,21 @@ public class ContactDb extends DbBase {
     return contacts;
   }
 
+  public HashMap<String, ForstaRecipient> getContactRecipients() {
+    HashMap<String, ForstaRecipient> contacts = new HashMap<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
+      while (c.moveToNext()) {
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
+        contacts.put(c.getString(c.getColumnIndex(USERNAME)), recipient);
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return contacts;
+  }
+
   public Set<String> getNumbers() {
     Set<String> numbers = new HashSet<>();
     try {
@@ -130,7 +145,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c);
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
         recipients.add(recipient);
       }
       c.close();
