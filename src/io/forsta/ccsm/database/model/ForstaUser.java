@@ -17,6 +17,7 @@ import io.forsta.securesms.contacts.ContactsDatabase;
 public class ForstaUser {
   public String id; //Db id
   public String uid;
+  public String tag_id;
   public String name;
   public String username;
   public String email;
@@ -27,7 +28,9 @@ public class ForstaUser {
   public ForstaUser(JSONObject userObj) {
     try {
       String name = DbUtils.getContactName(userObj);
+      String tagId =
       this.uid = userObj.getString("id");
+
       this.orgId = userObj.getString("org_id");
       this.username = userObj.getString("username");
       this.name = name;

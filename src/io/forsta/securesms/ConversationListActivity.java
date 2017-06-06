@@ -431,7 +431,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             // Use the tags and usernames as the new group title... @john-lewis, @dev-team
             // Need to stop other users from modifying the group.
             StringBuilder title = new StringBuilder();
-            StringBuilder slugIds = new StringBuilder();
             Set<String> numbers = new HashSet<String>();
             for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
               title.append(entry.getKey()).append(", ");
@@ -452,7 +451,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
               title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
             }
             // Now create new group and send to the new groupId.
-            sendGroupMessage(message, numbers, title.toString());
+            String textTitle = title.toString();
+            textTitle = textTitle.replaceAll(", $", "");
+            sendGroupMessage(message, numbers, textTitle);
           }
         } else {
           Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();

@@ -30,10 +30,4 @@ public class ForstaRecipient {
     this.slug = slug;
     this.uuid = id;
   }
-
-  public ForstaRecipient(Cursor cursor) {
-    this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
-    this.name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
-    this.number = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
-  }
 }
