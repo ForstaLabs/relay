@@ -723,7 +723,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     new AsyncTask<List<String>, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(List<String>... numbers) {
+      protected Recipients doInBackground(List... numbers) {
         try {
           return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
         } catch (Exception e) {
@@ -748,7 +748,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     new AsyncTask<Set<String>, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(Set<String>... numbers) {
+      protected Recipients doInBackground(Set... numbers) {
         try {
           numbers[0].add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
           String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
