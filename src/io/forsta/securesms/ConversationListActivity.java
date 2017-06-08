@@ -410,7 +410,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void initializeListeners() {
-    // TODO factor this code.
     directoryFragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
       @Override
       public void onComplete(Set<ForstaRecipient> recipients) {
@@ -442,45 +441,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-        String message = composeText.getText().toString();
-
-        if (forstaRecipients.size() > 0) {
-          if (forstaRecipients.size() == 1) {
-            // Send a single recipient message. Works for a single number or groupId
-            sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
-          } else {
-            // Create a new group, using all the recipients.
-            // Use the tags and usernames as the new group title... @john-lewis, @dev-team
-            // Need to stop other users from modifying the group.
-            StringBuilder title = new StringBuilder();
-            Set<String> numbers = new HashSet<String>();
-            for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
-              title.append(entry.getKey()).append(", ");
-              if (GroupUtil.isEncodedGroup(entry.getValue())) {
-                try {
-                  Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
-                  numbers.addAll(members);
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              } else {
-                numbers.add(entry.getValue());
-              }
-            }
-            // Add this phone's user to the end of the title. createGroup will append the number.
-            String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
-            if (!forstaRecipients.keySet().contains(thisUser)) {
-              title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
-            }
-            // Now create new group and send to the new groupId.
-            String textTitle = title.toString();
-            textTitle = textTitle.replaceAll(", $", "");
-            sendGroupMessage(message, numbers, textTitle);
-          }
-        } else {
-          Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
-        }
+        sendForstaDistribution();
       }
     });
 
@@ -742,8 +703,21 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   }
 
+  private void sendForstaDistribution() {
+    String message = composeText.getText().toString();
+    if (forstaRecipients.size() > 0) {
+      if (forstaRecipients.size() == 1) {
+        sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
+      } else {
+        sendGroupDistribution(message);
+      }
+    } else {
+      Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
+    }
+  }
+
   private void sendSingleRecipientMessage(final String message, List<String> numbers) {
-    new AsyncTask<List<String>, Void, Recipients>() {
+    new AsyncTask<List, Void, Recipients>() {
 
       @Override
       protected Recipients doInBackground(List... numbers) {
@@ -767,20 +741,52 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }.execute(numbers);
   }
 
+  private void sendGroupDistribution(String message) {
+    GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
+    // Create a new group, using all the recipients.
+    // Use the tags and usernames as the new group title... @john-lewis, @dev-team
+    // Need to stop other users from modifying the group.
+    StringBuilder title = new StringBuilder();
+    Set<String> numbers = new HashSet<>();
+    for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
+      title.append(entry.getKey()).append(", ");
+      if (GroupUtil.isEncodedGroup(entry.getValue())) {
+        try {
+          Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
+          numbers.addAll(members);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      } else {
+        numbers.add(entry.getValue());
+      }
+    }
+    // Add this phone's user to the end of the title. createGroup will append the number.
+    String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
+    if (!forstaRecipients.keySet().contains(thisUser)) {
+      title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+    }
+    // Now create new group and send to the new groupId.
+    String textTitle = title.toString();
+    textTitle = textTitle.replaceAll(", $", "");
+    sendGroupMessage(message, numbers, textTitle);
+  }
+
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
     new AsyncTask<Set, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(Set... numbers) {
+      protected Recipients doInBackground(Set... params) {
+        Set<String> numberSet = params[0];
         try {
-          numbers[0].add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
-          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
+          numberSet.add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
+          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<>(numberSet));
           if (!groupId.equals("")) {
-            List<String> groupNumber = new ArrayList<String>();
+            List<String> groupNumber = new ArrayList<>();
             groupNumber.add(groupId);
             return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, groupNumber, false);
           } else {
-            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
+            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<>(numberSet), false);
             GroupManager.GroupActionResult result = GroupManager.createForstaDistribution(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
             return result.getGroupRecipient();
           }

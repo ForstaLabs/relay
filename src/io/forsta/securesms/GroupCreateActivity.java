@@ -166,6 +166,7 @@ public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
                                      ? R.string.GroupCreateActivity_actionbar_update_title
                                      : R.string.GroupCreateActivity_actionbar_title);
 //      if (groupToUpdate.isPresent()) {
+//        GroupData data = groupToUpdate.get();
 //        groupName.setEnabled(false);
 //      }
     }
