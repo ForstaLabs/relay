@@ -768,7 +768,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
-    new AsyncTask<Set<String>, Void, Recipients>() {
+    new AsyncTask<Set, Void, Recipients>() {
 
       @Override
       protected Recipients doInBackground(Set... numbers) {
