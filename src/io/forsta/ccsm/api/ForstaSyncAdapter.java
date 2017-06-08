@@ -3,9 +3,11 @@ package io.forsta.ccsm.api;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
+import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.PeriodicSync;
 import android.content.SyncResult;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.service.KeyCachingService;
@@ -30,6 +33,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
 
   private static final String TAG = ForstaSyncAdapter.class.getSimpleName();
+  public static final String FORSTA_SYNC_COMPLETE = "io.forsta.securesms.FORSTA_SYNC_COMPLETE";
   public static final String AUTHORITY = "io.forsta.provider.ccsm";
   private static final String ACCOUNT_TYPE = "io.forsta.securesms";
   private ContentResolver contentResolver;
@@ -48,6 +52,7 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
     if (TextSecurePreferences.isPushRegistered(getContext())) {
       MasterSecret masterSecret = KeyCachingService.getMasterSecret(getContext());
       CcsmApi.syncForstaContacts(getContext(), masterSecret);
+      getContext().sendBroadcast(new Intent(FORSTA_SYNC_COMPLETE));
     }
   }
 

@@ -20,8 +20,11 @@ import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SyncStatusObserver;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -48,6 +51,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -119,6 +123,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     InputPanel.Listener
 {
   private static final String TAG = ConversationListActivity.class.getSimpleName();
+  private static IntentFilter syncIntentFilter = new IntentFilter(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE);
+  private BroadcastReceiver syncReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      Log.d(TAG, "Sync complete");
+      syncIndicator.setVisibility(View.GONE);
+    }
+  };
 
   private final DynamicTheme    dynamicTheme    = new DynamicTheme   ();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -133,6 +145,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private DrawerFragment drawerFragment;
   private DirectoryDialogFragment directoryFragment;
   private LinearLayoutCompat layout;
+  private LinearLayout syncIndicator;
 
   private ContentObserver observer;
   private MasterSecret masterSecret;
@@ -191,9 +204,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     directoryFragment = new DirectoryDialogFragment();
+    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
-    if (ForstaPreferences.getForstaContactSync(this) == -1) {
+    if (ForstaPreferences.getForstaContactSync(this) != -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+      syncIndicator.setVisibility(View.VISIBLE);
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
 
@@ -229,7 +244,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+    registerReceiver(syncReceiver, syncIntentFilter);
     getSlugs();
+  }
+
+  @Override
+  protected void onPause() {
+    syncIndicator.setVisibility(View.GONE);
+    unregisterReceiver(syncReceiver);
+    super.onPause();
   }
 
   @Override
