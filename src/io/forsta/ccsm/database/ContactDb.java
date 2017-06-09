@@ -30,6 +30,8 @@ public class ContactDb extends DbBase {
   public static final String NUMBER = "number";
   public static final String USERNAME = "username";
   public static final String UID = "uid";
+  public static final String TAGID = "tagid";
+  public static final String SLUG = "slug";
   public static final String ORGID = "orgid";
   public static final String DATE = "date";
   public static final String TSREGISTERED = "tsregistered";
@@ -42,6 +44,8 @@ public class ContactDb extends DbBase {
       NUMBER + ", " +
       USERNAME + ", " +
       UID + ", " +
+      TAGID + ", " +
+      SLUG + ", " +
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
@@ -55,6 +59,8 @@ public class ContactDb extends DbBase {
       NUMBER,
       USERNAME,
       UID,
+      TAGID,
+      SLUG,
       ORGID,
       DATE,
       TSREGISTERED
@@ -165,6 +171,9 @@ public class ContactDb extends DbBase {
       for (ForstaUser user : users) {
         forstaUids.add(user.uid);
         ContentValues values = new ContentValues();
+        values.put(ContactDb.UID, user.uid);
+        values.put(ContactDb.TAGID, user.tag_id);
+        values.put(ContactDb.SLUG, user.slug);
         values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.NAME, user.name);
         values.put(ContactDb.ORGID, user.org_id);
