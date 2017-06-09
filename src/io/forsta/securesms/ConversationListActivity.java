@@ -206,7 +206,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryFragment = new DirectoryDialogFragment();
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
-    if (ForstaPreferences.getForstaContactSync(this) != -1) {
+    if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       syncIndicator.setVisibility(View.VISIBLE);
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
@@ -745,7 +745,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
     // Create a new group, using all the recipients.
     // Use the tags and usernames as the new group title... @john-lewis, @dev-team
-    // Need to stop other users from modifying the group.
     StringBuilder title = new StringBuilder();
     Set<String> numbers = new HashSet<>();
     for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
@@ -773,10 +772,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
-    new AsyncTask<Set, Void, Recipients>() {
+    new AsyncTask<Set<String>, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(Set... params) {
+      protected Recipients doInBackground(Set<String>... params) {
         Set<String> numberSet = params[0];
         try {
           numberSet.add(TextSecurePreferences.getLocalNumber(getApplicationContext()));

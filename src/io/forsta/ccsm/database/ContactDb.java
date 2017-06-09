@@ -167,7 +167,7 @@ public class ContactDb extends DbBase {
         ContentValues values = new ContentValues();
         values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.NAME, user.name);
-        values.put(ContactDb.ORGID, user.orgId);
+        values.put(ContactDb.ORGID, user.org_id);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);

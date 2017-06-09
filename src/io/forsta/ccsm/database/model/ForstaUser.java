@@ -1,14 +1,12 @@
 package io.forsta.ccsm.database.model;
 
 import android.database.Cursor;
-import android.provider.ContactsContract;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.database.ContactDb;
-import io.forsta.ccsm.database.DbUtils;
-import io.forsta.securesms.contacts.ContactsDatabase;
 
 /**
  * Created by jlewis on 3/2/17.
@@ -20,20 +18,31 @@ public class ForstaUser {
   public String tag_id;
   public String name;
   public String username;
+  public String slug;
   public String email;
   public String phone;
-  public String orgId;
+  public String org_id;
   public boolean tsRegistered;
 
   public ForstaUser(JSONObject userObj) {
     try {
-      String name = DbUtils.getContactName(userObj);
-      String tagId =
-      this.uid = userObj.getString("id");
-
-      this.orgId = userObj.getString("org_id");
-      this.username = userObj.getString("username");
+      String name = getContactName(userObj);
       this.name = name;
+      JSONArray tags = userObj.getJSONArray("tags");
+      for (int i=0; i<tags.length(); i++) {
+        JSONObject tagObject = tags.getJSONObject(i);
+        String association = tagObject.getString("association_type");
+        // Only getting the username tag for the user, not the other tags.
+        if (association.equals("USERNAME")) {
+          JSONObject tag = tagObject.getJSONObject("tag");
+          this.tag_id = tag.getString("id");
+          this.slug = tag.getString("slug");
+          break;
+        }
+      }
+      this.uid = userObj.getString("id");
+      this.org_id = userObj.getString("org_id");
+      this.username = userObj.getString("username");
       this.email = userObj.getString("email");
       this.phone = userObj.getString("phone");
       this.tsRegistered = false;
@@ -46,7 +55,7 @@ public class ForstaUser {
   public ForstaUser(Cursor cursor) {
     this.id = cursor.getString(cursor.getColumnIndex(ContactDb.ID));
     this.uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
-    this.orgId = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.org_id = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
     this.username = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
     this.name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
     this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
@@ -56,5 +65,18 @@ public class ForstaUser {
 
   public String getName() {
     return name;
+  }
+
+  private String getContactName(JSONObject userObject) throws JSONException {
+    StringBuilder name = new StringBuilder();
+    String firstName = userObject.getString("first_name");
+    String middleName = userObject.getString("middle_name");
+    String lastName = userObject.getString("last_name");
+    name.append(firstName).append(" ");
+    if (!middleName.equals("")) {
+      name.append(middleName).append(" ");
+    }
+    name.append(lastName);
+    return name.toString();
   }
 }
