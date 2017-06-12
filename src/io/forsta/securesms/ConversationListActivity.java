@@ -143,7 +143,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private Map<String, ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
-  private DirectoryDialogFragment directoryFragment;
+//  private DirectoryDialogFragment directoryFragment;
+  private DirectoryFragment directoryFragment;
   private LinearLayoutCompat layout;
   private LinearLayout syncIndicator;
 
@@ -203,7 +204,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    directoryFragment = new DirectoryDialogFragment();
+    directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+
+
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
@@ -237,6 +240,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     DirectoryRefreshListener.schedule(this);
     // TODO decide on use of the rating manager
 //    RatingManager.showRatingDialogIfNecessary(this);
+  }
+
+  private void showDirectory() {
+    getSupportFragmentManager().beginTransaction().show(directoryFragment).commit();
+  }
+
+  private void hideDirectory() {
+    getSupportFragmentManager().beginTransaction().hide(directoryFragment).commit();
   }
 
   @Override
@@ -410,31 +421,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void initializeListeners() {
-    directoryFragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
+
+    directoryFragment.setItemSelectedListener(new DirectoryFragment.ItemSelectedListener() {
       @Override
-      public void onComplete(Set<ForstaRecipient> recipients) {
+      public void onItemSelected(String slug) {
         StringBuilder sb = new StringBuilder();
         sb.append(composeText.getText().toString());
-        int index = 0;
-        for (ForstaRecipient recipient : recipients) {
-          if (index > 0) {
-            sb.append(" @");
-          }
-          index++;
-          sb.append(recipient.slug);
-        }
+        sb.append(slug);
         composeText.setText(sb.toString());
         composeText.setSelection(composeText.getText().length());
-
-        try {
-        } catch (Exception e) {
-          Log.d(TAG, e.getMessage());
-        }
-      }
-
-      @Override
-      public void onCancel() {
-
+        hideDirectory();
       }
     });
 
@@ -449,6 +445,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       @Override
       public void onClick(View view) {
         composeText.setText(composeText.getText() + " @");
+        composeText.setSelection(composeText.length());
+        showDirectory();
       }
     });
 
@@ -472,7 +470,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         Matcher m = p.matcher(charSequence);
 
         if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
-          directoryFragment.show(getSupportFragmentManager(), "directoryDialog");
+          showDirectory();
         }
 
         while (m.find()) {

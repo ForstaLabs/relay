@@ -11,8 +11,11 @@ import io.forsta.securesms.util.AbstractCursorLoader;
 
 public class DirectoryLoader extends AbstractCursorLoader {
 
-  public DirectoryLoader(Context context) {
+  private final String filter;
+
+  public DirectoryLoader(Context context, String filter) {
     super(context);
+    this.filter = filter;
   }
 
   @Override

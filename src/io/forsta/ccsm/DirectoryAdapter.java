@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
@@ -39,11 +40,11 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Cont
     holder.name.setText(current.name);
     holder.number.setText(current.number);
     holder.slug.setText(current.slug);
-    holder.selected.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+    holder.layout.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+      public void onClick(View view) {
         if (clickListener != null) {
-          clickListener.onItemClick(recipientList.get(position), b);
+          clickListener.onItemClick(recipientList.get(position));
         }
       }
     });
@@ -59,21 +60,21 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Cont
   }
 
   public interface ItemClickListener {
-    void onItemClick(ForstaRecipient recipient, boolean selected);
+    void onItemClick(ForstaRecipient recipient);
   }
 
   class ContactHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TextView number;
     public TextView slug;
-    public CheckBox selected;
+    public LinearLayout layout;
 
     public ContactHolder(View itemView) {
       super(itemView);
       name = (TextView) itemView.findViewById(R.id.forsta_directory_item_name);
       number = (TextView) itemView.findViewById(R.id.forsta_directory_item_number);
       slug = (TextView) itemView.findViewById(R.id.forsta_directory_item_slug);
-      selected = (CheckBox) itemView.findViewById(R.id.forsta_directory_selected);
+      layout = (LinearLayout) itemView.findViewById(R.id.forsta_directory_item);
     }
   }
 }
