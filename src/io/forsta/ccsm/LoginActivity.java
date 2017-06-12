@@ -234,7 +234,9 @@ public class LoginActivity extends BaseActionBarActivity {
       String pass = params[1];
       String authtoken = params[2];
       String username = ForstaPreferences.getForstaUsername(getApplicationContext());
+      String org = ForstaPreferences.getForstaOrgName(getApplicationContext());
       authtoken = CcsmApi.parseLoginToken(authtoken);
+//      authtoken = org + ":" + username + ":" + authtoken;
       authtoken = username + ":" + authtoken;
 
       JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);

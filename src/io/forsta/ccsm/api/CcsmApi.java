@@ -68,17 +68,14 @@ public class CcsmApi {
   private CcsmApi() {
   }
 
-  public static JSONObject forstaLogin(Context context, String authToken) {
-    return forstaLogin(context, "", "", authToken);
-  }
-
   public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
       if (!authToken.equals("")) {
-        String token = authToken.contains(":") ? authToken : username + ":" + authToken;
-        obj.put("authtoken", token);
+//        String token = authToken.contains(":") ? authToken : username + ":" + authToken;
+//        obj.put("authtoken", token);
+        obj.put("authtoken", authToken);
         result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_AUTH_TOKEN, obj);
       } else {
         obj.put("username", username);
