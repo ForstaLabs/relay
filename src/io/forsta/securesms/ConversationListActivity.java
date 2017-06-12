@@ -46,6 +46,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.CompletionInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
@@ -136,6 +138,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
 
+  private boolean isDirectoryOpen = false;
   private ImageButton directoryButton;
   private ImageButton newConversationButton;
   private TextView recipientCount;
@@ -205,7 +208,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-
+    hideDirectory();
 
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
@@ -243,10 +246,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void showDirectory() {
+    isDirectoryOpen = true;
     getSupportFragmentManager().beginTransaction().show(directoryFragment).commit();
   }
 
   private void hideDirectory() {
+    isDirectoryOpen = false;
     getSupportFragmentManager().beginTransaction().hide(directoryFragment).commit();
   }
 
@@ -425,9 +430,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryFragment.setItemSelectedListener(new DirectoryFragment.ItemSelectedListener() {
       @Override
       public void onItemSelected(String slug) {
+        String text = composeText.getText().toString();
+
+        String newText = text.substring(0, text.lastIndexOf("@"));
+
         StringBuilder sb = new StringBuilder();
-        sb.append(composeText.getText().toString());
+        sb.append(newText);
+        sb.append("@");
         sb.append(slug);
+        sb.append(" ");
         composeText.setText(sb.toString());
         composeText.setSelection(composeText.getText().length());
         hideDirectory();
@@ -446,6 +457,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       public void onClick(View view) {
         composeText.setText(composeText.getText() + " @");
         composeText.setSelection(composeText.length());
+        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+        composeText.requestFocus();
         showDirectory();
       }
     });
@@ -468,6 +482,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
+        String input = charSequence.toString();
+        int length = input.length();
+        int slugStart = input.lastIndexOf("@");
+        String slugPart = input.substring(input.lastIndexOf("@") + 1);
+        directoryFragment.setQueryFilter(slugPart);
 
         if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
           showDirectory();

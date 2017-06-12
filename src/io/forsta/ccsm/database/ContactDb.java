@@ -237,6 +237,19 @@ public class ContactDb extends DbBase {
     return null;
   }
 
+  public Cursor filterActiveRecipients(String slugPart) {
+    try {
+      String selection = TSREGISTERED + " = 1";
+      if (slugPart.length() > 0) {
+        selection = selection + " AND " + SLUG + " LIKE '" + slugPart + "%'";
+      }
+      return getRecords(TABLE_NAME, allColumns, selection, null, NAME);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public Cursor getInactiveRecipients() {
     try {
       return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=0", null, NAME);

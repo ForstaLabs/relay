@@ -13,13 +13,13 @@ public class DirectoryLoader extends AbstractCursorLoader {
 
   private final String filter;
 
-  public DirectoryLoader(Context context, String filter) {
+  public DirectoryLoader(Context context, String slugPart) {
     super(context);
-    this.filter = filter;
+    this.filter = slugPart;
   }
 
   @Override
   public Cursor getCursor() {
-    return DbFactory.getContactDb(context).getActiveRecipients();
+    return DbFactory.getContactDb(context).filterActiveRecipients(this.filter);
   }
 }

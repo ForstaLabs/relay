@@ -37,8 +37,8 @@
 
         <FrameLayout
             android:id="@+id/forsta_directory_helper"
-            android:layout_width="match_parent"
-            android:layout_height="50dp">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
         </FrameLayout>
         <FrameLayout android:id="@+id/attachment_editor"
                      android:layout_width="match_parent"
