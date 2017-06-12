@@ -77,8 +77,7 @@ public class CcsmApi {
     try {
       JSONObject obj = new JSONObject();
       if (!authToken.equals("")) {
-        String token = authToken.contains(":") ? authToken : username + ":" + authToken;
-        obj.put("authtoken", token);
+        obj.put("authtoken", authToken);
         result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_AUTH_TOKEN, obj);
       } else {
         obj.put("username", username);
