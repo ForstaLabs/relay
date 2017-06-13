@@ -81,6 +81,7 @@ import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DirectoryFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
@@ -218,23 +219,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
 
-    new AsyncTask<Void, Void, Boolean>() {
-
-      @Override
-      protected Boolean doInBackground(Void... voids) {
-        return CcsmApi.checkForstaAuth(getApplicationContext());
-      }
-
-      @Override
-      protected void onPostExecute(Boolean isError) {
-        if (isError) {
-          // Not authorized. Start intent for LoginActivity to re-auth.
-          Log.d(TAG, "Not Authorized");
-        } else {
-          Log.d(TAG, "Authorized");
-        }
-      }
-    }.execute();
+    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
+    tokenCheck.execute();
 
     initializeViews();
     initializeListeners();
@@ -243,16 +229,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     DirectoryRefreshListener.schedule(this);
     // TODO decide on use of the rating manager
 //    RatingManager.showRatingDialogIfNecessary(this);
-  }
-
-  private void showDirectory() {
-    isDirectoryOpen = true;
-    getSupportFragmentManager().beginTransaction().show(directoryFragment).commit();
-  }
-
-  private void hideDirectory() {
-    isDirectoryOpen = false;
-    getSupportFragmentManager().beginTransaction().hide(directoryFragment).commit();
   }
 
   @Override
@@ -398,6 +374,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   public void onSwitchToArchive() {
     Intent intent = new Intent(this, ConversationListArchiveActivity.class);
     startActivity(intent);
+  }
+
+  private void showDirectory() {
+    isDirectoryOpen = true;
+    getSupportFragmentManager().beginTransaction().show(directoryFragment).commit();
+  }
+
+  private void hideDirectory() {
+    isDirectoryOpen = false;
+    getSupportFragmentManager().beginTransaction().hide(directoryFragment).commit();
   }
 
   private void initializeViews() {
@@ -718,6 +704,27 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   @Override
   public void onAttachmentChanged() {
 
+  }
+
+  public class VerifyCcsmToken extends AsyncTask<Void, Void, Boolean> {
+
+    @Override
+    protected Boolean doInBackground(Void... voids) {
+      return CcsmApi.checkForstaAuth(getApplicationContext());
+    }
+
+    @Override
+    protected void onPostExecute(Boolean isError) {
+      if (isError) {
+        // Not authorized. Start intent for LoginActivity to re-auth.
+        Log.d(TAG, "Not Authorized");
+        Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+      } else {
+        Log.d(TAG, "Authorized");
+      }
+    }
   }
 
   private void sendForstaDistribution() {
