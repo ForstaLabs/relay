@@ -95,6 +95,10 @@ public class DirectoryFragment extends Fragment implements LoaderManager.LoaderC
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
     adapter.swapCursor(cursor);
+    int itemCount = adapter.getItemCount();
+    if (itemCount < 1) {
+      //Show no items found message.
+    }
   }
 
   @Override

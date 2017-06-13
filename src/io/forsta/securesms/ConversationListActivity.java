@@ -210,17 +210,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     hideDirectory();
-
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
+
+    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
+    tokenCheck.execute();
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       syncIndicator.setVisibility(View.VISIBLE);
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
-
-    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
-    tokenCheck.execute();
 
     initializeViews();
     initializeListeners();
@@ -422,9 +421,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
         StringBuilder sb = new StringBuilder();
         sb.append(newText);
-        sb.append("@");
-        sb.append(slug);
-        sb.append(" ");
+        sb.append("@").append(slug).append(" ");
         composeText.setText(sb.toString());
         composeText.setSelection(composeText.getText().length());
         hideDirectory();
@@ -443,8 +440,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       public void onClick(View view) {
         composeText.setText(composeText.getText() + " @");
         composeText.setSelection(composeText.length());
-        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+//        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
         composeText.requestFocus();
         showDirectory();
       }
@@ -469,13 +466,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
         String input = charSequence.toString();
-        int length = input.length();
-        int slugStart = input.lastIndexOf("@");
-        String slugPart = input.substring(input.lastIndexOf("@") + 1);
-        directoryFragment.setQueryFilter(slugPart);
 
-        if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
-          showDirectory();
+        int slugStart = input.lastIndexOf("@");
+        String slugPart = input.substring(slugStart + 1);
+        if (slugPart.contains(" ")) {
+          hideDirectory();
+        } else {
+          directoryFragment.setQueryFilter(slugPart);
+          if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
+            showDirectory();
+          }
         }
 
         while (m.find()) {
@@ -718,6 +718,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       if (isError) {
         // Not authorized. Start intent for LoginActivity to re-auth.
         Log.d(TAG, "Not Authorized");
+        ForstaPreferences.clearLogin(ConversationListActivity.this);
         Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
