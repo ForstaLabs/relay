@@ -162,7 +162,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
         versionName "1.0.12"
-        versionCode 110
+        versionCode 112
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
 //        buildConfigField "String", "TEXTSECURE_URL", "\"https://textsecure.forsta.services\""
