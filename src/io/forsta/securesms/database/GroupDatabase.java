@@ -43,20 +43,20 @@ public class GroupDatabase extends Database {
   private static final String TAG = GroupDatabase.class.getSimpleName();
 
   private static final String TABLE_NAME          = "groups";
-  private static final String ID                  = "_id";
-  private static final String GROUP_ID            = "group_id";
-  private static final String TITLE               = "title";
+  public static final String ID                  = "_id";
+  public static final String GROUP_ID            = "group_id";
+  public static final String TITLE               = "title";
   private static final String MEMBERS             = "members";
   private static final String AVATAR              = "avatar";
   private static final String AVATAR_ID           = "avatar_id";
   private static final String AVATAR_KEY          = "avatar_key";
   private static final String AVATAR_CONTENT_TYPE = "avatar_content_type";
   private static final String AVATAR_RELAY        = "avatar_relay";
-  private static final String TIMESTAMP           = "timestamp";
-  private static final String ORG_ID              = "org_id";
-  private static final String SLUG                = "slug";
+  public static final String TIMESTAMP           = "timestamp";
+  public static final String ORG_ID              = "org_id";
+  public static final String SLUG                = "slug";
   private static final String SLUG_IDS            = "slug_ids";
-  private static final String GROUP_DISTRIBUTION  = "group_distribution";
+  public static final String GROUP_DISTRIBUTION  = "group_distribution";
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -111,8 +111,12 @@ public class GroupDatabase extends Database {
     return new Reader(cursor);
   }
 
-  public Cursor getForstaGroups() {
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
+  public Cursor getForstaGroups(String slugPart) {
+    String selection = null;
+    if (slugPart.length() > 0) {
+      selection = SLUG + " LIKE '" + slugPart + "%'";
+    }
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
   }
 
   public Set<String> getGroupMembers(byte[] groupId) {
@@ -222,6 +226,10 @@ public class GroupDatabase extends Database {
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
+  }
+
+  public Cursor getForstaGroup(byte[] groupId) {
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?", new String[] {GroupUtil.getEncodedId(groupId)}, null, null, null);
   }
 
   public Map<String, String> getGroupSlugs() {

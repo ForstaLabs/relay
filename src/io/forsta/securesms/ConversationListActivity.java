@@ -858,6 +858,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         attachmentManager.clear();
         composeText.setText("");
         forstaRecipients.clear();
+        recipientCount.setText("0");
       }
     }.execute(mediaMessage);
   }

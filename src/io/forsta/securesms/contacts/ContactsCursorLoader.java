@@ -117,7 +117,7 @@ public class ContactsCursorLoader extends CursorLoader {
     contactsCursor.close();
 
     GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
-    Cursor groupCursor = gdb.getForstaGroups();
+    Cursor groupCursor = gdb.getForstaGroups("");
     while (groupCursor.moveToNext()) {
       forstaContactsCursor.addRow(new Object[] {
           groupCursor.getString(groupCursor.getColumnIndex("_id")),

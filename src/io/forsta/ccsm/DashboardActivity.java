@@ -356,7 +356,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private String printGroups() {
     GroupDatabase db = DatabaseFactory.getGroupDatabase(getApplicationContext());
-    Cursor cursor = db.getForstaGroups();
+    Cursor cursor = db.getForstaGroups("");
     StringBuilder sb = new StringBuilder();
     while (cursor.moveToNext()) {
       int cols = cursor.getColumnCount();
