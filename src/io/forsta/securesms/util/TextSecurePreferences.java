@@ -495,7 +495,7 @@ public class TextSecurePreferences {
   }
 
   public static boolean isThreadLengthTrimmingEnabled(Context context) {
-    return getBooleanPreference(context, THREAD_TRIM_ENABLED, false);
+    return getBooleanPreference(context, THREAD_TRIM_ENABLED, true);
   }
 
   public static int getThreadTrimLength(Context context) {

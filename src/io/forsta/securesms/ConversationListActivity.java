@@ -540,8 +540,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleDirectory() {
-//    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
-    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
+    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
+//    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
   }
 

@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.ForstaDirectoryAdapter;
@@ -26,6 +27,7 @@ import io.forsta.securesms.contacts.ContactsCursorLoader;
  */
 
 public class DirectoryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+  private TextView noItems;
   private RecyclerView list;
   private ForstaDirectoryAdapter adapter;
   private String query = "";
@@ -59,6 +61,7 @@ public class DirectoryFragment extends Fragment implements LoaderManager.LoaderC
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.forsta_directory_fragment, container, false);
     list = (RecyclerView) view.findViewById(R.id.forsta_directory_recycler_view);
+    noItems = (TextView) view.findViewById(R.id.forsta_directory_noitems);
     list.setLayoutManager(new LinearLayoutManager(getActivity()));
     return view;
   }
@@ -98,6 +101,9 @@ public class DirectoryFragment extends Fragment implements LoaderManager.LoaderC
     int itemCount = adapter.getItemCount();
     if (itemCount < 1) {
       //Show no items found message.
+      noItems.setVisibility(View.VISIBLE);
+    } else {
+      noItems.setVisibility(View.GONE);
     }
   }
 
