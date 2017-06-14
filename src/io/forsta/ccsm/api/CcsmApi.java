@@ -68,10 +68,6 @@ public class CcsmApi {
   private CcsmApi() {
   }
 
-  public static JSONObject forstaLogin(Context context, String authToken) {
-    return forstaLogin(context, "", "", authToken);
-  }
-
   public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
     JSONObject result = new JSONObject();
     try {

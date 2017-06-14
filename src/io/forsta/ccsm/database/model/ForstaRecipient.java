@@ -24,15 +24,10 @@ public class ForstaRecipient {
   public boolean registered;
   public Set<String> groupNumbers = new HashSet<>();
 
-  public ForstaRecipient(String name, String number, String slug) {
+  public ForstaRecipient(String name, String number, String slug, String id) {
     this.name = name;
     this.number = number;
     this.slug = slug;
-  }
-
-  public ForstaRecipient(Cursor cursor) {
-    this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
-    this.name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
-    this.number = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
+    this.uuid = id;
   }
 }

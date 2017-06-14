@@ -14,7 +14,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DbHelper extends SQLiteOpenHelper {
   private static final String DB_NAME = "relay.db";
-  private static final int VERSION = 2;
+  private static final int VERSION = 3;
 
   public DbHelper(Context context) {
     super(context, DB_NAME, null, VERSION);

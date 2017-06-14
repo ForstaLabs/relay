@@ -356,13 +356,17 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private String printGroups() {
     GroupDatabase db = DatabaseFactory.getGroupDatabase(getApplicationContext());
-    Cursor cursor = db.getForstaGroups();
+    Cursor cursor = db.getForstaGroups("");
     StringBuilder sb = new StringBuilder();
     while (cursor.moveToNext()) {
       int cols = cursor.getColumnCount();
       for (int i=0; i<cols; i++) {
         sb.append(cursor.getColumnName(i)).append(": ");
-        sb.append(cursor.getString(i));
+        try {
+          sb.append(cursor.getString(i));
+        } catch (Exception e) {
+
+        }
         sb.append("\n");
       }
     }
@@ -716,7 +720,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       StringBuilder sb = new StringBuilder();
       for (ForstaUser user : contacts) {
         sb.append(user.phone).append(" ");
-        sb.append(user.getName()).append("\n");
+        sb.append(user.email).append(" ");
+        sb.append(user.username).append("\n");
       }
       mDebugText.setText(sb.toString());
     }

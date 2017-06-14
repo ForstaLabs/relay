@@ -9,6 +9,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/forsta_sync_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="20dp"
+            android:visibility="gone">
+            <ProgressBar
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center_horizontal" />
+            <TextView android:text="Updating Contacts"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
+
 
         <FrameLayout
             android:id="@+id/forsta_conversation_list"
@@ -18,6 +35,11 @@
             android:layout_weight="1"
             android:orientation="vertical"/>
 
+        <FrameLayout
+            android:id="@+id/forsta_directory_helper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </FrameLayout>
         <FrameLayout android:id="@+id/attachment_editor"
                      android:layout_width="match_parent"
                      android:layout_height="wrap_content"

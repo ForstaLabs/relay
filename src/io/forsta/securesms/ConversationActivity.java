@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
@@ -414,7 +415,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         } else {
           menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
         }
-      } else if (isActiveGroup()) {
+      } else if (isActiveGroup() && !isForstaGroup()) {
         inflater.inflate(R.menu.conversation_push_group_options, menu);
       }
     }
@@ -1218,6 +1219,25 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     } else {
       charactersLeft.setVisibility(View.GONE);
     }
+  }
+
+  private boolean isForstaGroup() {
+    boolean result = false;
+    try {
+      byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
+      Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
+      if (cursor.moveToFirst()) {
+        int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
+        String slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
+        if (groupDistribution == 1 || slug != null) {
+          result = true;
+        }
+      }
+      cursor.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return result;
   }
 
   private boolean isSingleConversation() {

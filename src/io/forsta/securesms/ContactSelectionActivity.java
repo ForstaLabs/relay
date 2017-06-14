@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import android.util.Log;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -76,6 +78,10 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     }
 
     setContentView(R.layout.contact_selection_activity);
+    boolean syncing = ContentResolver.isSyncActive(ForstaSyncAdapter.getAccount(ContactSelectionActivity.this), ForstaSyncAdapter.AUTHORITY);
+    if (syncing) {
+      Log.d(TAG, "Show sync indicator");
+    }
 
     initializeToolbar();
     initializeResources();

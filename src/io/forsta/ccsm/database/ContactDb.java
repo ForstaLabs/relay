@@ -30,6 +30,8 @@ public class ContactDb extends DbBase {
   public static final String NUMBER = "number";
   public static final String USERNAME = "username";
   public static final String UID = "uid";
+  public static final String TAGID = "tagid";
+  public static final String SLUG = "slug";
   public static final String ORGID = "orgid";
   public static final String DATE = "date";
   public static final String TSREGISTERED = "tsregistered";
@@ -42,6 +44,8 @@ public class ContactDb extends DbBase {
       NUMBER + ", " +
       USERNAME + ", " +
       UID + ", " +
+      TAGID + ", " +
+      SLUG + ", " +
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
@@ -55,6 +59,8 @@ public class ContactDb extends DbBase {
       NUMBER,
       USERNAME,
       UID,
+      TAGID,
+      SLUG,
       ORGID,
       DATE,
       TSREGISTERED
@@ -74,6 +80,21 @@ public class ContactDb extends DbBase {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
         contacts.put(c.getString(c.getColumnIndex(USERNAME)), c.getString(c.getColumnIndex(NUMBER)));
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return contacts;
+  }
+
+  public HashMap<String, ForstaRecipient> getContactRecipients() {
+    HashMap<String, ForstaRecipient> contacts = new HashMap<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
+      while (c.moveToNext()) {
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
+        contacts.put(c.getString(c.getColumnIndex(USERNAME)), recipient);
       }
       c.close();
     } catch (Exception e) {
@@ -130,7 +151,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c);
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
         recipients.add(recipient);
       }
       c.close();
@@ -151,8 +172,11 @@ public class ContactDb extends DbBase {
         forstaUids.add(user.uid);
         ContentValues values = new ContentValues();
         values.put(ContactDb.UID, user.uid);
+        values.put(ContactDb.TAGID, user.tag_id);
+        values.put(ContactDb.SLUG, user.slug);
+        values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.NAME, user.name);
-        values.put(ContactDb.ORGID, user.orgId);
+        values.put(ContactDb.ORGID, user.org_id);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
@@ -207,6 +231,19 @@ public class ContactDb extends DbBase {
   public Cursor getActiveRecipients() {
     try {
       return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public Cursor filterActiveRecipients(String slugPart) {
+    try {
+      String selection = TSREGISTERED + " = 1";
+      if (slugPart.length() > 0) {
+        selection = selection + " AND " + SLUG + " LIKE '" + slugPart + "%'";
+      }
+      return getRecords(TABLE_NAME, allColumns, selection, null, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }

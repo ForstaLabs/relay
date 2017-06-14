@@ -30,7 +30,7 @@ public class ForstaGroup {
   public ForstaGroup(JSONObject jsonObject) {
     try {
       this.id = jsonObject.getString("id");
-      this.org = jsonObject.getString("org");
+      this.org = jsonObject.getString("org_id");
       this.slug = jsonObject.getString("slug");
       this.description = jsonObject.getString("description");
       this.parent = jsonObject.getString("parent");

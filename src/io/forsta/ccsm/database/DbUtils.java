@@ -32,17 +32,4 @@ public class DbUtils {
     reader.close();
     return groupIds;
   }
-
-  public static String getContactName(JSONObject userObject) throws JSONException {
-    StringBuilder name = new StringBuilder();
-    String firstName = userObject.getString("first_name");
-    String middleName = userObject.getString("middle_name");
-    String lastName = userObject.getString("last_name");
-    name.append(firstName).append(" ");
-    if (!middleName.equals("")) {
-      name.append(middleName).append(" ");
-    }
-    name.append(lastName);
-    return name.toString();
-  }
 }

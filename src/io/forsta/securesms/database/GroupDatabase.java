@@ -43,19 +43,20 @@ public class GroupDatabase extends Database {
   private static final String TAG = GroupDatabase.class.getSimpleName();
 
   private static final String TABLE_NAME          = "groups";
-  private static final String ID                  = "_id";
-  private static final String GROUP_ID            = "group_id";
-  private static final String TITLE               = "title";
+  public static final String ID                  = "_id";
+  public static final String GROUP_ID            = "group_id";
+  public static final String TITLE               = "title";
   private static final String MEMBERS             = "members";
   private static final String AVATAR              = "avatar";
   private static final String AVATAR_ID           = "avatar_id";
   private static final String AVATAR_KEY          = "avatar_key";
   private static final String AVATAR_CONTENT_TYPE = "avatar_content_type";
   private static final String AVATAR_RELAY        = "avatar_relay";
-  private static final String TIMESTAMP           = "timestamp";
-  private static final String ORG_ID              = "org_id";
-  private static final String SLUG                = "slug";
-  private static final String SLUG_IDS            = "slug_ids"; // Both tag and user ids from message recipients. Does not include unsecure recipients.
+  public static final String TIMESTAMP           = "timestamp";
+  public static final String ORG_ID              = "org_id";
+  public static final String SLUG                = "slug";
+  private static final String SLUG_IDS            = "slug_ids";
+  public static final String GROUP_DISTRIBUTION  = "group_distribution";
   private static final String ACTIVE              = "active";
 
   public static final String CREATE_TABLE =
@@ -73,6 +74,7 @@ public class GroupDatabase extends Database {
           ORG_ID + " TEXT, " +
           SLUG + " TEXT, " +
           SLUG_IDS + " TEXT, " +
+          GROUP_DISTRIBUTION + " INTEGER DEFAULT 0, " +
           ACTIVE + " INTEGER DEFAULT 1);";
 
   public static final String[] CREATE_INDEXS = {
@@ -109,8 +111,12 @@ public class GroupDatabase extends Database {
     return new Reader(cursor);
   }
 
-  public Cursor getForstaGroups() {
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, null, null, null, null, null);
+  public Cursor getForstaGroups(String slugPart) {
+    String selection = null;
+    if (slugPart.length() > 0) {
+      selection = SLUG + " LIKE '" + slugPart + "%'";
+    }
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
   }
 
   public Set<String> getGroupMembers(byte[] groupId) {
@@ -200,13 +206,12 @@ public class GroupDatabase extends Database {
     db.close();
   }
 
-  public void createForstaGroup(byte[] groupId, String title, String slug, List<String> members,
+  public void createForstaGroup(byte[] groupId, String title, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {
     ContentValues contentValues = new ContentValues();
     contentValues.put(GROUP_ID, GroupUtil.getEncodedId(groupId));
     contentValues.put(TITLE, title);
-    contentValues.put(SLUG, slug);
     contentValues.put(MEMBERS, Util.join(members, ","));
 
     if (avatar != null) {
@@ -217,9 +222,14 @@ public class GroupDatabase extends Database {
 
     contentValues.put(AVATAR_RELAY, relay);
     contentValues.put(TIMESTAMP, System.currentTimeMillis());
+    contentValues.put(GROUP_DISTRIBUTION, 1);
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
+  }
+
+  public Cursor getForstaGroup(byte[] groupId) {
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?", new String[] {GroupUtil.getEncodedId(groupId)}, null, null, null);
   }
 
   public Map<String, String> getGroupSlugs() {
@@ -236,7 +246,33 @@ public class GroupDatabase extends Database {
     List<ForstaRecipient> recipients = new ArrayList<>();
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG))));
+      String uuid = "";
+      try {
+        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
+        uuid = new String(id);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
+    }
+    cursor.close();
+    return recipients;
+  }
+
+  public Map<String, ForstaRecipient> getForstaRecipients() {
+    Map<String, ForstaRecipient> recipients = new HashMap<>();
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    while (cursor != null && cursor.moveToNext()) {
+      String uuid = "";
+      try {
+        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
+        uuid = new String(id);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
     }
     cursor.close();
     return recipients;

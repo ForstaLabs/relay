@@ -43,6 +43,8 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -229,11 +231,28 @@ public class ThreadDatabase extends Database {
     try {
       cursor = DatabaseFactory.getMmsSmsDatabase(context).getConversation(threadId);
 
+      // Forsta message trimming.
+      if (cursor != null && length > 0) {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -30);
+        long cutOffDate = cal.getTimeInMillis();
+
+        DatabaseFactory.getSmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, cutOffDate);
+        DatabaseFactory.getMmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, cutOffDate);
+
+        update(threadId, false);
+        notifyConversationListeners(threadId);
+      }
+
       if (cursor != null && length > 0 && cursor.getCount() > length) {
         Log.w("ThreadDatabase", "Cursor count is greater than length!");
         cursor.moveToPosition(length - 1);
 
         long lastTweetDate = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.NORMALIZED_DATE_RECEIVED));
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -30);
+        long cutOffDate = cal.getTimeInMillis();
 
         Log.w("ThreadDatabase", "Cut off tweet date: " + lastTweetDate);
 
@@ -342,7 +361,7 @@ public class ThreadDatabase extends Database {
 
   public Cursor getArchivedConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + " DESC");
+    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
 
     setNotifyConverationListListeners(cursor);
 

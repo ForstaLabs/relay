@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,13 +30,13 @@ import io.forsta.securesms.database.GroupDatabase;
  */
 
 public class DirectoryDialogFragment extends DialogFragment {
+  private static final String TAG = DirectoryDialogFragment.class.getSimpleName();
 
   private RecyclerView recyclerView;
   private DirectoryAdapter adapter;
   private Button okButton;
   private Button cancelButton;
   private ProgressBar progress;
-  private Set<ForstaRecipient> selectedRecipients = new HashSet();
   private OnCompleteListener onCompleteListener;
 
   @Override
@@ -51,23 +52,6 @@ public class DirectoryDialogFragment extends DialogFragment {
     progress.setVisibility(View.VISIBLE);
     recyclerView = (RecyclerView) view.findViewById(R.id.forsta_directory_recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-    okButton = (Button) view.findViewById(R.id.forsta_directory_ok);
-    okButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (onCompleteListener != null) {
-          onCompleteListener.onComplete(selectedRecipients);
-        }
-        dismiss();
-      }
-    });
-    cancelButton = (Button) view.findViewById(R.id.forsta_directory_cancel);
-    cancelButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        dismiss();
-      }
-    });
     GetRecipients getRecipients = new GetRecipients();
     getRecipients.execute();
 
@@ -79,7 +63,7 @@ public class DirectoryDialogFragment extends DialogFragment {
   }
 
   public interface OnCompleteListener {
-    void onComplete(Set<ForstaRecipient> recipients);
+    void onComplete(ForstaRecipient recipient);
   }
 
   class GetRecipients extends AsyncTask<Void, Void, List<ForstaRecipient>> {
@@ -102,12 +86,12 @@ public class DirectoryDialogFragment extends DialogFragment {
       adapter = new DirectoryAdapter(forstaRecipients);
       adapter.setItemClickListener(new DirectoryAdapter.ItemClickListener() {
         @Override
-        public void onItemClick(ForstaRecipient recipient, boolean selected) {
-          if (selected) {
-            selectedRecipients.add(recipient);
-          } else {
-            selectedRecipients.remove(recipient);
+        public void onItemClick(ForstaRecipient recipient) {
+          Log.d(TAG, "Item Clicked");
+          if (onCompleteListener != null) {
+            onCompleteListener.onComplete(recipient);
           }
+          dismiss();
         }
       });
       recyclerView.setAdapter(adapter);

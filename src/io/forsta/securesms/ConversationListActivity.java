@@ -20,16 +20,22 @@ import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SyncStatusObserver;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -39,11 +45,21 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.CompletionInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 import org.json.JSONObject;
@@ -59,10 +75,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.forsta.ccsm.DirectoryActivity;
 import io.forsta.ccsm.DirectoryAdapter;
 import io.forsta.ccsm.DirectoryDialogFragment;
+import io.forsta.ccsm.DirectoryFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
@@ -107,19 +126,32 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     InputPanel.Listener
 {
   private static final String TAG = ConversationListActivity.class.getSimpleName();
+  private static IntentFilter syncIntentFilter = new IntentFilter(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE);
+  private BroadcastReceiver syncReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      Log.d(TAG, "Sync complete");
+      syncIndicator.setVisibility(View.GONE);
+    }
+  };
 
   private final DynamicTheme    dynamicTheme    = new DynamicTheme   ();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
 
+  private boolean isDirectoryOpen = false;
   private ImageButton directoryButton;
   private ImageButton newConversationButton;
   private TextView recipientCount;
   private Map<String, String> forstaRecipients = new HashMap<>();
-  private Map<String, String> slugMap = new HashMap<>();
-  private List<ForstaRecipient> forstaSlugs;
+  private Map<String, ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
+//  private DirectoryDialogFragment directoryFragment;
+  private DirectoryFragment directoryFragment;
+  private LinearLayoutCompat layout;
+  private LinearLayout syncIndicator;
+
   private ContentObserver observer;
   private MasterSecret masterSecret;
 
@@ -176,9 +208,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    hideDirectory();
+    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
+
+    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
+    tokenCheck.execute();
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+      syncIndicator.setVisibility(View.VISIBLE);
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
 
@@ -196,7 +235,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+    registerReceiver(syncReceiver, syncIntentFilter);
     getSlugs();
+  }
+
+  @Override
+  protected void onPause() {
+    syncIndicator.setVisibility(View.GONE);
+    unregisterReceiver(syncReceiver);
+    super.onPause();
   }
 
   @Override
@@ -328,8 +375,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
-  private void initSpinner() {
+  private void showDirectory() {
+    isDirectoryOpen = true;
+    getSupportFragmentManager().beginTransaction().show(directoryFragment).commit();
+  }
 
+  private void hideDirectory() {
+    isDirectoryOpen = false;
+    getSupportFragmentManager().beginTransaction().hide(directoryFragment).commit();
   }
 
   private void initializeViews() {
@@ -344,8 +397,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     composePanel = findViewById(R.id.bottom_panel);
     container = (InputAwareLayout) findViewById(R.id.layout_container);
     inputPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    container.addOnKeyboardShownListener(this);
+    layout = (LinearLayoutCompat) findViewById(R.id.layout_container);
 
+    container.addOnKeyboardShownListener(this);
     inputPanel.setListener(this, emojiDrawer);
     attachmentTypeSelector = new AttachmentTypeSelector(this, new AttachmentTypeListener());
     attachmentManager = new AttachmentManager(this, this);
@@ -357,78 +411,39 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void initializeListeners() {
-    // TODO factor this code.
+
+    directoryFragment.setItemSelectedListener(new DirectoryFragment.ItemSelectedListener() {
+      @Override
+      public void onItemSelected(String slug) {
+        String text = composeText.getText().toString();
+
+        String newText = text.substring(0, text.lastIndexOf("@"));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(newText);
+        sb.append("@").append(slug).append(" ");
+        composeText.setText(sb.toString());
+        composeText.setSelection(composeText.getText().length());
+        hideDirectory();
+      }
+    });
+
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-        String message = composeText.getText().toString();
-
-        if (forstaRecipients.size() > 0) {
-          if (forstaRecipients.size() == 1) {
-            // Send a single recipient message. Works for a single number or groupId
-            sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
-          } else {
-            // Create a new group, using all the recipients.
-            // Use the tags and usernames as the new group title... @john-lewis, @dev-team
-            // Need to stop other users from modifying the group.
-            StringBuilder title = new StringBuilder();
-            Set<String> numbers = new HashSet<String>();
-            for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
-              title.append(entry.getKey()).append(", ");
-              if (GroupUtil.isEncodedGroup(entry.getValue())) {
-                try {
-                  Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
-                  numbers.addAll(members);
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-              } else {
-                numbers.add(entry.getValue());
-              }
-            }
-            // Add this phone's user to the end of the title. createGroup will append the number.
-            String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
-            if (!forstaRecipients.keySet().contains(thisUser)) {
-              title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
-            }
-            // Now create new group and send to the new groupId.
-            sendGroupMessage(message, numbers, title.toString());
-          }
-        } else {
-          Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
-        }
+        sendForstaDistribution();
       }
     });
 
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        DirectoryDialogFragment fragment = new DirectoryDialogFragment();
-        fragment.show(getSupportFragmentManager(), "directoryDialog");
-        fragment.setOnCompleteListener(new DirectoryDialogFragment.OnCompleteListener() {
-          @Override
-          public void onComplete(Set<ForstaRecipient> recipients) {
-
-            List<String> numbers = new ArrayList<String>();
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(composeText.getText().toString());
-            for (ForstaRecipient recipient : recipients) {
-              numbers.add(recipient.number);
-              sb.append("@").append(recipient.slug).append(" ");
-            }
-            composeText.setText(sb.toString());
-            composeText.setSelection(composeText.getText().length());
-
-            String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, numbers);
-            try {
-            } catch (Exception e) {
-              Log.d(TAG, e.getMessage());
-            }
-
-          }
-        });
+        composeText.setText(composeText.getText() + " @");
+        composeText.setSelection(composeText.length());
+//        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+        composeText.requestFocus();
+        showDirectory();
       }
     });
 
@@ -439,6 +454,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     });
 
+
     composeText.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -447,19 +463,28 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        Map<String, String> matched = new HashMap<String, String>();
-
         Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
         Matcher m = p.matcher(charSequence);
+        String input = charSequence.toString();
+
+        int slugStart = input.lastIndexOf("@");
+        String slugPart = input.substring(slugStart + 1);
+        if (slugPart.contains(" ")) {
+          hideDirectory();
+        } else {
+          directoryFragment.setQueryFilter(slugPart);
+          if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
+            showDirectory();
+          }
+        }
 
         while (m.find()) {
           String slug = m.group();
           slug = slug.substring(1);
-          if (slugMap.containsKey(slug)) {
-            matched.put(slug, slugMap.get(slug));
+          if (forstaSlugs.containsKey(slug)) {
+            forstaRecipients.put(slug, forstaSlugs.get(slug).number);
           }
         }
-        forstaRecipients = matched;
 
         // TODO remove this. For development only.
         recipientCount.setText("" + forstaRecipients.size());
@@ -475,8 +500,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void getSlugs() {
     ContactDb db = DbFactory.getContactDb(ConversationListActivity.this);
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-    slugMap = db.getContactSlugs();
-    slugMap.putAll(groupDb.getGroupSlugs());
+    forstaSlugs = db.getContactRecipients();
+    forstaSlugs.putAll(groupDb.getForstaRecipients());
   }
 
   private void addAttachmentContactInfo(Uri contactUri) {
@@ -516,6 +541,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private void handleDirectory() {
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
+//    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
   }
 
@@ -634,6 +660,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     if (uri == null) return;
     attachmentManager.setMedia(masterSecret, uri, mediaType, getCurrentMediaConstraints());
   }
+
   private MediaConstraints getCurrentMediaConstraints() {
     return MediaConstraints.PUSH_CONSTRAINTS;
 //    return sendButton.getSelectedTransport().getType() == TransportOption.Type.TEXTSECURE
@@ -679,11 +706,46 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   }
 
+  public class VerifyCcsmToken extends AsyncTask<Void, Void, Boolean> {
+
+    @Override
+    protected Boolean doInBackground(Void... voids) {
+      return CcsmApi.checkForstaAuth(getApplicationContext());
+    }
+
+    @Override
+    protected void onPostExecute(Boolean isError) {
+      if (isError) {
+        // Not authorized. Start intent for LoginActivity to re-auth.
+        Log.d(TAG, "Not Authorized");
+        ForstaPreferences.clearLogin(ConversationListActivity.this);
+        Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+      } else {
+        Log.d(TAG, "Authorized");
+      }
+    }
+  }
+
+  private void sendForstaDistribution() {
+    String message = composeText.getText().toString();
+    if (forstaRecipients.size() > 0) {
+      if (forstaRecipients.size() == 1) {
+        sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
+      } else {
+        sendGroupDistribution(message);
+      }
+    } else {
+      Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
+    }
+  }
+
   private void sendSingleRecipientMessage(final String message, List<String> numbers) {
-    new AsyncTask<List<String>, Void, Recipients>() {
+    new AsyncTask<List, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(List<String>... numbers) {
+      protected Recipients doInBackground(List... numbers) {
         try {
           return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
         } catch (Exception e) {
@@ -704,21 +766,52 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }.execute(numbers);
   }
 
+  private void sendGroupDistribution(String message) {
+    GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
+    // Create a new group, using all the recipients.
+    // Use the tags and usernames as the new group title... @john-lewis, @dev-team
+    StringBuilder title = new StringBuilder();
+    Set<String> numbers = new HashSet<>();
+    for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
+      title.append(entry.getKey()).append(", ");
+      if (GroupUtil.isEncodedGroup(entry.getValue())) {
+        try {
+          Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
+          numbers.addAll(members);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      } else {
+        numbers.add(entry.getValue());
+      }
+    }
+    // Add this phone's user to the end of the title. createGroup will append the number.
+    String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
+    if (!forstaRecipients.keySet().contains(thisUser)) {
+      title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+    }
+    // Now create new group and send to the new groupId.
+    String textTitle = title.toString();
+    textTitle = textTitle.replaceAll(", $", "");
+    sendGroupMessage(message, numbers, textTitle);
+  }
+
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
     new AsyncTask<Set<String>, Void, Recipients>() {
 
       @Override
-      protected Recipients doInBackground(Set<String>... numbers) {
+      protected Recipients doInBackground(Set<String>... params) {
+        Set<String> numberSet = params[0];
         try {
-          numbers[0].add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
-          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<String>(numbers[0]));
+          numberSet.add(TextSecurePreferences.getLocalNumber(getApplicationContext()));
+          String groupId = GroupManager.getGroupIdFromMembers(ConversationListActivity.this, new ArrayList<>(numberSet));
           if (!groupId.equals("")) {
-            List<String> groupNumber = new ArrayList<String>();
+            List<String> groupNumber = new ArrayList<>();
             groupNumber.add(groupId);
             return RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, groupNumber, false);
           } else {
-            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(numbers[0]), false);
-            GroupManager.GroupActionResult result = GroupManager.createGroup(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
+            Recipients recipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<>(numberSet), false);
+            GroupManager.GroupActionResult result = GroupManager.createForstaDistribution(ConversationListActivity.this, masterSecret,  new HashSet<>(recipients.getRecipientsList()), null, title);
             return result.getGroupRecipient();
           }
         } catch (InvalidNumberException e) {
@@ -765,6 +858,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         attachmentManager.clear();
         composeText.setText("");
         forstaRecipients.clear();
+        recipientCount.setText("0");
       }
     }.execute(mediaMessage);
   }

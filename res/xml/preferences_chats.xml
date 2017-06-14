@@ -29,7 +29,7 @@
 
     <PreferenceCategory android:key="message_trimming" android:title="@string/preferences_chats__message_trimming">
         <io.forsta.securesms.components.SwitchPreferenceCompat
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="pref_trim_threads"
             android:summary="@string/preferences__automatically_delete_older_messages_once_a_conversation_exceeds_a_specified_length"
             android:title="@string/preferences__delete_old_messages" />
