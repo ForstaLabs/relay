@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.TaskStackBuilder;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
@@ -49,6 +50,10 @@ public class NotificationItem {
   }
 
   public CharSequence getText() {
+    String forstaBody = ForstaUtils.getForstaPlainTextBody(text.toString());
+    if (forstaBody != null) {
+      return forstaBody;
+    }
     return text;
   }
 
