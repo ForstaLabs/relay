@@ -212,6 +212,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
     tokenCheck.execute();
 
+    // Force set enable thread trimming to 30 days.
+    if (!TextSecurePreferences.isThreadLengthTrimmingEnabled(getApplicationContext())) {
+      TextSecurePreferences.setThreadTrimEnabled(getApplicationContext(), true);
+    }
+
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       syncIndicator.setVisibility(View.VISIBLE);
