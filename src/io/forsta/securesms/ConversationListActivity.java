@@ -419,7 +419,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       public void onItemSelected(String slug) {
         String text = composeText.getText().toString();
 
-        String newText = text.substring(0, text.lastIndexOf("@"));
+        int recipientIndex = text.lastIndexOf("@") != -1 ? text.lastIndexOf("@") : 0;
+
+        String newText = text.substring(0, recipientIndex);
 
         StringBuilder sb = new StringBuilder();
         sb.append(newText);
@@ -446,6 +448,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 //        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
         composeText.requestFocus();
         showDirectory();
+      }
+    });
+
+    directoryButton.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View view) {
+        Intent directoryIntent = new Intent(ConversationListActivity.this, NewConversationActivity.class);
+        startActivity(directoryIntent);
+        return false;
       }
     });
 
@@ -857,6 +868,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected void onPostExecute(Void aVoid) {
+        fragment.getListAdapter().notifyDataSetChanged();
         attachmentManager.clear();
         composeText.setText("");
         forstaRecipients.clear();
