@@ -62,7 +62,7 @@ public class TextSecurePreferences {
   private static final String SMS_DELIVERY_REPORT_PREF         = "pref_delivery_report_sms";
   public  static final String MMS_USER_AGENT                   = "pref_mms_user_agent";
   private static final String MMS_CUSTOM_USER_AGENT            = "pref_custom_mms_user_agent";
-  private static final String THREAD_TRIM_ENABLED              = "pref_trim_threads";
+  public  static final String THREAD_TRIM_ENABLED              = "pref_trim_threads";
   private static final String LOCAL_NUMBER_PREF                = "pref_local_number";
   private static final String VERIFYING_STATE_PREF             = "pref_verifying";
   public  static final String REGISTERED_GCM_PREF              = "pref_gcm_registered";
@@ -492,6 +492,10 @@ public class TextSecurePreferences {
 
   public static void setNotificationLedPatternCustom(Context context, String pattern) {
     setStringPreference(context, LED_BLINK_PREF_CUSTOM, pattern);
+  }
+
+  public static void setThreadTrimEnabled(Context context, boolean value) {
+    setBooleanPreference(context, THREAD_TRIM_ENABLED, value);
   }
 
   public static boolean isThreadLengthTrimmingEnabled(Context context) {

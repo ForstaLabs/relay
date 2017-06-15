@@ -27,6 +27,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
@@ -70,6 +71,10 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.HashSet;
@@ -281,7 +286,25 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      bodyText.setText(messageRecord.getDisplayBody());
+
+      try {
+        JSONArray forstaObject= new JSONArray(messageRecord.getDisplayBody().toString());
+        JSONObject version = forstaObject.getJSONObject(0);
+        JSONObject data = version.getJSONObject("data");
+        JSONArray body =  data.getJSONArray("body");
+        for (int i=0; i<body.length(); i++) {
+          JSONObject object = body.getJSONObject(i);
+          String type = object.getString("type");
+          if (object.getString("type").equals("text/html")) {
+            String htmlText = object.getString("value");
+            bodyText.setText(Html.fromHtml(htmlText));
+            break;
+          }
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+        bodyText.setText(messageRecord.getDisplayBody());
+      }
       bodyText.setVisibility(View.VISIBLE);
     }
   }

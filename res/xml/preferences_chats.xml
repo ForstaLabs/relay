@@ -32,7 +32,7 @@
             android:defaultValue="true"
             android:key="pref_trim_threads"
             android:summary="@string/preferences__automatically_delete_older_messages_once_a_conversation_exceeds_a_specified_length"
-            android:title="@string/preferences__delete_old_messages" />
+            android:title="@string/preferences__delete_old_messages" android:enabled="false"/>
 
         <EditTextPreference android:defaultValue="500"
                             android:key="pref_trim_length"
