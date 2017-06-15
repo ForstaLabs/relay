@@ -55,4 +55,23 @@ public class ForstaUtils {
     }
     return null;
   }
+
+  public static String getForstaPlainTextBody(String messageBody) {
+    try {
+      JSONArray forstaObject= new JSONArray(messageBody);
+      JSONObject version = forstaObject.getJSONObject(0);
+      JSONObject data = version.getJSONObject("data");
+      JSONArray body =  data.getJSONArray("body");
+      for (int i=0; i<body.length(); i++) {
+        JSONObject object = body.getJSONObject(i);
+        String type = object.getString("type");
+        if (object.getString("type").equals("text/plain")) {
+          return object.getString("value");
+        }
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 }
