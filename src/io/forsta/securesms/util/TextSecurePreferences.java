@@ -503,7 +503,7 @@ public class TextSecurePreferences {
   }
 
   public static int getThreadTrimLength(Context context) {
-    return Integer.parseInt(getStringPreference(context, THREAD_TRIM_LENGTH, "500"));
+    return Integer.parseInt(getStringPreference(context, THREAD_TRIM_LENGTH, "5000"));
   }
 
   public static boolean isSystemEmojiPreferred(Context context) {
