@@ -26,11 +26,13 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.text.Spanned;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.AlertView;
@@ -123,7 +125,12 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.fromView.setText(recipients, read);
 
-    this.subjectView.setText(thread.getDisplayBody());
+    Spanned forstaBody = ForstaUtils.getForstaJsonBody(thread.getDisplayBody().toString());
+    if (forstaBody != null) {
+      subjectView.setText(forstaBody);
+    } else {
+      this.subjectView.setText(thread.getDisplayBody());
+    }
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {

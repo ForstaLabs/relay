@@ -28,6 +28,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
@@ -40,6 +41,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
@@ -286,23 +288,10 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-
-      try {
-        JSONArray forstaObject= new JSONArray(messageRecord.getDisplayBody().toString());
-        JSONObject version = forstaObject.getJSONObject(0);
-        JSONObject data = version.getJSONObject("data");
-        JSONArray body =  data.getJSONArray("body");
-        for (int i=0; i<body.length(); i++) {
-          JSONObject object = body.getJSONObject(i);
-          String type = object.getString("type");
-          if (object.getString("type").equals("text/html")) {
-            String htmlText = object.getString("value");
-            bodyText.setText(Html.fromHtml(htmlText));
-            break;
-          }
-        }
-      } catch (JSONException e) {
-        e.printStackTrace();
+      Spanned forstaBody = ForstaUtils.getForstaJsonBody(messageRecord.getDisplayBody().toString());
+      if (forstaBody != null) {
+        bodyText.setText(forstaBody);
+      } else {
         bodyText.setText(messageRecord.getDisplayBody());
       }
       bodyText.setVisibility(View.VISIBLE);
