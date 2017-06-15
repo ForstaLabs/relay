@@ -75,9 +75,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.forsta.ccsm.DirectoryActivity;
-import io.forsta.ccsm.DirectoryAdapter;
-import io.forsta.ccsm.DirectoryDialogFragment;
 import io.forsta.ccsm.DirectoryFragment;
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
@@ -438,7 +435,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        composeText.setText(composeText.getText() + " @");
+        composeText.setText(composeText.getText() + "@");
         composeText.setSelection(composeText.length());
 //        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
