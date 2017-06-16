@@ -14,10 +14,9 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import io.forsta.ccsm.database.DirectoryAdapter;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;

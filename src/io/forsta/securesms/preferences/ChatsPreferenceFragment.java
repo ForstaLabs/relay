@@ -35,10 +35,10 @@ public class ChatsPreferenceFragment extends PreferenceFragment {
     findPreference(TextSecurePreferences.MEDIA_DOWNLOAD_ROAMING_PREF)
         .setOnPreferenceChangeListener(new MediaDownloadChangeListener());
 
-    findPreference(TextSecurePreferences.THREAD_TRIM_NOW)
-        .setOnPreferenceClickListener(new TrimNowClickListener());
-    findPreference(TextSecurePreferences.THREAD_TRIM_LENGTH)
-        .setOnPreferenceChangeListener(new TrimLengthValidationListener());
+//    findPreference(TextSecurePreferences.THREAD_TRIM_NOW)
+//        .setOnPreferenceClickListener(new TrimNowClickListener());
+//    findPreference(TextSecurePreferences.THREAD_TRIM_LENGTH)
+//        .setOnPreferenceChangeListener(new TrimLengthValidationListener());
 
   }
 

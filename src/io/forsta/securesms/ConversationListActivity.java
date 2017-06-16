@@ -119,7 +119,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
     implements ConversationListFragment.ConversationSelectedListener,
     AttachmentManager.AttachmentListener,
-    KeyboardAwareLinearLayout.OnKeyboardShownListener,
+    KeyboardAwareLinearLayout.OnKeyboardShownListener, KeyboardAwareLinearLayout.OnKeyboardHiddenListener,
     InputPanel.Listener
 {
   private static final String TAG = ConversationListActivity.class.getSimpleName();
@@ -137,6 +137,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
 
   private boolean isDirectoryOpen = false;
+  private boolean isKeyboardOpen = false;
   private ImageButton directoryButton;
   private ImageButton newConversationButton;
   private TextView recipientCount;
@@ -442,21 +443,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     directoryButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        composeText.setText(composeText.getText() + "@");
-        composeText.setSelection(composeText.length());
-//        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//        inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
-        composeText.requestFocus();
-        showDirectory();
-      }
-    });
-
-    directoryButton.setOnLongClickListener(new View.OnLongClickListener() {
-      @Override
-      public boolean onLongClick(View view) {
-        Intent directoryIntent = new Intent(ConversationListActivity.this, NewConversationActivity.class);
-        startActivity(directoryIntent);
-        return false;
+        if (isDirectoryOpen) {
+          hideDirectory();
+        } else {
+          composeText.setText(composeText.getText() + "@");
+          composeText.setSelection(composeText.length());
+          if (!isKeyboardOpen) {
+            InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputManager.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+          }
+          composeText.requestFocus();
+          showDirectory();
+        }
       }
     });
 
@@ -482,7 +480,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
         int slugStart = input.lastIndexOf("@");
         String slugPart = input.substring(slugStart + 1);
-        if (slugPart.contains(" ")) {
+        if (slugPart.contains(" ") || input.length() == 0) {
           hideDirectory();
         } else {
           directoryFragment.setQueryFilter(slugPart);
@@ -491,6 +489,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           }
         }
 
+        forstaRecipients.clear();
         while (m.find()) {
           String slug = m.group();
           slug = slug.substring(1);
@@ -711,7 +710,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   public void onKeyboardShown() {
+    isKeyboardOpen = true;
+  }
 
+  @Override
+  public void onKeyboardHidden() {
+    isKeyboardOpen = false;
   }
 
   @Override
@@ -868,7 +872,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected void onPostExecute(Void aVoid) {
-        fragment.getListAdapter().notifyDataSetChanged();
+//        fragment.getListAdapter().notifyDataSetChanged();
         attachmentManager.clear();
         composeText.setText("");
         forstaRecipients.clear();
