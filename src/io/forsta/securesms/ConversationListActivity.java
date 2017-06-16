@@ -458,15 +458,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     });
 
-    directoryButton.setOnLongClickListener(new View.OnLongClickListener() {
-      @Override
-      public boolean onLongClick(View view) {
-        Intent directoryIntent = new Intent(ConversationListActivity.this, NewConversationActivity.class);
-        startActivity(directoryIntent);
-        return false;
-      }
-    });
-
     newConversationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {

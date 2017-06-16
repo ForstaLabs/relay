@@ -56,8 +56,7 @@
                                  android:layout_height="30dp"
                                  android:layout_marginRight="15dp"
                                  android:background="@null"
-                                 android:src="@drawable/ic_group_grey600_24dp"
-                                 android:visibility="gone"
+                                 android:src="@drawable/ic_new_conversation"
                                  android:layout_toLeftOf="@+id/forsta_quick_directory"/>
 
                     <ImageButton android:id="@+id/forsta_quick_directory"
