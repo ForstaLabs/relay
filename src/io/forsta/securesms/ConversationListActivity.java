@@ -489,7 +489,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
         int slugStart = input.lastIndexOf("@");
         String slugPart = input.substring(slugStart + 1);
-        if (slugPart.contains(" ")) {
+        if (slugPart.contains(" ") || input.length() == 0) {
           hideDirectory();
         } else {
           directoryFragment.setQueryFilter(slugPart);
