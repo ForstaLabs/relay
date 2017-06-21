@@ -1069,13 +1069,13 @@
     <string name="preferences__conversation_length_limit">Conversation length limit</string>
     <string name="preferences__trim_all_conversations_now">Trim all conversations now</string>
     <string name="preferences__scan_through_all_conversations_and_enforce_conversation_length_limits">Scan through all conversations and enforce conversation length limits</string>
-    <string name="preferences__linked_devices">Linked devices</string>
     <string name="preferences__light_theme">Light</string>
     <string name="preferences__dark_theme">Dark</string>
     <string name="preferences__appearance">Appearance</string>
     <string name="preferences__theme">Theme</string>
     <string name="preferences__default">Default</string>
     <string name="preferences__language">Language</string>
+    <string name="preferences__linked_devices">Linked devices</string>
     <string name="preferences__signal_messages_and_calls">Forsta messages</string>
     <string name="preferences__free_private_messages_and_calls">Free private messages to Forsta users</string>
     <string name="preferences__submit_debug_log">Submit debug log</string>
@@ -1193,6 +1193,7 @@
     <string name="text_secure_normal__menu_new_message">New message</string>
     <string name="text_secure_normal__menu_new_group">New group</string>
     <string name="text_secure_normal__menu_settings">Settings</string>
+    <string name="text_secure_normal__menu_linked_devices">Linked devices</string>
     <string name="text_secure_normal__menu_clear_passphrase">Lock</string>
     <string name="text_secure_normal__mark_all_as_read">Mark all read</string>
     <string name="text_secure_normal__invite_friends">Invite friends</string>
