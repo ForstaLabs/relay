@@ -20,10 +20,12 @@
     <Preference android:key="preference_category_chats"
                 android:title="@string/preferences__chats"
                 android:icon="?pref_ic_chats"/>
-
-    <Preference android:key="preference_category_devices"
-                android:title="@string/preferences__linked_devices"
-                android:icon="?pref_ic_devices"/>
+    <!--
+    <Preference
+        android:icon="?pref_ic_devices"
+        android:key="preference_category_devices"
+        android:title="@string/preferences__linked_devices" />
+        -->
 
     <Preference android:key="preference_category_advanced"
                 android:title="@string/preferences__advanced"
