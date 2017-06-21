@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiTextView;
 import io.forsta.securesms.recipients.Recipient;
@@ -45,7 +46,13 @@ public class FromTextView extends EmojiTextView {
     if (isUnnamedGroup) {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
     } else {
-      fromString = recipients.toShortString();
+      String forstaTitle = ForstaUtils.getForstaGroupTitle(recipients.toShortString());
+      if (forstaTitle != null) {
+        // Forsta group JSON blob is stored in the protocol SignalServiceGroup message "name" field
+        fromString = forstaTitle;
+      } else {
+        fromString = recipients.toShortString();
+      }
     }
 
     int typeface;

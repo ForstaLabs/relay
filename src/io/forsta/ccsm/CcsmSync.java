@@ -118,7 +118,7 @@ public class CcsmSync {
       }
       json.put("dest", dest);
       json.put("message", body);
-      json.put("tagid", tagId);
+      json.put("tagid", tagId); // Remove all of this. The JSON blob with all data will be in the message body.
     } catch (JSONException e) {
       e.printStackTrace();
     } catch (InvalidNumberException e) {

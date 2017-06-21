@@ -62,6 +62,7 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -810,7 +811,13 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     // Now create new group and send to the new groupId.
     String textTitle = title.toString();
     textTitle = textTitle.replaceAll(", $", "");
-    sendGroupMessage(message, numbers, textTitle);
+    JSONObject jsonTitle = new JSONObject();
+    try {
+      jsonTitle.put("title", textTitle);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    sendGroupMessage(message, numbers, jsonTitle.toString());
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {

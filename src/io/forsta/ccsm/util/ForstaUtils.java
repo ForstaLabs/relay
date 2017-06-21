@@ -74,4 +74,15 @@ public class ForstaUtils {
     }
     return null;
   }
+
+  public static String getForstaGroupTitle(String name) {
+    try {
+      JSONObject nameObj = new JSONObject(name);
+      String title = nameObj.getString("title");
+      return title;
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 }
