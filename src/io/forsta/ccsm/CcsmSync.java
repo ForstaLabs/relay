@@ -48,16 +48,14 @@ public class CcsmSync {
       Recipients recipients = message.getRecipients();
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
       String primary = primaryRecipient.getNumber();
-      String tagId = "";
 
       if (GroupUtil.isEncodedGroup(primary)) {
         byte[] decodedGroupId = GroupUtil.getDecodedId(primary);
         recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(decodedGroupId, false);
-        tagId = new String(decodedGroupId);
       }
       // Filters out group create/update messages.
       if (!(message instanceof OutgoingGroupMediaMessage)) {
-        syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId(), tagId);
+        syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId());
       }
 
     } catch (Exception e) {
@@ -86,12 +84,12 @@ public class CcsmSync {
   }
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, long expiresIn, int subsriptionId) {
-    syncMessage(masterSecret, context, recipients, body, new LinkedList<Attachment>(), expiresIn, subsriptionId, "");
+    syncMessage(masterSecret, context, recipients, body, new LinkedList<Attachment>(), expiresIn, subsriptionId);
   }
 
-  private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId, String tagId) {
+  private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
     Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, mForstaSyncNumber, false);
-    JSONObject jsonBody = createMessageBody(context, recipients, body, tagId);
+    JSONObject jsonBody = createMessageBody(context, recipients, body);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
@@ -106,7 +104,7 @@ public class CcsmSync {
     }
   }
 
-  private static JSONObject createMessageBody(Context context, Recipients recipients, String body, String tagId) {
+  private static JSONObject createMessageBody(Context context, Recipients recipients, String body) {
     JSONObject json = new JSONObject();
     List<Recipient> list = recipients.getRecipientsList();
     JSONArray dest = new JSONArray();
@@ -118,7 +116,6 @@ public class CcsmSync {
       }
       json.put("dest", dest);
       json.put("message", body);
-      json.put("tagid", tagId); // Remove all of this. The JSON blob with all data will be in the message body.
     } catch (JSONException e) {
       e.printStackTrace();
     } catch (InvalidNumberException e) {
