@@ -39,6 +39,7 @@ import java.util.List;
 public class CcsmSync {
   private static final String TAG = CcsmSync.class.getSimpleName();
   private static String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
+  private static String forstaApihost = BuildConfig.FORSTA_API_URL;
 
   private CcsmSync() {
   }

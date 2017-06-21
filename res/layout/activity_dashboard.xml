@@ -40,12 +40,16 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Forsta Sync Number:"/>
+                android:text="Forsta Configuration:"/>
+            <Spinner android:id="@+id/dashboard_change_configuration"
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"></Spinner>
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="phone"
                 android:ems="10"
+                android:visibility="gone"
                 android:id="@+id/dashboard_sync_number"/>
             <LinearLayout
                 android:layout_width="match_parent"

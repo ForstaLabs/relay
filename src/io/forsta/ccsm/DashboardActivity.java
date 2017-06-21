@@ -75,6 +75,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private MasterSecret mMasterSecret;
   private MasterCipher mMasterCipher;
   private Spinner mSpinner;
+  private Spinner mConfigSpinner;
   private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
   private EditText mSyncNumber;
@@ -134,6 +135,35 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         printLoginInformation();
       }
     });
+    mConfigSpinner = (Spinner) findViewById(R.id.dashboard_change_configuration);
+    List<String> configOptions = new ArrayList<>();
+    configOptions.add("Production");
+    configOptions.add("Stage");
+    configOptions.add("Development");
+    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, configOptions);
+    mConfigSpinner.setAdapter(configAdapter);
+    mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+      @Override
+      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        switch (i) {
+          case 0:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "prod");
+            break;
+          case 1:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "stage");
+            break;
+          case 2:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
+            break;
+        }
+      }
+
+      @Override
+      public void onNothingSelected(AdapterView<?> adapterView) {
+
+      }
+    });
+
     mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
@@ -244,15 +274,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   }
 
   private void printLoginInformation() {
-    String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(DashboardActivity.this);
-    String smNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
-
-    mSyncNumber.setText(smNumber);
     StringBuilder sb = new StringBuilder();
     String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
-    sb.append("Sync Number: Build: ");
-    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
-    sb.append(" Current: ").append(smNumber);
+    sb.append("Sync Number:");
+    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
+    sb.append("\n");
+    sb.append("API Host:");
+    sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
     sb.append("\n");
     sb.append("Last Login: ");
     sb.append(lastLogin);
