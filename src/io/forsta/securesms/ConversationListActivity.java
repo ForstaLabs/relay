@@ -325,6 +325,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     case R.id.menu_help:              handleHelp();            return true;
     case R.id.menu_directory:         handleDirectory();       return true;
     case R.id.menu_dashboard:         handleDashboard();       return true;
+    case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
     }
 
     return false;
@@ -568,6 +569,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent preferencesIntent = new Intent(this, ApplicationPreferencesActivity.class);
     startActivity(preferencesIntent);
   }
+
+  private void handleLinkedDevices() {
+    Intent intent = new Intent(this, DeviceActivity.class);
+    startActivity(intent);
+  }
+
 
   private void handleClearPassphrase() {
     Intent intent = new Intent(this, KeyCachingService.class);

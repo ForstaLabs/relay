@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:title="Directory"
           android:id="@+id/menu_directory"/>
 
-    <item android:title="@string/text_secure_normal__menu_settings"
-          android:id="@+id/menu_settings" />
+    <item
+        android:id="@+id/menu_settings"
+        android:title="@string/text_secure_normal__menu_settings" />
 
-    <item android:title="@string/text_secure_normal__menu_new_group"
-          android:id="@+id/menu_new_group" />
+    <item
+        android:id="@+id/menu_linked_devices"
+        android:title="@string/text_secure_normal__menu_linked_devices" />
+
+    <item
+        android:id="@+id/menu_new_group"
+        android:title="@string/text_secure_normal__menu_new_group" />
 
     <item android:title="@string/text_secure_normal__menu_clear_passphrase"
           android:id="@+id/menu_clear_passphrase" />
