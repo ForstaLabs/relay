@@ -37,6 +37,7 @@ public class ForstaPreferences {
   private static final String FORSTA_ORG_NAME = "forsta_org_name";
   private static final String FORSTA_USER_NAME = "forsta_user_name";
   private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
+  private static final String FORSTA_USER = "forsta_user";
   private static final String CCSM_DEBUG = "ccsm_debug";
 
   private static final Pair<String, String> CONFIG_PROD = new Pair("https://ccsm-api.forsta.io", "+17017328733");
@@ -52,6 +53,7 @@ public class ForstaPreferences {
         .putBoolean(FORSTA_LOGIN_PENDING, false)
         .putString(FORSTA_ORG_NAME, "")
         .putString(FORSTA_USER_NAME, "")
+        .putString(FORSTA_USER, "")
         .putBoolean(CCSM_DEBUG, false)
         .putLong(FORSTA_CONTACT_SYNC, -1l)
         .apply();
@@ -61,6 +63,7 @@ public class ForstaPreferences {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     prefs.edit().putString(API_KEY, "")
         .putString(API_LAST_LOGIN, "")
+        .putString(FORSTA_USER, "")
         .putBoolean(FORSTA_LOGIN_PENDING, false)
         .apply();
   }
@@ -165,6 +168,14 @@ public class ForstaPreferences {
 
   public static void setForstaContactSync(Context context, long dateTime) {
     setLongPreference(context, FORSTA_CONTACT_SYNC, dateTime);
+  }
+
+  public static String getForstaUser(Context context) {
+    return getStringPreference(context, FORSTA_USER);
+  }
+
+  public static void setForstaUser(Context context, String json) {
+    setStringPreference(context, FORSTA_USER, json);
   }
 
   private static void setStringPreference(Context context, String key, String value) {

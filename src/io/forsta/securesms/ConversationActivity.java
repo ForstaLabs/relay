@@ -1298,7 +1298,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private String getForstaMessage() throws InvalidMessageException {
     String rawText = composeText.getText().toString();
 
-    String forstaBody = ForstaUtils.createForstaMessageBody(rawText);
+    String forstaBody = ForstaUtils.createForstaMessageBody(rawText, this.recipients);
 
     if (rawText.length() < 1 && !attachmentManager.isAttachmentPresent())
       throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));

@@ -19,13 +19,16 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.api.ForstaJWT;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
@@ -78,6 +81,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private Spinner mConfigSpinner;
   private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
+  private ProgressBar mProgressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -109,6 +113,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   }
 
   private void initView() {
+    mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
     mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
@@ -215,10 +220,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printGroups());
             break;
           case 11:
+            mDebugText.setText("");
+            mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
           case 12:
+            mDebugText.setText("");
+            mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
@@ -240,10 +249,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
     });
     printLoginInformation();
-
-    String body = ForstaUtils.createForstaMessageBody("Some test text with <b>BOLD</b>");
-    Spanned message = ForstaUtils.getForstaJsonBody(body);
-    Log.d(TAG, body);
   }
 
   private void showScrollView() {
@@ -267,6 +272,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private void printLoginInformation() {
     StringBuilder sb = new StringBuilder();
     String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
+    String token = ForstaPreferences.getRegisteredKey(getApplicationContext());
+    ForstaJWT jwt = new ForstaJWT(token);
+
     sb.append("API Host:");
     sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
     sb.append("\n");
@@ -275,10 +283,32 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     sb.append("\n");
     sb.append("Last Login: ");
     sb.append(lastLogin);
-    Date tokenExpire = ForstaPreferences.getTokenExpireDate(DashboardActivity.this);
+    Date tokenExpire = jwt.getExpireDate();
     sb.append("\n");
     sb.append("Token Expires: ");
     sb.append(tokenExpire);
+    sb.append("\n");
+
+    String forstaUser = ForstaPreferences.getForstaUser(DashboardActivity.this);
+    try {
+      JSONObject data = new JSONObject(forstaUser);
+      ForstaUser user = new ForstaUser(data);
+      sb.append("Org Id: ");
+      sb.append(user.org_id);
+      sb.append("\n");
+      sb.append("User Id: ");
+      sb.append(user.uid);
+      sb.append("\n");
+      sb.append("Tag Id: ");
+      sb.append(user.tag_id);
+      sb.append("\n");
+      sb.append("Phone: ");
+      sb.append(user.phone);
+      sb.append("\n");
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
     mLoginInfo.setText(sb.toString());
   }
 
@@ -723,6 +753,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
       }
       mDebugText.setText(sb.toString());
+      mProgressBar.setVisibility(View.GONE);
     }
   }
 
@@ -743,6 +774,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append(user.username).append("\n");
       }
       mDebugText.setText(sb.toString());
+      mProgressBar.setVisibility(View.GONE);
     }
   }
 }

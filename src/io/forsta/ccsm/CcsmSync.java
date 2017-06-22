@@ -86,6 +86,7 @@ public class CcsmSync {
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
     Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, ForstaPreferences.getForstaSyncNumber(context), false);
+    // Change this to use JSON body sent to all clients. ForstaUtils.createForstaMessageBody(body)
     JSONObject jsonBody = createMessageBody(context, recipients, body);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.

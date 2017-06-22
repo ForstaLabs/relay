@@ -24,6 +24,10 @@ public class ForstaUser {
   public String org_id;
   public boolean tsRegistered;
 
+  public ForstaUser() {
+
+  }
+
   public ForstaUser(JSONObject userObj) {
     try {
       String name = getContactName(userObj);
@@ -56,6 +60,8 @@ public class ForstaUser {
     this.id = cursor.getString(cursor.getColumnIndex(ContactDb.ID));
     this.uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
     this.org_id = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.tag_id = cursor.getString(cursor.getColumnIndex(ContactDb.TAGID));
+    this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
     this.username = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
     this.name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
     this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
