@@ -58,6 +58,7 @@ public class CcsmApi {
   private static final String API_USER = "/v1/user/";
   private static final String API_USER_PICK = "/v1/user-pick/";
   private static final String API_TAG = "/v1/tag/";
+  private static final String API_TAG_PICK = "/v1/tag-pick/";
   private static final String API_USER_TAG = "/v1/usertag/";
   private static final String API_ORG = "/v1/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
@@ -89,6 +90,7 @@ public class CcsmApi {
         ForstaPreferences.setForstaUser(context, user.toString());
         String lastLogin = user.getString("last_login");
         // Write token and last login to local preferences.
+        // These can be eliminated. getForstaUser will give us everything we need.
         ForstaPreferences.setRegisteredForsta(context, token);
         ForstaPreferences.setRegisteredDateTime(context, lastLogin);
         ForstaPreferences.setForstaLoginPending(context, false);
@@ -100,7 +102,7 @@ public class CcsmApi {
     return result;
   }
 
-  // TODO Is there a reason to ever refresh the token.
+  // TODO Is there a reas on to ever refresh the token.
   public static boolean tokenNeedsRefresh(Context context) {
     Date expireDate = ForstaPreferences.getTokenExpireDate(context);
     if (expireDate == null) {
@@ -176,6 +178,12 @@ public class CcsmApi {
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_ORG, null);
   }
 
+  public static JSONObject getUser(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_USER, null);
+  }
+
   public static JSONObject getUsers(Context context) {
     String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
@@ -187,6 +195,13 @@ public class CcsmApi {
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG, null);
   }
+
+  public static JSONObject getTagPicks(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG_PICK, null);
+  }
+
 
   public static String parseLoginToken(String authtoken) {
     if (authtoken.contains("/")) {
