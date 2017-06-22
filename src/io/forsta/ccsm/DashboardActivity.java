@@ -7,6 +7,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +30,7 @@ import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -238,6 +240,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
     });
     printLoginInformation();
+
+    String body = ForstaUtils.createForstaMessageBody("Some test text with <b>BOLD</b>");
+    Spanned message = ForstaUtils.getForstaJsonBody(body);
+    Log.d(TAG, body);
   }
 
   private void showScrollView() {

@@ -3,6 +3,7 @@ package io.forsta.ccsm.util;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.Spanned;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
  */
 
 public class ForstaUtils {
+  private static final String TAG = ForstaUtils.class.getSimpleName();
 
   private static String hex(byte[] array) {
     StringBuffer sb = new StringBuffer();
@@ -51,7 +53,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.e(TAG, "JSON exception. Not a Forsta JSON message body");
     }
     return null;
   }
@@ -70,12 +72,12 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.e(TAG, "JSON exception. Not a Forsta JSON message body");
     }
     return null;
   }
 
-  public static JSONArray createForstaMessageBody(String richTextMessage) {
+  public static String createForstaMessageBody(String richTextMessage) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     try {
@@ -85,21 +87,24 @@ public class ForstaUtils {
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
-      bodyHtml.put("value", "Messages with markup here. <b>Bold</b>");
+      bodyHtml.put("value", richTextMessage);
       JSONObject bodyPlain = new JSONObject();
       bodyPlain.put("type", "text/plain");
       Spanned stripMarkup = Html.fromHtml(richTextMessage);
-      bodyPlain.put("value", "This is a plain message");
+      bodyPlain.put("value", stripMarkup);
       body.put(bodyHtml);
       body.put(bodyPlain);
 
       data.put("body", body);
       version1.put("data", data);
-
+      versions.put(version1);
     } catch (JSONException e) {
+      Log.e(TAG, "JSON exception creating message body");
       e.printStackTrace();
+      // Something failed. Return original message body
+      return richTextMessage;
     }
-    return versions;
+    return versions.toString();
   }
 
   public static String getForstaGroupTitle(String name) {
@@ -108,7 +113,7 @@ public class ForstaUtils {
       String title = nameObj.getString("title");
       return title;
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.e(TAG, "JSON exception. Not a Forsta group title blob.");
     }
     return null;
   }

@@ -85,6 +85,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
@@ -811,13 +812,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     // Now create new group and send to the new groupId.
     String textTitle = title.toString();
     textTitle = textTitle.replaceAll(", $", "");
-    JSONObject jsonTitle = new JSONObject();
-    try {
-      jsonTitle.put("title", textTitle);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-    sendGroupMessage(message, numbers, jsonTitle.toString());
+    // TODO use title field to send JSON blob to clients, with information about dynamic distributions.
+//    JSONObject jsonTitle = new JSONObject();
+//    try {
+//      jsonTitle.put("title", textTitle);
+//    } catch (JSONException e) {
+//      e.printStackTrace();
+//    }
+//    sendGroupMessage(message, numbers, jsonTitle.toString());
+    sendGroupMessage(message, numbers, textTitle);
   }
 
   private void sendGroupMessage(final String message, Set<String> numbers, final String title) {
@@ -862,7 +865,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void sendMessage(String message, Recipients messageRecipients) {
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
-    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+    String forstaBody = ForstaUtils.createForstaMessageBody(message);
+
+    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), forstaBody, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
     new AsyncTask<OutgoingMediaMessage, Void, Void>() {
 
       @Override
