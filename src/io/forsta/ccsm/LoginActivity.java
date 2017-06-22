@@ -203,7 +203,7 @@ public class LoginActivity extends BaseActionBarActivity {
     protected JSONObject doInBackground(String... params) {
       String org = params[0];
       String uname = params[1];
-      JSONObject response = CcsmApi.forstaSendToken(org.trim(), uname.trim());
+      JSONObject response = CcsmApi.forstaSendToken(getApplicationContext(), org.trim(), uname.trim());
       return response;
     }
 

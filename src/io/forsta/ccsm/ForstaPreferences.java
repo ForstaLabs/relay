@@ -38,9 +38,10 @@ public class ForstaPreferences {
   private static final String FORSTA_USER_NAME = "forsta_user_name";
   private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
   private static final String CCSM_DEBUG = "ccsm_debug";
-  private static final Pair<String, String> CONFIG_PROD = new Pair("https://ccsm-dev-api.forsta.io", "+17017328733");
+
+  private static final Pair<String, String> CONFIG_PROD = new Pair("https://ccsm-api.forsta.io", "+17017328733");
   private static final Pair<String, String> CONFIG_STAGE = new Pair("https://ccsm-stage-api.forsta.io", "+17017328732");
-  private static final Pair<String, String> CONFIG_DEV = new Pair("https://ccsm-api.forsta.io", "+17017328731");
+  private static final Pair<String, String> CONFIG_DEV = new Pair("https://ccsm-dev-api.forsta.io", "+17017328731");
 
   public static void clearPreferences(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -129,10 +130,8 @@ public class ForstaPreferences {
     }
   }
 
-  public static Map<String, String> getForstaBuild(Context context) {
-    Map<String, String> config = new HashMap<>();
-    config.put("host", getForstaApiHost(context));
-    config.put("number", getForstaSyncNumber(context));
+  public static Pair<String, String> getForstaBuild(Context context) {
+    Pair<String, String> config = new Pair<>(getForstaApiHost(context), getForstaSyncNumber(context));
     return config;
   }
 

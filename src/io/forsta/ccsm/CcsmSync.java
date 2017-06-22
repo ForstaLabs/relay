@@ -38,8 +38,6 @@ import java.util.List;
 
 public class CcsmSync {
   private static final String TAG = CcsmSync.class.getSimpleName();
-  private static String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
-  private static String forstaApihost = BuildConfig.FORSTA_API_URL;
 
   private CcsmSync() {
   }
@@ -66,8 +64,6 @@ public class CcsmSync {
   }
 
   public static void syncTextMessage(MasterSecret masterSecret, Context context, OutgoingTextMessage message) {
-    String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(context);
-    mForstaSyncNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
     try {
       Recipients recipients = message.getRecipients();
       boolean keyExchange = message.isKeyExchange();
@@ -75,7 +71,7 @@ public class CcsmSync {
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
       String primary = primaryRecipient.getNumber();
       // Don't duplicate keyexchanges or direct messages to sync number.
-      if (!keyExchange && !primary.equals(mForstaSyncNumber)) {
+      if (!keyExchange && !primary.equals(ForstaPreferences.getForstaSyncNumber(context))) {
         syncMessage(masterSecret, context, recipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
       }
     } catch (Exception e) {
@@ -89,7 +85,7 @@ public class CcsmSync {
   }
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
-    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, mForstaSyncNumber, false);
+    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, ForstaPreferences.getForstaSyncNumber(context), false);
     JSONObject jsonBody = createMessageBody(context, recipients, body);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.

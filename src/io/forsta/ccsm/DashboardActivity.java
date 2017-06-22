@@ -70,15 +70,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private TextView mDebugText;
   private TextView mLoginInfo;
   private CheckBox mToggleSyncMessages;
-  private Button mChangeNumberButton;
-  private Button mResetNumberButton;
   private MasterSecret mMasterSecret;
   private MasterCipher mMasterCipher;
   private Spinner mSpinner;
   private Spinner mConfigSpinner;
   private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
-  private EditText mSyncNumber;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -112,36 +109,23 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private void initView() {
     mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
-    mSyncNumber = (EditText) findViewById(R.id.dashboard_sync_number);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
     mDebugText = (TextView) findViewById(R.id.debug_text);
-    mChangeNumberButton = (Button) findViewById(R.id.dashboard_change_number_button);
-    mChangeNumberButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, mSyncNumber.getText().toString());
-        printLoginInformation();
-        Toast.makeText(DashboardActivity.this, "Sync number changed.", Toast.LENGTH_LONG).show();
-      }
-    });
-
-    mResetNumberButton = (Button) findViewById(R.id.dashboard_reset_number_button);
-    mResetNumberButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, "");
-        Toast.makeText(DashboardActivity.this, "Sync number reset.", Toast.LENGTH_LONG).show();
-        mSyncNumber.setText(BuildConfig.FORSTA_SYNC_NUMBER);
-        printLoginInformation();
-      }
-    });
     mConfigSpinner = (Spinner) findViewById(R.id.dashboard_change_configuration);
     List<String> configOptions = new ArrayList<>();
     configOptions.add("Production");
     configOptions.add("Stage");
     configOptions.add("Development");
-    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, configOptions);
+    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, configOptions);
     mConfigSpinner.setAdapter(configAdapter);
+    String apiUrl = ForstaPreferences.getForstaApiHost(DashboardActivity.this);
+    if (apiUrl.contains("dev")) {
+      mConfigSpinner.setSelection(2);
+    } else if (apiUrl.contains("stage")) {
+      mConfigSpinner.setSelection(1);
+    } else {
+      mConfigSpinner.setSelection(0);
+    }
     mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -156,6 +140,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
             break;
         }
+        printLoginInformation();
       }
 
       @Override
@@ -276,11 +261,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private void printLoginInformation() {
     StringBuilder sb = new StringBuilder();
     String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
-    sb.append("Sync Number:");
-    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
-    sb.append("\n");
     sb.append("API Host:");
     sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
+    sb.append("\n");
+    sb.append("Sync Number:");
+    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
     sb.append("\n");
     sb.append("Last Login: ");
     sb.append(lastLogin);

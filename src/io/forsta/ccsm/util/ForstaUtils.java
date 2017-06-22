@@ -75,6 +75,33 @@ public class ForstaUtils {
     return null;
   }
 
+  public static JSONArray createForstaMessageBody(String richTextMessage) {
+    JSONArray versions = new JSONArray();
+    JSONObject version1 = new JSONObject();
+    try {
+      version1.put("version", "version 1");
+      JSONObject data = new JSONObject();
+      JSONArray body = new JSONArray();
+
+      JSONObject bodyHtml = new JSONObject();
+      bodyHtml.put("type", "text/html");
+      bodyHtml.put("value", "Messages with markup here. <b>Bold</b>");
+      JSONObject bodyPlain = new JSONObject();
+      bodyPlain.put("type", "text/plain");
+      Spanned stripMarkup = Html.fromHtml(richTextMessage);
+      bodyPlain.put("value", "This is a plain message");
+      body.put(bodyHtml);
+      body.put(bodyPlain);
+
+      data.put("body", body);
+      version1.put("data", data);
+
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return versions;
+  }
+
   public static String getForstaGroupTitle(String name) {
     try {
       JSONObject nameObj = new JSONObject(name);

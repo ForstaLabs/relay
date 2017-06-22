@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.securesms.BuildConfig;
@@ -164,7 +165,7 @@ public class GroupDatabase extends Database {
             members.remove(i);
           }
         }
-        members.remove(BuildConfig.FORSTA_SYNC_NUMBER);
+        members.remove(ForstaPreferences.getForstaSyncNumber(context));
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
