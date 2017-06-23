@@ -30,12 +30,11 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:text="Forsta Configuration (Changing this will log you out):"/>
             <Spinner android:id="@+id/dashboard_change_configuration"
                      android:layout_height="wrap_content"
                      android:layout_width="match_parent"
-                     android:visibility="gone"></Spinner>
+                     ></Spinner>
         </LinearLayout>
 
         <TextView

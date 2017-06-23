@@ -125,7 +125,7 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.fromView.setText(recipients, read);
 
-    Spanned forstaBody = ForstaUtils.getForstaJsonBody(thread.getDisplayBody().toString());
+    String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
     if (forstaBody != null) {
       subjectView.setText(forstaBody);
     } else {
