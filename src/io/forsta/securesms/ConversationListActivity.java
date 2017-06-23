@@ -265,6 +265,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     inflater.inflate(R.menu.text_secure_normal, menu);
 
     menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
+    menu.findItem(R.id.menu_dashboard).setVisible(BuildConfig.DEV_BUILD);
 
     inflater.inflate(R.menu.conversation_list, menu);
     MenuItem menuItem = menu.findItem(R.id.menu_search);
