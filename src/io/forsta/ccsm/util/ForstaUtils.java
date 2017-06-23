@@ -10,13 +10,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.GroupUtil;
 
 /**
  * Created by jlewis on 6/5/17.
@@ -82,7 +92,7 @@ public class ForstaUtils {
     return null;
   }
 
-  public static String createForstaMessageBody(String richTextMessage, Recipients messageRecipients) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     try {
@@ -95,8 +105,37 @@ public class ForstaUtils {
       JSONArray resolvedUsers = new JSONArray();
       JSONArray resolvedNumbers = new JSONArray();
 
-      for (Recipient r : messageRecipients.getRecipientsList()) {
-        resolvedNumbers.put(r.getNumber());
+      ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
+      sender.put("tagId", user.tag_id);
+      sender.put("tagPresentation", user.slug);
+      JSONObject resolvedUser = new JSONObject();
+      resolvedUser.put("orgId", user.org_id);
+      resolvedUser.put("userId", user.uid);
+      sender.put("resolvedUser", resolvedUser);
+      sender.put("resolvedNumber", user.phone);
+
+      List<String> recipientList = new ArrayList<>();
+      if (messageRecipients.isGroupRecipient()) {
+        try {
+          GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
+          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
+          GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
+          recipientList = group.getMembers();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      } else {
+        recipientList = messageRecipients.toNumberStringList(false);
+      }
+
+      List<ForstaRecipient> forstaRecipients = DbFactory.getContactDb(context).getRecipientsFromNumbers(recipientList);
+
+      for (ForstaRecipient r : forstaRecipients) {
+        resolvedNumbers.put(r.number);
+        JSONObject forstaUser = new JSONObject();
+        forstaUser.put("orgId", r.org);
+        forstaUser.put("userId", r.uuid);
+        resolvedUsers.put(forstaUser);
       }
       recipients.put("resolvedUsers", resolvedUsers);
       recipients.put("resolvedNumbers", resolvedNumbers);

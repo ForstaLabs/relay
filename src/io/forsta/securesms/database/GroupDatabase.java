@@ -255,7 +255,7 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
     }
     cursor.close();
     return recipients;
@@ -273,7 +273,7 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid));
+      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
     }
     cursor.close();
     return recipients;

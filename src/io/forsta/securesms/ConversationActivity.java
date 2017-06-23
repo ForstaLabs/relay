@@ -1298,7 +1298,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private String getForstaMessage() throws InvalidMessageException {
     String rawText = composeText.getText().toString();
 
-    String forstaBody = ForstaUtils.createForstaMessageBody(rawText, this.recipients);
+    String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, rawText, this.recipients);
 
     if (rawText.length() < 1 && !attachmentManager.isAttachmentPresent())
       throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));
@@ -1426,7 +1426,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     OutgoingTextMessage message;
 
     if (isSecureText && !forceSms) {
-      message = new OutgoingEncryptedMessage(recipients, getMessage(), expiresIn);
+      message = new OutgoingEncryptedMessage(recipients, getForstaMessage(), expiresIn);
     } else {
       message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
     }
