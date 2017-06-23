@@ -265,7 +265,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     inflater.inflate(R.menu.text_secure_normal, menu);
 
     menu.findItem(R.id.menu_clear_passphrase).setVisible(!TextSecurePreferences.isPasswordDisabled(this));
-    menu.findItem(R.id.menu_dashboard).setVisible(BuildConfig.DEV_BUILD);
 
     inflater.inflate(R.menu.conversation_list, menu);
     MenuItem menuItem = menu.findItem(R.id.menu_search);
@@ -317,16 +316,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-    case R.id.menu_new_group:         createGroup();           return true;
-    case R.id.menu_settings:          handleDisplaySettings(); return true;
-    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
-    case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
-    case R.id.menu_import_export:     handleImportExport();    return true;
-//    case R.id.menu_invite:            handleInvite();          return true;
-    case R.id.menu_help:              handleHelp();            return true;
-    case R.id.menu_directory:         handleDirectory();       return true;
-    case R.id.menu_dashboard:         handleDashboard();       return true;
-    case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
+      case R.id.menu_new_group:         createGroup();           return true;
+      case R.id.menu_settings:          handleDisplaySettings(); return true;
+      case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
+      case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
+      case R.id.menu_import_export:     handleImportExport();    return true;
+  //    case R.id.menu_invite:            handleInvite();          return true;
+      case R.id.menu_help:              handleHelp();            return true;
+      case R.id.menu_directory:         handleDirectory();       return true;
+      case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
     }
 
     return false;
@@ -559,11 +557,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
 //    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
-  }
-
-  private void handleDashboard() {
-    Intent dashIntent = new Intent(this, DashboardActivity.class);
-    startActivity(dashIntent);
   }
 
   private void handleDisplaySettings() {
