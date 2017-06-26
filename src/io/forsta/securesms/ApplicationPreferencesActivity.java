@@ -60,7 +60,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
   private static final String PREFERENCE_CATEGORY_CHATS          = "preference_category_chats";
   private static final String PREFERENCE_CATEGORY_DEVICES        = "preference_category_devices";
   private static final String PREFERENCE_CATEGORY_ADVANCED       = "preference_category_advanced";
-  private static final String FORSTA_DASHBOARD_PREFERENCE       = "preference_forsta_dashboard";
 
   private final DynamicTheme dynamicTheme    = new DynamicTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -147,7 +146,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         */
       this.findPreference(PREFERENCE_CATEGORY_ADVANCED)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_ADVANCED));
-      this.findPreference(FORSTA_DASHBOARD_PREFERENCE).setOnPreferenceClickListener(new DashboardClickListener());
     }
 
     @Override
@@ -226,20 +224,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
       }
     }
 
-    private class DashboardClickListener implements Preference.OnPreferenceClickListener {
-      private int clickCount = 0;
 
-      @Override
-      public boolean onPreferenceClick(Preference preference) {
-        clickCount++;
-        if (clickCount > 4) {
-          clickCount = 0;
-          Intent intent = new Intent(getActivity(), DashboardActivity.class);
-          startActivity(intent);
-        }
-
-        return true;
-      }
-    }
   }
 }

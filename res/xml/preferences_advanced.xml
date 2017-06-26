@@ -25,4 +25,7 @@
 
     <Preference android:key="pref_submit_debug_logs"
                 android:title="@string/preferences__submit_debug_log"/>
+    <Preference
+        android:layout="@layout/forsta_dashboard_preference"
+        android:key="preference_forsta_dashboard"/>
 </PreferenceScreen>
