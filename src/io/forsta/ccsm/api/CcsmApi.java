@@ -83,7 +83,7 @@ public class CcsmApi {
       }
 
       if (result.has("token")) {
-        Log.d(TAG, "Login Success. Token Received.");
+        Log.w(TAG, "Login Success. Token Received.");
 
         String token = result.getString("token");
         JSONObject user = result.getJSONObject("user");
@@ -93,11 +93,12 @@ public class CcsmApi {
         // These can be eliminated. getForstaUser will give us everything we need.
         ForstaPreferences.setRegisteredForsta(context, token);
         ForstaPreferences.setRegisteredDateTime(context, lastLogin);
+
         ForstaPreferences.setForstaLoginPending(context, false);
       }
     } catch (JSONException e) {
+      Log.e(TAG, "JSON Exception in forstaLogin.");
       e.printStackTrace();
-      Log.d(TAG, "JSON Exception.");
     }
     return result;
   }
@@ -136,7 +137,7 @@ public class CcsmApi {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      Log.d(TAG, "forstaRefreshToken failed");
+      Log.e(TAG, "forstaRefreshToken failed");
     }
     return result;
   }
@@ -151,7 +152,7 @@ public class CcsmApi {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
     JSONObject response = getUsers(context);
     if (isErrorResponse(response)) {
-      Log.d(TAG, "Bad response from API");
+      Log.e(TAG, "Bad response from API");
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
@@ -268,6 +269,7 @@ public class CcsmApi {
         }
       }
     } catch (JSONException e) {
+      Log.e(TAG, "parseTagGroups exception");
       e.printStackTrace();
     }
     return groups;
