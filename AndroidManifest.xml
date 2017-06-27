@@ -584,14 +584,6 @@
             android:name="io.forsta.ccsm.api.ForstaContactsSyncIntentService"
             android:exported="false" />
 
-        <activity
-            android:name="io.forsta.ccsm.DirectoryActivity"
-            android:label="@string/title_activity_directory"
-            android:parentActivityName=".ConversationListActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.forsta.securesms.ConversationListActivity" />
-        </activity>
     </application>
 
 </manifest>

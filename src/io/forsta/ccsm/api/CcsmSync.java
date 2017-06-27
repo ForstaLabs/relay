@@ -56,7 +56,7 @@ public class CcsmSync {
       }
 
     } catch (Exception e) {
-      Log.e(TAG, "Forsta Sync failed");
+      Log.e(TAG, "Forsta CCSM Sync media message failed");
       e.printStackTrace();
     }
   }
@@ -73,7 +73,7 @@ public class CcsmSync {
         syncMessage(masterSecret, context, recipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
       }
     } catch (Exception e) {
-      Log.e(TAG, "Forsta Sync failed");
+      Log.e(TAG, "Forsta CCSM Sync text message failed");
       e.printStackTrace();
     }
   }
@@ -89,7 +89,7 @@ public class CcsmSync {
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
     MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
     OutgoingMediaMessage superMediaMessage = new OutgoingMediaMessage(superRecipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
-    Log.d(TAG, "Forsta Sync. Sending Sync Message.");
+    Log.w(TAG, "Forsta Sync. Sending Sync Message.");
     try {
       long id = mmsDatabase.insertMessageOutbox(new MasterSecretUnion(masterSecret), superMediaMessage, superThreadId, false);
       MessageSender.sendMediaMessage(context, masterSecret, superRecipients, false, id, superMediaMessage.getExpiresIn());

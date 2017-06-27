@@ -147,7 +147,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private Map<String, ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
-//  private DirectoryDialogFragment directoryFragment;
   private DirectoryFragment directoryFragment;
   private LinearLayoutCompat layout;
   private LinearLayout syncIndicator;
@@ -555,7 +554,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private void handleDirectory() {
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
-//    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
   }
 

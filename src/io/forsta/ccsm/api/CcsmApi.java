@@ -150,6 +150,7 @@ public class CcsmApi {
 
   public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
+    // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
     if (isErrorResponse(response)) {
       Log.e(TAG, "Bad response from API");
