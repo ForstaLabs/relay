@@ -51,7 +51,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 
-import io.forsta.ccsm.CcsmSync;
+import io.forsta.ccsm.api.CcsmSync;
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {

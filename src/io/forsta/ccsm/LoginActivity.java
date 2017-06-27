@@ -38,6 +38,7 @@ public class LoginActivity extends BaseActionBarActivity {
   private static final String TAG = LoginActivity.class.getSimpleName();
   private Button mSubmitButton;
   private Button mSendTokenButton;
+  private TextView mLoginTitle;
   private TextView mTryAgainButton;
   private EditText mSendTokenUsername;
   private EditText mSendTokenOrg;
@@ -83,6 +84,13 @@ public class LoginActivity extends BaseActionBarActivity {
   }
 
   private void initializeView() {
+    mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
+    String serverUrl = ForstaPreferences.getForstaBuild(LoginActivity.this).first;
+    if (serverUrl.contains("dev")) {
+      mLoginTitle.setText(mLoginTitle.getText().toString() + "-Development Server");
+    } else if (serverUrl.contains("stage")) {
+      mLoginTitle.setText(mLoginTitle.getText().toString() + "-Stage Server");
+    }
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
     mSendLinkFormContainer = (LinearLayout) findViewById(R.id.forsta_login_send_link_container);
     mLoginSubmitFormContainer = (LinearLayout) findViewById(R.id.forsta_login_submit_container);
