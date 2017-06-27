@@ -84,8 +84,6 @@ public class CcsmSync {
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
     Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, ForstaPreferences.getForstaSyncNumber(context), false);
-    // Change this to use JSON body sent to all clients. ForstaUtils.createForstaMessageBody(body)
-//    JSONObject jsonBody = createMessageBody(context, recipients, body);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
@@ -99,26 +97,4 @@ public class CcsmSync {
       e.printStackTrace();
     }
   }
-
-  private static JSONObject createMessageBody(Context context, Recipients recipients, String body) {
-    JSONObject json = new JSONObject();
-    List<Recipient> list = recipients.getRecipientsList();
-    JSONArray dest = new JSONArray();
-
-    try {
-      for (Recipient item : list) {
-        String e164Number = Util.canonicalizeNumber(context, item.getNumber());
-        dest.put(e164Number);
-      }
-      json.put("dest", dest);
-      json.put("message", body);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    } catch (InvalidNumberException e) {
-      e.printStackTrace();
-    }
-
-    return json;
-  }
-
 }
