@@ -172,11 +172,11 @@ android {
         buildConfigField "boolean", "DEV_BUILD", "true"
 
         //Dev
-//        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
-//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
+        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
         // Stage
-        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
-        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+//        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
         //Production
 //        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
 //        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
