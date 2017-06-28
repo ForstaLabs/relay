@@ -148,7 +148,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
   private DirectoryFragment directoryFragment;
-  private LinearLayoutCompat layout;
   private LinearLayout syncIndicator;
 
   private ContentObserver observer;
@@ -206,7 +205,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+//    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     hideDirectory();
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
@@ -401,7 +400,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     composePanel = findViewById(R.id.bottom_panel);
     container = (InputAwareLayout) findViewById(R.id.layout_container);
     inputPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    layout = (LinearLayoutCompat) findViewById(R.id.layout_container);
 
     container.addOnKeyboardShownListener(this);
     inputPanel.setListener(this, emojiDrawer);

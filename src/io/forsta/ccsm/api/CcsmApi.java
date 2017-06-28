@@ -204,7 +204,6 @@ public class CcsmApi {
     return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG_PICK, null);
   }
 
-
   public static String parseLoginToken(String authtoken) {
     if (authtoken.contains("/")) {
       String[] parts = authtoken.split("/");

@@ -6,6 +6,8 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.util.Log;
 
+import com.fasterxml.jackson.core.JsonParseException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -122,6 +124,7 @@ public class ForstaUtils {
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
           recipientList = group.getMembers();
         } catch (IOException e) {
+          Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
           e.printStackTrace();
         }
       } else {
@@ -158,7 +161,7 @@ public class ForstaUtils {
       version1.put("recipients", recipients);
       versions.put(version1);
     } catch (JSONException e) {
-      Log.e(TAG, "JSON exception creating message body");
+      Log.e(TAG, "createForstaMessageBody JSON exception");
       e.printStackTrace();
       // Something failed. Return original message body
       return richTextMessage;
