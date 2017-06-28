@@ -103,7 +103,7 @@ public class ContactsCursorLoader extends CursorLoader {
         ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
 
     ContactDb contactDb = DbFactory.getContactDb(getContext());
-    Cursor contactsCursor = contactDb.getActiveRecipients();
+    Cursor contactsCursor = contactDb.getActiveRecipients(filter);
     while (contactsCursor.moveToNext()) {
       forstaContactsCursor.addRow(new Object[] {
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
@@ -117,7 +117,7 @@ public class ContactsCursorLoader extends CursorLoader {
     contactsCursor.close();
 
     GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
-    Cursor groupCursor = gdb.getForstaGroups("");
+    Cursor groupCursor = gdb.getForstaGroupsByTitle(filter);
     while (groupCursor.moveToNext()) {
       forstaContactsCursor.addRow(new Object[] {
           groupCursor.getString(groupCursor.getColumnIndex("_id")),

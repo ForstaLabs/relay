@@ -114,8 +114,20 @@ public class GroupDatabase extends Database {
 
   public Cursor getForstaGroups(String slugPart) {
     String selection = null;
-    if (slugPart.length() > 0) {
-      selection = SLUG + " LIKE '" + slugPart + "%'";
+    String[] selectionValues = null;
+    if (slugPart != null && slugPart.length() > 0) {
+      selection = SLUG + " LIKE ?";
+      selectionValues = new String[] { "%" + slugPart + "%"};
+    }
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
+  }
+
+  public Cursor getForstaGroupsByTitle(String nameFilter) {
+    String selection = null;
+    String[] selectionValues = null;
+    if (nameFilter != null && nameFilter.length() > 0) {
+      selection = TITLE + " LIKE ?";
+      selectionValues = new String[] { "%" + nameFilter + "%" };
     }
     return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
   }
