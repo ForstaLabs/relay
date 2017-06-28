@@ -1,0 +1,6 @@
+if [ -z "$1" ]
+then
+echo "Usage: testUser <jwt> <api endpoint url>"
+else
+curl -X "GET" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authentication: JWT " $1 $2
+fi

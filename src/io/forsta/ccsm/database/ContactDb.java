@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
@@ -93,7 +94,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
         contacts.put(c.getString(c.getColumnIndex(USERNAME)), recipient);
       }
       c.close();
@@ -151,7 +152,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
         recipients.add(recipient);
       }
       c.close();
@@ -257,6 +258,25 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<ForstaRecipient> getRecipientsFromNumbers(List<String> numbers) {
+    List<ForstaRecipient> recipients = new ArrayList<>();
+
+    String query = "";
+    String queryNumbers = TextUtils.join("','", numbers);
+    query = NUMBER + " IN ('" + queryNumbers + "')";
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, query, null, NAME);
+      while (c.moveToNext()) {
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        recipients.add(recipient);
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return recipients;
   }
 
   @Override

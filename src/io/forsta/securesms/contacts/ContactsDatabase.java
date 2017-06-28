@@ -34,6 +34,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 import org.whispersystems.libsignal.util.guava.Optional;
@@ -92,7 +93,7 @@ public class ContactsDatabase {
       String registeredNumber = registeredContact.getNumber();
 
       registeredNumbers.put(registeredNumber, registeredContact);
-      boolean isSyncNumber = registeredNumber.equals(BuildConfig.FORSTA_SYNC_NUMBER);
+      boolean isSyncNumber = registeredNumber.equals(ForstaPreferences.getForstaSyncNumber(context));
 
       if (!currentContacts.containsKey(registeredNumber) && !isSyncNumber) {
         Optional<SystemContactInfo> systemContactInfo = getSystemContactInfo(registeredNumber, localNumber);

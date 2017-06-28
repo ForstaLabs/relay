@@ -53,53 +53,57 @@ import io.forsta.ccsm.util.NetworkUtils;
 
 public class CcsmApi {
   private static final String TAG = CcsmApi.class.getSimpleName();
-  private static final String API_URL = BuildConfig.FORSTA_API_URL;
-  private static final String API_TOKEN_REFRESH = API_URL + "/v1/api-token-refresh/";
-  private static final String API_LOGIN = API_URL + "/v1/login/";
-  private static final String API_USER = API_URL + "/v1/user/";
-  private static final String API_USER_PICK = API_URL + "/v1/user-pick/";
-  private static final String API_TAG = API_URL + "/v1/tag/";
-  private static final String API_USER_TAG = API_URL + "/v1/usertag/";
-  private static final String API_ORG = API_URL + "/v1/org/";
-  private static final String API_SEND_TOKEN = API_URL + "/v1/login/send/";
-  private static final String API_AUTH_TOKEN = API_URL + "/v1/login/authtoken/";
+  private static final String API_TOKEN_REFRESH = "/v1/api-token-refresh/";
+  private static final String API_LOGIN = "/v1/login/";
+  private static final String API_USER = "/v1/user/";
+  private static final String API_USER_PICK = "/v1/user-pick/";
+  private static final String API_TAG = "/v1/tag/";
+  private static final String API_TAG_PICK = "/v1/tag-pick/";
+  private static final String API_USER_TAG = "/v1/usertag/";
+  private static final String API_ORG = "/v1/org/";
+  private static final String API_SEND_TOKEN = "/v1/login/send/";
+  private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
   }
 
   public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
+    String host = ForstaPreferences.getForstaApiHost(context);
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
       if (!authToken.equals("")) {
         obj.put("authtoken", authToken);
-        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_AUTH_TOKEN, obj);
+        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_AUTH_TOKEN, obj);
       } else {
         obj.put("username", username);
         obj.put("password", password);
-        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, API_LOGIN, obj);
+        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_LOGIN, obj);
       }
 
       if (result.has("token")) {
-        Log.d(TAG, "Login Success. Token Received.");
+        Log.w(TAG, "Login Success. Token Received.");
 
         String token = result.getString("token");
         JSONObject user = result.getJSONObject("user");
+        ForstaPreferences.setForstaUser(context, user.toString());
         String lastLogin = user.getString("last_login");
         // Write token and last login to local preferences.
+        // These can be eliminated. getForstaUser will give us everything we need.
         ForstaPreferences.setRegisteredForsta(context, token);
         ForstaPreferences.setRegisteredDateTime(context, lastLogin);
+
         ForstaPreferences.setForstaLoginPending(context, false);
       }
     } catch (JSONException e) {
+      Log.e(TAG, "JSON Exception in forstaLogin.");
       e.printStackTrace();
-      Log.d(TAG, "JSON Exception.");
     }
     return result;
   }
 
-  // TODO Is there a reason to ever refresh the token.
+  // TODO Is there a reas on to ever refresh the token.
   public static boolean tokenNeedsRefresh(Context context) {
     Date expireDate = ForstaPreferences.getTokenExpireDate(context);
     if (expireDate == null) {
@@ -115,13 +119,14 @@ public class CcsmApi {
   }
 
   public static JSONObject forstaRefreshToken(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
       obj.put("token", ForstaPreferences.getRegisteredKey(context));
 
-      result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, authKey, API_TOKEN_REFRESH, obj);
+      result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, authKey, host + API_TOKEN_REFRESH, obj);
       if (result.has("token")) {
         Log.d(TAG, "Token refresh. New token issued.");
         String token = result.getString("token");
@@ -132,21 +137,23 @@ public class CcsmApi {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      Log.d(TAG, "forstaRefreshToken failed");
+      Log.e(TAG, "forstaRefreshToken failed");
     }
     return result;
   }
 
-  public static JSONObject forstaSendToken(String org, String username) {
-    JSONObject result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, null, API_SEND_TOKEN + org + "/" + username + "/", null);
+  public static JSONObject forstaSendToken(Context context, String org, String username) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    JSONObject result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
     return result;
   }
 
   public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
+    // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
     if (isErrorResponse(response)) {
-      Log.d(TAG, "Bad response from API");
+      Log.e(TAG, "Bad response from API");
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
@@ -168,18 +175,33 @@ public class CcsmApi {
 
   // TODO These should all be private. They are exposed right now for the debug dashboard.
   public static JSONObject getForstaOrg(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_ORG, null);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_ORG, null);
+  }
+
+  public static JSONObject getUser(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_USER, null);
   }
 
   public static JSONObject getUsers(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_USER_PICK, null);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_USER_PICK, null);
   }
 
   public static JSONObject getTags(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, API_TAG, null);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG, null);
+  }
+
+  public static JSONObject getTagPicks(Context context) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG_PICK, null);
   }
 
   public static String parseLoginToken(String authtoken) {
@@ -247,6 +269,7 @@ public class CcsmApi {
         }
       }
     } catch (JSONException e) {
+      Log.e(TAG, "parseTagGroups exception");
       e.printStackTrace();
     }
     return groups;

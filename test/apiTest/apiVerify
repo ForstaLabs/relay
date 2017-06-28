@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+echo "Usage: apiVerify <api host> <org> <username> <code>"
+else
+curl -X POST -H "$1/v1/login/authtoken/" -d "{authtoken:$2:$3:$4}" -o "jwt" "$1/v1/login/authtoken/"
+fi
+

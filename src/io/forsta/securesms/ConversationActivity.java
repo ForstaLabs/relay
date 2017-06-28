@@ -63,6 +63,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -1227,9 +1228,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
       Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
       if (cursor.moveToFirst()) {
-        int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
         String slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
-        if (groupDistribution == 1 || slug != null) {
+        // Do not allow modification of tags.
+        // Add check for groupDistribution once group info can be passed to other clients via JSON blob in title field of Group update messages.
+        // int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
+        if (slug != null) {
           result = true;
         }
       }
@@ -1290,6 +1293,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));
 
     return rawText;
+  }
+
+  private String getForstaMessage() throws InvalidMessageException {
+    String rawText = composeText.getText().toString();
+
+    String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, rawText, this.recipients);
+
+    if (rawText.length() < 1 && !attachmentManager.isAttachmentPresent())
+      throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));
+
+    return forstaBody;
   }
 
   private MediaConstraints getCurrentMediaConstraints() {
@@ -1366,7 +1380,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void sendMediaMessage(final boolean forceSms, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
-    sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
+    sendMediaMessage(forceSms, getForstaMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
@@ -1412,7 +1426,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     OutgoingTextMessage message;
 
     if (isSecureText && !forceSms) {
-      message = new OutgoingEncryptedMessage(recipients, getMessage(), expiresIn);
+      message = new OutgoingEncryptedMessage(recipients, getForstaMessage(), expiresIn);
     } else {
       message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
     }

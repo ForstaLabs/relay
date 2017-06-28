@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+echo "Usage: apiLogin <api host> <org> <username>"
+else
+curl -X GET -H "Content-Type: application/json" -H "Accept: application/json" "$1/v1/login/send/$2/$3/"
+fi
+

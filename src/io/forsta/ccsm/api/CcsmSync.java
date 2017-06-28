@@ -1,19 +1,17 @@
-package io.forsta.ccsm;
+package io.forsta.ccsm.api;
 
 import android.content.Context;
-import android.net.Uri;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import io.forsta.securesms.BuildConfig;
+
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
-import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.mms.OutgoingGroupMediaMessage;
@@ -38,7 +36,6 @@ import java.util.List;
 
 public class CcsmSync {
   private static final String TAG = CcsmSync.class.getSimpleName();
-  private static String mForstaSyncNumber = BuildConfig.FORSTA_SYNC_NUMBER;
 
   private CcsmSync() {
   }
@@ -48,27 +45,23 @@ public class CcsmSync {
       Recipients recipients = message.getRecipients();
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
       String primary = primaryRecipient.getNumber();
-      String tagId = "";
 
       if (GroupUtil.isEncodedGroup(primary)) {
         byte[] decodedGroupId = GroupUtil.getDecodedId(primary);
         recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(decodedGroupId, false);
-        tagId = new String(decodedGroupId);
       }
       // Filters out group create/update messages.
       if (!(message instanceof OutgoingGroupMediaMessage)) {
-        syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId(), tagId);
+        syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId());
       }
 
     } catch (Exception e) {
-      Log.e(TAG, "Forsta Sync failed");
+      Log.e(TAG, "Forsta CCSM Sync media message failed");
       e.printStackTrace();
     }
   }
 
   public static void syncTextMessage(MasterSecret masterSecret, Context context, OutgoingTextMessage message) {
-    String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(context);
-    mForstaSyncNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
     try {
       Recipients recipients = message.getRecipients();
       boolean keyExchange = message.isKeyExchange();
@@ -76,28 +69,27 @@ public class CcsmSync {
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
       String primary = primaryRecipient.getNumber();
       // Don't duplicate keyexchanges or direct messages to sync number.
-      if (!keyExchange && !primary.equals(mForstaSyncNumber)) {
+      if (!keyExchange && !primary.equals(ForstaPreferences.getForstaSyncNumber(context))) {
         syncMessage(masterSecret, context, recipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
       }
     } catch (Exception e) {
-      Log.e(TAG, "Forsta Sync failed");
+      Log.e(TAG, "Forsta CCSM Sync text message failed");
       e.printStackTrace();
     }
   }
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, long expiresIn, int subsriptionId) {
-    syncMessage(masterSecret, context, recipients, body, new LinkedList<Attachment>(), expiresIn, subsriptionId, "");
+    syncMessage(masterSecret, context, recipients, body, new LinkedList<Attachment>(), expiresIn, subsriptionId);
   }
 
-  private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId, String tagId) {
-    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, mForstaSyncNumber, false);
-    JSONObject jsonBody = createMessageBody(context, recipients, body, tagId);
+  private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
+    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, ForstaPreferences.getForstaSyncNumber(context), false);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
     MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
-    OutgoingMediaMessage superMediaMessage = new OutgoingMediaMessage(superRecipients, jsonBody.toString(), attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
-    Log.d(TAG, "Forsta Sync. Sending Sync Message.");
+    OutgoingMediaMessage superMediaMessage = new OutgoingMediaMessage(superRecipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
+    Log.w(TAG, "Forsta Sync. Sending Sync Message.");
     try {
       long id = mmsDatabase.insertMessageOutbox(new MasterSecretUnion(masterSecret), superMediaMessage, superThreadId, false);
       MessageSender.sendMediaMessage(context, masterSecret, superRecipients, false, id, superMediaMessage.getExpiresIn());
@@ -105,27 +97,4 @@ public class CcsmSync {
       e.printStackTrace();
     }
   }
-
-  private static JSONObject createMessageBody(Context context, Recipients recipients, String body, String tagId) {
-    JSONObject json = new JSONObject();
-    List<Recipient> list = recipients.getRecipientsList();
-    JSONArray dest = new JSONArray();
-
-    try {
-      for (Recipient item : list) {
-        String e164Number = Util.canonicalizeNumber(context, item.getNumber());
-        dest.put(e164Number);
-      }
-      json.put("dest", dest);
-      json.put("message", body);
-      json.put("tagid", tagId);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    } catch (InvalidNumberException e) {
-      e.printStackTrace();
-    }
-
-    return json;
-  }
-
 }

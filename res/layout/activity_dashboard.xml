@@ -21,6 +21,22 @@
             android:id="@+id/dashboard_login_info"
             android:textSize="10sp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="10dp"
+            android:id="@+id/dashboard_change_number_container">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Forsta Configuration (Changing this will log you out):"/>
+            <Spinner android:id="@+id/dashboard_change_configuration"
+                     android:layout_height="wrap_content"
+                     android:layout_width="match_parent"
+                     ></Spinner>
+        </LinearLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -31,40 +47,12 @@
             android:layout_height="wrap_content"
             android:id="@+id/dashboard_selector"
             android:spinnerMode="dialog"/>
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ProgressBar
+            android:id="@+id/dashboard_progress_bar"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="30dp"
-            android:id="@+id/dashboard_change_number_container">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Forsta Sync Number:"/>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone"
-                android:ems="10"
-                android:id="@+id/dashboard_sync_number"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <Button android:id="@+id/dashboard_change_number_button"
-                        android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:text="Save"
-                        style="@style/Widget.AppCompat.Button.Small"
-                    android:layout_marginRight="10dp"/>
-                <Button android:id="@+id/dashboard_reset_number_button"
-                        android:layout_height="wrap_content"
-                        android:layout_width="wrap_content"
-                        android:text="Reset"
-                        style="@style/Widget.AppCompat.Button.Small"/>
-            </LinearLayout>
-
-        </LinearLayout>
+            android:layout_gravity="center"
+            android:visibility="gone"/>
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -62,6 +62,7 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -84,6 +85,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
@@ -145,9 +147,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private Map<String, ForstaRecipient> forstaSlugs;
   private ConversationListFragment fragment;
   private DrawerFragment drawerFragment;
-//  private DirectoryDialogFragment directoryFragment;
   private DirectoryFragment directoryFragment;
-  private LinearLayoutCompat layout;
   private LinearLayout syncIndicator;
 
   private ContentObserver observer;
@@ -205,7 +205,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    drawerFragment = initFragment(R.id.forsta_drawer, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+//    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     directoryFragment = initFragment(R.id.forsta_directory_helper, new DirectoryFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
     hideDirectory();
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
@@ -314,16 +314,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-    case R.id.menu_new_group:         createGroup();           return true;
-    case R.id.menu_settings:          handleDisplaySettings(); return true;
-    case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
-    case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
-    case R.id.menu_import_export:     handleImportExport();    return true;
-//    case R.id.menu_invite:            handleInvite();          return true;
-    case R.id.menu_help:              handleHelp();            return true;
-    case R.id.menu_directory:         handleDirectory();       return true;
-    case R.id.menu_dashboard:         handleDashboard();       return true;
-    case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
+      case R.id.menu_new_group:         createGroup();           return true;
+      case R.id.menu_settings:          handleDisplaySettings(); return true;
+      case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
+      case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
+      case R.id.menu_import_export:     handleImportExport();    return true;
+  //    case R.id.menu_invite:            handleInvite();          return true;
+      case R.id.menu_help:              handleHelp();            return true;
+      case R.id.menu_directory:         handleDirectory();       return true;
+      case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
     }
 
     return false;
@@ -401,7 +400,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     composePanel = findViewById(R.id.bottom_panel);
     container = (InputAwareLayout) findViewById(R.id.layout_container);
     inputPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    layout = (LinearLayoutCompat) findViewById(R.id.layout_container);
 
     container.addOnKeyboardShownListener(this);
     inputPanel.setListener(this, emojiDrawer);
@@ -554,13 +552,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private void handleDirectory() {
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
-//    Intent directoryIntent = new Intent(this, DirectoryActivity.class);
     startActivity(directoryIntent);
-  }
-
-  private void handleDashboard() {
-    Intent dashIntent = new Intent(this, DashboardActivity.class);
-    startActivity(dashIntent);
   }
 
   private void handleDisplaySettings() {
@@ -817,6 +809,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     // Now create new group and send to the new groupId.
     String textTitle = title.toString();
     textTitle = textTitle.replaceAll(", $", "");
+    // TODO use title field to send JSON blob to clients, with information about dynamic distributions.
+//    JSONObject jsonTitle = new JSONObject();
+//    try {
+//      jsonTitle.put("title", textTitle);
+//    } catch (JSONException e) {
+//      e.printStackTrace();
+//    }
+//    sendGroupMessage(message, numbers, jsonTitle.toString());
     sendGroupMessage(message, numbers, textTitle);
   }
 
@@ -862,7 +862,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void sendMessage(String message, Recipients messageRecipients) {
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
-    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+    String forstaBody = ForstaUtils.createForstaMessageBody(ConversationListActivity.this, message, messageRecipients);
+
+    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), forstaBody, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
     new AsyncTask<OutgoingMediaMessage, Void, Void>() {
 
       @Override

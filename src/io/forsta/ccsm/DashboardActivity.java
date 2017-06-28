@@ -7,6 +7,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,17 +19,21 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.api.ForstaJWT;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -70,14 +75,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private TextView mDebugText;
   private TextView mLoginInfo;
   private CheckBox mToggleSyncMessages;
-  private Button mChangeNumberButton;
-  private Button mResetNumberButton;
   private MasterSecret mMasterSecret;
   private MasterCipher mMasterCipher;
   private Spinner mSpinner;
+  private Spinner mConfigSpinner;
   private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
-  private EditText mSyncNumber;
+  private ProgressBar mProgressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -109,31 +113,49 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   }
 
   private void initView() {
+    mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
     mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
-    mSyncNumber = (EditText) findViewById(R.id.dashboard_sync_number);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
     mDebugText = (TextView) findViewById(R.id.debug_text);
-    mChangeNumberButton = (Button) findViewById(R.id.dashboard_change_number_button);
-    mChangeNumberButton.setOnClickListener(new View.OnClickListener() {
+    mConfigSpinner = (Spinner) findViewById(R.id.dashboard_change_configuration);
+    List<String> configOptions = new ArrayList<>();
+    configOptions.add("Production");
+    configOptions.add("Stage");
+    configOptions.add("Development");
+    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, configOptions);
+    mConfigSpinner.setAdapter(configAdapter);
+    String apiUrl = ForstaPreferences.getForstaApiHost(DashboardActivity.this);
+    if (apiUrl.contains("dev")) {
+      mConfigSpinner.setSelection(2);
+    } else if (apiUrl.contains("stage")) {
+      mConfigSpinner.setSelection(1);
+    } else {
+      mConfigSpinner.setSelection(0);
+    }
+    mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
-      public void onClick(View v) {
-        ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, mSyncNumber.getText().toString());
+      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        switch (i) {
+          case 0:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "prod");
+            break;
+          case 1:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "stage");
+            break;
+          case 2:
+            ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
+            break;
+        }
         printLoginInformation();
-        Toast.makeText(DashboardActivity.this, "Sync number changed.", Toast.LENGTH_LONG).show();
+      }
+
+      @Override
+      public void onNothingSelected(AdapterView<?> adapterView) {
+
       }
     });
 
-    mResetNumberButton = (Button) findViewById(R.id.dashboard_reset_number_button);
-    mResetNumberButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        ForstaPreferences.setForstaSyncNumber(DashboardActivity.this, "");
-        Toast.makeText(DashboardActivity.this, "Sync number reset.", Toast.LENGTH_LONG).show();
-        mSyncNumber.setText(BuildConfig.FORSTA_SYNC_NUMBER);
-        printLoginInformation();
-      }
-    });
     mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
@@ -198,10 +220,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printGroups());
             break;
           case 11:
+            mDebugText.setText("");
+            mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
           case 12:
+            mDebugText.setText("");
+            mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
@@ -244,22 +270,45 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   }
 
   private void printLoginInformation() {
-    String debugSyncNumber = ForstaPreferences.getForstaSyncNumber(DashboardActivity.this);
-    String smNumber = !debugSyncNumber.equals("") ? debugSyncNumber : BuildConfig.FORSTA_SYNC_NUMBER;
-
-    mSyncNumber.setText(smNumber);
     StringBuilder sb = new StringBuilder();
     String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
-    sb.append("Sync Number: Build: ");
-    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
-    sb.append(" Current: ").append(smNumber);
+    String token = ForstaPreferences.getRegisteredKey(getApplicationContext());
+    ForstaJWT jwt = new ForstaJWT(token);
+
+    sb.append("API Host:");
+    sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
+    sb.append("\n");
+    sb.append("Sync Number:");
+    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
     sb.append("\n");
     sb.append("Last Login: ");
     sb.append(lastLogin);
-    Date tokenExpire = ForstaPreferences.getTokenExpireDate(DashboardActivity.this);
+    Date tokenExpire = jwt.getExpireDate();
     sb.append("\n");
     sb.append("Token Expires: ");
     sb.append(tokenExpire);
+    sb.append("\n");
+
+    String forstaUser = ForstaPreferences.getForstaUser(DashboardActivity.this);
+    try {
+      JSONObject data = new JSONObject(forstaUser);
+      ForstaUser user = new ForstaUser(data);
+      sb.append("Org Id: ");
+      sb.append(user.org_id);
+      sb.append("\n");
+      sb.append("User Id: ");
+      sb.append(user.uid);
+      sb.append("\n");
+      sb.append("Tag Id: ");
+      sb.append(user.tag_id);
+      sb.append("\n");
+      sb.append("Phone: ");
+      sb.append(user.phone);
+      sb.append("\n");
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
     mLoginInfo.setText(sb.toString());
   }
 
@@ -704,6 +753,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
       }
       mDebugText.setText(sb.toString());
+      mProgressBar.setVisibility(View.GONE);
     }
   }
 
@@ -724,6 +774,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append(user.username).append("\n");
       }
       mDebugText.setText(sb.toString());
+      mProgressBar.setVisibility(View.GONE);
     }
   }
 }

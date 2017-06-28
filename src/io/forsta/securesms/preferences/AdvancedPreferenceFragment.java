@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import io.forsta.ccsm.DashboardActivity;
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.LogSubmitActivity;
 import io.forsta.securesms.R;
@@ -40,6 +41,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
 
   private static final String PUSH_MESSAGING_PREF   = "pref_toggle_push_messaging";
   private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
+  private static final String FORSTA_DASHBOARD_PREFERENCE = "preference_forsta_dashboard";
 
   private static final int PICK_IDENTITY_CONTACT = 1;
 
@@ -54,6 +56,8 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     initializeIdentitySelection();
 
     Preference submitDebugLog = this.findPreference(SUBMIT_DEBUG_LOG_PREF);
+    Preference debugDashboard = this.findPreference(FORSTA_DASHBOARD_PREFERENCE);
+    debugDashboard.setOnPreferenceClickListener(new DashboardClickListener());
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
   }
@@ -228,6 +232,22 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
       }
 
       return false;
+    }
+  }
+
+  private class DashboardClickListener implements Preference.OnPreferenceClickListener {
+    private int clickCount = 0;
+
+    @Override
+    public boolean onPreferenceClick(Preference preference) {
+      clickCount++;
+      if (clickCount > 4) {
+        clickCount = 0;
+        Intent intent = new Intent(getActivity(), DashboardActivity.class);
+        startActivity(intent);
+      }
+
+      return true;
     }
   }
 }

@@ -26,7 +26,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.preference.PreferenceFragment;
+import android.support.v7.app.ActionBar;
 
+import io.forsta.ccsm.DashboardActivity;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.preferences.AdvancedPreferenceFragment;
 import io.forsta.securesms.preferences.AppProtectionPreferenceFragment;
@@ -221,5 +223,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         return true;
       }
     }
+
+
   }
 }
