@@ -145,7 +145,6 @@
                 android:layout_height="wrap_content"
                 android:text="Try Login Again"
                 android:textAlignment="center"
-                style="@style"
                 android:layout_marginTop="5dp"
                 android:id="@+id/forsta_login_tryagain"/>
         </LinearLayout>

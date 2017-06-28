@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -150,6 +151,7 @@ public class LoginActivity extends BaseActionBarActivity {
     });
 
     mTryAgainButton = (TextView) findViewById(R.id.forsta_login_tryagain);
+    mTryAgainButton.setPaintFlags(mTryAgainButton.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
     mTryAgainButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
