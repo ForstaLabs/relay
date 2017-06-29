@@ -106,11 +106,12 @@ public class ForstaUtils {
       JSONObject recipients = new JSONObject();
       JSONArray resolvedUsers = new JSONArray();
       JSONArray resolvedNumbers = new JSONArray();
+      JSONObject resolvedUser = new JSONObject();
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
       sender.put("tagPresentation", user.slug);
-      JSONObject resolvedUser = new JSONObject();
+
       resolvedUser.put("orgId", user.org_id);
       resolvedUser.put("userId", user.uid);
       sender.put("resolvedUser", resolvedUser);

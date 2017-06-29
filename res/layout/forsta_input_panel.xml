@@ -41,12 +41,14 @@
                               android:layout_width="wrap_content"
                               android:layout_height="wrap_content"
                               android:text="Recipients:"
+                              android:textColor="@color/textsecure_primary"
                               android:layout_alignParentLeft="true"
                               android:layout_centerVertical="true"/>
                     <TextView android:id="@+id/forsta_input_recipients"
                               android:layout_width="wrap_content"
                               android:layout_height="wrap_content"
                               android:text="0"
+                              android:textColor="@color/textsecure_primary"
                               android:layout_toRightOf="@id/forsta_input_type"
                               android:layout_centerVertical="true"
                               android:layout_marginLeft="3dp"/>
@@ -79,19 +81,23 @@
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
                     tools:visibility="invisible"
-                    tools:hint="Send Forsta message">
+                    android:textColor="@color/black"
+                    tools:hint="Send Forsta message"
+                    android:background="@color/white">
                 </io.forsta.securesms.components.ComposeText>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_gravity="bottom">
+                    android:layout_gravity="bottom"
+                    android:background="@color/white">
 
                     <io.forsta.securesms.components.emoji.EmojiToggle
                         android:id="@+id/emoji_toggle"
                         android:layout_width="37dp"
                         android:layout_height="37dp"
+                        app:theme="@style/TextSecure.LightTheme"
                         android:background="@drawable/touch_highlight_background"
                         android:contentDescription="@string/conversation_activity__emoji_toggle_description" />
 

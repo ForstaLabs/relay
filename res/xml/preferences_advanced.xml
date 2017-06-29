@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="advanced_preferences_screen">
     <io.forsta.securesms.components.SwitchPreferenceCompat
                         android:defaultValue="false"
                         android:key="pref_toggle_push_messaging"
@@ -26,6 +27,6 @@
     <Preference android:key="pref_submit_debug_logs"
                 android:title="@string/preferences__submit_debug_log"/>
     <Preference
-        android:layout="@layout/forsta_dashboard_preference"
-        android:key="preference_forsta_dashboard"/>
+        android:key="preference_forsta_dashboard"
+        android:title="Debug Dashboard"/>
 </PreferenceScreen>

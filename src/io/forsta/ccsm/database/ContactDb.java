@@ -3,6 +3,7 @@ package io.forsta.ccsm.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
@@ -229,9 +230,16 @@ public class ContactDb extends DbBase {
     db.close();
   }
 
-  public Cursor getActiveRecipients() {
+  public Cursor getActiveRecipients(String filter) {
+    String queryFilter = TSREGISTERED + " = 1";
+    String[] queryValues = null;
+    if (filter != null && filter.length() > 0) {
+      queryFilter += " AND (" + NAME + " LIKE ? OR " + NUMBER + " LIKE ?)";
+      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%" };
+    }
+
     try {
-      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
+      return getRecords(TABLE_NAME, allColumns, queryFilter, queryValues, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -239,12 +247,14 @@ public class ContactDb extends DbBase {
   }
 
   public Cursor filterActiveRecipients(String slugPart) {
-    try {
       String selection = TSREGISTERED + " = 1";
+      String[] selectionValues = null;
       if (slugPart.length() > 0) {
-        selection = selection + " AND " + SLUG + " LIKE '" + slugPart + "%'";
+        selection += " AND (" + SLUG + " LIKE ? OR " + NAME + " LIKE ?)";
+        selectionValues = new String[] { "%" + slugPart + "%", "%" + slugPart + "%" };
       }
-      return getRecords(TABLE_NAME, allColumns, selection, null, NAME);
+    try {
+      return getRecords(TABLE_NAME, allColumns, selection, selectionValues, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -253,7 +263,7 @@ public class ContactDb extends DbBase {
 
   public Cursor getInactiveRecipients() {
     try {
-      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=0", null, NAME);
+      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + " = 0", null, NAME);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -267,7 +277,7 @@ public class ContactDb extends DbBase {
     String queryNumbers = TextUtils.join("','", numbers);
     query = NUMBER + " IN ('" + queryNumbers + "')";
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, query, null, NAME);
+      Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
       while (c.moveToNext()) {
         ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
         recipients.add(recipient);
