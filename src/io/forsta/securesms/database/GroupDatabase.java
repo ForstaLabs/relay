@@ -119,7 +119,7 @@ public class GroupDatabase extends Database {
       selection = SLUG + " LIKE ?";
       selectionValues = new String[] { "%" + slugPart + "%"};
     }
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, selectionValues, null, null, null);
   }
 
   public Cursor getForstaGroupsByTitle(String nameFilter) {
@@ -129,7 +129,7 @@ public class GroupDatabase extends Database {
       selection = TITLE + " LIKE ?";
       selectionValues = new String[] { "%" + nameFilter + "%" };
     }
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, null, null, null, null);
+    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, selectionValues, null, null, null);
   }
 
   public Set<String> getGroupMembers(byte[] groupId) {
