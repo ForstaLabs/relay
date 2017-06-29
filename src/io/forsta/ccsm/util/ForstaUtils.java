@@ -98,7 +98,7 @@ public class ForstaUtils {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     try {
-      version1.put("version", "1");
+      version1.put("version", 1);
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
       String type = "ordinary";
@@ -133,6 +133,9 @@ public class ForstaUtils {
       }
 
       List<ForstaRecipient> forstaRecipients = DbFactory.getContactDb(context).getRecipientsFromNumbers(recipientList);
+
+      // Get all of the orgs from this list.
+      // Then add users to the appropriate org.
 
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
