@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
+import android.preference.PreferenceScreen;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.LogSubmitActivity;
 import io.forsta.securesms.R;
@@ -56,10 +58,15 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     initializeIdentitySelection();
 
     Preference submitDebugLog = this.findPreference(SUBMIT_DEBUG_LOG_PREF);
+    PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
     Preference debugDashboard = this.findPreference(FORSTA_DASHBOARD_PREFERENCE);
-    debugDashboard.setOnPreferenceClickListener(new DashboardClickListener());
+    if (!ForstaPreferences.getForstaBuild(getActivity()).first.contains("dev")) {
+      preferenceScreen.removePreference(debugDashboard);
+    }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
+    // Disable submit debug log. This submits to api.github.com/gists and is part of a fragment contained in Whispersystems JAR.
+    preferenceScreen.removePreference(submitDebugLog);
   }
 
   @Override
@@ -236,17 +243,11 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   }
 
   private class DashboardClickListener implements Preference.OnPreferenceClickListener {
-    private int clickCount = 0;
 
     @Override
     public boolean onPreferenceClick(Preference preference) {
-      clickCount++;
-      if (clickCount > 4) {
-        clickCount = 0;
-        Intent intent = new Intent(getActivity(), DashboardActivity.class);
-        startActivity(intent);
-      }
-
+      Intent intent = new Intent(getActivity(), DashboardActivity.class);
+      startActivity(intent);
       return true;
     }
   }

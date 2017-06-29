@@ -89,7 +89,6 @@ public class DirectoryFragment extends Fragment implements LoaderManager.LoaderC
     void onItemSelected(String slug);
   }
 
-
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new DirectoryLoader(getActivity(), query);
