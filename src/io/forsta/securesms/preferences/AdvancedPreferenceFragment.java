@@ -62,6 +62,8 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     Preference debugDashboard = this.findPreference(FORSTA_DASHBOARD_PREFERENCE);
     if (!ForstaPreferences.getForstaBuild(getActivity()).first.contains("dev")) {
       preferenceScreen.removePreference(debugDashboard);
+    } else {
+      debugDashboard.setOnPreferenceClickListener(new DashboardClickListener());
     }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
