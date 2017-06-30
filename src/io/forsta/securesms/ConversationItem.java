@@ -292,7 +292,12 @@ public class ConversationItem extends LinearLayout
       if (forstaBody != null) {
         bodyText.setText(forstaBody);
       } else {
-        bodyText.setText(messageRecord.getDisplayBody());
+        String forstaPlainBody = ForstaUtils.getForstaPlainTextBody(messageRecord.getDisplayBody().toString());
+        if (forstaPlainBody != null) {
+          bodyText.setText(forstaBody);
+        } else {
+          bodyText.setText(messageRecord.getDisplayBody());
+        }
       }
       bodyText.setVisibility(View.VISIBLE);
     }

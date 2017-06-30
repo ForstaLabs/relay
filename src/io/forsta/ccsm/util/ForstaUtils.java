@@ -6,8 +6,6 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.util.Log;
 
-import com.fasterxml.jackson.core.JsonParseException;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,16 +55,20 @@ public class ForstaUtils {
 
   public static Spanned getForstaJsonBody(String messageBody) {
     try {
-      JSONArray forstaObject= new JSONArray(messageBody);
-      JSONObject version = forstaObject.getJSONObject(0);
-      JSONObject data = version.getJSONObject("data");
-      JSONArray body =  data.getJSONArray("body");
-      for (int i=0; i<body.length(); i++) {
-        JSONObject object = body.getJSONObject(i);
-        String type = object.getString("type");
-        if (object.getString("type").equals("text/html")) {
-          String htmlText = object.getString("value");
-          return Html.fromHtml(htmlText);
+      JSONArray forstaArray = new JSONArray(messageBody);
+      for (int i=0; i<forstaArray.length(); i++) {
+        JSONObject version = forstaArray.getJSONObject(i);
+        if (version.getInt("version") == 1) {
+          JSONObject data = version.getJSONObject("data");
+          JSONArray body =  data.getJSONArray("body");
+          for (int j=0; j<body.length(); j++) {
+            JSONObject object = body.getJSONObject(j);
+            String type = object.getString("type");
+            if (object.getString("type").equals("text/html")) {
+              String htmlText = object.getString("value");
+              return Html.fromHtml(htmlText);
+            }
+          }
         }
       }
     } catch (JSONException e) {
@@ -77,15 +79,19 @@ public class ForstaUtils {
 
   public static String getForstaPlainTextBody(String messageBody) {
     try {
-      JSONArray forstaObject= new JSONArray(messageBody);
-      JSONObject version = forstaObject.getJSONObject(0);
-      JSONObject data = version.getJSONObject("data");
-      JSONArray body =  data.getJSONArray("body");
-      for (int i=0; i<body.length(); i++) {
-        JSONObject object = body.getJSONObject(i);
-        String type = object.getString("type");
-        if (object.getString("type").equals("text/plain")) {
-          return object.getString("value");
+      JSONArray forstaArray= new JSONArray(messageBody);
+      for (int i=0; i<forstaArray.length(); i++) {
+        JSONObject version = forstaArray.getJSONObject(i);
+        if (version.getInt("version") == 1) {
+          JSONObject data = version.getJSONObject("data");
+          JSONArray body =  data.getJSONArray("body");
+          for (int j=0; j<body.length(); j++) {
+            JSONObject object = body.getJSONObject(j);
+            String type = object.getString("type");
+            if (object.getString("type").equals("text/plain")) {
+              return object.getString("value");
+            }
+          }
         }
       }
     } catch (JSONException e) {
