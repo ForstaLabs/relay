@@ -23,6 +23,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.ApplicationPreferencesActivity;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.LogSubmitActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.RegistrationActivity;
@@ -60,7 +61,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     Preference submitDebugLog = this.findPreference(SUBMIT_DEBUG_LOG_PREF);
     PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
     Preference debugDashboard = this.findPreference(FORSTA_DASHBOARD_PREFERENCE);
-    if (!ForstaPreferences.getForstaBuild(getActivity()).first.contains("dev")) {
+    if (!BuildConfig.FORSTA_API_URL.contains("dev")) {
       preferenceScreen.removePreference(debugDashboard);
     } else {
       debugDashboard.setOnPreferenceClickListener(new DashboardClickListener());
