@@ -115,7 +115,7 @@ public class LoginActivity extends BaseActionBarActivity {
         String org = mSendTokenOrg.getText().toString().trim();
         String username = mSendTokenUsername.getText().toString().trim();
         if (org.length() < 3 || username.length() < 3) {
-          Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
+          Toast.makeText(LoginActivity.this, "Invalid Domain or Username", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
           ForstaPreferences.setForstaOrgName(getApplicationContext(),org);
