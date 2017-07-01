@@ -145,10 +145,12 @@ public class ForstaUtils {
 
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
-        JSONObject forstaUser = new JSONObject();
-        forstaUser.put("orgId", r.org);
-        forstaUser.put("userId", r.uuid);
-        resolvedUsers.put(forstaUser);
+        resolvedUsers.put(r.uuid);
+//        JSONObject forstaUser = new JSONObject();
+//        forstaUser.put("orgId", r.org);
+//        forstaUser.put("userId", r.uuid);
+//        resolvedUsers.put(forstaUser);
+
       }
       recipients.put("resolvedUsers", resolvedUsers);
       recipients.put("resolvedNumbers", resolvedNumbers);
