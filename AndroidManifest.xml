@@ -292,7 +292,7 @@
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__linked_devices" />
         <activity
-            android:name=".LogSubmitActivity"
+            android:name="io.forsta.ccsm.ForstaLogSubmitActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:label="@string/AndroidManifest__log_submit"
             android:windowSoftInputMode="stateHidden" />
