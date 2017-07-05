@@ -323,6 +323,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_directory:         handleDirectory();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
+      case R.id.menu_archive:
+        onSwitchToArchive();
+        return true;
     }
 
     return false;
@@ -682,8 +685,13 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   @Override
   public void onBackPressed() {
     Log.w(TAG, "onBackPressed()");
-    if (container.isInputOpen()) container.hideCurrentInput(composeText);
-    else super.onBackPressed();
+    if (container.isInputOpen()) {
+      container.hideCurrentInput(composeText);
+    } else if (isDirectoryOpen) {
+      hideDirectory();
+    } else {
+      super.onBackPressed();
+    }
   }
 
   @Override
@@ -753,7 +761,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         sendGroupDistribution(message);
       }
     } else {
-      Toast.makeText(ConversationListActivity.this, "There are no recipients in messsage.", Toast.LENGTH_SHORT).show();
+      Toast.makeText(ConversationListActivity.this, "There are no recipients in this messsage.", Toast.LENGTH_SHORT).show();
     }
   }
 

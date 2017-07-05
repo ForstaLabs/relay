@@ -50,7 +50,7 @@ public class ConversationListLoader extends AbstractCursorLoader {
                                                  "-1", null, 1, ThreadDatabase.DistributionTypes.ARCHIVE,
                                                  0, null, 0, -1, 0, 0});
       
-      cursorList.add(switchToArchiveCursor);
+//      cursorList.add(switchToArchiveCursor);
     }
 
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
