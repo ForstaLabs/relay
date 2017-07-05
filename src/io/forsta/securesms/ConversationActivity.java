@@ -1380,7 +1380,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void sendMediaMessage(final boolean forceSms, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
-    sendMediaMessage(forceSms, getForstaMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
+    String body = (!isSecureText || forceSms) ? getMessage(): getForstaMessage();
+    sendMediaMessage(forceSms, body, attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
@@ -1388,14 +1389,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-          OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-                                                                          slideDeck,
-                                                                          body,
-                                                                          System.currentTimeMillis(),
-                                                                          subscriptionId,
-                                                                          expiresIn,
-                                                                          distributionType);
-
+    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
+                                                                    slideDeck,
+                                                                    body,
+                                                                    System.currentTimeMillis(),
+                                                                    subscriptionId,
+                                                                    expiresIn,
+                                                                    distributionType);
     if (isSecureText && !forceSms) {
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }

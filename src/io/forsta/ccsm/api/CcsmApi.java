@@ -222,6 +222,7 @@ public class CcsmApi {
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
         if (user.getBoolean("is_active")) {
+
           ForstaUser forstaUser = new ForstaUser(user);
           // Temporary to remove duplicates returning from API
           if (forstaUids.contains(forstaUser.uid)) {
