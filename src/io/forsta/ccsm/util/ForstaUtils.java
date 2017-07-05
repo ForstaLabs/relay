@@ -113,6 +113,8 @@ public class ForstaUtils {
       JSONArray resolvedUsers = new JSONArray();
       JSONArray resolvedNumbers = new JSONArray();
       JSONObject resolvedUser = new JSONObject();
+      String threadId = "";
+      String threadTitle = "";
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
@@ -127,8 +129,9 @@ public class ForstaUtils {
       if (messageRecipients.isGroupRecipient()) {
         try {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
+          String endcodedGroupId = threadId = messageRecipients.getPrimaryRecipient().getNumber();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
+          threadTitle = group.getTitle();
           recipientList = group.getMembers();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
@@ -145,10 +148,12 @@ public class ForstaUtils {
 
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
-        JSONObject forstaUser = new JSONObject();
-        forstaUser.put("orgId", r.org);
-        forstaUser.put("userId", r.uuid);
-        resolvedUsers.put(forstaUser);
+        resolvedUsers.put(r.uuid);
+//        JSONObject forstaUser = new JSONObject();
+//        forstaUser.put("orgId", r.org);
+//        forstaUser.put("userId", r.uuid);
+//        resolvedUsers.put(forstaUser);
+
       }
       recipients.put("resolvedUsers", resolvedUsers);
       recipients.put("resolvedNumbers", resolvedNumbers);
@@ -169,6 +174,8 @@ public class ForstaUtils {
       version1.put("data", data);
       version1.put("sender", sender);
       version1.put("recipients", recipients);
+      version1.put("threadId", threadId);
+      version1.put("threadTitle", threadTitle);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");

@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.ForstaLogSubmitActivity;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.BuildConfig;
@@ -69,7 +70,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
     // Disable submit debug log. This submits to api.github.com/gists and is part of a fragment contained in Whispersystems JAR.
-    preferenceScreen.removePreference(submitDebugLog);
+//    preferenceScreen.removePreference(submitDebugLog);
   }
 
   @Override
@@ -160,7 +161,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   private class SubmitDebugLogListener implements Preference.OnPreferenceClickListener {
     @Override
     public boolean onPreferenceClick(Preference preference) {
-      final Intent intent = new Intent(getActivity(), LogSubmitActivity.class);
+      final Intent intent = new Intent(getActivity(), ForstaLogSubmitActivity.class);
       startActivity(intent);
       return true;
     }

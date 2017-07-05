@@ -63,6 +63,7 @@ public class CcsmApi {
   private static final String API_ORG = "/v1/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
+  private static final String API_DEBUG_LOGS = "/v1/log/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -222,6 +223,7 @@ public class CcsmApi {
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
         if (user.getBoolean("is_active")) {
+
           ForstaUser forstaUser = new ForstaUser(user);
           // Temporary to remove duplicates returning from API
           if (forstaUids.contains(forstaUser.uid)) {
@@ -338,6 +340,12 @@ public class CcsmApi {
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();
     db.updateGroups(groups, activeNumbers);
+  }
+
+  public static JSONObject sendDebugLog(Context context, JSONObject debugData) {
+    String host = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_DEBUG_LOGS, debugData);
   }
 
   private static boolean isErrorResponse(JSONObject response) {
