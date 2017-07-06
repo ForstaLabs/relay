@@ -189,4 +189,22 @@ public class ForstaUtils {
     }
     return null;
   }
+
+  public static void createForstaGroupFromMessagePayload(String body) {
+    try {
+      JSONArray forstaArray = new JSONArray(body);
+      for (int i=0; i<forstaArray.length(); i++) {
+        JSONObject version = forstaArray.getJSONObject(i);
+        if (version.getInt("version") == 1) {
+          String groupId = version.getString("threadId");
+          if (GroupUtil.isEncodedGroup(groupId)) {
+            String title = version.getString("threadTitle");
+
+          }
+        }
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+  }
 }

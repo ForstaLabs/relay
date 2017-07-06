@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
@@ -443,6 +444,8 @@ public class PushDecryptJob extends ContextJob {
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
+
+    ForstaUtils.createForstaGroupFromMessagePayload(body);
 
     Pair<Long, Long> messageAndThreadId;
 
