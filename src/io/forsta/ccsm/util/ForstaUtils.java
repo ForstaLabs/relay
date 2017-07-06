@@ -63,7 +63,6 @@ public class ForstaUtils {
           JSONArray body =  data.getJSONArray("body");
           for (int j=0; j<body.length(); j++) {
             JSONObject object = body.getJSONObject(j);
-            String type = object.getString("type");
             if (object.getString("type").equals("text/html")) {
               String htmlText = object.getString("value");
               return Html.fromHtml(htmlText);
@@ -87,7 +86,6 @@ public class ForstaUtils {
           JSONArray body =  data.getJSONArray("body");
           for (int j=0; j<body.length(); j++) {
             JSONObject object = body.getJSONObject(j);
-            String type = object.getString("type");
             if (object.getString("type").equals("text/plain")) {
               return object.getString("value");
             }
@@ -149,11 +147,6 @@ public class ForstaUtils {
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
         resolvedUsers.put(r.uuid);
-//        JSONObject forstaUser = new JSONObject();
-//        forstaUser.put("orgId", r.org);
-//        forstaUser.put("userId", r.uuid);
-//        resolvedUsers.put(forstaUser);
-
       }
       recipients.put("resolvedUsers", resolvedUsers);
       recipients.put("resolvedNumbers", resolvedNumbers);

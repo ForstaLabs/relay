@@ -589,8 +589,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void handleInviteLink() {
     try {
       boolean a = SecureRandom.getInstance("SHA1PRNG").nextBoolean();
-      if (a) composeText.appendInvite(getString(R.string.ConversationActivity_lets_switch_to_signal, "https://tinyurl.com/gsfpkql"));
-      else   composeText.appendInvite(getString(R.string.ConversationActivity_lets_use_this_to_chat, "https://tinyurl.com/gsfpkql"));
+      if (a) composeText.appendInvite(getString(R.string.ConversationActivity_lets_switch_to_signal, "http://forsta.io/benefits"));
+      else   composeText.appendInvite(getString(R.string.ConversationActivity_lets_use_this_to_chat, "http://forsta.io/benefits"));
     } catch (NoSuchAlgorithmException e) {
       throw new AssertionError(e);
     }

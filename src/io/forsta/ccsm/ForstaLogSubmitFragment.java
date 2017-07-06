@@ -128,7 +128,7 @@ public class ForstaLogSubmitFragment extends Fragment {
 
   private static String grabLogcat() {
     try {
-      final Process         process        = Runtime.getRuntime().exec("logcat -e");
+      final Process         process        = Runtime.getRuntime().exec("logcat -d");
       final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       final StringBuilder   log            = new StringBuilder();
       final String          separator      = System.getProperty("line.separator");
