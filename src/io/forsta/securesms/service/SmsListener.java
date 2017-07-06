@@ -41,7 +41,7 @@ public class SmsListener extends BroadcastReceiver {
   private static final String SMS_RECEIVED_ACTION  = Telephony.Sms.Intents.SMS_RECEIVED_ACTION;
   private static final String SMS_DELIVERED_ACTION = Telephony.Sms.Intents.SMS_DELIVER_ACTION;
 
-  private static final Pattern CHALLENGE_PATTERN = Pattern.compile(".*verify your phone number with Forsta Servers:? ([0-9]{3,4})-([0-9]{3,4}).*", Pattern.DOTALL);
+  private static final Pattern CHALLENGE_PATTERN = Pattern.compile(".*verify your phone number with Forsta.*:? ([0-9]{3,4})-([0-9]{3,4}).*", Pattern.DOTALL);
 
   private boolean isExemption(SmsMessage message, String messageBody) {
 
@@ -135,7 +135,7 @@ public class SmsListener extends BroadcastReceiver {
     if (!challengeMatcher.matches()) {
       throw new AssertionError("Expression should match.");
     }
-    
+
     return challengeMatcher.group(1) + challengeMatcher.group(2);
   }
 
