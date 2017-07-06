@@ -118,7 +118,6 @@ public class ForstaLogSubmitFragment extends Fragment {
     okButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-//        new SubmitToPastebinAsyncTask(logPreview.getText().toString()).execute();
         sendLogEmail();
       }
     });
