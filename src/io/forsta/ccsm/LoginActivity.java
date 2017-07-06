@@ -219,6 +219,8 @@ public class LoginActivity extends BaseActionBarActivity {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
+      // TODO this always returns "Sending authorization link" message, even if it is an invalid user or domain.
+      // Should return error so user knows that something was invalid.
       if (jsonObject.has("msg")) {
         try {
           // If we've requested a new login, we need to logout.

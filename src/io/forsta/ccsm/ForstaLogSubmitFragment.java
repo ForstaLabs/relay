@@ -9,9 +9,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.media.audiofx.EnvironmentalReverb;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
@@ -30,6 +33,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -113,7 +118,7 @@ public class ForstaLogSubmitFragment extends Fragment {
     okButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        new SubmitToPastebinAsyncTask(logPreview.getText().toString()).execute();
+        sendLogEmail();
       }
     });
 
@@ -124,6 +129,31 @@ public class ForstaLogSubmitFragment extends Fragment {
       }
     });
     new PopulateLogcatAsyncTask(getActivity()).execute();
+  }
+
+  private void sendLogEmail() {
+    File outFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "debuglog.txt");
+    try {
+      if (outFile.canWrite()) {
+        FileOutputStream stream = new FileOutputStream(outFile);
+        String log = logPreview.getText().toString();
+        stream.write(log.getBytes());
+        stream.flush();
+        stream.close();
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setType("vnd.android.cursor.dir/email");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL,   new String[] { "support@forsta.io" });
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Android App Debug Log");
+        String out = outFile.getAbsolutePath();
+        emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outFile));
+        startActivity(Intent.createChooser(emailIntent, "Send email..."));
+        mListener.onSuccess();
+      }
+    } catch (IOException e) {
+      Log.e(TAG, "Failed to write log to external storage");
+      e.printStackTrace();
+      mListener.onFailure();
+    }
   }
 
   private static String grabLogcat() {
@@ -143,51 +173,6 @@ public class ForstaLogSubmitFragment extends Fragment {
       Log.w(TAG, "IOException when trying to read logcat.", ioe);
       return null;
     }
-  }
-
-  private TextView handleBuildSuccessTextView(final String logUrl) {
-    TextView showText = new TextView(getActivity());
-
-    showText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-    showText.setPadding(15, 30, 15, 30);
-    showText.setText(getString(org.whispersystems.libpastelog.R.string.log_submit_activity__copy_this_url_and_add_it_to_your_issue, logUrl));
-    showText.setAutoLinkMask(Activity.RESULT_OK);
-    showText.setMovementMethod(LinkMovementMethod.getInstance());
-    showText.setOnLongClickListener(new View.OnLongClickListener() {
-
-      @Override
-      public boolean onLongClick(View v) {
-        @SuppressWarnings("deprecation")
-        ClipboardManager manager =
-            (ClipboardManager) getActivity().getSystemService(Activity.CLIPBOARD_SERVICE);
-        manager.setText(logUrl);
-        Toast.makeText(getActivity(),
-            org.whispersystems.libpastelog.R.string.log_submit_activity__copied_to_clipboard,
-            Toast.LENGTH_SHORT).show();
-        return true;
-      }
-    });
-
-    Linkify.addLinks(showText, Linkify.WEB_URLS);
-    return showText;
-  }
-
-  private void handleShowSuccessDialog(final String logUrl) {
-    TextView            showText = handleBuildSuccessTextView(logUrl);
-    AlertDialog.Builder builder  = new AlertDialog.Builder(getActivity());
-
-    builder.setTitle(org.whispersystems.libpastelog.R.string.log_submit_activity__success)
-        .setView(showText)
-        .setCancelable(false)
-        .setNeutralButton(org.whispersystems.libpastelog.R.string.log_submit_activity__button_got_it, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            dialogInterface.dismiss();
-            if (mListener != null) mListener.onSuccess();
-          }
-        });
-
-    builder.create().show();
   }
 
   private class PopulateLogcatAsyncTask extends AsyncTask<Void,Void,String> {
@@ -221,43 +206,6 @@ public class ForstaLogSubmitFragment extends Fragment {
       }
       logPreview.setText(logcat);
       okButton.setEnabled(true);
-    }
-  }
-
-  private class SubmitToPastebinAsyncTask extends AsyncTask<Void,Void,String> {
-    private final String         paste;
-
-    public SubmitToPastebinAsyncTask(String paste) {
-      this.paste = paste;
-    }
-
-    @Override
-    protected String doInBackground(Void... voids) {
-      try {
-        final JSONObject outJson = new JSONObject();
-        final JSONObject catlog  = new JSONObject(Collections.singletonMap("content", paste));
-        final JSONObject files   = new JSONObject();
-        files.put("cat.log", catlog);
-        outJson.put("files", files);
-        outJson.put("public", false);
-//        JSONObject response = CcsmApi.sendDebugLog(getActivity(), outJson);
-
-      } catch (JSONException e) {
-        Log.e(TAG, e.getMessage());
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(final String response) {
-      super.onPostExecute(response);
-
-      if (response != null)
-        handleShowSuccessDialog(response);
-      else {
-        Log.w(TAG, "Response was null from API.");
-        Toast.makeText(getActivity(), "Unable to submit log at this time.", Toast.LENGTH_LONG).show();
-      }
     }
   }
 
