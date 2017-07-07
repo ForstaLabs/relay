@@ -150,8 +150,10 @@ public class ForstaUtils {
         List<String> forstaSlugs = new ArrayList<>();
         for (ForstaRecipient recipient : forstaSingleRecipients) {
           forstaSlugs.add(recipient.slug);
+          // Should only ever be one recipient. Groups represent multiple recipients.
+          threadTitle = recipient.name;
         }
-        
+
         presentation = TextUtils.join("+", forstaSlugs);
         for (String recipient : messageRecipients.toNumberStringList(false)) {
           try {
