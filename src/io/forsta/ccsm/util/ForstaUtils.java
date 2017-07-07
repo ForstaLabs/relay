@@ -71,7 +71,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.e(TAG, "JSON exception. Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
     }
     return null;
   }
@@ -93,7 +93,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaPlainTextBody, Not a Forsta JSON message body");
     }
     return null;
   }
