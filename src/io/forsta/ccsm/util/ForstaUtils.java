@@ -105,6 +105,7 @@ public class ForstaUtils {
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
+    ContactDb contactDb = DbFactory.getContactDb(context);
     try {
       version1.put("version", 1);
       JSONObject data = new JSONObject();
@@ -138,11 +139,20 @@ public class ForstaUtils {
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
+          presentation = group.getSlug();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
           e.printStackTrace();
         }
       } else {
+        List<String> singleRecipient = messageRecipients.toNumberStringList(false);
+        List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
+        List<String> forstaSlugs = new ArrayList<>();
+        for (ForstaRecipient recipient : forstaSingleRecipients) {
+          forstaSlugs.add(recipient.slug);
+        }
+        
+        presentation = TextUtils.join("+", forstaSlugs);
         for (String recipient : messageRecipients.toNumberStringList(false)) {
           try {
             recipientList.add(Util.canonicalizeNumber(context, recipient));
@@ -150,10 +160,9 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
-//        recipientList = messageRecipients.toNumberStringList(false);
       }
 
-      List<ForstaRecipient> forstaRecipients = DbFactory.getContactDb(context).getRecipientsFromNumbers(recipientList);
+      List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
 
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
