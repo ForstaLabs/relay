@@ -484,7 +484,9 @@ public class GroupDatabase extends Database {
                              cursor.getBlob(cursor.getColumnIndexOrThrow(AVATAR_KEY)),
                              cursor.getString(cursor.getColumnIndexOrThrow(AVATAR_CONTENT_TYPE)),
                              cursor.getString(cursor.getColumnIndexOrThrow(AVATAR_RELAY)),
-                             cursor.getInt(cursor.getColumnIndexOrThrow(ACTIVE)) == 1);
+                             cursor.getInt(cursor.getColumnIndexOrThrow(ACTIVE)) == 1,
+                             cursor.getString(cursor.getColumnIndexOrThrow(SLUG))
+      );
     }
 
     public void close() {
@@ -504,10 +506,11 @@ public class GroupDatabase extends Database {
     private final String       avatarContentType;
     private final String       relay;
     private final boolean      active;
+    private final String slug;
 
     public GroupRecord(String id, String title, String members, byte[] avatar,
                        long avatarId, byte[] avatarKey, String avatarContentType,
-                       String relay, boolean active)
+                       String relay, boolean active, String slug)
     {
       this.id                = id;
       this.title             = title;
@@ -518,6 +521,7 @@ public class GroupDatabase extends Database {
       this.avatarContentType = avatarContentType;
       this.relay             = relay;
       this.active            = active;
+      this.slug = slug;
     }
 
     public byte[] getId() {
@@ -562,6 +566,10 @@ public class GroupDatabase extends Database {
 
     public boolean isActive() {
       return active;
+    }
+
+    public String getSlug() {
+      return slug;
     }
   }
 }
