@@ -1,14 +1,17 @@
 package io.forsta.ccsm.util;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -27,6 +30,7 @@ import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.Util;
 
 /**
  * Created by jlewis on 6/5/17.
@@ -71,7 +75,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.e(TAG, "JSON exception. Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
     }
     return null;
   }
@@ -93,7 +97,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaPlainTextBody, Not a Forsta JSON message body");
     }
     return null;
   }
@@ -101,6 +105,7 @@ public class ForstaUtils {
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
+    ContactDb contactDb = DbFactory.getContactDb(context);
     try {
       version1.put("version", 1);
       JSONObject data = new JSONObject();
@@ -111,6 +116,9 @@ public class ForstaUtils {
       JSONArray resolvedUsers = new JSONArray();
       JSONArray resolvedNumbers = new JSONArray();
       JSONObject resolvedUser = new JSONObject();
+      JSONObject distributionExpression = new JSONObject();
+      String presentation = "";
+
       String threadId = "";
       String threadTitle = "";
 
@@ -131,23 +139,39 @@ public class ForstaUtils {
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
+          presentation = group.getSlug();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
           e.printStackTrace();
         }
       } else {
-        recipientList = messageRecipients.toNumberStringList(false);
+        List<String> singleRecipient = messageRecipients.toNumberStringList(false);
+        List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
+        List<String> forstaSlugs = new ArrayList<>();
+        for (ForstaRecipient recipient : forstaSingleRecipients) {
+          forstaSlugs.add(recipient.slug);
+          // Should only ever be one recipient. Groups represent multiple recipients.
+          threadTitle = recipient.name;
+        }
+
+        presentation = TextUtils.join("+", forstaSlugs);
+        for (String recipient : messageRecipients.toNumberStringList(false)) {
+          try {
+            recipientList.add(Util.canonicalizeNumber(context, recipient));
+          } catch (InvalidNumberException e) {
+            e.printStackTrace();
+          }
+        }
       }
 
-      List<ForstaRecipient> forstaRecipients = DbFactory.getContactDb(context).getRecipientsFromNumbers(recipientList);
-
-      // Get all of the orgs from this list.
-      // Then add users to the appropriate org.
+      List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
 
       for (ForstaRecipient r : forstaRecipients) {
         resolvedNumbers.put(r.number);
         resolvedUsers.put(r.uuid);
       }
+      distributionExpression.put("type", "+");
+      distributionExpression.put("presentation", presentation);
       recipients.put("resolvedUsers", resolvedUsers);
       recipients.put("resolvedNumbers", resolvedNumbers);
 
@@ -169,6 +193,7 @@ public class ForstaUtils {
       version1.put("recipients", recipients);
       version1.put("threadId", threadId);
       version1.put("threadTitle", threadTitle);
+      version1.put("distributionExpression", distributionExpression);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
