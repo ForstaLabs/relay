@@ -889,7 +889,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected void onPostExecute(Void aVoid) {
-//        fragment.getListAdapter().notifyDataSetChanged();
+        fragment.resetQueryFilter();
+        fragment.getListAdapter().notifyDataSetChanged();
         attachmentManager.clear();
         composeText.setText("");
         forstaRecipients.clear();
