@@ -191,13 +191,13 @@ public class ForstaUtils {
       body.put(bodyPlain);
 
       data.put("body", body);
+      version1.put("threadId", threadId);
+      version1.put("threadTitle", threadTitle);
       version1.put("type", type);
       version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
       version1.put("recipients", recipients);
-      version1.put("threadId", threadId);
-      version1.put("threadTitle", threadTitle);
       version1.put("distributionExpression", distributionExpression);
       versions.put(version1);
     } catch (JSONException e) {
