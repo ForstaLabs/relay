@@ -40,9 +40,9 @@ public class ForstaPreferences {
   private static final String FORSTA_USER = "forsta_user";
   private static final String CCSM_DEBUG = "ccsm_debug";
 
-  private static final Pair<String, String> CONFIG_PROD = new Pair("https://ccsm-api.forsta.io", "+17017328733");
-  private static final Pair<String, String> CONFIG_STAGE = new Pair("https://ccsm-stage-api.forsta.io", "+17017328732");
-  private static final Pair<String, String> CONFIG_DEV = new Pair("https://ccsm-dev-api.forsta.io", "+17017328731");
+  public static final Pair<String, String> CONFIG_PROD = new Pair("https://ccsm-api.forsta.io", "+17017328733");
+  public static final Pair<String, String> CONFIG_STAGE = new Pair("https://ccsm-stage-api.forsta.io", "+17017328732");
+  public static final Pair<String, String> CONFIG_DEV = new Pair("https://ccsm-dev-api.forsta.io", "+17017328731");
 
   public static void clearPreferences(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
