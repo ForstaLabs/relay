@@ -46,6 +46,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsDatabase;
@@ -186,12 +187,14 @@ public class ConversationFragment extends Fragment
       }
     }
 
+    // Disable copy paste of message body.
+    menu.findItem(R.id.menu_context_copy).setVisible(false);
     if (messageRecords.size() > 1) {
       menu.findItem(R.id.menu_context_forward).setVisible(false);
       menu.findItem(R.id.menu_context_details).setVisible(false);
       menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
       menu.findItem(R.id.menu_context_resend).setVisible(false);
-      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+//      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
     } else {
       MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -203,7 +206,7 @@ public class ConversationFragment extends Fragment
 
       menu.findItem(R.id.menu_context_forward).setVisible(!actionMessage);
       menu.findItem(R.id.menu_context_details).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+//      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
     }
   }
 
@@ -254,6 +257,10 @@ public class ConversationFragment extends Fragment
 
     for (MessageRecord messageRecord : messageList) {
       String body = messageRecord.getDisplayBody().toString();
+      String forstaBody = ForstaUtils.getForstaJsonBody(body).toString();
+      if (forstaBody == null) {
+        forstaBody = ForstaUtils.getForstaPlainTextBody(body).toString();
+      }
 
       if (body != null) {
         if (!first) bodyBuilder.append('\n');
@@ -321,9 +328,23 @@ public class ConversationFragment extends Fragment
     startActivity(intent);
   }
 
+  private String getMessageBody(String body) {
+    String forstaBody = ForstaUtils.getForstaJsonBody(body).toString();
+    if (forstaBody == null) {
+      forstaBody = ForstaUtils.getForstaPlainTextBody(body).toString();
+      if (forstaBody == null) {
+        forstaBody = body;
+      }
+    }
+    return forstaBody;
+  }
+
   private void handleForwardMessage(MessageRecord message) {
     Intent composeIntent = new Intent(getActivity(), ShareActivity.class);
-    composeIntent.putExtra(Intent.EXTRA_TEXT, message.getDisplayBody().toString());
+    String body = getMessageBody(message.getDisplayBody().toString());
+//    String body = message.getDisplayBody().toString();
+//    composeIntent.putExtra(Intent.EXTRA_TEXT, message.getDisplayBody().toString());
+    composeIntent.putExtra(Intent.EXTRA_TEXT, body);
     if (message.isMms()) {
       MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
       if (mediaMessage.containsMediaSlide()) {
