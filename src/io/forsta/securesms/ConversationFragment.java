@@ -257,10 +257,6 @@ public class ConversationFragment extends Fragment
 
     for (MessageRecord messageRecord : messageList) {
       String body = messageRecord.getDisplayBody().toString();
-      String forstaBody = ForstaUtils.getForstaJsonBody(body).toString();
-      if (forstaBody == null) {
-        forstaBody = ForstaUtils.getForstaPlainTextBody(body).toString();
-      }
 
       if (body != null) {
         if (!first) bodyBuilder.append('\n');
