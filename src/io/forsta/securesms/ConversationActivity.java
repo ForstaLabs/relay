@@ -423,10 +423,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     inflater.inflate(R.menu.conversation, menu);
 
-    if (isGroupConversation()) {
-      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
-      callItem.setVisible(false);
-    }
+    // Remove call icon for all recipients.
+    MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+    callItem.setVisible(false);
+//    if (isGroupConversation()) {
+//      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+//      callItem.setVisible(false);
+//    }
 
     if (isSingleConversation() && isSecureText) {
       inflater.inflate(R.menu.conversation_secure, menu);
