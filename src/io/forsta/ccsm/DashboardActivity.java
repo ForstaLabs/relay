@@ -139,16 +139,21 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         switch (i) {
           case 0:
             ForstaPreferences.setForstaBuild(getApplicationContext(), "prod");
+            ForstaPreferences.clearLogin(DashboardActivity.this);
+            startLoginIntent();
             break;
           case 1:
             ForstaPreferences.setForstaBuild(getApplicationContext(), "stage");
+            ForstaPreferences.clearLogin(DashboardActivity.this);
+            startLoginIntent();
             break;
           case 2:
             ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
+            ForstaPreferences.clearLogin(DashboardActivity.this);
+            startLoginIntent();
             break;
         }
-        ForstaPreferences.clearLogin(DashboardActivity.this);
-        startLoginIntent();
+
         printLoginInformation();
       }
 
