@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.text.Spanned;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -136,17 +137,31 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
       public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        Pair<String, String> build = ForstaPreferences.getForstaBuild(DashboardActivity.this);
         switch (i) {
           case 0:
-            ForstaPreferences.setForstaBuild(getApplicationContext(), "prod");
+            if (!build.equals(ForstaPreferences.CONFIG_PROD)) {
+              ForstaPreferences.setForstaBuild(DashboardActivity.this, "prod");
+              ForstaPreferences.clearLogin(DashboardActivity.this);
+              startLoginIntent();
+            }
             break;
           case 1:
-            ForstaPreferences.setForstaBuild(getApplicationContext(), "stage");
+            if (!build.equals(ForstaPreferences.CONFIG_STAGE)) {
+              ForstaPreferences.setForstaBuild(DashboardActivity.this, "stage");
+              ForstaPreferences.clearLogin(DashboardActivity.this);
+              startLoginIntent();
+            }
             break;
           case 2:
-            ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
+            if (!build.equals(ForstaPreferences.CONFIG_DEV)) {
+              ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
+              ForstaPreferences.clearLogin(DashboardActivity.this);
+              startLoginIntent();
+            }
             break;
         }
+
         printLoginInformation();
       }
 

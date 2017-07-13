@@ -12,8 +12,9 @@
     <string name="forsta_login_password_label">Password</string>
     <string name="forsta_login_org_label">Domain</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
-    <string name="forsta_login_send_link_button">Send Verify Code</string>
-    <string name="forsta_login_login_button">Login</string>
+    <string name="forsta_login_send_link_button">Login</string>
+    <string name="forsta_login_create_domain_button">Create Domain</string>
+    <string name="forsta_login_login_button">Submit</string>
     <string name="forsta_login_verify_token_button">Verify Token</string>
     <string name="forsta_login_tryagain_button">Try Again</string>
     <!-- AbstractNotificationBuilder -->

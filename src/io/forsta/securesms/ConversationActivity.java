@@ -423,10 +423,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     inflater.inflate(R.menu.conversation, menu);
 
-    if (isGroupConversation()) {
-      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
-      callItem.setVisible(false);
-    }
+    // Remove call icon for all recipients.
+    MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+    callItem.setVisible(false);
+//    if (isGroupConversation()) {
+//      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+//      callItem.setVisible(false);
+//    }
 
     if (isSingleConversation() && isSecureText) {
       inflater.inflate(R.menu.conversation_secure, menu);
@@ -589,7 +592,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void handleInviteLink() {
     try {
       boolean a = SecureRandom.getInstance("SHA1PRNG").nextBoolean();
-      if (a) composeText.appendInvite(getString(R.string.ConversationActivity_lets_switch_to_signal, "http://forsta.io/benefits"));
+      if (a) composeText.appendInvite(getString(R.string.ConversationActivity_lets_switch_to_signal, "https://www.forsta.io/benefits"));
       else   composeText.appendInvite(getString(R.string.ConversationActivity_lets_use_this_to_chat, "http://forsta.io/benefits"));
     } catch (NoSuchAlgorithmException e) {
       throw new AssertionError(e);

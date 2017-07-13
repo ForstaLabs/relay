@@ -17,8 +17,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
@@ -187,12 +191,13 @@ public class ForstaUtils {
       body.put(bodyPlain);
 
       data.put("body", body);
+      version1.put("threadId", threadId);
+      version1.put("threadTitle", threadTitle);
       version1.put("type", type);
+      version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
       version1.put("recipients", recipients);
-      version1.put("threadId", threadId);
-      version1.put("threadTitle", threadTitle);
       version1.put("distributionExpression", distributionExpression);
       versions.put(version1);
     } catch (JSONException e) {
@@ -202,6 +207,13 @@ public class ForstaUtils {
       return richTextMessage;
     }
     return versions.toString();
+  }
+
+  public static String formatDateISOUTC(Date date) {
+    TimeZone tz = TimeZone.getTimeZone("UTC");
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+    df.setTimeZone(tz);
+    return df.format(date);
   }
 
   public static String getForstaGroupTitle(String name) {
