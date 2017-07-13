@@ -39,6 +39,7 @@ public class LoginActivity extends BaseActionBarActivity {
   private static final String TAG = LoginActivity.class.getSimpleName();
   private Button mSubmitButton;
   private Button mSendTokenButton;
+  private Button mCreateDomain;
   private TextView mLoginTitle;
   private TextView mTryAgainButton;
   private EditText mSendTokenUsername;
@@ -108,6 +109,7 @@ public class LoginActivity extends BaseActionBarActivity {
     mLoginUsernameText = (EditText) findViewById(R.id.forsta_login_username);
     mLoginPasswordText = (EditText) findViewById(R.id.forsta_login_password);
     mSubmitButton = (Button) findViewById(R.id.forsta_login_submit_button);
+    mCreateDomain = (Button) findViewById(R.id.forsta_create_domain);
 
     mSendTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -141,6 +143,14 @@ public class LoginActivity extends BaseActionBarActivity {
         }
       }
     });
+    mCreateDomain.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://console.forsta.io/create"));
+        startActivity(intent);
+      }
+    });
+
     // TODO Remove this option?
     mStandardLogin = (TextView) findViewById(R.id.forsta_login_standard_login);
     mStandardLogin.setOnClickListener(new View.OnClickListener() {
