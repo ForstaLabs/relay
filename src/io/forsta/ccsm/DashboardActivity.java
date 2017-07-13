@@ -147,6 +147,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
             break;
         }
+        ForstaPreferences.clearLogin(DashboardActivity.this);
+        startLoginIntent();
         printLoginInformation();
       }
 
