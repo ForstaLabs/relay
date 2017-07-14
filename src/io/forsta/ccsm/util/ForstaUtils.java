@@ -90,17 +90,21 @@ public class ForstaUtils {
       for (int i=0; i<forstaArray.length(); i++) {
         JSONObject version = forstaArray.getJSONObject(i);
         if (version.getInt("version") == 1) {
-          JSONObject data = version.getJSONObject("data");
-          if (data.has("body")) {
-            JSONArray body =  data.getJSONArray("body");
-            for (int j=0; j<body.length(); j++) {
-              JSONObject object = body.getJSONObject(j);
-              if (object.getString("type").equals("text/plain")) {
-                return object.getString("value");
+          if (version.has("data")) {
+            JSONObject data = version.getJSONObject("data");
+            if (data.has("body")) {
+              JSONArray body =  data.getJSONArray("body");
+              for (int j=0; j<body.length(); j++) {
+                JSONObject object = body.getJSONObject(j);
+                if (object.getString("type").equals("text/plain")) {
+                  return object.getString("value");
+                }
               }
+            } else {
+              // Body is missing, but is a JSON blob. Assume attachment. Return a blank message.
+              return "";
             }
           } else {
-            // Body is missing, but is a JSON blob. Assume attachment. Return a blank message.
             return "";
           }
         }
