@@ -241,6 +241,7 @@ public class GroupDatabase extends Database {
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
+    notifyDatabaseListeners();
   }
 
   public Cursor getForstaGroup(byte[] groupId) {
