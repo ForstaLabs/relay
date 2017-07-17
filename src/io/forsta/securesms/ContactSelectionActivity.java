@@ -18,6 +18,7 @@ package io.forsta.securesms;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -132,7 +133,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   @Override
   public void onContactDeselected(String number) {}
 
-  private static class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
+  private class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
 
     private final WeakReference<ContactSelectionActivity> activity;
     private final MasterSecret masterSecret;
@@ -152,6 +153,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     @Override
     protected void onPostExecute(Void result) {
       ContactSelectionActivity activity = this.activity.get();
+      sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
 
       if (activity != null && !activity.isFinishing()) {
         activity.toolbar.clear();

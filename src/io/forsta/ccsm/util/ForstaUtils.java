@@ -90,13 +90,22 @@ public class ForstaUtils {
       for (int i=0; i<forstaArray.length(); i++) {
         JSONObject version = forstaArray.getJSONObject(i);
         if (version.getInt("version") == 1) {
-          JSONObject data = version.getJSONObject("data");
-          JSONArray body =  data.getJSONArray("body");
-          for (int j=0; j<body.length(); j++) {
-            JSONObject object = body.getJSONObject(j);
-            if (object.getString("type").equals("text/plain")) {
-              return object.getString("value");
+          if (version.has("data")) {
+            JSONObject data = version.getJSONObject("data");
+            if (data.has("body")) {
+              JSONArray body =  data.getJSONArray("body");
+              for (int j=0; j<body.length(); j++) {
+                JSONObject object = body.getJSONObject(j);
+                if (object.getString("type").equals("text/plain")) {
+                  return object.getString("value");
+                }
+              }
+            } else {
+              // Body is missing, but is a JSON blob. Assume attachment. Return a blank message.
+              return "";
             }
+          } else {
+            return "";
           }
         }
       }
@@ -117,10 +126,8 @@ public class ForstaUtils {
       String type = "ordinary";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
-      JSONArray resolvedUsers = new JSONArray();
-      JSONArray resolvedNumbers = new JSONArray();
-      JSONObject resolvedUser = new JSONObject();
-      JSONObject distributionExpression = new JSONObject();
+      JSONArray userIds = new JSONArray();
+      JSONObject tagExpression = new JSONObject();
       String presentation = "";
 
       String threadId = "";
@@ -129,11 +136,7 @@ public class ForstaUtils {
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
       sender.put("tagPresentation", user.slug);
-
-      resolvedUser.put("orgId", user.org_id);
-      resolvedUser.put("userId", user.uid);
-      sender.put("resolvedUser", resolvedUser);
-      sender.put("resolvedNumber", user.phone);
+      sender.put("userId", user.uid);
 
       List<String> recipientList = new ArrayList<>();
       if (messageRecipients.isGroupRecipient()) {
@@ -171,13 +174,12 @@ public class ForstaUtils {
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
 
       for (ForstaRecipient r : forstaRecipients) {
-        resolvedNumbers.put(r.number);
-        resolvedUsers.put(r.uuid);
+        userIds.put(r.uuid);
       }
-      distributionExpression.put("type", "+");
-      distributionExpression.put("presentation", presentation);
-      recipients.put("resolvedUsers", resolvedUsers);
-      recipients.put("resolvedNumbers", resolvedNumbers);
+      tagExpression.put("type", "+");
+      tagExpression.put("presentation", presentation);
+      recipients.put("userIds", userIds);
+      recipients.put("tagExpression", tagExpression);
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
@@ -198,7 +200,6 @@ public class ForstaUtils {
       version1.put("data", data);
       version1.put("sender", sender);
       version1.put("recipients", recipients);
-      version1.put("distributionExpression", distributionExpression);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");

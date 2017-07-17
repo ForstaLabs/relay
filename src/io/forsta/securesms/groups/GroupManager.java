@@ -51,7 +51,6 @@ public class GroupManager {
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
     // Sort the list so that we can find a group based on the member list stored in table.
     final List<String> memberList = new LinkedList<>(memberE164Numbers);
-    Collections.sort(memberList);
 
     groupDatabase.create(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
@@ -70,15 +69,12 @@ public class GroupManager {
     final byte[]        groupId           = groupDatabase.allocateGroupId();
     final Set<String>   memberE164Numbers = getE164Numbers(context, members);
     memberE164Numbers.add(TextSecurePreferences.getLocalNumber(context));
-    // Sort the list so that we can find a group based on the member list stored in table.
-    final List<String> memberList = new LinkedList<>(memberE164Numbers);
-    Collections.sort(memberList);
 
+    final List<String> memberList = new LinkedList<>(memberE164Numbers);
     // This is the only difference between this method and the one above.
     // More modifications are planned and could affect this in the future.
     groupDatabase.createForstaGroup(groupId, name, memberList, null, null);
     groupDatabase.updateAvatar(groupId, avatarBytes);
-
     return sendGroupUpdate(context, masterSecret, groupId, memberE164Numbers, name, avatarBytes);
   }
 
