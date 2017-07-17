@@ -200,6 +200,7 @@ public class GroupDatabase extends Database {
         }
       }
       db.setTransactionSuccessful();
+      notifyDatabaseListeners();
     }
     finally {
       db.endTransaction();
