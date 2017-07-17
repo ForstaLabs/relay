@@ -222,6 +222,8 @@ public class GroupDatabase extends Database {
   public void createForstaGroup(byte[] groupId, String title, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {
+    // Sort the list so that we can find a group based on the member list stored in table.
+    Collections.sort(members);
     ContentValues contentValues = new ContentValues();
     contentValues.put(GROUP_ID, GroupUtil.getEncodedId(groupId));
     contentValues.put(TITLE, title);
@@ -305,10 +307,13 @@ public class GroupDatabase extends Database {
   public void create(byte[] groupId, String title, List<String> members,
                      SignalServiceAttachmentPointer avatar, String relay)
   {
+    // Sort the list so that we can find a group based on the member list stored in table.
+    List<String> modifiableMembers = new ArrayList<String>(members);
+    Collections.sort(modifiableMembers);
     ContentValues contentValues = new ContentValues();
     contentValues.put(GROUP_ID, GroupUtil.getEncodedId(groupId));
     contentValues.put(TITLE, title);
-    contentValues.put(MEMBERS, Util.join(members, ","));
+    contentValues.put(MEMBERS, Util.join(modifiableMembers, ","));
 
     if (avatar != null) {
       contentValues.put(AVATAR_ID, avatar.getId());
