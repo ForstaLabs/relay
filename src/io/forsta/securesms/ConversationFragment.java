@@ -330,7 +330,7 @@ public class ConversationFragment extends Fragment
     Spanned forstaBody = ForstaUtils.getForstaJsonBody(body);
     if (forstaBody == null) {
       String plainBody = ForstaUtils.getForstaPlainTextBody(body);
-      if (forstaBody == null) {
+      if (plainBody == null) {
         return body;
       }
     }
