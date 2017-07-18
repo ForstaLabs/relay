@@ -260,7 +260,7 @@ public class ConversationFragment extends Fragment
     for (MessageRecord messageRecord : messageList) {
 //      String body = messageRecord.getDisplayBody().toString();
       String body = getMessageBody(messageRecord.getDisplayBody().toString());
-      
+
       if (body != null) {
         if (!first) bodyBuilder.append('\n');
         bodyBuilder.append(body);
