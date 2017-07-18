@@ -60,8 +60,7 @@ public class RegistrationActivity extends BaseActionBarActivity {
     super.onCreate(icicle);
     setContentView(R.layout.registration_activity);
 
-    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-    getSupportActionBar().setTitle(getString(R.string.RegistrationActivity_connect_with_signal));
+    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
     initializeResources();
     initializeSpinner();
