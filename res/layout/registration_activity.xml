@@ -95,6 +95,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="@drawable/forsta_button_pop4"
+                    android:textColor="@color/white"
                     android:textAppearance="?android:attr/textAppearanceMedium"/>
         </LinearLayout>
 

@@ -5,7 +5,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
-            android:background="@drawable/background_pattern_repeat">
+            android:background="@color/black">
 
   <RelativeLayout android:id="@+id/prompt_layout"
                   android:layout_width="match_parent"
@@ -16,7 +16,7 @@
                android:layout_height="wrap_content"
                android:layout_centerHorizontal="true"
                android:layout_marginBottom="20dp"
-               android:src="@drawable/lockscreen_watermark_light"
+               android:src="@drawable/lockscreen_watermark_dark"
                android:contentDescription="@string/PassphrasePromptActivity_watermark_content_description"
                android:layout_marginTop="100dp"/>
 

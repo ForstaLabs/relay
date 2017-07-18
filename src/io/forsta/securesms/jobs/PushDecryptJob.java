@@ -587,7 +587,21 @@ public class PushDecryptJob extends ContextJob {
       EncryptingSmsDatabase database       = DatabaseFactory.getEncryptingSmsDatabase(context);
       Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
       long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
-      PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
+//      if (!envelope.hasLegacyMessage()) {
+//        if (envelope.hasContent()) {
+//          byte[] content = envelope.ge()
+//
+//        }
+//      }
+
+      PreKeySignalMessage   whisperMessage;
+      if (envelope.hasContent()) {
+        byte[] content = envelope.getContent();
+        whisperMessage = new PreKeySignalMessage(content);
+      } else {
+        whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
+      }
+//      PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
       IdentityKey           identityKey    = whisperMessage.getIdentityKey();
       String                encoded        = Base64.encodeBytes(envelope.getLegacyMessage());
       IncomingTextMessage   textMessage    = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
@@ -607,6 +621,9 @@ public class PushDecryptJob extends ContextJob {
       }
     } catch (InvalidMessageException | InvalidVersionException e) {
       throw new AssertionError(e);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "handleUntrustedIdentityMessage failed " + e.getMessage());
     }
   }
 

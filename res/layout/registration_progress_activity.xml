@@ -143,6 +143,8 @@
                         android:gravity="center"
                         android:text="@string/registration_progress_activity__edit_number"
                         android:textStyle="bold"
+                        android:background="@drawable/forsta_button_pop4"
+                        android:textColor="@color/white"
                         android:layout_below="@id/call_button"/>
             </RelativeLayout>
         </LinearLayout>

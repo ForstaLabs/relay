@@ -47,8 +47,8 @@ public class PassphraseCreateActivity extends PassphraseActivity {
   }
 
   private void initializeResources() {
-    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-    getSupportActionBar().setCustomView(R.layout.centered_app_title);
+    getSupportActionBar().hide();
+//    getSupportActionBar().setCustomView(R.layout.centered_app_title);
 
     new SecretGenerator().execute(MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
   }

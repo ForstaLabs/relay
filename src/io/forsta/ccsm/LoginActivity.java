@@ -90,10 +90,10 @@ public class LoginActivity extends BaseActionBarActivity {
     mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
     String serverUrl = ForstaPreferences.getForstaBuild(LoginActivity.this).first;
     if (serverUrl.contains("dev")) {
-      createDomainUrl = "https://console.dev.forsta.io/create";
+      createDomainUrl = "https://ccsm-dev.forsta.io/create";
       mLoginTitle.setText(mLoginTitle.getText().toString() + "-Development Server");
     } else if (serverUrl.contains("stage")) {
-      createDomainUrl = "https://console.stage.forsta.io/create";
+      createDomainUrl = "https://ccsm-stage.forsta.io/create";
       mLoginTitle.setText(mLoginTitle.getText().toString() + "-Stage Server");
     }
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
