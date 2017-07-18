@@ -54,6 +54,7 @@ public class LoginActivity extends BaseActionBarActivity {
   private LinearLayout mVerifyFormContainer;
   private LinearLayout mPasswordFormContainer;
   private TextView mStandardLogin;
+  private String createDomainUrl = "https://console.forsta.io/create";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +90,10 @@ public class LoginActivity extends BaseActionBarActivity {
     mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
     String serverUrl = ForstaPreferences.getForstaBuild(LoginActivity.this).first;
     if (serverUrl.contains("dev")) {
+      createDomainUrl = "https://console.dev.forsta.io/create";
       mLoginTitle.setText(mLoginTitle.getText().toString() + "-Development Server");
     } else if (serverUrl.contains("stage")) {
+      createDomainUrl = "https://console.stage.forsta.io/create";
       mLoginTitle.setText(mLoginTitle.getText().toString() + "-Stage Server");
     }
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
@@ -146,7 +149,7 @@ public class LoginActivity extends BaseActionBarActivity {
     mCreateDomain.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://console.forsta.io/create"));
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(createDomainUrl));
         startActivity(intent);
       }
     });
