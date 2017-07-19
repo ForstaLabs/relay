@@ -153,10 +153,10 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
   }
 
   private int getApplicationState(MasterSecret masterSecret) {
-    if (!ForstaPreferences.isRegisteredForsta(this)) {
-      return STATE_FORSTA_LOGIN;
-    } else if (!MasterSecretUtil.isPassphraseInitialized(this)) {
+    if (!MasterSecretUtil.isPassphraseInitialized(this)) {
       return STATE_CREATE_PASSPHRASE;
+    } else if (!ForstaPreferences.isRegisteredForsta(this)) {
+      return STATE_FORSTA_LOGIN;
     } else if (ExperienceUpgradeActivity.isUpdate(this)) {
       return STATE_EXPERIENCE_UPGRADE;
     } else if (masterSecret == null) {

@@ -49,16 +49,17 @@
             android:ems="10"
             android:layout_marginTop="5dp"
             android:id="@+id/forsta_login_username_get_token" />
+
         <Button
-            android:drawablePadding="10dp"
-            android:drawableLeft="@drawable/ic_security_white_24dp"
-            android:drawableStart="@drawable/ic_security_white_24dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/forsta_get_token_button"
-            android:text="@string/forsta_login_send_link_button"
-            android:padding="10dp"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/forsta_button_pop4"
+            android:textColor="@color/white"
+            android:text="@string/forsta_login_send_link_button"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,12 +68,14 @@
             android:layout_marginBottom="10dp"
             android:layout_gravity="center_horizontal"/>
         <Button
-            android:drawablePadding="10dp"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
             android:id="@+id/forsta_create_domain"
             android:text="@string/forsta_login_create_domain_button"
-            android:padding="10dp"
+            android:background="@drawable/forsta_button_pop4"
+            android:textColor="@color/white"
             android:layout_gravity="center_horizontal"/>
     </LinearLayout>
     <LinearLayout
@@ -128,7 +131,7 @@
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
+                android:inputType="phone"
                 android:ems="10"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="15dp"
@@ -138,13 +141,13 @@
                 android:layout_gravity="center_horizontal"
                 android:visibility="visible"/>
             <Button
-                android:drawableLeft="@drawable/ic_security_white_24dp"
-                android:drawableStart="@drawable/ic_security_white_24dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:id="@+id/forsta_login_submit_button"
                 android:text="@string/forsta_login_login_button"
+                android:background="@drawable/forsta_button_pop4"
+                android:textColor="@color/white"
                 android:visibility="visible"/>
         </LinearLayout>
         <LinearLayout

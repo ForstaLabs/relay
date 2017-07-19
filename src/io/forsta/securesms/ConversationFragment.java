@@ -34,6 +34,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemAnimator.ItemAnimatorFinishedListener;
 import android.text.ClipboardManager;
+import android.text.Spannable;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -194,7 +196,7 @@ public class ConversationFragment extends Fragment
       menu.findItem(R.id.menu_context_details).setVisible(false);
       menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
       menu.findItem(R.id.menu_context_resend).setVisible(false);
-//      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
     } else {
       MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -206,7 +208,7 @@ public class ConversationFragment extends Fragment
 
       menu.findItem(R.id.menu_context_forward).setVisible(!actionMessage);
       menu.findItem(R.id.menu_context_details).setVisible(!actionMessage);
-//      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
     }
   }
 
@@ -256,7 +258,8 @@ public class ConversationFragment extends Fragment
     boolean          first       = true;
 
     for (MessageRecord messageRecord : messageList) {
-      String body = messageRecord.getDisplayBody().toString();
+//      String body = messageRecord.getDisplayBody().toString();
+      String body = getMessageBody(messageRecord.getDisplayBody().toString());
 
       if (body != null) {
         if (!first) bodyBuilder.append('\n');
@@ -325,14 +328,14 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(String body) {
-    String forstaBody = ForstaUtils.getForstaJsonBody(body).toString();
+    Spanned forstaBody = ForstaUtils.getForstaJsonBody(body);
     if (forstaBody == null) {
-      forstaBody = ForstaUtils.getForstaPlainTextBody(body).toString();
-      if (forstaBody == null) {
-        forstaBody = body;
+      String plainBody = ForstaUtils.getForstaPlainTextBody(body);
+      if (plainBody == null) {
+        return body;
       }
     }
-    return forstaBody;
+    return forstaBody.toString();
   }
 
   private void handleForwardMessage(MessageRecord message) {

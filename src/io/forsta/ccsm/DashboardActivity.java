@@ -278,8 +278,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
-    Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
-    intent.putExtra("next_intent", nextIntent);
+//    Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
+//    intent.putExtra("next_intent", nextIntent);
     startActivity(intent);
     finish();
   }

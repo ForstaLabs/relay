@@ -587,7 +587,10 @@ public class PushDecryptJob extends ContextJob {
       EncryptingSmsDatabase database       = DatabaseFactory.getEncryptingSmsDatabase(context);
       Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
       long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
-      PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
+      byte[] content = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
+      PreKeySignalMessage whisperMessage = new PreKeySignalMessage(content);
+      // Web client is no longer sending legacy messages for identity changes.
+      // PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
       IdentityKey           identityKey    = whisperMessage.getIdentityKey();
       String                encoded        = Base64.encodeBytes(envelope.getLegacyMessage());
       IncomingTextMessage   textMessage    = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
@@ -607,6 +610,9 @@ public class PushDecryptJob extends ContextJob {
       }
     } catch (InvalidMessageException | InvalidVersionException e) {
       throw new AssertionError(e);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "handleUntrustedIdentityMessage failed " + e.getMessage());
     }
   }
 

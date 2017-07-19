@@ -29,7 +29,7 @@
         android:focusable="true"
         android:contentDescription="@string/conversation_list_fragment__fab_content_description"
         fab:fab_shadow="false"
-        fab:fab_colorNormal="#33000000"
-        fab:fab_colorPressed="#66000000"
-        fab:fab_colorRipple="#66000000" />
+        fab:fab_colorNormal="#FFCACACA"
+        fab:fab_colorPressed="#66CACACA"
+        fab:fab_colorRipple="#66CACACA" />
 </FrameLayout>
