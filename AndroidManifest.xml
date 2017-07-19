@@ -102,7 +102,7 @@
 
     <!-- Old key AIzaSyCSx9xea86GwDKGznCAULE9Y5a8b-TfN9U -->
     <application
-        android:name=".ApplicationContext"
+        android:name="io.forsta.securesms.ApplicationContext"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
