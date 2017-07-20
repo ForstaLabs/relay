@@ -50,10 +50,6 @@ public class NotificationItem {
   }
 
   public CharSequence getText() {
-    String forstaBody = ForstaUtils.getForstaPlainTextBody(text.toString());
-    if (forstaBody != null) {
-      return forstaBody;
-    }
     return text;
   }
 
