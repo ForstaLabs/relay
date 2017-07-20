@@ -179,7 +179,7 @@ public class ForstaUtils {
       tagExpression.put("type", "+");
       tagExpression.put("presentation", presentation);
       recipients.put("userIds", userIds);
-      recipients.put("tagExpression", tagExpression);
+      recipients.put("expression", tagExpression);
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
