@@ -193,6 +193,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private boolean archived;
   private boolean isSecureText;
   private boolean isMmsEnabled = true;
+  private final String DRAFT_KEY = "message_draft";
 
   @Override
   protected void onPreCreate() {
@@ -201,7 +202,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   @Override
-  protected void onCreate(Bundle icicle, @NonNull MasterSecret masterSecret) {
+  protected void onSaveInstanceState(Bundle outState) {
+    outState.putString(DRAFT_KEY, composeText.toString());
+    super.onSaveInstanceState(outState);
+  }
+
+  @Override
+  protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
+    if (savedState != null) {
+      composeText.setText(savedState.getString(DRAFT_KEY));
+    }
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
