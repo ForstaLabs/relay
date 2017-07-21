@@ -133,6 +133,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       syncIndicator.setVisibility(View.GONE);
       // TODO make the slug parser a class var, then pass it to the filter when sync is complete.
       directoryFragment.resetQueryFilter();
+      getSlugs();
     }
   };
 
