@@ -38,6 +38,7 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -379,13 +380,18 @@ public class MessageNotifier {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
+      String forstaMessage = ForstaUtils.getForstaPlainTextBody(body.toString());
+      if (forstaMessage != null) {
+        body = forstaMessage;
+      }
+
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
       } else if (record.isMms() && TextUtils.isEmpty(body)) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_media_message));
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       } else if (record.isMms() && !record.isMmsNotification()) {
-        String message      = context.getString(R.string.MessageNotifier_media_message_with_text, body);
+        String message = context.getString(R.string.MessageNotifier_media_message_with_text, body);
         int    italicLength = message.length() - body.length();
         body = SpanUtil.italic(message, italicLength);
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
