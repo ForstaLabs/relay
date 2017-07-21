@@ -26,8 +26,6 @@ import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.Util;
 import ws.com.google.android.mms.MmsException;
 
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
-
 import java.util.LinkedList;
 import java.util.List;
 
