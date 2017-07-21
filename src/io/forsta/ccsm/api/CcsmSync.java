@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -88,6 +89,9 @@ public class CcsmSync {
     // For debugging. Turn on view of superman threads in the ConversationListActivity.
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
     MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
+    if (!ForstaUtils.isJsonBody(body)) {
+      body = ForstaUtils.createForstaMessageBody(context, body, recipients);
+    }
     OutgoingMediaMessage superMediaMessage = new OutgoingMediaMessage(superRecipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
     Log.w(TAG, "Forsta Sync. Sending Sync Message.");
     try {

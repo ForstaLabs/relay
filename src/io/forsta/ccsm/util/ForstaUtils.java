@@ -21,7 +21,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 import io.forsta.ccsm.ForstaPreferences;
@@ -59,6 +61,21 @@ public class ForstaUtils {
     } catch (UnsupportedEncodingException e) {
     }
     return null;
+  }
+
+  public static boolean isJsonBody(String body) {
+    try {
+      JSONArray forstaArray = new JSONArray(body);
+      for (int i=0; i<forstaArray.length(); i++) {
+        JSONObject version = forstaArray.getJSONObject(i);
+        if (version.getInt("version") == 1) {
+          return true;
+        }
+      }
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
+    }
+    return false;
   }
 
   public static Spanned getForstaJsonBody(String messageBody) {
@@ -155,11 +172,21 @@ public class ForstaUtils {
         List<String> singleRecipient = messageRecipients.toNumberStringList(false);
         List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
         List<String> forstaSlugs = new ArrayList<>();
+        Set<String> names = new HashSet<>();
         for (ForstaRecipient recipient : forstaSingleRecipients) {
           forstaSlugs.add(recipient.slug);
-          // Should only ever be one recipient. Groups represent multiple recipients.
-          threadTitle = recipient.name;
+          // Should only ever be one recipient. Groups represent multiple recipients, unless it is a mix of secure and non-secure recipients.
+          names.add(TextUtils.isEmpty(recipient.name) ? recipient.number : recipient.name);
         }
+
+        // If the recipients are unknown to CCSM
+        if (!messageRecipients.isSingleRecipient()) {
+          for (Recipient unknownRecipient : messageRecipients.getRecipientsList()) {
+            names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
+          }
+        }
+
+        threadTitle = TextUtils.join(",", names);
 
         presentation = TextUtils.join("+", forstaSlugs);
         for (String recipient : messageRecipients.toNumberStringList(false)) {
