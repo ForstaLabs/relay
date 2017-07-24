@@ -116,7 +116,7 @@ public class GroupDatabase extends Database {
     String selection = null;
     String[] selectionValues = null;
     if (slugPart != null && slugPart.length() > 0) {
-      selection = SLUG + " LIKE ?";
+      selection = GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " LIKE ?";
       selectionValues = new String[] { "%" + slugPart + "%"};
     }
     return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, selectionValues, null, null, null);
@@ -251,7 +251,7 @@ public class GroupDatabase extends Database {
 
   public Map<String, String> getGroupSlugs() {
     Map<String, String> groups = new HashMap<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
       groups.put(cursor.getString(cursor.getColumnIndex(SLUG)), cursor.getString(cursor.getColumnIndex(GROUP_ID)));
     }
@@ -261,7 +261,7 @@ public class GroupDatabase extends Database {
 
   public List<ForstaRecipient> getForstaGroupRecipients() {
     List<ForstaRecipient> recipients = new ArrayList<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
       String uuid = "";
       try {
@@ -279,7 +279,7 @@ public class GroupDatabase extends Database {
 
   public Map<String, ForstaRecipient> getForstaRecipients() {
     Map<String, ForstaRecipient> recipients = new HashMap<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, SLUG + " IS NOT NULL", null, null, null, null);
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
       String uuid = "";
       try {
@@ -325,6 +325,10 @@ public class GroupDatabase extends Database {
 
     contentValues.put(AVATAR_RELAY, relay);
     contentValues.put(TIMESTAMP, System.currentTimeMillis());
+    // TODO need a mechanism to recognize when a group is a distribution and not a tag or other group.
+    if (title.contains(",") && title.contains("-")) {
+      contentValues.put(GROUP_DISTRIBUTION, 1);
+    }
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
