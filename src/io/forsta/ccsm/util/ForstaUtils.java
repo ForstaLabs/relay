@@ -180,10 +180,8 @@ public class ForstaUtils {
         }
 
         // If the recipients are unknown to CCSM
-        if (!messageRecipients.isSingleRecipient()) {
-          for (Recipient unknownRecipient : messageRecipients.getRecipientsList()) {
-            names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
-          }
+        for (Recipient unknownRecipient : messageRecipients.getRecipientsList()) {
+          names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
         }
 
         threadTitle = TextUtils.join(",", names);
