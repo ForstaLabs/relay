@@ -37,6 +37,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.support.v4.view.MenuItemCompat;
@@ -807,10 +808,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
     // Create a new group, using all the recipients.
     // Use the tags and usernames as the new group title... @john-lewis, @dev-team
-    StringBuilder title = new StringBuilder();
+    Set<String> titleSlugs = new HashSet<>();
     Set<String> numbers = new HashSet<>();
     for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
-      title.append(entry.getKey()).append(", ");
+      titleSlugs.add("@" + entry.getKey());
       if (GroupUtil.isEncodedGroup(entry.getValue())) {
         try {
           Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
@@ -825,11 +826,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     // Add this phone's user to the end of the title. createGroup will append the number.
     String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
     if (!forstaRecipients.keySet().contains(thisUser)) {
-      title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+      titleSlugs.add("@" + ForstaPreferences.getForstaUsername(ConversationListActivity.this));
     }
     // Now create new group and send to the new groupId.
-    String textTitle = title.toString();
-    textTitle = textTitle.replaceAll(", $", "");
+    String textTitle = TextUtils.join(" + ", titleSlugs);
     // TODO use title field to send JSON blob to clients, with information about dynamic distributions.
 //    JSONObject jsonTitle = new JSONObject();
 //    try {

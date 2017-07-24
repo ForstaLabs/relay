@@ -161,8 +161,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "0.1.20"
-        versionCode 120
+        versionName "0.1.21"
+        versionCode 121
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         // TODO Need different cert installed on server to change to TLS.

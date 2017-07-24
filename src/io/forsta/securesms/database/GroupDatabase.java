@@ -326,7 +326,7 @@ public class GroupDatabase extends Database {
     contentValues.put(AVATAR_RELAY, relay);
     contentValues.put(TIMESTAMP, System.currentTimeMillis());
     // TODO need a mechanism to recognize when a group is a distribution and not a tag or other group.
-    if (title.contains(",") && title.contains("-")) {
+    if (title.contains("@") && title.contains("+")) {
       contentValues.put(GROUP_DISTRIBUTION, 1);
     }
     contentValues.put(ACTIVE, 1);
