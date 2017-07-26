@@ -335,6 +335,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_import_export:     handleImportExport();    return true;
   //    case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
+      case R.id.menu_logout:              handleLogout();            return true;
       case R.id.menu_directory:         handleDirectory();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:
@@ -565,6 +566,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void createGroup() {
     Intent intent = new Intent(this, GroupCreateActivity.class);
     startActivity(intent);
+  }
+
+  private void handleLogout() {
+    Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
+    startActivity(intent);
+    finish();
   }
 
   private void handleDirectory() {
