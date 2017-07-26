@@ -111,7 +111,7 @@
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD0hDDyBcplwkYtn-2j_1rx-aOu9d-J1o0" />
+            android:value="AIzaSyDlzRooYU-g7qI9KtC4kRL4Whhbl4gjujk" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
