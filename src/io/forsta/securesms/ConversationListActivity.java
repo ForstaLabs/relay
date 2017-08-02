@@ -205,13 +205,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    outState.putString(DRAFT_KEY, composeText.toString());
+    if (composeText.length() > 0) {
+      outState.putString(DRAFT_KEY, composeText.toString());
+    }
     super.onSaveInstanceState(outState);
   }
 
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
-    if (savedState != null) {
+    if (savedState != null && savedState.getString(DRAFT_KEY) != null) {
       composeText.setText(savedState.getString(DRAFT_KEY));
     }
     this.masterSecret = masterSecret;
