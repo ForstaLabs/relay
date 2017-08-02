@@ -445,7 +445,7 @@ public class PushDecryptJob extends ContextJob {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
 
-    ForstaUtils.createForstaGroupFromMessagePayload(body);
+//    ForstaUtils.createForstaGroupFromMessagePayload(body);
 
     Pair<Long, Long> messageAndThreadId;
 

@@ -37,6 +37,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.support.v4.view.MenuItemCompat;
@@ -119,7 +120,7 @@ import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
-    implements ConversationListFragment.ConversationSelectedListener,
+    implements ConversationListFragment.ConversationSelectedListener, ConversationListFragment.BatchModeChangeListener,
     AttachmentManager.AttachmentListener,
     KeyboardAwareLinearLayout.OnKeyboardShownListener, KeyboardAwareLinearLayout.OnKeyboardHiddenListener,
     InputPanel.Listener
@@ -204,13 +205,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    outState.putString(DRAFT_KEY, composeText.toString());
+    if (composeText.length() > 0) {
+      outState.putString(DRAFT_KEY, composeText.toString());
+    }
     super.onSaveInstanceState(outState);
   }
 
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
-    if (savedState != null) {
+    if (savedState != null && savedState.getString(DRAFT_KEY) != null) {
       composeText.setText(savedState.getString(DRAFT_KEY));
     }
     this.masterSecret = masterSecret;
@@ -334,6 +337,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_import_export:     handleImportExport();    return true;
   //    case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
+      case R.id.menu_logout:            handleLogout();            return true;
       case R.id.menu_directory:         handleDirectory();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:
@@ -566,6 +570,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
+  private void handleLogout() {
+    Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
+    startActivity(intent);
+    finish();
+  }
+
   private void handleDirectory() {
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
     startActivity(directoryIntent);
@@ -580,7 +590,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent intent = new Intent(this, DeviceActivity.class);
     startActivity(intent);
   }
-
 
   private void handleClearPassphrase() {
     Intent intent = new Intent(this, KeyCachingService.class);
@@ -743,6 +752,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   }
 
+  @Override
+  public void onBatchModeChange(boolean batchMode) {
+    if (batchMode) {
+      inputPanel.setVisibility(View.GONE);
+    } else {
+      inputPanel.setVisibility(View.VISIBLE);
+    }
+  }
+
   public class VerifyCcsmToken extends AsyncTask<Void, Void, Boolean> {
 
     @Override
@@ -807,10 +825,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
     // Create a new group, using all the recipients.
     // Use the tags and usernames as the new group title... @john-lewis, @dev-team
-    StringBuilder title = new StringBuilder();
+    Set<String> titleSlugs = new HashSet<>();
     Set<String> numbers = new HashSet<>();
     for (Map.Entry<String, String> entry : forstaRecipients.entrySet()) {
-      title.append(entry.getKey()).append(", ");
+      titleSlugs.add("@" + entry.getKey());
       if (GroupUtil.isEncodedGroup(entry.getValue())) {
         try {
           Set<String> members = groupDb.getGroupMembers(GroupUtil.getDecodedId(entry.getValue()));
@@ -825,11 +843,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     // Add this phone's user to the end of the title. createGroup will append the number.
     String thisUser = ForstaPreferences.getForstaUsername(ConversationListActivity.this);
     if (!forstaRecipients.keySet().contains(thisUser)) {
-      title.append(ForstaPreferences.getForstaUsername(ConversationListActivity.this));
+      titleSlugs.add("@" + ForstaPreferences.getForstaUsername(ConversationListActivity.this));
     }
     // Now create new group and send to the new groupId.
-    String textTitle = title.toString();
-    textTitle = textTitle.replaceAll(", $", "");
+    String textTitle = TextUtils.join(" + ", titleSlugs);
     // TODO use title field to send JSON blob to clients, with information about dynamic distributions.
 //    JSONObject jsonTitle = new JSONObject();
 //    try {
