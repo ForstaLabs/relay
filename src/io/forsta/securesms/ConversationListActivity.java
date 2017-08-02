@@ -589,7 +589,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
-
   private void handleClearPassphrase() {
     Intent intent = new Intent(this, KeyCachingService.class);
     intent.setAction(KeyCachingService.CLEAR_KEY_ACTION);
