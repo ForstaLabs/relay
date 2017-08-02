@@ -132,9 +132,12 @@ public class ForstaLogSubmitFragment extends Fragment {
   }
 
   private void sendLogEmail() {
-    File outFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "debuglog.txt");
     try {
-      if (outFile.canWrite()) {
+      if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+        File directory = new File(path + "/debug");
+        directory.mkdir();
+        File outFile = new File(directory, "debuglog.txt");
         FileOutputStream stream = new FileOutputStream(outFile);
         String log = logPreview.getText().toString();
         stream.write(log.getBytes());
