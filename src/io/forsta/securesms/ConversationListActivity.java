@@ -120,7 +120,7 @@ import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
-    implements ConversationListFragment.ConversationSelectedListener,
+    implements ConversationListFragment.ConversationSelectedListener, ConversationListFragment.BatchModeChangeListener,
     AttachmentManager.AttachmentListener,
     KeyboardAwareLinearLayout.OnKeyboardShownListener, KeyboardAwareLinearLayout.OnKeyboardHiddenListener,
     InputPanel.Listener
@@ -749,6 +749,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   @Override
   public void onAttachmentChanged() {
 
+  }
+
+  @Override
+  public void onBatchModeChange(boolean batchMode) {
+    if (batchMode) {
+      inputPanel.setVisibility(View.GONE);
+    } else {
+      inputPanel.setVisibility(View.VISIBLE);
+    }
   }
 
   public class VerifyCcsmToken extends AsyncTask<Void, Void, Boolean> {

@@ -306,8 +306,7 @@ public class ConversationListFragment extends Fragment
 
   private void handleSelectAllThreads() {
     getListAdapter().selectAllThreads();
-    actionMode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount,
-                                     getListAdapter().getBatchSelections().size()));
+    actionMode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount, String.valueOf(getListAdapter().getBatchSelections().size())));
   }
 
   private void handleCreateConversation(long threadId, Recipients recipients, int distributionType) {
@@ -342,7 +341,7 @@ public class ConversationListFragment extends Fragment
         actionMode.finish();
       } else {
         actionMode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount,
-                                         adapter.getBatchSelections().size()));
+                                         String.valueOf(adapter.getBatchSelections().size())));
       }
 
       adapter.notifyDataSetChanged();
@@ -354,6 +353,7 @@ public class ConversationListFragment extends Fragment
     actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(ConversationListFragment.this);
 
     getListAdapter().initializeBatchMode(true);
+    ((BatchModeChangeListener)getActivity()).onBatchModeChange(true);
     getListAdapter().toggleThreadInBatchSet(item.getThreadId());
     getListAdapter().notifyDataSetChanged();
   }
@@ -378,7 +378,7 @@ public class ConversationListFragment extends Fragment
     inflater.inflate(R.menu.conversation_list_batch, menu);
 
     mode.setTitle(R.string.conversation_fragment_cab__batch_selection_mode);
-    mode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount, 1));
+    mode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount, String.valueOf(1)));
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.action_mode_status_bar));
@@ -406,6 +406,7 @@ public class ConversationListFragment extends Fragment
   @Override
   public void onDestroyActionMode(ActionMode mode) {
     getListAdapter().initializeBatchMode(false);
+    ((BatchModeChangeListener)getActivity()).onBatchModeChange(false);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       TypedArray color = getActivity().getTheme().obtainStyledAttributes(new int[] {android.R.attr.statusBarColor});
@@ -414,6 +415,10 @@ public class ConversationListFragment extends Fragment
     }
 
     actionMode = null;
+  }
+
+  public interface BatchModeChangeListener {
+    void onBatchModeChange(boolean batchMode);
   }
 
   private class ArchiveListenerCallback extends ItemTouchHelper.SimpleCallback {
