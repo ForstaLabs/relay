@@ -25,6 +25,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.contacts.avatars.ContactColors;
@@ -63,6 +65,12 @@ public class RecipientProvider {
     PhoneLookup.LOOKUP_KEY,
     PhoneLookup._ID,
     PhoneLookup.NUMBER
+  };
+
+  private static final String[] CONTACT_PROJECTION = new String[] {
+      ContactDb.NAME,
+      ContactDb.ID,
+      ContactDb.NUMBER
   };
 
   private static final Map<String, RecipientDetails> STATIC_DETAILS = new HashMap<String, RecipientDetails>() {{
@@ -139,6 +147,8 @@ public class RecipientProvider {
     Uri                             uri         = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
     Cursor                          cursor      = context.getContentResolver().query(uri, CALLER_ID_PROJECTION,
                                                                                      null, null, null);
+
+//    ContactDb db = DbFactory.getContactDb(context);
 
     try {
       if (cursor != null && cursor.moveToFirst()) {
