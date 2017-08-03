@@ -190,6 +190,7 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.ORGID, user.org_id);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
+        values.put(ContactDb.EMAIL, user.email);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         if (uids.containsKey(user.uid)) {
           String id = uids.get(user.uid);

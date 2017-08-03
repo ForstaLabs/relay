@@ -20,6 +20,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.PhoneLookup;
@@ -29,8 +31,10 @@ import android.util.Log;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactColors;
 import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
@@ -44,6 +48,9 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -146,11 +153,13 @@ public class RecipientProvider {
       if (cursor != null && cursor.moveToFirst()) {
         final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
         if (resultNumber != null) {
-          Uri contactUri = Uri.EMPTY;
+          URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
           String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
-          ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(cursor.getString(cursor.getColumnIndex(ContactDb.NAME)));
-
-          return new RecipientDetails(name, resultNumber, contactUri, contactPhoto, color);
+          ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
+          if (avatarUrl != null) {
+            contactPhoto = new BitmapContactPhoto(getContactGravatar(avatarUrl));
+          }
+          return new RecipientDetails(name, resultNumber, Uri.EMPTY, contactPhoto, color);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -291,6 +300,26 @@ public class RecipientProvider {
 
   }
 
+  private URL getGravitarUrl(String email) {
+    try {
+      if (email != null && email.length() > 0) {
+        String hash = ForstaUtils.md5Hex(email);
+        return new URL("https://www.gravatar.com/avatar/" + hash);
+      }
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
-
+  private Bitmap getContactGravatar(URL url) {
+    try {
+      InputStream is = (InputStream) url.getContent();
+      Bitmap d = BitmapFactory.decodeStream(is);
+      is.close();
+      return d;
+    } catch (Exception e) {
+      return null;
+    }
+  }
 }
