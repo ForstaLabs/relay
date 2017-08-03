@@ -158,7 +158,7 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-    createSystemContacts(context, forstaContacts);
+//    createSystemContacts(context, forstaContacts);
     syncForstaContactsDb(context, forstaContacts);
     try {
       DirectoryHelper.refreshDirectory(context, masterSecret);
@@ -277,6 +277,7 @@ public class CcsmApi {
     return groups;
   }
 
+  // This is out for now.
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();
     String[] projection = new String[]{

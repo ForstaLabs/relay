@@ -76,6 +76,15 @@ public class ContactDb extends DbBase {
     removeAll(TABLE_NAME);
   }
 
+  public Cursor getContactByAddress(String address) {
+    try {
+      return getRecords(TABLE_NAME, null, NUMBER + " = ?", new String[] {address}, NUMBER);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public HashMap<String, String> getContactSlugs() {
     HashMap<String, String> contacts = new HashMap<>();
     try {
