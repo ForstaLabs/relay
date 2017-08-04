@@ -146,9 +146,9 @@ public class RecipientProvider {
     Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(new long[]{recipientId});
     MaterialColor color       = preferences.isPresent() ? preferences.get().getColor() : null;
 
+
     ContactDb db = DbFactory.getContactDb(context);
     Cursor cursor  = db.getContactByAddress(number);
-
     try {
       if (cursor != null && cursor.moveToFirst()) {
         final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
@@ -164,9 +164,14 @@ public class RecipientProvider {
           Log.w(TAG, "resultNumber is null");
         }
       }
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
 
-      Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-      cursor = context.getContentResolver().query(uri, CALLER_ID_PROJECTION, null, null, null);
+    Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+    cursor = context.getContentResolver().query(uri, CALLER_ID_PROJECTION, null, null, null);
+    try {
       if (cursor != null && cursor.moveToFirst()) {
         final String resultNumber = cursor.getString(3);
         if (resultNumber != null) {

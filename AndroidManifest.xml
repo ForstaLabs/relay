@@ -99,7 +99,10 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="io.forsta.securesms.permission.C2D_MESSAGE" />
-
+    <!--Android Key-->
+    <!--AIzaSyAg93jH04Ac7dJkKcbEFZoeFm2cDQmrxZk-->
+    <!--Open Key-->
+    <!--AIzaSyDlzRooYU-g7qI9KtC4kRL4Whhbl4gjujk-->
     <application
         android:name="io.forsta.securesms.ApplicationContext"
         android:allowBackup="false"
@@ -110,7 +113,7 @@
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDlzRooYU-g7qI9KtC4kRL4Whhbl4gjujk" />
+            android:value="AIzaSyAg93jH04Ac7dJkKcbEFZoeFm2cDQmrxZk" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
