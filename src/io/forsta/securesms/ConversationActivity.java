@@ -1385,7 +1385,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     expiresIn,
                                                                     distributionType);
     outgoingMessage.setForstaJsonBody(context, recipients);
-    String newBody = outgoingMessage.getBody();
     if (isSecureText && !forceSms) {
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
