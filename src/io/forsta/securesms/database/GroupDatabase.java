@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class GroupDatabase extends Database {
 
@@ -460,13 +461,15 @@ public class GroupDatabase extends Database {
   }
 
   public byte[] allocateGroupId() {
-    try {
-      byte[] groupId = new byte[16];
-      SecureRandom.getInstance("SHA1PRNG").nextBytes(groupId);
-      return groupId;
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+//    try {
+//      byte[] groupId = new byte[16];
+//      SecureRandom.getInstance("SHA1PRNG").nextBytes(groupId);
+//    } catch (NoSuchAlgorithmException e) {
+//      throw new AssertionError(e);
+//    }
+    UUID uid = UUID.randomUUID();
+    byte[] groupId = uid.toString().getBytes();
+    return groupId;
   }
 
   private void notifyDatabaseListeners() {
