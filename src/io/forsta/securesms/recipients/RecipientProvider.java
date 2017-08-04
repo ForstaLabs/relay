@@ -156,8 +156,9 @@ public class RecipientProvider {
           URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
           String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
-          if (avatarUrl != null) {
-            contactPhoto = new BitmapContactPhoto(getContactGravatar(avatarUrl));
+          Bitmap gravatar = getContactGravatar(avatarUrl);
+          if (gravatar != null) {
+            contactPhoto = new BitmapContactPhoto(gravatar);
           }
           return new RecipientDetails(name, resultNumber, Uri.EMPTY, contactPhoto, color);
         } else {

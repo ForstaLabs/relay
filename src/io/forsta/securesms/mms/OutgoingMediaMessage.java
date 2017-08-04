@@ -1,7 +1,9 @@
 package io.forsta.securesms.mms;
 
+import android.content.Context;
 import android.text.TextUtils;
 
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
 
@@ -10,7 +12,7 @@ import java.util.List;
 public class OutgoingMediaMessage {
 
   private   final Recipients       recipients;
-  protected final String           body;
+  protected String           body;
   protected final List<Attachment> attachments;
   private   final long             sentTimeMillis;
   private   final int              distributionType;
@@ -98,5 +100,9 @@ public class OutgoingMediaMessage {
     } else {
       return slideDeck.getBody();
     }
+  }
+
+  public void setForstaJsonBody(Context context, Recipients recipients) {
+    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients);
   }
 }

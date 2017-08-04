@@ -900,9 +900,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void sendMessage(String message, Recipients messageRecipients) {
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
-    String forstaBody = ForstaUtils.createForstaMessageBody(ConversationListActivity.this, message, messageRecipients);
-
-    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), forstaBody, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+    mediaMessage.setForstaJsonBody(ConversationListActivity.this, recipients);
     new AsyncTask<OutgoingMediaMessage, Void, Void>() {
 
       @Override
