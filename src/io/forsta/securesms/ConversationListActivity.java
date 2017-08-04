@@ -901,7 +901,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
     OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-    mediaMessage.setForstaJsonBody(ConversationListActivity.this, recipients);
+    mediaMessage.setForstaJsonBody(ConversationListActivity.this, messageRecipients);
     new AsyncTask<OutgoingMediaMessage, Void, Void>() {
 
       @Override
