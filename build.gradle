@@ -74,7 +74,7 @@ dependencies {
     compile 'org.whispersystems:jobmanager:1.0.2'
     compile 'org.whispersystems:libpastelog:1.0.7'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
-    compile 'com.github.ForstaLabs:libsignal-protocol-java:forsta-SNAPSHOT'
+    compile 'com.github.ForstaLabs:libsignal-protocol-java:forsta-v2.2.1'
     compile 'com.github.ForstaLabs:libsignal-service-java:v2.3.1'
     compile 'com.h6ah4i.android.compat:mulsellistprefcompat:1.0.0'
     compile 'com.google.zxing:core:3.2.1'
