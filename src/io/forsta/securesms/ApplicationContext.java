@@ -37,8 +37,8 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.jobqueue.dependencies.DependencyInjector;
 import org.whispersystems.jobqueue.requirements.NetworkRequirementProvider;
-import org.whispersystems.libsignal.logging.SignalProtocolLoggerProvider;
-import org.whispersystems.libsignal.util.AndroidSignalProtocolLogger;
+//import org.whispersystems.libsignal.logging.SignalProtocolLoggerProvider;
+//import org.whispersystems.libsignal.util.AndroidSignalProtocolLogger;
 
 import dagger.ObjectGraph;
 
@@ -104,7 +104,8 @@ public class ApplicationContext extends Application implements DependencyInjecto
   }
 
   private void initializeLogging() {
-    SignalProtocolLoggerProvider.setProvider(new AndroidSignalProtocolLogger());
+    System.out.println("XXX: Too lazy to port logging provider stuff from android build of libsignal-protocol");
+    //SignalProtocolLoggerProvider.setProvider(new AndroidSignalProtocolLogger());
   }
 
   private void initializeJobManager() {
