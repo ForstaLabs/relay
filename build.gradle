@@ -160,8 +160,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "0.1.20"
-        versionCode 120
+        versionName "0.1.22"
+        versionCode 122
         applicationId 'io.forsta.relay'
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         // TODO Need different cert installed on server to change to TLS.
@@ -171,14 +171,14 @@ android {
         buildConfigField "boolean", "DEV_BUILD", "true"
 
         //Dev
-        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
-        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+//        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
+//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
         // Stage
 //        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
 //        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
         //Production
-//        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
-//        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
+        buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
+        buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
         multiDexEnabled true
     }
     compileOptions {

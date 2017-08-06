@@ -17,23 +17,10 @@ import static org.mockito.Mockito.when;
 
 public class SmsListenerTest extends BaseUnitTest {
   private static Map<String, String> CHALLENGES = new HashMap<String,String>() {{
-      put("Your TextSecure verification code: 337-337",        "337337");
-      put("XXX\nYour TextSecure verification code: 1337-1337", "13371337");
-      put("Your TextSecure verification code: 337-1337",       "3371337");
-      put("Your TextSecure verification code: 1337-337",       "1337337");
-      put("Your TextSecure verification code: 1337-1337",      "13371337");
-      put("XXXYour TextSecure verification code: 1337-1337",   "13371337");
-      put("Your TextSecure verification code: 1337-1337XXX",   "13371337");
-      put("Your TextSecure verification code 1337-1337",       "13371337");
-
-      put("Your Signal verification code: 337-337",        "337337");
-      put("XXX\nYour Signal verification code: 1337-1337", "13371337");
-      put("Your Signal verification code: 337-1337",       "3371337");
-      put("Your Signal verification code: 1337-337",       "1337337");
-      put("Your Signal verification code: 1337-1337",      "13371337");
-      put("XXXYour Signal verification code: 1337-1337",   "13371337");
-      put("Your Signal verification code: 1337-1337XXX",   "13371337");
-      put("Your Signal verification code 1337-1337",       "13371337");
+      put("Use this code to verify your phone number with Forsta Servers: 337-337",        "337337");
+      put("XXX\nUse this code to verify your phone number with Forsta Servers: 1337-1337", "13371337");
+      put("XXXUse this code to verify your phone number with Forsta Servers: 337-337",   "337337");
+      put("Use this code to verify your phone number with Forsta: 337-337XXX",   "337337");
   }};
 
   private SmsListener listener;
@@ -52,6 +39,7 @@ public class SmsListenerTest extends BaseUnitTest {
       if (!listener.isChallenge(context, challenge.getKey())) {
         throw new AssertionFailedError("SmsListener didn't recognize body as a challenge.");
       }
+      String testChallenge = listener.parseChallenge(challenge.getKey());
       assertEquals(listener.parseChallenge(challenge.getKey()), challenge.getValue());
     }
   }

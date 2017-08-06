@@ -12,7 +12,7 @@ public class BitmapContactPhoto implements ContactPhoto {
 
   private final Bitmap bitmap;
 
-  BitmapContactPhoto(Bitmap bitmap) {
+  public BitmapContactPhoto(Bitmap bitmap) {
     this.bitmap = bitmap;
   }
 
