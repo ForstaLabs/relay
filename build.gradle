@@ -155,11 +155,12 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 9
         targetSdkVersion 22
-        versionName "0.1.22"
-        versionCode 122
+        versionName "0.1.23"
+        versionCode 123
         multiDexEnabled true
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
+        resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
     }
     productFlavors {
         dev {
@@ -168,6 +169,7 @@ android {
             buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+            resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
         }
         stage {
             applicationIdSuffix '.stage'
@@ -175,6 +177,7 @@ android {
             buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+            resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
         }
         prod {
             manifestPlaceholders = [appIcon: "@mipmap/ic_launcher"]
