@@ -146,7 +146,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
                 .setNeutralButton(android.R.string.ok, null)
                 .show();
       }
-    }, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }, 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
   }
 
   private void handleActivityVisible() {
