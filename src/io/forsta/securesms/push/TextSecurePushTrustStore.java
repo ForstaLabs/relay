@@ -17,11 +17,11 @@ public class TextSecurePushTrustStore implements TrustStore {
 
   @Override
   public InputStream getKeyStoreInputStream() {
-    return context.getResources().openRawResource(R.raw.whisper);
+    return context.getResources().openRawResource(R.raw.forsta);
   }
 
   @Override
   public String getKeyStorePassword() {
-    return "whisper";
+    return "foobar";
   }
 }
