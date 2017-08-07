@@ -167,21 +167,26 @@ android {
         multiDexEnabled true
         buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
+        resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
     }
     productFlavors {
         dev {
             applicationIdSuffix '.dev'
             manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_dev"]
-            buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
+//            buildConfigField "String", "TEXTSECURE_URL", "\"http://forsta-signalserver-dev.herokuapp.com\""
+            buildConfigField "String", "TEXTSECURE_URL", "\"http://textsecure.forsta.services\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+            resValue "string", "forsta_authorities", defaultConfig.applicationId + '.dev.provider.ccsm'
         }
         stage {
             applicationIdSuffix '.stage'
             manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_stage"]
-            buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
+//            buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
+            buildConfigField "String", "TEXTSECURE_URL", "\"http://textsecure.forsta.services\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+            resValue "string", "forsta_authorities", defaultConfig.applicationId + '.stage.provider.ccsm'
         }
         prod {
             manifestPlaceholders = [appIcon: "@mipmap/ic_launcher"]
