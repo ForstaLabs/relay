@@ -18,6 +18,10 @@ package io.forsta.securesms.recipients;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.PhoneLookup;
@@ -25,8 +29,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactColors;
 import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
@@ -40,6 +48,9 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -135,22 +146,21 @@ public class RecipientProvider {
     Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(new long[]{recipientId});
     MaterialColor color       = preferences.isPresent() ? preferences.get().getColor() : null;
 
-    // TODO remove this and return a cursor from the Forsta ContactsDb.
-    Uri                             uri         = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-    Cursor                          cursor      = context.getContentResolver().query(uri, CALLER_ID_PROJECTION,
-                                                                                     null, null, null);
 
+    ContactDb db = DbFactory.getContactDb(context);
+    Cursor cursor  = db.getContactByAddress(number);
     try {
       if (cursor != null && cursor.moveToFirst()) {
-        final String resultNumber = cursor.getString(3);
+        final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
         if (resultNumber != null) {
-          Uri          contactUri   = Contacts.getLookupUri(cursor.getLong(2), cursor.getString(1));
-          String       name         = resultNumber.equals(cursor.getString(0)) ? null : cursor.getString(0);
-          ContactPhoto contactPhoto = ContactPhotoFactory.getContactPhoto(context,
-                                                                          Uri.withAppendedPath(Contacts.CONTENT_URI, cursor.getLong(2) + ""),
-                                                                          name);
-
-          return new RecipientDetails(cursor.getString(0), resultNumber, contactUri, contactPhoto, color);
+          URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
+          String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
+          ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
+          Bitmap gravatar = getContactGravatar(avatarUrl);
+          if (gravatar != null) {
+            contactPhoto = new BitmapContactPhoto(gravatar);
+          }
+          return new RecipientDetails(name, resultNumber, Uri.EMPTY, contactPhoto, color);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -160,8 +170,27 @@ public class RecipientProvider {
         cursor.close();
     }
 
-    if (STATIC_DETAILS.containsKey(number)) return STATIC_DETAILS.get(number);
-    else                                    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color);
+    Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+    cursor = context.getContentResolver().query(uri, CALLER_ID_PROJECTION, null, null, null);
+    try {
+      if (cursor != null && cursor.moveToFirst()) {
+        final String resultNumber = cursor.getString(3);
+        if (resultNumber != null) {
+          Uri contactUri = Contacts.getLookupUri(cursor.getLong(2), cursor.getString(1));
+          String name = resultNumber.equals(cursor.getString(0)) ? null : cursor.getString(0);
+          ContactPhoto contactPhoto = ContactPhotoFactory.getContactPhoto(context,
+              Uri.withAppendedPath(Contacts.CONTENT_URI, cursor.getLong(2) + ""),
+              name);
+          return new RecipientDetails(cursor.getString(0), resultNumber, contactUri, contactPhoto, color);
+        }
+      }
+
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
+
+    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color);
   }
 
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
@@ -277,6 +306,26 @@ public class RecipientProvider {
 
   }
 
+  private URL getGravitarUrl(String email) {
+    try {
+      if (email != null && email.length() > 0) {
+        String hash = ForstaUtils.md5Hex(email);
+        return new URL("https://www.gravatar.com/avatar/" + hash);
+      }
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
 
-
+  private Bitmap getContactGravatar(URL url) {
+    try {
+      InputStream is = (InputStream) url.getContent();
+      Bitmap d = BitmapFactory.decodeStream(is);
+      is.close();
+      return d;
+    } catch (Exception e) {
+      return null;
+    }
+  }
 }

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="app_name">Signal</string>
+  <string name="app_name">Forsta</string>
   <string name="yes">はい</string>
   <string name="no">いいえ</string>
   <string name="delete">削除</string>
@@ -113,9 +113,9 @@
   <string name="ConversationActivity_are_you_sure_you_want_to_leave_this_group">このグループを本当に抜けますか？</string>
   <string name="ConversationActivity_transport_insecure_sms">暗号化されていないSMS</string>
   <string name="ConversationActivity_transport_insecure_mms">暗号化されていないMMS</string>
-  <string name="ConversationActivity_transport_signal">Signal</string>
+  <string name="ConversationActivity_transport_signal">Forsta</string>
   <string name="ConversationActivity_lets_switch_to_signal">チャットアプリをSignalに変えましょう。%1$s</string>
-  <string name="ConversationActivity_lets_use_this_to_chat">チャット・アプリ『Signal』を使いませんか？ %1$s</string>
+  <string name="ConversationActivity_lets_use_this_to_chat">チャット・アプリ『Forsta』を使いませんか？ %1$s</string>
   <string name="ConversationActivity_error_leaving_group">グループ離脱中にエラー...</string>
   <string name="ConversationActivity_mms_not_supported_title">MMSには対応していません</string>
   <string name="ConversationActivity_mms_not_supported_message">お使いの端末がMMSに対応していないため、このメッセージは送信できません。</string>
@@ -207,10 +207,10 @@
   <string name="ShareActivity_share_with">共有</string>
   <!--ExperienceUpgradeActivity-->
   <string name="ExperienceUpgradeActivity_welcome_to_signal_dgaf">Signalにようこそ</string>
-  <string name="ExperienceUpgradeActivity_textsecure_is_now_called_signal">TextSecureとRedPhoneは統合されて「Signal」になりました。</string>
+  <string name="ExperienceUpgradeActivity_textsecure_is_now_called_signal">TextSecureとRedPhoneは統合されて「Forsta」になりました。</string>
   <string name="ExperienceUpgradeActivity_welcome_to_signal_excited">Signalにようこそ！</string>
   <string name="ExperienceUpgradeActivity_textsecure_is_now_signal">TextSecureはSignalに生まれ変わりました</string>
-  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal_long">TextSecureとRedPhoneは１つのアプリ「Signal」になりました。タップすると詳細が分かります。</string>
+  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal_long">TextSecureとRedPhoneは１つのアプリ「Forsta」になりました。タップすると詳細が分かります。</string>
   <!--ExportFragment-->
   <string name="ExportFragment_export">エクスポート</string>
   <string name="ExportFragment_export_plaintext_to_storage">テキストを外部メディアにエクスポートしますか？</string>
@@ -504,7 +504,7 @@
   <string name="QuickResponseService_quick_response_unavailable_when_Signal_is_locked">Signalのロック中はクイック・レスポンスは使えません</string>
   <string name="QuickResponseService_problem_sending_message">メッセージ送信で問題発生</string>
   <!--SingleRecipientNotificationBuilder-->
-  <string name="SingleRecipientNotificationBuilder_signal">Signal</string>
+  <string name="SingleRecipientNotificationBuilder_signal">Forsta</string>
   <string name="SingleRecipientNotificationBuilder_new_message">新規メッセージ</string>
   <!--attachment_type_selector-->
   <string name="attachment_type_selector__image">画像</string>
@@ -674,7 +674,7 @@
   <string name="registration_problems__some_possible_problems_include">いくつかの問題の可能性があります
 原因:</string>
   <string name="registration_problems__sms_interceptors">SMSのインターセプト</string>
-  <string name="registration_problems__some_third_party_text_messaging_clients_such_as_handcent">他のメッセージアプリがSMSメッセージをすべて取り込んでいるかも知れません。「Your Signal verification code:」で始まるメッセージを他のアプリが受信していないか確認してください。受信している場合、そのアプリがメッセージを取り込まないよう設定してください。</string>
+  <string name="registration_problems__some_third_party_text_messaging_clients_such_as_handcent">他のメッセージアプリがSMSメッセージをすべて取り込んでいるかも知れません。「Your Forsta verification code:」で始まるメッセージを他のアプリが受信していないか確認してください。受信している場合、そのアプリがメッセージを取り込まないよう設定してください。</string>
   <string name="registration_problems__incorrect_number">番号が間違っています。</string>
   <string name="registration_problems__please_checkt_to_make_sure_you_entered_your_number_correctly">入力した番号（と形式）が正しいか確認してください。</string>
   <string name="registration_problems__google_voice">Google Voice</string>

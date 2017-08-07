@@ -1295,17 +1295,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return rawText;
   }
 
-  private String getForstaMessage() throws InvalidMessageException {
-    String rawText = composeText.getText().toString();
-
-    String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, rawText, this.recipients);
-
-    if (rawText.length() < 1 && !attachmentManager.isAttachmentPresent())
-      throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));
-
-    return forstaBody;
-  }
-
   private MediaConstraints getCurrentMediaConstraints() {
     return sendButton.getSelectedTransport().getType() == Type.TEXTSECURE
            ? MediaConstraints.PUSH_CONSTRAINTS
@@ -1380,8 +1369,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void sendMediaMessage(final boolean forceSms, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
-    String body = (!isSecureText || forceSms) ? getMessage(): getForstaMessage();
-    sendMediaMessage(forceSms, body, attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
+    sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
@@ -1396,6 +1384,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     subscriptionId,
                                                                     expiresIn,
                                                                     distributionType);
+    outgoingMessage.setForstaJsonBody(context, recipients);
     if (isSecureText && !forceSms) {
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
@@ -1426,7 +1415,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     OutgoingTextMessage message;
 
     if (isSecureText && !forceSms) {
-      message = new OutgoingEncryptedMessage(recipients, getForstaMessage(), expiresIn);
+      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
+      message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
     } else {
       message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
     }

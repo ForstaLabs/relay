@@ -76,6 +76,15 @@ public class ContactDb extends DbBase {
     removeAll(TABLE_NAME);
   }
 
+  public Cursor getContactByAddress(String address) {
+    try {
+      return getRecords(TABLE_NAME, null, NUMBER + " = ?", new String[] {address}, NUMBER);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   public HashMap<String, String> getContactSlugs() {
     HashMap<String, String> contacts = new HashMap<>();
     try {
@@ -181,6 +190,7 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.ORGID, user.org_id);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
+        values.put(ContactDb.EMAIL, user.email);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         if (uids.containsKey(user.uid)) {
           String id = uids.get(user.uid);

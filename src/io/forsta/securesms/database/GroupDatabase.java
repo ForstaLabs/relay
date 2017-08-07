@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class GroupDatabase extends Database {
 
@@ -326,7 +327,7 @@ public class GroupDatabase extends Database {
     contentValues.put(AVATAR_RELAY, relay);
     contentValues.put(TIMESTAMP, System.currentTimeMillis());
     // TODO need a mechanism to recognize when a group is a distribution and not a tag or other group.
-    if (title.contains(",") && title.contains("-")) {
+    if (title.contains("@") && title.contains("+")) {
       contentValues.put(GROUP_DISTRIBUTION, 1);
     }
     contentValues.put(ACTIVE, 1);
@@ -460,13 +461,15 @@ public class GroupDatabase extends Database {
   }
 
   public byte[] allocateGroupId() {
-    try {
-      byte[] groupId = new byte[16];
-      SecureRandom.getInstance("SHA1PRNG").nextBytes(groupId);
-      return groupId;
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+//    try {
+//      byte[] groupId = new byte[16];
+//      SecureRandom.getInstance("SHA1PRNG").nextBytes(groupId);
+//    } catch (NoSuchAlgorithmException e) {
+//      throw new AssertionError(e);
+//    }
+    UUID uid = UUID.randomUUID();
+    byte[] groupId = uid.toString().getBytes();
+    return groupId;
   }
 
   private void notifyDatabaseListeners() {
