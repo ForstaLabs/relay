@@ -571,6 +571,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleLogout() {
+    ForstaPreferences.clearLogin(ConversationListActivity.this);
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
