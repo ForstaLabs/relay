@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="app_name">Signal</string>
+  <string name="app_name">Forsta</string>
   <string name="yes">Да</string>
   <string name="no">Не</string>
   <string name="delete">Изтрий</string>
@@ -21,17 +21,17 @@
   </plurals>
   <string name="ApplicationPreferencesActivity_delete">Изтрий</string>
   <string name="ApplicationPreferencesActivity_disable_passphrase">Изключи паролата?</string>
-  <string name="ApplicationPreferencesActivity_this_will_permanently_unlock_signal_and_message_notifications">Това ще отключи изцяло всички известия съобщения и Signal съобщения.</string>
+  <string name="ApplicationPreferencesActivity_this_will_permanently_unlock_signal_and_message_notifications">Това ще отключи изцяло всички известия съобщения и Forsta съобщения.</string>
   <string name="ApplicationPreferencesActivity_disable">Изключи</string>
   <string name="ApplicationPreferencesActivity_unregistering">Отписване</string>
   <string name="ApplicationPreferencesActivity_unregistering_from_signal_messages_and_calls">Дерегистриране от Singal съобщения и обаждания...</string>
-  <string name="ApplicationPreferencesActivity_disable_signal_messages_and_calls">Деактивирай Signal съобщения и обаждания?</string>
-  <string name="ApplicationPreferencesActivity_disable_signal_messages_and_calls_by_unregistering">Деактивирайте Signal съобщения и обаждания като се дерегистрирате от сървъра. Ще трябва да регистрирате своят номер отново, за да ползвате услугите в бъдеще.</string>
+  <string name="ApplicationPreferencesActivity_disable_signal_messages_and_calls">Деактивирай Forsta съобщения и обаждания?</string>
+  <string name="ApplicationPreferencesActivity_disable_signal_messages_and_calls_by_unregistering">Деактивирайте Forsta съобщения и обаждания като се дерегистрирате от сървъра. Ще трябва да регистрирате своят номер отново, за да ползвате услугите в бъдеще.</string>
   <string name="ApplicationPreferencesActivity_error_connecting_to_server">Грешка при свързване със сървъра!</string>
   <string name="ApplicationPreferencesActivity_sms_enabled">SMS разрешени</string>
   <string name="ApplicationPreferencesActivity_touch_to_change_your_default_sms_app">Натисни, за да зададеш SMS програма по подразбиране</string>
   <string name="ApplicationPreferencesActivity_sms_disabled">SMS забранени</string>
-  <string name="ApplicationPreferencesActivity_touch_to_make_signal_your_default_sms_app">Натисни, за да направиш Signal своята SMS програма по подразбиране</string>
+  <string name="ApplicationPreferencesActivity_touch_to_make_signal_your_default_sms_app">Натисни, за да направиш Forsta своята SMS програма по подразбиране</string>
   <string name="ApplicationPreferencesActivity_on">вкл</string>
   <string name="ApplicationPreferencesActivity_On">Включено</string>
   <string name="ApplicationPreferencesActivity_off">изкл</string>
@@ -64,7 +64,7 @@
   <!--CallScreen-->
   <string name="CallScreen_Incoming_call">Входящо обаждане</string>
   <!--ConfirmIdentityDialog-->
-  <string name="ConfirmIdentityDialog_the_signature_on_this_key_exchange_is_different">Числата за сигурност на %1$s са променени. Това означава, че или някой се опитва да прехване куминикацията Ви, или че %2$s е преинсталирал Signal.</string>
+  <string name="ConfirmIdentityDialog_the_signature_on_this_key_exchange_is_different">Числата за сигурност на %1$s са променени. Това означава, че или някой се опитва да прехване куминикацията Ви, или че %2$s е преинсталирал Forsta.</string>
   <string name="ConfirmIdentityDialog_you_may_wish_to_verify_this_contact">Може да желаете да проверите числата за сигурност на този контакт.</string>
   <string name="ConfirmIdentityDialog_accept">Приемам</string>
   <!--ContactsDatabase-->
@@ -83,7 +83,7 @@
   <string name="ConversationItem_click_to_approve_unencrypted">Натисни, за да разрешиш преминавене към не криптирани съобщения в краен случай</string>
   <string name="ConversationItem_click_to_approve_unencrypted_sms_dialog_title">Разреши преминавене към не шифровани SMS-и?</string>
   <string name="ConversationItem_click_to_approve_unencrypted_mms_dialog_title">Разреши преминавене към не шифровани MMS-и?</string>
-  <string name="ConversationItem_click_to_approve_unencrypted_dialog_message">Това съобщение <b>НЯМА</b> да бъде криптирано, защото получтеля вече не е потребител на Signal.\n\nИзпрати незащитено съобщение?</string>
+  <string name="ConversationItem_click_to_approve_unencrypted_dialog_message">Това съобщение <b>НЯМА</b> да бъде криптирано, защото получтеля вече не е потребител на Forsta.\n\nИзпрати незащитено съобщение?</string>
   <string name="ConversationItem_unable_to_open_media">Неуспешно откриване на приложение за отваряне на този файл.</string>
   <string name="ConversationItem_from_s">от %s</string>
   <string name="ConversationItem_to_s">do %s</string>
@@ -117,8 +117,8 @@
   <string name="ConversationActivity_are_you_sure_you_want_to_leave_this_group">Сигурен ли си, че искаш да напуснеш тази група?</string>
   <string name="ConversationActivity_transport_insecure_sms">Некриптиран SMS</string>
   <string name="ConversationActivity_transport_insecure_mms">Некриптиран MMS</string>
-  <string name="ConversationActivity_transport_signal">Signal</string>
-  <string name="ConversationActivity_lets_switch_to_signal">Да преминем към Signal %1$s</string>
+  <string name="ConversationActivity_transport_signal">Forsta</string>
+  <string name="ConversationActivity_lets_switch_to_signal">Да преминем към Forsta %1$s</string>
   <string name="ConversationActivity_lets_use_this_to_chat">Да използваме следното за чатене: %1$s</string>
   <string name="ConversationActivity_error_leaving_group">Грешка при напускането на група...</string>
   <string name="ConversationActivity_mms_not_supported_title">MMS не се поддържа</string>
@@ -165,7 +165,7 @@
   </plurals>
   <string name="ConversationFragment_collecting_attahments">Събиране на прикачените файлове...</string>
   <string name="ConversationFragment_pending">Предстоящ...</string>
-  <string name="ConversationFragment_push">Данни (Signal)</string>
+  <string name="ConversationFragment_push">Данни (Forsta)</string>
   <string name="ConversationFragment_mms">MMS</string>
   <string name="ConversationFragment_sms">SMS</string>
   <string name="ConversationFragment_deleting">Изтриване</string>
@@ -220,15 +220,15 @@
   <!--ShareActivity-->
   <string name="ShareActivity_share_with">Сподели с</string>
   <!--ExperienceUpgradeActivity-->
-  <string name="ExperienceUpgradeActivity_welcome_to_signal_dgaf">Добре дошли в Signal.</string>
-  <string name="ExperienceUpgradeActivity_textsecure_is_now_called_signal">TextSecure и Redphone се обедениха в чат програма за конфеденциално разговори, за всяка ситуация: Signal.</string>
-  <string name="ExperienceUpgradeActivity_welcome_to_signal_excited">Добре дошли в Signal!</string>
-  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal">TextSecure вече е Signal.</string>
-  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal_long">TextSecure и Redphone вече са една програма: Signal. Натисни за да разгледаш.</string>
+  <string name="ExperienceUpgradeActivity_welcome_to_signal_dgaf">Добре дошли в Forsta.</string>
+  <string name="ExperienceUpgradeActivity_textsecure_is_now_called_signal">TextSecure и Redphone се обедениха в чат програма за конфеденциално разговори, за всяка ситуация: Forsta.</string>
+  <string name="ExperienceUpgradeActivity_welcome_to_signal_excited">Добре дошли в Forsta!</string>
+  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal">TextSecure вече е Forsta.</string>
+  <string name="ExperienceUpgradeActivity_textsecure_is_now_signal_long">TextSecure и Redphone вече са една програма: Forsta. Натисни за да разгледаш.</string>
   <!--ExportFragment-->
   <string name="ExportFragment_export">Изнасяне</string>
   <string name="ExportFragment_export_plaintext_to_storage">Изнеси некриптирано на диска?</string>
-  <string name="ExportFragment_warning_this_will_export_the_plaintext_contents">Внимание, това ще изнесе некриптиран архив на Signal съобщенията на външната памет.</string>
+  <string name="ExportFragment_warning_this_will_export_the_plaintext_contents">Внимание, това ще изнесе некриптиран архив на Forsta съобщенията на външната памет.</string>
   <string name="ExportFragment_cancel">Отказ</string>
   <string name="ExportFragment_exporting">Изнасяне</string>
   <string name="ExportFragment_exporting_plaintext_to_storage">Изнеси некриптирано на външната памет...</string>
@@ -236,15 +236,15 @@
   <string name="ExportFragment_error_while_writing_to_storage">Грешка при записване на външната памет.</string>
   <string name="ExportFragment_export_successful">Изнасянето е успешен.</string>
   <!--GcmRefreshJob-->
-  <string name="GcmRefreshJob_Permanent_Signal_communication_failure">Перманентна Signal комуникационна грешка!</string>
-  <string name="GcmRefreshJob_Signal_was_unable_to_register_with_Google_Play_Services">Signal не успя да се регистрира с Google Play Services. Signal съообщения и разговори са деактивирани, моля пререгистрирайте през менюто Настройки &gt; Допълнителние.</string>
+  <string name="GcmRefreshJob_Permanent_Signal_communication_failure">Перманентна Forsta комуникационна грешка!</string>
+  <string name="GcmRefreshJob_Signal_was_unable_to_register_with_Google_Play_Services">Forsta не успя да се регистрира с Google Play Services. Forsta съообщения и разговори са деактивирани, моля пререгистрирайте през менюто Настройки &gt; Допълнителние.</string>
   <!--GroupCreateActivity-->
   <string name="GroupCreateActivity_actionbar_title">Нова група</string>
   <string name="GroupCreateActivity_actionbar_update_title">Промени група</string>
   <string name="GroupCreateActivity_group_name_hint">Име на групата</string>
   <string name="GroupCreateActivity_actionbar_mms_title">Нова MMS група</string>
-  <string name="GroupCreateActivity_contacts_dont_support_push">Избрахте контакт, който не поддържа Signal групи, така че групата ще бъде MMS.</string>
-  <string name="GroupCreateActivity_youre_not_registered_for_signal">Не сте регистриран за Signal съобщения и разговори, така че Signal групи са деактивирани. Моля, опитайте да се регистрирате в Настройки &gt; Допълнителни.</string>
+  <string name="GroupCreateActivity_contacts_dont_support_push">Избрахте контакт, който не поддържа Forsta групи, така че групата ще бъде MMS.</string>
+  <string name="GroupCreateActivity_youre_not_registered_for_signal">Не сте регистриран за Forsta съобщения и разговори, така че Forsta групи са деактивирани. Моля, опитайте да се регистрирате в Настройки &gt; Допълнителни.</string>
   <string name="GroupCreateActivity_contacts_mms_exception">Настъпи не очаквана грешка, която доведе до неуспешно създаване на група.</string>
   <string name="GroupCreateActivity_contacts_no_members">Трябва да добавиш поне един човек в групата си!</string>
   <string name="GroupCreateActivity_contacts_invalid_number">Един от членовете на групата има номер, който не може да бъде разпознат правилно. Моля, оправи номера на контакта или го премахни.</string>
@@ -252,7 +252,7 @@
   <string name="GroupCreateActivity_menu_create_title">Създай група</string>
   <string name="GroupCreateActivity_creating_group">Създаване на %1$s...</string>
   <string name="GroupCreateActivity_updating_group">Обновяване %1$s...</string>
-  <string name="GroupCreateActivity_cannot_add_non_push_to_existing_group">Неуспешно добавяне на %1$s, защото те не са потребители на Signal.</string>
+  <string name="GroupCreateActivity_cannot_add_non_push_to_existing_group">Неуспешно добавяне на %1$s, защото те не са потребители на Forsta.</string>
   <string name="GroupCreateActivity_loading_group_details">Зареждане на информация за групата...</string>
   <string name="GroupCreateActivity_youre_already_in_the_group">Вече сте в групата.</string>
   <!--GroupMembersDialog-->
@@ -263,14 +263,14 @@
   <!--ImportFragment-->
   <string name="ImportFragment_import_system_sms_database">Добави всички съществуващи SMS-и?</string>
   <string name="ImportFragment_this_will_import_messages_from_the_system">Това ще внесе
-SMS-те от системния архив в Signal. Ако вече сте внесли
+SMS-те от системния архив в Forsta. Ако вече сте внесли
 системата SMS базата данни това ще  доведе до дублиратне на съобщенията. </string>
   <string name="ImportFragment_import">Внеси</string>
   <string name="ImportFragment_cancel">Отказ</string>
   <string name="ImportFragment_restore_encrypted_backup">Възстанови от шифровано архивно копие? </string>
   <string name="ImportFragment_restoring_an_encrypted_backup_will_completely_replace_your_existing_keys">
 Възстановяването от криптиран архив напълно ще промени съществуващите ключове, настройки и съобщения.
-Ще изгубите всичката информация, която е в сегашната инсталация на Signal, но не и в криптирания архив.</string>
+Ще изгубите всичката информация, която е в сегашната инсталация на Forsta, но не и в криптирания архив.</string>
   <string name="ImportFragment_restore">Възстанови</string>
   <string name="ImportFragment_import_plaintext_backup">Възстанови от разшифровано архивно копие? </string>
   <string name="ImportFragment_this_will_import_messages_from_a_plaintext_backup">Това ще възстанови
@@ -294,7 +294,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="InviteActivity_sending">Изпращане...</string>
   <string name="InviteActivity_heart_content_description">Сърце</string>
   <string name="InviteActivity_invitations_sent">Поканите изпратени!</string>
-  <string name="InviteActivity_invite_to_signal">Покани в Signal</string>
+  <string name="InviteActivity_invite_to_signal">Покани в Forsta</string>
   <plurals name="InviteActivity_send_sms_to_friends">
     <item quantity="one">ИЗПРАТЕТЕ SMS ДО 1 ПРИЯТЕЛ</item>
     <item quantity="other">ИЗПРАТЕТЕ SMS ДО %d ПРИЯТЕЛЯ</item>
@@ -303,13 +303,13 @@ SMS-те от системния архив в Signal. Ако вече сте в
     <item quantity="one">Изпрати 1 SMS покана?</item>
     <item quantity="other">Изпрати %d SMS покани?</item>
   </plurals>
-  <string name="InviteActivity_lets_switch_to_signal">Да преминем към Signal %1$s</string>
+  <string name="InviteActivity_lets_switch_to_signal">Да преминем към Forsta %1$s</string>
   <string name="InviteActivity_no_app_to_share_to">Изглежда нямате приложения, с които да можете да споделите.</string>
   <string name="InviteActivity_friends_dont_let_friends_text_unencrypted">Приятелите не оставят приятелите си да чатят без криптиране.</string>
   <!--KeyScanningActivity-->
   <string name="KeyScanningActivity_no_scanned_key_found_exclamation">Не е намерен сканиран ключ!</string>
   <string name="KeyScanningActivity_install_barcode_Scanner">Инсталирай скенер за баркодове?</string>
-  <string name="KeyScanningActivity_this_application_requires_barcode_scanner_would_you_like_to_install_it">Signal се нуждае от баркод скенер за QR кодове.</string>
+  <string name="KeyScanningActivity_this_application_requires_barcode_scanner_would_you_like_to_install_it">Forsta се нуждае от баркод скенер за QR кодове.</string>
   <!--MessageDetailsRecipient-->
   <string name="MessageDetailsRecipient_failed_to_send">Неуспешно изпращане</string>
   <string name="MessageDetailsRecipient_new_safety_numbers">Нови числа за сигурност</string>
@@ -318,11 +318,11 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="MmsDownloader_error_connecting_to_mms_provider">Грешка при свързването с MMS доставчика...</string>
   <string name="MmsDownloader_error_reading_mms_settings">Грешка при четене на MMS настройките...</string>
   <!--- NotificationBarManager-->
-  <string name="NotificationBarManager_signal_call_in_progress">Протича Signal разговор</string>
+  <string name="NotificationBarManager_signal_call_in_progress">Протича Forsta разговор</string>
   <string name="NotificationBarManager_missed_call_from_s">Пропуснато обаждане от %s</string>
-  <string name="NotificationBarManager_missed_signal_call">Пропуснато Signal обаждане</string>
-  <string name="NotificationBarManager__establishing_signal_call">Установяване на Signal разговор</string>
-  <string name="NotificationBarManager__incoming_signal_call">Входящо Signal обадждане</string>
+  <string name="NotificationBarManager_missed_signal_call">Пропуснато Forsta обаждане</string>
+  <string name="NotificationBarManager__establishing_signal_call">Установяване на Forsta разговор</string>
+  <string name="NotificationBarManager__incoming_signal_call">Входящо Forsta обадждане</string>
   <string name="NotificationBarManager__deny_call">Забрани обаждането</string>
   <string name="NotificationBarManager__answer_call">Приеми обаждането</string>
   <string name="NotificationBarManager__end_call">Прекрати обаждането</string>
@@ -330,13 +330,13 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <!--NotificationMmsMessageRecord-->
   <string name="NotificationMmsMessageRecord_multimedia_message">Мултимедийно съобщение</string>
   <!--MessageRecord-->
-  <string name="MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported">Получихте съобщение криптирано със стара версия на Signal, която вече не се поддържа. Моля помолете изпращача да обнови версията си и да препрати съобщението.</string>
+  <string name="MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported">Получихте съобщение криптирано със стара версия на Forsta, която вече не се поддържа. Моля помолете изпращача да обнови версията си и да препрати съобщението.</string>
   <string name="MessageRecord_left_group">Напуснахте групата.</string>
   <string name="MessageRecord_updated_group">Групата е обновена.</string>
   <string name="MessageRecord_s_called_you">%s ти се обади</string>
   <string name="MessageRecord_called_s">Обаждане до %s</string>
   <string name="MessageRecord_missed_call_from">Пропуснато обаждане от %s</string>
-  <string name="MessageRecord_s_is_on_signal_say_hey">%s е в Signal, кажи им здрасти!</string>
+  <string name="MessageRecord_s_is_on_signal_say_hey">%s е в Forsta, кажи им здрасти!</string>
   <string name="MessageRecord_you">Ти</string>
   <string name="MessageRecord_s_set_disappearing_message_time_to_s">%1$s заложи продължителност от %2$s преди съобщението да изчезне</string>
   <!--PassphraseChangeActivity-->
@@ -361,15 +361,15 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="DeviceProvisioningActivity_content_progress_key_error">Невалиден QR код.</string>
   <string name="DeviceProvisioningActivity_sorry_you_have_too_many_devices_linked_already">За съжалние имате твърде много регистрирани устройства, опитайте да премахнете някои от тях...</string>
   <string name="DeviceActivity_sorry_this_is_not_a_valid_device_link_qr_code">За съжаление това не е валидна QR връзка.</string>
-  <string name="DeviceProvisioningActivity_link_a_signal_device">Свържи с Signal устройство?</string>
-  <string name="DeviceProvisioningActivity_it_looks_like_youre_trying_to_link_a_signal_device_using_a_3rd_party_scanner">Изглежда се опитвате да свържете Signal устройство с 3та скенер програма. За Ваша сигурност, моля сканирайте кодът повторно използвайки Signal.</string>
+  <string name="DeviceProvisioningActivity_link_a_signal_device">Свържи с Forsta устройство?</string>
+  <string name="DeviceProvisioningActivity_it_looks_like_youre_trying_to_link_a_signal_device_using_a_3rd_party_scanner">Изглежда се опитвате да свържете Forsta устройство с 3та скенер програма. За Ваша сигурност, моля сканирайте кодът повторно използвайки Forsta.</string>
   <!--ExpirationDialog-->
   <string name="ExpirationDialog_disappearing_messages">Изчезващи съобщения</string>
   <string name="ExpirationDialog_your_messages_will_not_expire">Съобщението Ви няма да изчезне.</string>
   <string name="ExpirationDialog_your_messages_will_disappear_s_after_they_have_been_seen">Изпратени и получени съобщения в този разговор ще изчезнат %s след изпращането им.</string>
   <!--PassphrasePromptActivity-->
   <string name="PassphrasePromptActivity_enter_passphrase">Въведи паролата</string>
-  <string name="PassphrasePromptActivity_watermark_content_description">Signal икона</string>
+  <string name="PassphrasePromptActivity_watermark_content_description">Forsta икона</string>
   <string name="PassphrasePromptActivity_ok_button_content_description">Задай паролата</string>
   <string name="PassphrasePromptActivity_invalid_passphrase_exclamation">Грешна парола!</string>
   <!--PlayServicesProblemFragment-->
@@ -404,7 +404,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="RedPhone_recipient_unavailable">Приемащия повикването не е на линия</string>
   <string name="RedPhone_performing_handshake">Установяване на връзка</string>
   <string name="RedPhone_network_failed">Грешка в мрежата!</string>
-  <string name="RedPhone_client_failed">Грешка в Signal!</string>
+  <string name="RedPhone_client_failed">Грешка в Forsta!</string>
   <string name="RedPhone_fatal_error">Фатална грешка</string>
   <string name="RedPhone_login_failed">Неуспешно вписване!</string>
   <string name="RedPhone_message_from_the_server">Съобщение от сървъра</string>
@@ -412,7 +412,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="RedPhone_the_number_you_dialed_does_not_support_secure_voice">Номерът, който набрахте не поддържа криптирани обаждания!</string>
   <string name="RedPhone_got_it">Ясно</string>
   <!--RegistrationActivity-->
-  <string name="RegistrationActivity_connect_with_signal">Свържи се със Signal</string>
+  <string name="RegistrationActivity_connect_with_signal">Свържи се със Forsta</string>
   <string name="RegistrationActivity_select_your_country">Избери държавата си</string>
   <string name="RegistrationActivity_you_must_specify_your_country_code">Трябва да въведеш своя
 международен код</string>
@@ -451,12 +451,12 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="RegistrationProgressActivity_too_many_requests">Твърде много опити!</string>
   <string name="RegistrationProgressActivity_youve_already_requested_a_voice_call">Наскоро вече поиска обаждане. Може да поискаш повторно след 20 минути.</string>
   <string name="RegistrationProgressActivity_registration_conflict">Конфликт при регистрацията</string>
-  <string name="RegistrationProgressActivity_this_number_is_already_registered_on_a_different">Този номер е вече регистриран с друг Signal сървър (CyanogenMod?). Трябва да се дерегистрирате от него преди да се регистрирате тук.</string>
+  <string name="RegistrationProgressActivity_this_number_is_already_registered_on_a_different">Този номер е вече регистриран с друг Forsta сървър (CyanogenMod?). Трябва да се дерегистрирате от него преди да се регистрирате тук.</string>
   <!--RegistrationService-->
   <string name="RegistrationService_registration_complete">Регистрацията завършена...</string>
-  <string name="RegistrationService_signal_registration_has_successfully_completed">Signal регистрацията е успешно завършена.</string>
+  <string name="RegistrationService_signal_registration_has_successfully_completed">Forsta регистрацията е успешно завършена.</string>
   <string name="RegistrationService_registration_error">Грешка при регистрацията</string>
-  <string name="RegistrationService_signal_registration_has_encountered_a_problem">Signal регистрацията се натъкна на проблем.</string>
+  <string name="RegistrationService_signal_registration_has_encountered_a_problem">Forsta регистрацията се натъкна на проблем.</string>
   <!--Slide-->
   <string name="Slide_image">Изображение</string>
   <string name="Slide_audio">Аудио</string>
@@ -479,10 +479,10 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="ThreadRecord_called_you">Ви се обади</string>
   <string name="ThreadRecord_missed_call">Пропуснато обаждане</string>
   <string name="ThreadRecord_media_message">Медийно съобщение</string>
-  <string name="ThreadRecord_s_is_on_signal_say_hey">%s е в Signal, кажи му здрасти!</string>
+  <string name="ThreadRecord_s_is_on_signal_say_hey">%s е в Forsta, кажи му здрасти!</string>
   <string name="ThreadRecord_disappearing_message_time_updated_to_s">Времето за изчезване на съобщенията е %s</string>
   <!--VerifyIdentityActivity-->
-  <string name="VerifyIdentityActivity_your_contact_is_running_an_old_version_of_signal">Вашият контакт използва стара версия на Signal, помолете ги да го обновят преди да проверят числата за сигурност.</string>
+  <string name="VerifyIdentityActivity_your_contact_is_running_an_old_version_of_signal">Вашият контакт използва стара версия на Forsta, помолете ги да го обновят преди да проверят числата за сигурност.</string>
   <string name="VerifyIdentityActivity_you_re_attempting_to_verify_safety_numbers_with">Опитвате се проверите числата за сигурност на %1$s, но вместо това сканирахте %2$s.</string>
   <string name="VerifyIdentityActivity_the_scanned_qr_code_is_not_a_correctly_formatted_safety_number">Сканираният QR код не представлява правилно форматира код на числа за сигурност. Моля, сканирайте отново.</string>
   <!--KeyExchangeInitiator-->
@@ -517,7 +517,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <!--KeyCachingService-->
   <string name="KeyCachingService_signal_passphrase_cached">Натисните, за да отворите.</string>
   <string name="KeyCachingService_signal_passphrase_cached_with_lock">Натиснете, за да отворите или натиснете катинара, за да затворите.</string>
-  <string name="KeyCachingService_passphrase_cached">Signal е отключен</string>
+  <string name="KeyCachingService_passphrase_cached">Forsta е отключен</string>
   <string name="KeyCachingService_lock">Заключи паролата</string>
   <!--MessageNotifier-->
   <string name="MessageNotifier_d_new_messages_in_d_conversations">%1$d нови съобщения в %2$d чата</string>
@@ -533,10 +533,10 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="MessageNotifier_media_message">Медийно съобщение</string>
   <string name="MessageNotifier_reply">Отговори</string>
   <!--QuickResponseService-->
-  <string name="QuickResponseService_quick_response_unavailable_when_Signal_is_locked">Бърз отговор не е възможен, когато Signal е заключен!</string>
+  <string name="QuickResponseService_quick_response_unavailable_when_Signal_is_locked">Бърз отговор не е възможен, когато Forsta е заключен!</string>
   <string name="QuickResponseService_problem_sending_message">Проблем при изпрашане на съобщение!</string>
   <!--SingleRecipientNotificationBuilder-->
-  <string name="SingleRecipientNotificationBuilder_signal">Signal</string>
+  <string name="SingleRecipientNotificationBuilder_signal">Forsta</string>
   <string name="SingleRecipientNotificationBuilder_new_message">Ново съобщение</string>
   <!--attachment_type_selector-->
   <string name="attachment_type_selector__image">Изображение</string>
@@ -565,7 +565,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <!--conversation_title_view-->
   <string name="conversation_title_view__conversation_muted">Чатът е в тих режим</string>
   <!--conversation_activity-->
-  <string name="conversation_activity__type_message_push">Изпрати Signal съобщение</string>
+  <string name="conversation_activity__type_message_push">Изпрати Forsta съобщение</string>
   <string name="conversation_activity__type_message_sms_insecure">Изпрати некриптиран SMS</string>
   <string name="conversation_activity__type_message_mms_insecure">Изпрати некриптиран MMS</string>
   <string name="conversation_activity__from_sim_name">От %1$s</string>
@@ -641,7 +641,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="log_submit_activity__posting_logs">Изпращане на доклад до gist...</string>
   <string name="log_submit_activity__no_browser_installed">Няма инсталиран браузър</string>
   <!--database_migration_activity-->
-  <string name="database_migration_activity__would_you_like_to_import_your_existing_text_messages">Желаете ли да внесете вече същестуващите текстови съобщения в криптиранта база данни на Signal?</string>
+  <string name="database_migration_activity__would_you_like_to_import_your_existing_text_messages">Желаете ли да внесете вече същестуващите текстови съобщения в криптиранта база данни на Forsta?</string>
   <string name="database_migration_activity__the_default_system_database_will_not_be_modified">Системната база данни няма да бъде променена по никакъв начин.</string>
   <string name="database_migration_activity__skip">Пропусни</string>
   <string name="database_migration_activity__import">Внеси</string>
@@ -681,7 +681,7 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <!--prompt_passphrase_activity-->
   <string name="prompt_passphrase_activity__unlock">Отключи</string>
   <!--prompt_mms_activity-->
-  <string name="prompt_mms_activity__signal_requires_mms_settings_to_deliver_media_and_group_messages">Signal се нуждае от MMS настройки, за да може да достави медийни и групови съобщения през мрежата. Устройството ти не прави тази информация достъпна, което се случва понякога за заключени устройва и други ограничени конфигурации.</string>
+  <string name="prompt_mms_activity__signal_requires_mms_settings_to_deliver_media_and_group_messages">Forsta се нуждае от MMS настройки, за да може да достави медийни и групови съобщения през мрежата. Устройството ти не прави тази информация достъпна, което се случва понякога за заключени устройва и други ограничени конфигурации.</string>
   <string name="prompt_mms_activity__to_send_media_and_group_messages_tap_ok">За да изптратиш медийни и групови съобщения, избери \'ОК\' и нагласи изискваните настройки. MMS настройките на твоя мобилен оператор могат да бъдат намерени като потърсиш \'APN настройки\'. Нужно е да изпълниш тази стъпка само веднъж.</string>
   <!--recipient_preferences_activity-->
   <string name="recipient_preference_activity__blocked">БЛОКИРАН</string>
@@ -695,14 +695,14 @@ SMS-те от системния архив в Signal. Ако вече сте в
   <string name="recipient_preferences__color_for_this_contact">Цвят за този контакт</string>
   <string name="recipient_preferences__verify_safety_numbers">Провери числата за сигурност</string>
   <!--- redphone_call_controls-->
-  <string name="redphone_call_card__signal_call">Signal-ско обаждане</string>
+  <string name="redphone_call_card__signal_call">Forsta-ско обаждане</string>
   <string name="redphone_call_controls__end_call">прекрати обаждането</string>
   <string name="redphone_call_controls__audio">Аудио</string>
   <string name="redphone_call_controls__mute">Заглуши</string>
-  <string name="redphone_call_controls__signal_call">Signal-ско обаждане</string>
+  <string name="redphone_call_controls__signal_call">Forsta-ско обаждане</string>
   <!--registration_activity-->
   <string name="registration_activity__verify_your_number_to_connect_with_signal">
-Потвърди своя телфонен номер, за да се свържеш с Signal</string>
+Потвърди своя телфонен номер, за да се свържеш с Forsta</string>
   <string name="registration_activity__your_country">ТВОЯТА ДЪРЖАВА</string>
   <string name="registration_activity__your_country_code_and_phone_number">КОДА НА ТВОЯТА ДЪРЖАВА И
 ТЕЛЕФОНЕН НОМЕР</string>
@@ -716,37 +716,37 @@ SMS-те от системния архив в Signal. Ако вече сте в
 </string>
   <string name="registration_problems__sms_interceptors">SMS прихващачи.</string>
   <string name="registration_problems__some_third_party_text_messaging_clients_such_as_handcent">
-Някои други чат програми като Handcent или GoSMS се държат зле и прихващат всички входящи SMS съобщения. Проверете дали сте получили съобщение започващо със \'Вашият Signal код:\', в който случай нагласете текущата чат програма да пропуска съобщенията.</string>
+Някои други чат програми като Handcent или GoSMS се държат зле и прихващат всички входящи SMS съобщения. Проверете дали сте получили съобщение започващо със \'Вашият Forsta код:\', в който случай нагласете текущата чат програма да пропуска съобщенията.</string>
   <string name="registration_problems__incorrect_number">Грешен номер.</string>
   <string name="registration_problems__please_checkt_to_make_sure_you_entered_your_number_correctly">
 Моля, провери дали номера, който се въвели е правилен и добре форматиран 
 за региона, в който се намираш.</string>
   <string name="registration_problems__google_voice">Google Voice</string>
   <string name="registration_problems__signal_will_not_work_with_google_voice_numbers">
-Signal не работи с Google Voice номера.</string>
+Forsta не работи с Google Voice номера.</string>
   <!--registration_progress_activity-->
   <string name="registration_progress_activity__voice_verification">Гласово потвърждение</string>
   <string name="registration_progress_activity__signal_can_also_call_you_to_verify_your_number">
-Signal може да ти се обади, за да потвърди номера ти. Натисни \'Обади ми се\' и въведи 6 цифрения код, 
+Forsta може да ти се обади, за да потвърди номера ти. Натисни \'Обади ми се\' и въведи 6 цифрения код,
 който чуваш, долу.</string>
   <string name="registration_progress_activity__verify">Потвърди</string>
   <string name="registration_progress_activity__call_me">Обади ми се</string>
   <string name="registration_progress_activity__edit_number">Промени номера</string>
   <string name="registration_progress_activity__connectivity_error">Грешка при свързването.</string>
-  <string name="registration_progress_activity__signal_was_unable_to_connect_to_the_server">Signal не успя да се свърже със сървъра.</string>
+  <string name="registration_progress_activity__signal_was_unable_to_connect_to_the_server">Forsta не успя да се свърже със сървъра.</string>
   <string name="registration_progress_activity__some_possible_problems_include">Няколко вероятни
 проблема включват:
 </string>
   <string name="registration_progress_activity__no_network_connectivity">Няма интернет
 връзка.</string>
   <string name="registration_progress_activity__your_device_needs_network_connectivity">Устройствот Ви
-се нуждае от връзка с интернет, за да може да използва тази Signal услуга.
+се нуждае от връзка с интернет, за да може да използва тази Forsta услуга.
 Проверете и се убедете, че сте свързани с мобилната мрежа или Wi-Fi.</string>
   <string name="registration_progress_activity__restrictive_firewall">Firewall-a e твърде рестриктивен.</string>
   <string name="registration_progress_activity__if_you_are_connected_via_wifi_its_possible_that_there_is_a_firewall">
-Ако сте свързане през Wi-Fi, възможно е да имате firewall, който блокирва достъпа до Signal сървъра. Оптайте друг вид достъп до интернет.</string>
+Ако сте свързане през Wi-Fi, възможно е да имате firewall, който блокирва достъпа до Forsta сървъра. Оптайте друг вид достъп до интернет.</string>
   <string name="registration_progress_activity__signal_will_now_automatically_verify_your_number_with_a_confirmation_sms_message">
-Signal ще опита да потвърди телефонния ти номер, автоматично, посредством SMS.</string>
+Forsta ще опита да потвърди телефонния ти номер, автоматично, посредством SMS.</string>
   <string name="registration_progress_activity__connecting">Свързване...</string>
   <string name="registration_progress_activity__waiting_for_sms_verification">Изчкване за SMS
 потвърждение...</string>
@@ -754,7 +754,7 @@ Signal ще опита да потвърди телефонния ти номе�
   <string name="registration_progress_activity__this_couild_take_a_moment_please_be_patient">Това 
 може да отнеме момент. Моля, бъди търпелив, ще те уведомим, когато потвърждението е завършено.</string>
   <string name="registration_progress_activity__signal_timed_out_while_waiting_for_a_verification_sms_message">
-Signal чака твърде дълго за SMS потвърждение.</string>
+Forsta чака твърде дълго за SMS потвърждение.</string>
   <string name="registration_progress_activity__sms_verification_failed">SMS потвърждението е
 неуспешно.
 </string>
@@ -780,7 +780,7 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="AndroidManifest__create_passphrase">Създай парола</string>
   <string name="AndroidManifest__enter_passphrase">Въведи парола</string>
   <string name="AndroidManifest__select_contacts">Избери контакти</string>
-  <string name="AndroidManifest__signal_detected">Открит е Signal</string>
+  <string name="AndroidManifest__signal_detected">Открит е Forsta</string>
   <string name="AndroidManifest__change_passphrase">Смени паролата</string>
   <string name="AndroidManifest__verify_safety_numbers">Провери числата за сигурност</string>
   <string name="AndroidManifest__log_submit">Изпрати доклад</string>
@@ -819,8 +819,8 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="preferences__sms_mms">SMS и MMS</string>
   <string name="preferences__pref_all_sms_title">Използвай за всички SMS-и</string>
   <string name="preferences__pref_all_mms_title">Използвай за всички MMS-и</string>
-  <string name="preferences__use_signal_for_viewing_and_storing_all_incoming_text_messages">Използвай Signal за всички входящи текстови съобщения</string>
-  <string name="preferences__use_signal_for_viewing_and_storing_all_incoming_multimedia_messages">Използвай Signal  за всички входящи мултимедийни съобщения</string>
+  <string name="preferences__use_signal_for_viewing_and_storing_all_incoming_text_messages">Използвай Forsta за всички входящи текстови съобщения</string>
+  <string name="preferences__use_signal_for_viewing_and_storing_all_incoming_multimedia_messages">Използвай Forsta  за всички входящи мултимедийни съобщения</string>
   <string name="preferences__input_settings">Настройки на въвеждането</string>
   <string name="preferences__enable_enter_key_title">Разреши клавиша Enter</string>
   <string name="preferences__replace_smiley_with_enter_key">Замени клавиша за емотикони с клавиша Enter</string>
@@ -832,16 +832,16 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="preferences__change_passphrase">Смени паролата</string>
   <string name="preferences__change_your_passphrase">Сменете паролата си</string>
   <string name="preferences__enable_passphrase">Включи парола</string>
-  <string name="preferences__lock_signal_and_message_notifications_with_a_passphrase">Заключи Signal и всички извесития с парола</string>
+  <string name="preferences__lock_signal_and_message_notifications_with_a_passphrase">Заключи Forsta и всички извесития с парола</string>
   <string name="preferences__screen_security">Сигурност на екрана</string>
   <string name="preferences__disable_screen_security_to_allow_screen_shots">Забрани автоматично копиране на екрана в списка с често използвани програми и в самата програма.</string>
-  <string name="preferences__auto_lock_signal_after_a_specified_time_interval_of_inactivity">Автоматично заключвай Signal след зададен период от неактивност</string>
+  <string name="preferences__auto_lock_signal_after_a_specified_time_interval_of_inactivity">Автоматично заключвай Forsta след зададен период от неактивност</string>
   <string name="preferences__inactivity_timeout_passphrase">Парола за период на неактивност</string>
   <string name="preferences__inactivity_timeout_interval">Продължителност на период за неактивност</string>
   <string name="preferences__notifications">Известия</string>
   <string name="preferences__enable_message_notifications">Разреши известия за съобщения</string>
   <string name="preferences__new_contacts_notifications">Известия за нови контакти</string>
-  <string name="preferences__show_a_notification_for_new_signal_contacts">Показва известия за нови Signal контакти</string>
+  <string name="preferences__show_a_notification_for_new_signal_contacts">Показва известия за нови Forsta контакти</string>
   <string name="preferences__led_color">LED цвят</string>
   <string name="preferences__led_color_unknown">Непознат</string>
   <string name="preferences__pref_led_blink_title">LED известяване</string>
@@ -903,8 +903,8 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="preferences__theme">Тема</string>
   <string name="preferences__default">По подразбиране</string>
   <string name="preferences__language">Език</string>
-  <string name="preferences__signal_messages_and_calls">Signal съобщения и обаждания</string>
-  <string name="preferences__free_private_messages_and_calls">Безплатни, лични съобщения и обаждания до Signal потребители</string>
+  <string name="preferences__signal_messages_and_calls">Forsta съобщения и обаждания</string>
+  <string name="preferences__free_private_messages_and_calls">Безплатни, лични съобщения и обаждания до Forsta потребители</string>
   <string name="preferences__submit_debug_log">Изпрати доклад</string>
   <string name="preferences__support_wifi_calling">Съвместим режим \'WiFi Calling\'</string>
   <string name="preferences__enable_if_your_device_supports_sms_mms_delivery_over_wifi">Включи ако устройството ти използва WiFi за SMS/MMS(само ако \'Wifi Calling\' е включен на устройството ти)</string>
@@ -918,7 +918,7 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="preferences_chats__media_auto_download">Автоматично теглене на мултимедия</string>
   <string name="preferences_chats__message_trimming">Съкращаване на съобщенията</string>
   <string name="preferences_advanced__use_system_emoji">Използвай вградените emoji-та</string>
-  <string name="preferences_advanced__disable_signal_built_in_emoji_support">Деактивирай вградена в Signal подръжка на emoji-та</string>
+  <string name="preferences_advanced__disable_signal_built_in_emoji_support">Деактивирай вградена в Forsta подръжка на emoji-та</string>
   <!--****************************************-->
   <!--menus-->
   <!--****************************************-->
@@ -935,7 +935,7 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <!--conversation_callable_insecure-->
   <string name="conversation_callable_insecure__menu_call">Обаждане</string>
   <!--conversation_callable_secure-->
-  <string name="conversation_callable_secure__menu_call">Signal обаждане</string>
+  <string name="conversation_callable_secure__menu_call">Forsta обаждане</string>
   <!--conversation_context-->
   <string name="conversation_context__menu_message_details">Информация за съобщението</string>
   <string name="conversation_context__menu_copy_text">Копирай текста</string>
@@ -1000,17 +1000,17 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="text_secure_normal__invite_friends">Поканете приятели</string>
   <string name="text_secure_normal__help">Помощ</string>
   <!--reminder_header-->
-  <string name="reminder_header_outdated_build">Вашата версия на Signal е стара</string>
+  <string name="reminder_header_outdated_build">Вашата версия на Forsta е стара</string>
   <plurals name="reminder_header_outdated_build_details">
-    <item quantity="one">Вашата версия на Signal ще изтече след 1 ден. Натиснете, за да обновите до най-новата версия.</item>
-    <item quantity="other">Вашата версия на Signal ще изтече след %d дена. Натиснете, за да обновите до най-новата версия.</item>
+    <item quantity="one">Вашата версия на Forsta ще изтече след 1 ден. Натиснете, за да обновите до най-новата версия.</item>
+    <item quantity="other">Вашата версия на Forsta ще изтече след %d дена. Натиснете, за да обновите до най-новата версия.</item>
   </plurals>
-  <string name="reminder_header_outdated_build_details_today">Вашата версия на Signal ще изтече днес. Натиснете, за да обновите до най-новата версия.</string>
-  <string name="reminder_header_expired_build">Вашата версоя ма Signal е изтекла!</string>
+  <string name="reminder_header_outdated_build_details_today">Вашата версия на Forsta ще изтече днес. Натиснете, за да обновите до най-новата версия.</string>
+  <string name="reminder_header_expired_build">Вашата версоя ма Forsta е изтекла!</string>
   <string name="reminder_header_expired_build_details">Съобщенията няма да успесно изпращани от сега нататък. Натиснете, за да обновите до най-новата версия.</string>
   <string name="reminder_header_expired_build_button">ОБНОВИ</string>
   <string name="reminder_header_sms_default_title">Използвай като SMS програма по подразбиране</string>
-  <string name="reminder_header_sms_default_text">Натисни, за да направиш Signal своята SMS програма по подразбиране.</string>
+  <string name="reminder_header_sms_default_text">Натисни, за да направиш Forsta своята SMS програма по подразбиране.</string>
   <string name="reminder_header_sms_default_button">ЗАДАЙ</string>
   <string name="reminder_header_sms_import_title">Внеси системните SMS-и</string>
   <string name="reminder_header_sms_import_text">Натиснете, за да копирате SMS съобщенията от Вашия телефон в криптираната база данни на Сигнал.</string>
@@ -1018,11 +1018,11 @@ Signal чака твърде дълго за SMS потвърждение.</stri
   <string name="reminder_header_push_title">Активирай Singal съобщения и обаждания</string>
   <string name="reminder_header_push_text">Обнови комуникацията си.</string>
   <string name="reminder_header_push_button">АКТИВИРАЙ</string>
-  <string name="reminder_header_invite_title">Покани в Signal</string>
+  <string name="reminder_header_invite_title">Покани в Forsta</string>
   <string name="reminder_header_invite_text">Издигни разговора си с %1$s до ново ниво.</string>
   <string name="reminder_header_invite_button">ПОКАНИ</string>
   <string name="reminder_header_share_title">Поканете приятелите си!</string>
-  <string name="reminder_header_share_text">Колкото повече приятели използват Signal, толкова по-добър става той.</string>
+  <string name="reminder_header_share_text">Колкото повече приятели използват Forsta, толкова по-добър става той.</string>
   <string name="reminder_header_share_button">СПОДЕЛИ</string>
   <string name="reminder_header_close_button">ЗАТВОРИ</string>
   <!--MediaPreviewActivity-->

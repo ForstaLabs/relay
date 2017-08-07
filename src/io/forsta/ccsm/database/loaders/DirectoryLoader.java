@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.util.AbstractCursorLoader;

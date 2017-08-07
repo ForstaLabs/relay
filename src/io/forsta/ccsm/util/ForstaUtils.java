@@ -159,8 +159,9 @@ public class ForstaUtils {
       if (messageRecipients.isGroupRecipient()) {
         try {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-          String endcodedGroupId = threadId = messageRecipients.getPrimaryRecipient().getNumber();
+          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
+          threadId = new String(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
           presentation = group.getSlug();
@@ -184,6 +185,7 @@ public class ForstaUtils {
           names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
         }
 
+        threadId = forstaSingleRecipients.size() > 0 ? forstaSingleRecipients.get(0).uuid : "";
         threadTitle = TextUtils.join(",", names);
 
         presentation = TextUtils.join("+", forstaSlugs);

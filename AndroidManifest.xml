@@ -99,12 +99,10 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="io.forsta.securesms.permission.C2D_MESSAGE" />
-
-    <!-- Old key AIzaSyCSx9xea86GwDKGznCAULE9Y5a8b-TfN9U -->
     <application
         android:name="io.forsta.securesms.ApplicationContext"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="${appIcon}"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/TextSecure.LightTheme"
@@ -482,18 +480,18 @@
 
         <provider
             android:name=".providers.PartProvider"
-            android:authorities="io.forsta.provider.securesms"
+            android:authorities="${applicationId}.provider.securesms"
             android:exported="false"
             android:grantUriPermissions="true" />
         <provider
             android:name=".providers.MmsBodyProvider"
-            android:authorities="io.forsta.provider.securesms.mms"
+            android:authorities="${applicationId}.provider.securesms.mms"
             android:exported="false"
             android:grantUriPermissions="true" />
 
         <provider
             android:name="io.forsta.ccsm.api.ForstaProvider"
-            android:authorities="io.forsta.provider.ccsm"
+            android:authorities="${applicationId}.provider.ccsm"
             android:exported="false"
             android:label="Forsta Contacts"
             android:grantUriPermissions="true" />
