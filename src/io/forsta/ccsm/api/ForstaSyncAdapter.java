@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -34,7 +35,7 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
 
   private static final String TAG = ForstaSyncAdapter.class.getSimpleName();
   public static final String FORSTA_SYNC_COMPLETE = "io.forsta.securesms.FORSTA_SYNC_COMPLETE";
-  public static final String AUTHORITY = "io.forsta.provider.ccsm";
+  public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider.ccsm";
   private static final String ACCOUNT_TYPE = "io.forsta.securesms";
   private ContentResolver contentResolver;
 
