@@ -178,8 +178,7 @@ android {
         }
         prod {
             manifestPlaceholders = [appIcon: "@mipmap/ic_launcher"]
-            // XXX Amazon CA isn't trusted in our build for some reason.
-            buildConfigField "String", "TEXTSECURE_URL", "\"http://textsecure.forsta.services\""
+            buildConfigField "String", "TEXTSECURE_URL", "\"https://textsecure.forsta.services\""
             // XXX: Move to heroku when it's ready..
             //buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
