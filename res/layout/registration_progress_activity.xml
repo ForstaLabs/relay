@@ -13,125 +13,149 @@
             android:gravity="center" >
 
         <LinearLayout
-                android:id="@+id/connectivity_failure_layout"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="16dip"
-                android:layout_marginRight="16dip"
-                android:orientation="vertical"
-                android:visibility="gone" >
+            android:id="@+id/connectivity_failure_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="16dip"
+            android:layout_marginRight="16dip"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:weightSum="1">
 
             <RelativeLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dip"
-                    android:layout_marginTop="10dip"
-                    android:background="@drawable/background_pane" >
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dip"
+                android:layout_marginTop="10dip"
+                android:background="@drawable/background_pane">
 
                 <ImageView
-                        android:id="@+id/connectivity_alert"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:paddingLeft="4dip"
-                        android:paddingRight="4dip"
-                        android:src="@drawable/alert"
-                        android:contentDescription="@string/registration_progress_activity__alert"/>
+                    android:id="@+id/connectivity_alert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:contentDescription="@string/registration_progress_activity__alert"
+                    android:paddingLeft="4dip"
+                    android:paddingRight="4dip"
+                    android:src="@drawable/alert" />
 
                 <TextView
-                        style="@style/Registration.Constant"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignBottom="@id/connectivity_alert"
-                        android:layout_toRightOf="@id/connectivity_alert"
-                        android:paddingLeft="4.0dip"
-                        android:paddingRight="8.0dip"
-                        android:text="@string/registration_progress_activity__connectivity_error"
-                        android:textColor="#333333"
-                        android:textSize="16.0sp" />
+                    style="@style/Registration.Constant"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/connectivity_alert"
+                    android:layout_alignEnd="@+id/textView"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignRight="@+id/textView"
+                    android:layout_toRightOf="@id/connectivity_alert"
+                    android:paddingLeft="4.0dip"
+                    android:paddingRight="8.0dip"
+                    android:text="@string/registration_progress_activity__connectivity_error"
+                    android:textSize="24sp" />
 
                 <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:layout_below="@+id/connectivity_alert"
-                        android:paddingLeft="4dip"
-                        android:paddingRight="4dip"
-                        android:text="@string/registration_progress_activity__signal_was_unable_to_connect_to_the_server" />
+                    android:id="@+id/textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_below="@+id/connectivity_alert"
+                    android:paddingLeft="4dip"
+                    android:paddingRight="4dip"
+                    android:text="@string/registration_progress_activity__signal_was_unable_to_connect_to_the_server" />
             </RelativeLayout>
 
             <TextView
-                    style="@style/Registration.Description"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dip"
-                    android:text="@string/registration_progress_activity__some_possible_problems_include" />
+                style="@style/Registration.Description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dip"
+                android:text="@string/registration_progress_activity__some_possible_problems_include" />
 
             <TableLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content" >
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
 
-                <TableRow>
+                <TableRow
+                    layout_height="match_parent"
+                    layout_width="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
                     <TextView
+                        style="@style/Registration.Description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingRight="10dip"
+                        android:text="•" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Registration.Description"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/registration_progress_activity__restrictive_firewall"
+                            android:textStyle="bold" />
+
+                        <TextView
                             style="@style/Registration.Description"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingRight="10dip"
-                            android:text="•" />
-
-                    <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" >
-
-                        <TextView
-                                style="@style/Registration.Description"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/registration_progress_activity__no_network_connectivity"
-                                android:textStyle="bold" />
-
-                        <TextView
-                                style="@style/Registration.Description"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingRight="10dip"
-                                android:text="@string/registration_progress_activity__your_device_needs_network_connectivity" />
+                            android:text="@string/registration_progress_activity__if_you_are_connected_via_wifi_its_possible_that_there_is_a_firewall" />
                     </LinearLayout>
                 </TableRow>
 
                 <TableRow>
 
                     <TextView
+                        style="@style/Registration.Description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingRight="10dip"
+                        android:text="•" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Registration.Description"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/registration_progress_activity__no_network_connectivity"
+                            android:textStyle="bold" />
+
+                        <TextView
                             style="@style/Registration.Description"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingRight="10dip"
-                            android:text="•" />
-
-                    <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" >
-
-                        <TextView
-                                style="@style/Registration.Description"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/registration_progress_activity__restrictive_firewall"
-                                android:textStyle="bold" />
-
-                        <TextView
-                                style="@style/Registration.Description"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingRight="10dip"
-                                android:text="@string/registration_progress_activity__if_you_are_connected_via_wifi_its_possible_that_there_is_a_firewall" />
+                            android:text="@string/registration_progress_activity__your_device_needs_network_connectivity" />
                     </LinearLayout>
                 </TableRow>
+
             </TableLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.13"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="5dp">
+
+                <Button
+                    android:id="@+id/retry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Retry" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -145,7 +169,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="270dp"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:weightSum="1">
 
@@ -313,14 +337,6 @@
                 </TableRow>
 
             </TableLayout>
-
-            <ProgressBar
-                android:id="@+id/registration_progress"
-                style="@style/Widget.ProgressBar.Horizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="14.0dip"
-                android:layout_marginTop="2.0dip" />
 
         </LinearLayout>
 
