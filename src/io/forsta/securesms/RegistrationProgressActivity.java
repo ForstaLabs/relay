@@ -1,3 +1,4 @@
+// vim: ts=2:sw=2:expandtab
 package io.forsta.securesms;
 
 import android.app.ProgressDialog;
@@ -39,7 +40,6 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.ExpectationFailedException;
 import org.whispersystems.signalservice.api.push.exceptions.RateLimitException;
-import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
 import java.io.IOException;
 
@@ -81,7 +81,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   @Override
   public void onCreate(Bundle bundle) {
     super.onCreate(bundle);
-    getSupportActionBar().setTitle(getString(R.string.RegistrationProgressActivity_verifying_number));
     setContentView(R.layout.registration_progress_activity);
 
     initializeResources();
@@ -162,18 +161,10 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   }
 
   private void handleStateIdle() {
-    if (hasNumberDirective()) {
-      Intent intent = new Intent(this, RegistrationService.class);
-      intent.setAction(RegistrationService.REGISTER_NUMBER_ACTION);
-      intent.putExtra("e164number", getNumberDirective());
-      intent.putExtra("master_secret", masterSecret);
-      startService(intent);
-    } else {
-      Intent intent = new Intent(this, RegistrationActivity.class);
-      intent.putExtra("master_secret", masterSecret);
-      startActivity(intent);
-      finish();
-    }
+    Intent intent = new Intent(this, RegistrationService.class);
+    intent.setAction(RegistrationService.REGISTER_ACCOUNT);
+    intent.putExtra("master_secret", masterSecret);
+    startService(intent);
   }
 
   private void handleStateConnecting() {
@@ -244,29 +235,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectivityFailureLayout.setVisibility(View.VISIBLE);
   }
 
-  private void handleTimerUpdate() {
-    if (registrationService == null)
-      return;
-
-    int totalSecondsRemaining = registrationService.getSecondsRemaining();
-    int minutesRemaining      = totalSecondsRemaining / 60;
-    int secondsRemaining      = totalSecondsRemaining - (minutesRemaining * 60);
-    double percentageComplete = (double)((60 * 2) - totalSecondsRemaining) / (double)(60 * 2);
-    int progress              = (int)Math.round(((double)registrationProgress.getMax()) * percentageComplete);
-
-    this.registrationProgress.setProgress(progress);
-
-    registrationStateHandler.sendEmptyMessageDelayed(RegistrationState.STATE_TIMER, 1000);
-  }
-
-  private boolean hasNumberDirective() {
-    return getIntent().getStringExtra("e164number") != null;
-  }
-
-  private String getNumberDirective() {
-    return getIntent().getStringExtra("e164number");
-  }
-
   private void shutdownServiceBinding() {
     if (serviceConnection != null) {
       unbindService(serviceConnection);
@@ -294,8 +262,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
 
       RegistrationState state = registrationService.getRegistrationState();
       registrationStateHandler.obtainMessage(state.state, state).sendToTarget();
-
-      handleTimerUpdate();
     }
 
     @Override
@@ -313,7 +279,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
       case RegistrationState.STATE_IDLE:                 handleStateIdle();                       break;
       case RegistrationState.STATE_CONNECTING:           handleStateConnecting();                 break;
       case RegistrationState.STATE_VERIFYING:            handleStateVerifying();                  break;
-      case RegistrationState.STATE_TIMER:                handleTimerUpdate();                     break;
       case RegistrationState.STATE_GENERATING_KEYS:      handleStateGeneratingKeys();             break;
       case RegistrationState.STATE_GCM_REGISTERING:      handleStateGcmRegistering();             break;
       case RegistrationState.STATE_GCM_TIMEOUT:          handleGcmTimeout(state);                 break;
