@@ -34,13 +34,8 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
-/**
- * The register account activity.  Prompts ths user for their registration information
- * and begins the account registration process.
- *
- * @author Moxie Marlinspike
- *
- */
+/* XXX Deprecated activity in CCSM onboarding model.
+ * Just forwards to the progress activity now. */
 public class RegistrationActivity extends BaseActionBarActivity {
 
   private MasterSecret masterSecret;

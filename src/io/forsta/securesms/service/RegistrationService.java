@@ -1,3 +1,4 @@
+// vim: ts=2:sw=2:expandtab
 package io.forsta.securesms.service;
 
 import android.app.Service;
@@ -39,15 +40,12 @@ import java.util.concurrent.Executors;
 
 /**
  * The RegisterationService handles the process of PushService registration and verification.
- * If it receives an intent with a REGISTER_NUMBER_ACTION, it does the following through
+ * If it receives an intent with a REGISTER_ACCOUNT, it does the following through
  * an executor:
  *
  * 1) Generate secrets.
- * 2) Register the specified number and those secrets with the server.
- * 3) Wait for a challenge SMS.
- * 4) Verify the challenge with the server.
- * 5) Start the GCM registration process.
- * 6) Retrieve the current directory.
+ * 2) Register our CCSM user ID and those secrets with the server.
+ * 3) Start the GCM registration process.
  *
  * The RegistrationService broadcasts its state throughout this process, and also makes its
  * state available through service binding.  This enables a View to display progress.
@@ -58,18 +56,14 @@ import java.util.concurrent.Executors;
 
 public class RegistrationService extends Service {
 
-  public static final String REGISTER_NUMBER_ACTION = "io.forsta.securesms.RegistrationService.REGISTER_NUMBER";
-  public static final String VOICE_REQUESTED_ACTION = "io.forsta.securesms.RegistrationService.VOICE_REQUESTED";
-  public static final String VOICE_REGISTER_ACTION  = "io.forsta.securesms.RegistrationService.VOICE_REGISTER";
+  public static final String REGISTER_ACCOUNT = "io.forsta.securesms.RegistrationService.REGISTER_ACCOUNT";
 
   public static final String NOTIFICATION_TITLE     = "io.forsta.securesms.NOTIFICATION_TITLE";
   public static final String NOTIFICATION_TEXT      = "io.forsta.securesms.NOTIFICATION_TEXT";
-  public static final String CHALLENGE_EVENT        = "io.forsta.securesms.CHALLENGE_EVENT";
+  public static final String CHALLENGE_EVENT        = "io.forsta.securesms.CHALLENGE_EVENT"; // Deprecated
   public static final String REGISTRATION_EVENT     = "io.forsta.securesms.REGISTRATION_EVENT";
-
-  public static final String CHALLENGE_EXTRA        = "CAAChallenge";
-
-  private static final long REGISTRATION_TIMEOUT_MILLIS = 120000;
+  public static final String CHALLENGE_EXTRA        = "DEPRECATED";
+    
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Binder          binder   = new RegistrationServiceBinder();
@@ -77,8 +71,6 @@ public class RegistrationService extends Service {
   private volatile RegistrationState registrationState = new RegistrationState(RegistrationState.STATE_IDLE);
 
   private volatile WeakReference<Handler>  registrationStateHandler;
-  private volatile ChallengeReceiver       challengeReceiver;
-  private          String                  challenge;
   private          long                    verificationStartTime;
   private          boolean                 generatingPreKeys;
 
@@ -88,9 +80,7 @@ public class RegistrationService extends Service {
       executor.execute(new Runnable() {
         @Override
         public void run() {
-          if      (REGISTER_NUMBER_ACTION.equals(intent.getAction())) handleSmsRegistrationIntent(intent);
-          else if (VOICE_REQUESTED_ACTION.equals(intent.getAction())) handleVoiceRequestedIntent(intent);
-          else if (VOICE_REGISTER_ACTION.equals(intent.getAction()))  handleVoiceRegistrationIntent(intent);
+          handleCcsmRegistrationIntent(intent);
         }
       });
     }
@@ -111,76 +101,18 @@ public class RegistrationService extends Service {
   }
 
   public void shutdown() {
-    shutdownChallengeListener();
     markAsVerifying(false);
     registrationState = new RegistrationState(RegistrationState.STATE_IDLE);
-  }
-
-  public synchronized int getSecondsRemaining() {
-    long millisPassed;
-
-    if (verificationStartTime == 0) millisPassed = 0;
-    else                            millisPassed = System.currentTimeMillis() - verificationStartTime;
-
-    return Math.max((int)(REGISTRATION_TIMEOUT_MILLIS - millisPassed) / 1000, 0);
   }
 
   public RegistrationState getRegistrationState() {
     return registrationState;
   }
 
-  private void initializeChallengeListener() {
-    this.challenge    = null;
-    challengeReceiver = new ChallengeReceiver();
-    IntentFilter filter = new IntentFilter(CHALLENGE_EVENT);
-    registerReceiver(challengeReceiver, filter);
-  }
-
-  private synchronized void shutdownChallengeListener() {
-    if (challengeReceiver != null) {
-      unregisterReceiver(challengeReceiver);
-      challengeReceiver = null;
-    }
-  }
-
-  private void handleVoiceRequestedIntent(Intent intent) {
-    setState(new RegistrationState(RegistrationState.STATE_VOICE_REQUESTED,
-                                   intent.getStringExtra("e164number"),
-                                   intent.getStringExtra("password")));
-  }
-
-  private void handleVoiceRegistrationIntent(Intent intent) {
+  private void handleCcsmRegistrationIntent(Intent intent) {
     markAsVerifying(true);
 
-    String number       = intent.getStringExtra("e164number");
-    String password     = intent.getStringExtra("password");
-    String signalingKey = intent.getStringExtra("signaling_key");
-
-    try {
-      SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this, number, password);
-
-      handleCommonRegistration(accountManager, number, password, signalingKey);
-
-      markAsVerified(number, password, signalingKey);
-
-      setState(new RegistrationState(RegistrationState.STATE_COMPLETE, number));
-      broadcastComplete(true);
-    } catch (UnsupportedOperationException uoe) {
-      Log.w("RegistrationService", uoe);
-      setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED, number));
-      broadcastComplete(false);
-    } catch (IOException e) {
-      Log.w("RegistrationService", e);
-      setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR, number));
-      broadcastComplete(false);
-    }
-  }
-
-  private void handleSmsRegistrationIntent(Intent intent) {
-    markAsVerifying(true);
-
-    String number         = intent.getStringExtra("e164number");
-    int    registrationId = TextSecurePreferences.getLocalRegistrationId(this);
+    int registrationId = TextSecurePreferences.getLocalRegistrationId(this);
 
     if (registrationId == 0) {
       registrationId = KeyHelper.generateRegistrationId(false);
@@ -190,55 +122,47 @@ public class RegistrationService extends Service {
     try {
       String password     = Util.getSecret(18);
       String signalingKey = Util.getSecret(52);
+      String addr = "NOTANUMBER";
 
-      initializeChallengeListener();
-
-      setState(new RegistrationState(RegistrationState.STATE_CONNECTING, number));
-      SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this, number, password);
+      setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
+      SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this, addr, password);
       accountManager.requestSmsVerificationCode();
 
-      setState(new RegistrationState(RegistrationState.STATE_VERIFYING, number));
-      String challenge = waitForChallenge();
-      accountManager.verifyAccountWithCode(challenge, signalingKey, registrationId, true);
+      setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
+      accountManager.verifyAccountWithCode(/* XXX challenge*/ null, signalingKey, registrationId, true);
 
-      handleCommonRegistration(accountManager, number, password, signalingKey);
-      markAsVerified(number, password, signalingKey);
+      handleCommonRegistration(accountManager, addr, password, signalingKey);
+      markAsVerified(addr, password, signalingKey);
 
-      setState(new RegistrationState(RegistrationState.STATE_COMPLETE, number));
+      setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
       broadcastComplete(true);
     } catch (ExpectationFailedException efe) {
       Log.w("RegistrationService", efe);
-      setState(new RegistrationState(RegistrationState.STATE_MULTI_REGISTERED, number));
+      setState(new RegistrationState(RegistrationState.STATE_MULTI_REGISTERED));
       broadcastComplete(false);
     } catch (UnsupportedOperationException uoe) {
       Log.w("RegistrationService", uoe);
-      setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED, number));
-      broadcastComplete(false);
-    } catch (AccountVerificationTimeoutException avte) {
-      Log.w("RegistrationService", avte);
-      setState(new RegistrationState(RegistrationState.STATE_TIMEOUT, number));
+      setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED));
       broadcastComplete(false);
     } catch (IOException e) {
       Log.w("RegistrationService", e);
-      setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR, number));
+      setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
       broadcastComplete(false);
-    } finally {
-      shutdownChallengeListener();
     }
   }
 
-  private void handleCommonRegistration(SignalServiceAccountManager accountManager, String number, String password, String signalingKey)
+  private void handleCommonRegistration(SignalServiceAccountManager accountManager, String addr, String password, String signalingKey)
       throws IOException
   {
-    setState(new RegistrationState(RegistrationState.STATE_GENERATING_KEYS, number));
-    Recipient          self         = RecipientFactory.getRecipientsFromString(this, number, false).getPrimaryRecipient();
+    setState(new RegistrationState(RegistrationState.STATE_GENERATING_KEYS));
+    Recipient          self         = RecipientFactory.getRecipientsFromString(this, addr, false).getPrimaryRecipient();
     IdentityKeyPair    identityKey  = IdentityKeyUtil.getIdentityKeyPair(this);
     List<PreKeyRecord> records      = PreKeyUtil.generatePreKeys(this);
     PreKeyRecord       lastResort   = PreKeyUtil.generateLastResortKey(this);
     SignedPreKeyRecord signedPreKey = PreKeyUtil.generateSignedPreKey(this, identityKey);
     accountManager.setPreKeys(identityKey.getPublicKey(),lastResort, signedPreKey, records);
 
-    setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
+    setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING));
 
     String gcmRegistrationId = GoogleCloudMessaging.getInstance(this).register(GcmRefreshJob.REGISTRATION_ID);
     accountManager.setGcmId(Optional.of(gcmRegistrationId));
@@ -247,34 +171,12 @@ public class RegistrationService extends Service {
     TextSecurePreferences.setWebsocketRegistered(this, true);
 
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());
-    DirectoryHelper.refreshDirectory(this, accountManager, number);
+    DirectoryHelper.refreshDirectory(this, accountManager, addr);
 
     /* XXX: Need to call? */
     String verificationToken = accountManager.getAccountVerificationToken();
 
     DirectoryRefreshListener.schedule(this);
-  }
-
-  private synchronized String waitForChallenge() throws AccountVerificationTimeoutException {
-    this.verificationStartTime = System.currentTimeMillis();
-
-    if (this.challenge == null) {
-      try {
-        wait(REGISTRATION_TIMEOUT_MILLIS);
-      } catch (InterruptedException e) {
-        throw new IllegalArgumentException(e);
-      }
-    }
-
-    if (this.challenge == null)
-      throw new AccountVerificationTimeoutException();
-
-    return this.challenge;
-  }
-
-  private synchronized void challengeReceived(String challenge) {
-    this.challenge = challenge;
-    notifyAll();
   }
 
   private void markAsVerifying(boolean verifying) {
@@ -285,10 +187,10 @@ public class RegistrationService extends Service {
     }
   }
 
-  private void markAsVerified(String number, String password, String signalingKey) {
+  private void markAsVerified(String addr, String password, String signalingKey) {
     TextSecurePreferences.setVerifying(this, false);
     TextSecurePreferences.setPushRegistered(this, true);
-    TextSecurePreferences.setLocalNumber(this, number);
+    TextSecurePreferences.setLocalNumber(this, addr);
     TextSecurePreferences.setPushServerPassword(this, password);
     TextSecurePreferences.setSignalingKey(this, signalingKey);
     TextSecurePreferences.setSignedPreKeyRegistered(this, true);
@@ -330,14 +232,6 @@ public class RegistrationService extends Service {
     }
   }
 
-  private class ChallengeReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      Log.w("RegistrationService", "Got a challenge broadcast...");
-      challengeReceived(intent.getStringExtra(CHALLENGE_EXTRA));
-    }
-  }
-
   public static class RegistrationState {
 
     public static final int STATE_IDLE                 =  0;
@@ -345,33 +239,25 @@ public class RegistrationService extends Service {
     public static final int STATE_VERIFYING            =  2;
     public static final int STATE_TIMER                =  3;
     public static final int STATE_COMPLETE             =  4;
-    public static final int STATE_TIMEOUT              =  5;
     public static final int STATE_NETWORK_ERROR        =  6;
 
     public static final int STATE_GCM_UNSUPPORTED      =  8;
     public static final int STATE_GCM_REGISTERING      =  9;
     public static final int STATE_GCM_TIMEOUT          = 10;
 
-    public static final int STATE_VOICE_REQUESTED      = 12;
     public static final int STATE_GENERATING_KEYS      = 13;
 
     public static final int STATE_MULTI_REGISTERED     = 14;
 
     public final int    state;
-    public final String number;
     public final String password;
 
     public RegistrationState(int state) {
       this(state, null);
     }
 
-    public RegistrationState(int state, String number) {
-      this(state, number, null);
-    }
-
-    public RegistrationState(int state, String number, String password) {
+    public RegistrationState(int state, String password) {
       this.state        = state;
-      this.number       = number;
       this.password     = password;
     }
   }

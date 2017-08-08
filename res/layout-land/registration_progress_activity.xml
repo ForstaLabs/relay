@@ -142,19 +142,6 @@
             android:paddingLeft="16dip"
             android:paddingRight="16dip">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="81dp"
-                android:orientation="vertical"
-                android:weightSum="1">
-
-                <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/check_dark"/>
-            </LinearLayout>
-
             <TextView
                 style="@style/Registration.Description"
                 android:layout_width="fill_parent"
