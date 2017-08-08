@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,32 +16,16 @@ import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.service.RegistrationService;
-import io.forsta.securesms.util.Dialogs;
-import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.Util;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.push.exceptions.ExpectationFailedException;
-import org.whispersystems.signalservice.api.push.exceptions.RateLimitException;
-
-import java.io.IOException;
-
 import static io.forsta.securesms.service.RegistrationService.RegistrationState;
 
 public class RegistrationProgressActivity extends BaseActionBarActivity {
@@ -292,32 +275,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
       abortBroadcast();
     }
   }
-
-/*
-        @Override
-        protected Integer doInBackground(Void... params) {
-          try {
-            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context, e164number, password);
-            int                         registrationId = TextSecurePreferences.getLocalRegistrationId(context);
-
-            accountManager.verifyAccountWithCode(code, signalingKey, registrationId, true);
-
-            return SUCCESS;
-          } catch (ExpectationFailedException e) {
-            Log.w(TAG, e);
-            return MULTI_REGISTRATION_ERROR;
-          } catch (RateLimitException e) {
-            Log.w(TAG, e);
-            return RATE_LIMIT_ERROR;
-          } catch (IOException e) {
-            Log.w(TAG, e);
-            return NETWORK_ERROR;
-          }
-        }
-      }.execute();
-    }
-  }
-*/
 
   private class ConnnectivityRetryListener implements View.OnClickListener {
     @Override
