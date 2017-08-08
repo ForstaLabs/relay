@@ -1,7 +1,6 @@
 // vim: ts=2:sw=2:expandtab
 package io.forsta.securesms;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.service.RegistrationService;
 import static io.forsta.securesms.service.RegistrationService.RegistrationState;
 
@@ -43,7 +41,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
 
   private LinearLayout registrationLayout;
   private LinearLayout connectivityFailureLayout;
-  private Button       connectivityRetryButton;
 
   private ProgressBar connectingProgress;
   private ProgressBar generatingKeysProgress;
@@ -103,7 +100,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.masterSecret              = getIntent().getParcelableExtra("master_secret");
     this.registrationLayout        = (LinearLayout)findViewById(R.id.registering_layout);
     this.connectivityFailureLayout = (LinearLayout)findViewById(R.id.connectivity_failure_layout);
-    this.connectivityRetryButton   = (Button)      findViewById(R.id.connectivity_retry_button);
     this.connectingProgress        = (ProgressBar) findViewById(R.id.connecting_progress);
     this.generatingKeysProgress    = (ProgressBar) findViewById(R.id.generating_keys_progress);
     this.gcmRegistrationProgress   = (ProgressBar) findViewById(R.id.gcm_registering_progress);
@@ -114,7 +110,8 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.generatingKeysText        = (TextView)    findViewById(R.id.generating_keys_text);
     this.gcmRegistrationText       = (TextView)    findViewById(R.id.gcm_registering_text);
 
-    this.connectivityRetryButton.setOnClickListener(new ConnnectivityRetryListener());
+    Button retryButton = (Button) findViewById(R.id.connectivity_retry_button);
+    retryButton.setOnClickListener(new ConnnectivityRetryListener());
   }
 
   private void initializeLinks() {
@@ -252,7 +249,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     }
   }
 
-  private class RegistrationStateHandler extends Handler {
+  private static class RegistrationStateHandler extends Handler {
     @Override
     public void handleMessage(Message message) {
       RegistrationState state = (RegistrationState)message.obj;
