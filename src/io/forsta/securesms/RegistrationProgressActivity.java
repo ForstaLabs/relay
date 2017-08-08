@@ -60,8 +60,8 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
 
   private LinearLayout registrationLayout;
   private LinearLayout connectivityFailureLayout;
+  private Button       connectivityRetryButton;
 
-  private ProgressBar registrationProgress;
   private ProgressBar connectingProgress;
   private ProgressBar generatingKeysProgress;
   private ProgressBar gcmRegistrationProgress;
@@ -120,7 +120,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.masterSecret              = getIntent().getParcelableExtra("master_secret");
     this.registrationLayout        = (LinearLayout)findViewById(R.id.registering_layout);
     this.connectivityFailureLayout = (LinearLayout)findViewById(R.id.connectivity_failure_layout);
-    this.registrationProgress      = (ProgressBar) findViewById(R.id.registration_progress);
+    this.connectivityRetryButton   = (Button)      findViewById(R.id.connectivity_retry_button);
     this.connectingProgress        = (ProgressBar) findViewById(R.id.connecting_progress);
     this.generatingKeysProgress    = (ProgressBar) findViewById(R.id.generating_keys_progress);
     this.gcmRegistrationProgress   = (ProgressBar) findViewById(R.id.gcm_registering_progress);
@@ -130,6 +130,8 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText            = (TextView)    findViewById(R.id.connecting_text);
     this.generatingKeysText        = (TextView)    findViewById(R.id.generating_keys_text);
     this.gcmRegistrationText       = (TextView)    findViewById(R.id.gcm_registering_text);
+
+    this.connectivityRetryButton.setOnClickListener(new ConnnectivityRetryListener());
   }
 
   private void initializeLinks() {
@@ -193,7 +195,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(UNFOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(UNFOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.VISIBLE);
   }
 
   private void handleStateGeneratingKeys() {
@@ -208,7 +209,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(FOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(UNFOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.INVISIBLE);
   }
 
   private void handleStateGcmRegistering() {
@@ -223,7 +223,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(UNFOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(FOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.INVISIBLE);
   }
 
   private void handleGcmTimeout(RegistrationState state) {
@@ -320,4 +319,10 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   }
 */
 
+  private class ConnnectivityRetryListener implements View.OnClickListener {
+    @Override
+    public void onClick(View v) {
+      handleStateIdle();
+    }
+  }
 }
