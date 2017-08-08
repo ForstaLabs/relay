@@ -52,6 +52,8 @@ public class NetworkUtils {
       int response = conn.getResponseCode();
       if (response == 200) {
         result = new JSONObject(readResult(conn.getInputStream()));
+      } else if (response == 204) {
+        result = null;
       } else {
         // 400 on invalid login.
         // 401 Unauthorized.
