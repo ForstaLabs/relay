@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
@@ -91,24 +90,20 @@ public class DirectoryHelper {
       throws IOException
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
-    Set<String> forstaContacts = contactsDb.getNumbers();
+    Set<String> eligibleContactAddresses = contactsDb.getAddresses();
 
-    TextSecureDirectory directory              = TextSecureDirectory.getInstance(context);
-    Set<String>               eligibleContactNumbers = directory.getPushEligibleContactNumbers(localNumber);
-
-    // Merge contact system entries and forsta contacts to update the TextSecure Directory of registered users.
-    eligibleContactNumbers.addAll(forstaContacts);
-    List<ContactTokenDetails> activeTokens           = accountManager.getContacts(eligibleContactNumbers);
+    TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
+    List<ContactTokenDetails> activeTokens = accountManager.getContacts(eligibleContactAddresses);
 
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
-        eligibleContactNumbers.remove(activeToken.getNumber());
+        eligibleContactAddresses.remove(activeToken.getNumber());
         activeToken.setNumber(activeToken.getNumber()); //Huh?
       }
 
-      directory.setNumbers(activeTokens, eligibleContactNumbers);
+      directory.setNumbers(activeTokens, eligibleContactAddresses);
       // Update the forsta contacts db to set active users.
-      contactsDb.setActiveForstaNumbers(activeTokens);
+      contactsDb.setActiveForstaAddresses(activeTokens);
       contactsDb.close();
 //      return updateContactsDatabase(context, localNumber, activeTokens, true);
     }

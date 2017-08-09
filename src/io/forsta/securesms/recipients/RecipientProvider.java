@@ -100,7 +100,9 @@ public class RecipientProvider {
 
   @NonNull Recipients getRecipients(Context context, long[] recipientIds, boolean asynchronous) {
     Recipients cachedRecipients = recipientsCache.get(new RecipientIds(recipientIds));
-    if (cachedRecipients != null && !cachedRecipients.isStale()) return cachedRecipients;
+    if (cachedRecipients != null && !cachedRecipients.isStale()) {
+      return cachedRecipients;
+    }
 
     List<Recipient> recipientList = new LinkedList<>();
 
@@ -151,7 +153,7 @@ public class RecipientProvider {
     Cursor cursor  = db.getContactByAddress(number);
     try {
       if (cursor != null && cursor.moveToFirst()) {
-        final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
+        final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
         if (resultNumber != null) {
           URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
           String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));

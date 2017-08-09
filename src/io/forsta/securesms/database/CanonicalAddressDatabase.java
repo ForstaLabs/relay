@@ -144,13 +144,13 @@ public class CanonicalAddressDatabase {
     try {
       long canonicalAddressId;
 
-      if (isNumberAddress(address) && TextSecurePreferences.isPushRegistered(context)) {
-        String localNumber = TextSecurePreferences.getLocalNumber(context);
-
-        if (!ShortCodeUtil.isShortCode(localNumber, address)) {
-          address = PhoneNumberFormatter.formatNumber(address, localNumber);
-        }
-      }
+//      if (isNumberAddress(address) && TextSecurePreferences.isPushRegistered(context)) {
+//        String localNumber = TextSecurePreferences.getLocalNumber(context);
+//
+//        if (!ShortCodeUtil.isShortCode(localNumber, address)) {
+//          address = PhoneNumberFormatter.formatNumber(address, localNumber);
+//        }
+//      }
 
       if ((canonicalAddressId = getCanonicalAddressFromCache(address)) != -1) {
         return canonicalAddressId;
@@ -162,7 +162,7 @@ public class CanonicalAddressDatabase {
       addressCache.put(address, canonicalAddressId);
 
       return canonicalAddressId;
-    } catch (InvalidNumberException e) {
+    } catch (Exception e) {
       throw new AssertionError(e);
     }
   }
@@ -191,6 +191,7 @@ public class CanonicalAddressDatabase {
       SQLiteDatabase db                 = databaseHelper.getWritableDatabase();
       String[]       selectionArguments = new String[]{address};
       boolean        isNumber           = isNumberAddress(address);
+      isNumber = false;
 
       cursor = db.query(TABLE, null, isNumber ? SELECTION_NUMBER : SELECTION_OTHER,
                         selectionArguments, null, null, null);
