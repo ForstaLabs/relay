@@ -1,7 +1,6 @@
 // vim: ts=2:sw=2:expandtab
 package io.forsta.securesms;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,32 +15,16 @@ import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.service.RegistrationService;
-import io.forsta.securesms.util.Dialogs;
-import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.Util;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.push.exceptions.ExpectationFailedException;
-import org.whispersystems.signalservice.api.push.exceptions.RateLimitException;
-
-import java.io.IOException;
-
 import static io.forsta.securesms.service.RegistrationService.RegistrationState;
 
 public class RegistrationProgressActivity extends BaseActionBarActivity {
@@ -61,7 +43,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private LinearLayout registrationLayout;
   private LinearLayout connectivityFailureLayout;
 
-  private ProgressBar registrationProgress;
   private ProgressBar connectingProgress;
   private ProgressBar generatingKeysProgress;
   private ProgressBar gcmRegistrationProgress;
@@ -120,7 +101,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.masterSecret              = getIntent().getParcelableExtra("master_secret");
     this.registrationLayout        = (LinearLayout)findViewById(R.id.registering_layout);
     this.connectivityFailureLayout = (LinearLayout)findViewById(R.id.connectivity_failure_layout);
-    this.registrationProgress      = (ProgressBar) findViewById(R.id.registration_progress);
     this.connectingProgress        = (ProgressBar) findViewById(R.id.connecting_progress);
     this.generatingKeysProgress    = (ProgressBar) findViewById(R.id.generating_keys_progress);
     this.gcmRegistrationProgress   = (ProgressBar) findViewById(R.id.gcm_registering_progress);
@@ -130,6 +110,9 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText            = (TextView)    findViewById(R.id.connecting_text);
     this.generatingKeysText        = (TextView)    findViewById(R.id.generating_keys_text);
     this.gcmRegistrationText       = (TextView)    findViewById(R.id.gcm_registering_text);
+
+    Button retryButton = (Button) findViewById(R.id.connectivity_retry_button);
+    retryButton.setOnClickListener(new ConnnectivityRetryListener());
   }
 
   private void initializeLinks() {
@@ -167,6 +150,17 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     startService(intent);
   }
 
+  private void handleStateComplete() {
+    if (visible) {
+      Toast.makeText(this,
+                     R.string.RegistrationProgressActivity_registration_complete,
+                     Toast.LENGTH_LONG).show();
+    }
+    shutdownService();
+    startActivity(new Intent(this, ConversationListActivity.class));
+    finish();
+  }
+
   private void handleStateConnecting() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
@@ -193,7 +187,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(UNFOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(UNFOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.VISIBLE);
   }
 
   private void handleStateGeneratingKeys() {
@@ -208,7 +201,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(FOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(UNFOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.INVISIBLE);
   }
 
   private void handleStateGcmRegistering() {
@@ -223,7 +215,6 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText.setTextColor(UNFOCUSED_COLOR);
     this.generatingKeysText.setTextColor(UNFOCUSED_COLOR);
     this.gcmRegistrationText.setTextColor(FOCUSED_COLOR);
-    this.registrationProgress.setVisibility(View.INVISIBLE);
   }
 
   private void handleGcmTimeout(RegistrationState state) {
@@ -283,6 +274,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
       case RegistrationState.STATE_GCM_REGISTERING:      handleStateGcmRegistering();             break;
       case RegistrationState.STATE_GCM_TIMEOUT:          handleGcmTimeout(state);                 break;
       case RegistrationState.STATE_NETWORK_ERROR:        handleConnectivityError(state);          break;
+      case RegistrationState.STATE_COMPLETE:             handleStateComplete();                   break;
       }
     }
   }
@@ -294,30 +286,10 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     }
   }
 
-/*
-        @Override
-        protected Integer doInBackground(Void... params) {
-          try {
-            SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context, e164number, password);
-            int                         registrationId = TextSecurePreferences.getLocalRegistrationId(context);
-
-            accountManager.verifyAccountWithCode(code, signalingKey, registrationId, true);
-
-            return SUCCESS;
-          } catch (ExpectationFailedException e) {
-            Log.w(TAG, e);
-            return MULTI_REGISTRATION_ERROR;
-          } catch (RateLimitException e) {
-            Log.w(TAG, e);
-            return RATE_LIMIT_ERROR;
-          } catch (IOException e) {
-            Log.w(TAG, e);
-            return NETWORK_ERROR;
-          }
-        }
-      }.execute();
+  private class ConnnectivityRetryListener implements View.OnClickListener {
+    @Override
+    public void onClick(View v) {
+      handleStateIdle();
     }
   }
-*/
-
 }

@@ -2,10 +2,8 @@
 package io.forsta.securesms.service;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -13,6 +11,8 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.PreKeyUtil;
@@ -24,12 +24,12 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+import org.json.JSONException;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.util.KeyHelper;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.ExpectationFailedException;
 
 import java.io.IOException;
@@ -111,29 +111,22 @@ public class RegistrationService extends Service {
 
   private void handleCcsmRegistrationIntent(Intent intent) {
     markAsVerifying(true);
-
     int registrationId = TextSecurePreferences.getLocalRegistrationId(this);
-
     if (registrationId == 0) {
       registrationId = KeyHelper.generateRegistrationId(false);
       TextSecurePreferences.setLocalRegistrationId(this, registrationId);
     }
-
+    String password     = Util.getSecret(18);
+    String signalingKey = Util.getSecret(52);
+    Context context = getApplicationContext();
+    String addr = ForstaPreferences.getUserId(context);
+    setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
     try {
-      String password     = Util.getSecret(18);
-      String signalingKey = Util.getSecret(52);
-      String addr = "NOTANUMBER";
-
-      setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
-      SignalServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this, addr, password);
-      accountManager.requestSmsVerificationCode();
-
+      ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
+      accountManager.createAccount(context, addr, password, signalingKey, registrationId);
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
-      accountManager.verifyAccountWithCode(/* XXX challenge*/ null, signalingKey, registrationId, true);
-
       handleCommonRegistration(accountManager, addr, password, signalingKey);
       markAsVerified(addr, password, signalingKey);
-
       setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
       broadcastComplete(true);
     } catch (ExpectationFailedException efe) {
@@ -144,14 +137,15 @@ public class RegistrationService extends Service {
       Log.w("RegistrationService", uoe);
       setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED));
       broadcastComplete(false);
-    } catch (IOException e) {
+    } catch (Exception e) {
       Log.w("RegistrationService", e);
       setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
       broadcastComplete(false);
     }
   }
 
-  private void handleCommonRegistration(SignalServiceAccountManager accountManager, String addr, String password, String signalingKey)
+  private void handleCommonRegistration(ForstaServiceAccountManager accountManager, String addr,
+                                        String password, String signalingKey)
       throws IOException
   {
     setState(new RegistrationState(RegistrationState.STATE_GENERATING_KEYS));
@@ -172,10 +166,6 @@ public class RegistrationService extends Service {
 
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());
     DirectoryHelper.refreshDirectory(this, accountManager, addr);
-
-    /* XXX: Need to call? */
-    String verificationToken = accountManager.getAccountVerificationToken();
-
     DirectoryRefreshListener.schedule(this);
   }
 

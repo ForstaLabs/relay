@@ -3,8 +3,8 @@ package io.forsta.securesms.database.loaders;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.util.AsyncLoader;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
@@ -18,9 +18,9 @@ public class DeviceListLoader extends AsyncLoader<List<DeviceInfo>> {
 
   private static final String TAG = DeviceListLoader.class.getSimpleName();
 
-  private final SignalServiceAccountManager accountManager;
+  private final ForstaServiceAccountManager accountManager;
 
-  public DeviceListLoader(Context context, SignalServiceAccountManager accountManager) {
+  public DeviceListLoader(Context context, ForstaServiceAccountManager accountManager) {
     super(context);
     this.accountManager = accountManager;
   }

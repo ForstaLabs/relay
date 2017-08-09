@@ -139,7 +139,8 @@ public class ApplicationContext extends Application implements DependencyInjecto
   }
 
   private void initializeSignedPreKeyCheck() {
-    if (!TextSecurePreferences.isSignedPreKeyRegistered(this)) {
+    if (TextSecurePreferences.isPushRegistered(this) &&
+        !TextSecurePreferences.isSignedPreKeyRegistered(this)) {
       jobManager.add(new CreateSignedPreKeyJob(this));
     }
   }

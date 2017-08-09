@@ -3,6 +3,7 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.PreKeyUtil;
@@ -13,7 +14,6 @@ import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class CreateSignedPreKeyJob extends MasterSecretJob implements Injectable
 
   private static final String TAG = CreateSignedPreKeyJob.class.getSimpleName();
 
-  @Inject transient SignalServiceAccountManager accountManager;
+  @Inject transient ForstaServiceAccountManager accountManager;
 
   public CreateSignedPreKeyJob(Context context) {
     super(context, JobParameters.newBuilder()

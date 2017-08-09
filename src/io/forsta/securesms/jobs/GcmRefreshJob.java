@@ -28,6 +28,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.PlayServicesProblemActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.dependencies.InjectableType;
@@ -35,7 +36,6 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 
 import javax.inject.Inject;
@@ -46,7 +46,7 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
 
   public static final String REGISTRATION_ID = "268035575546";
 
-  @Inject transient SignalServiceAccountManager textSecureAccountManager;
+  @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
   public GcmRefreshJob(Context context) {
     super(context, JobParameters.newBuilder().withRequirement(new NetworkRequirement(context)).create());

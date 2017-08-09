@@ -20,12 +20,12 @@ import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.database.loaders.DeviceListLoader;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class DeviceListFragment extends ListFragment
   private static final String TAG = DeviceListFragment.class.getSimpleName();
 
   @Inject
-  SignalServiceAccountManager accountManager;
+  ForstaServiceAccountManager accountManager;
 
   private Locale                 locale;
   private View                   empty;
