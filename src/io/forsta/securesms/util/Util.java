@@ -173,7 +173,7 @@ public class Util {
   public static String canonicalizeNumber(Context context, String number)
       throws InvalidNumberException
   {
-    String localNumber = TextSecurePreferences.getLocalNumber(context);
+//    String localNumber = TextSecurePreferences.getLocalNumber(context);
 //    return PhoneNumberFormatter.formatNumber(number, localNumber);
     return number;
   }
