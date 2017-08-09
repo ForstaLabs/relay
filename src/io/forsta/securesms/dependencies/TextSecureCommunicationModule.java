@@ -2,6 +2,7 @@ package io.forsta.securesms.dependencies;
 
 import android.content.Context;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.DeviceListFragment;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
@@ -25,7 +26,6 @@ import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.service.MessageRetrievalService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.util.CredentialsProvider;
@@ -58,8 +58,8 @@ public class TextSecureCommunicationModule {
     this.context = context;
   }
 
-  @Provides SignalServiceAccountManager provideTextSecureAccountManager() {
-    return new SignalServiceAccountManager(BuildConfig.TEXTSECURE_URL,
+  @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {
+    return new ForstaServiceAccountManager(BuildConfig.TEXTSECURE_URL,
                                            new TextSecurePushTrustStore(context),
                                            TextSecurePreferences.getLocalNumber(context),
                                            TextSecurePreferences.getPushServerPassword(context),

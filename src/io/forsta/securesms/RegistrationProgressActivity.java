@@ -249,7 +249,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     }
   }
 
-  private static class RegistrationStateHandler extends Handler {
+  private class RegistrationStateHandler extends Handler {
     @Override
     public void handleMessage(Message message) {
       RegistrationState state = (RegistrationState)message.obj;

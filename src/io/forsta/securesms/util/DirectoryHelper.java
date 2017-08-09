@@ -15,6 +15,7 @@ import android.util.Pair;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -29,7 +30,6 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -86,7 +86,7 @@ public class DirectoryHelper {
   }
 
   public static @NonNull List<String> refreshDirectory(@NonNull Context context,
-                                                       @NonNull SignalServiceAccountManager accountManager,
+                                                       @NonNull ForstaServiceAccountManager accountManager,
                                                        @NonNull String localNumber)
       throws IOException
   {
@@ -124,7 +124,7 @@ public class DirectoryHelper {
   {
     try {
       TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
-      SignalServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+      ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
       String                        number         = Util.canonicalizeNumber(context, recipients.getPrimaryRecipient().getNumber());
       Optional<ContactTokenDetails> details        = accountManager.getContact(number);
 

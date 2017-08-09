@@ -32,10 +32,10 @@ import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.storage.TextSecurePreKeyStore;
 import io.forsta.securesms.crypto.storage.TextSecureSessionStore;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.MmsDatabase.Reader;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.MmsDatabase.Reader;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.jobs.AttachmentDownloadJob;
@@ -43,6 +43,7 @@ import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.jobs.PushDecryptJob;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.VersionTracker;
 
@@ -187,7 +188,8 @@ public class DatabaseUpgradeActivity extends BaseActivity {
         }
       }
 
-      if (params[0] < SIGNED_PREKEY_VERSION) {
+      if (TextSecurePreferences.isPushRegistered(getApplicationContext()) &&
+          params[0] < SIGNED_PREKEY_VERSION) {
         ApplicationContext.getInstance(getApplicationContext())
                           .getJobManager()
                           .add(new CreateSignedPreKeyJob(context));

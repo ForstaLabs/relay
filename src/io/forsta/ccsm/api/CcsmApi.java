@@ -47,7 +47,6 @@ import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.ccsm.util.NetworkUtils;
-import io.forsta.ccsm.util.NetworkUtils.RequestMethod;
 
 /**
  * Created by jlewis on 1/18/17.
@@ -66,6 +65,7 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_DEBUG_LOGS = "/v1/log/";
+  private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -78,11 +78,11 @@ public class CcsmApi {
       JSONObject obj = new JSONObject();
       if (!authToken.equals("")) {
         obj.put("authtoken", authToken);
-        result = NetworkUtils.apiFetch(RequestMethod.POST, null, host + API_AUTH_TOKEN, obj);
+        result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
       } else {
         obj.put("username", username);
         obj.put("password", password);
-        result = NetworkUtils.apiFetch(RequestMethod.POST, null, host + API_LOGIN, obj);
+        result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, obj);
       }
 
       if (result.has("token")) {
@@ -126,7 +126,7 @@ public class CcsmApi {
     try {
       JSONObject obj = new JSONObject();
       obj.put("token", ForstaPreferences.getRegisteredKey(context));
-      result = fetchResource(context, RequestMethod.POST, API_TOKEN_REFRESH, obj);
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
       if (result.has("token")) {
         Log.d(TAG, "Token refresh. New token issued.");
         String token = result.getString("token");
@@ -144,7 +144,7 @@ public class CcsmApi {
 
   public static JSONObject forstaSendToken(Context context, String org, String username) {
     String host = ForstaPreferences.getForstaApiHost(context);
-    JSONObject result = NetworkUtils.apiFetch(RequestMethod.GET, null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
+    JSONObject result = NetworkUtils.apiFetch("GET", null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
     return result;
   }
 
@@ -173,35 +173,45 @@ public class CcsmApi {
     return isErrorResponse(response);
   }
 
+  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
+    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+  }
+
   // TODO These should all be private. They are exposed right now for the debug dashboard.
   public static JSONObject getForstaOrg(Context context) {
-    return fetchResource(context, RequestMethod.GET, API_ORG);
+    return fetchResource(context, "GET", API_ORG);
   }
 
   public static JSONObject getUser(Context context) {
-    return fetchResource(context, RequestMethod.GET, API_USER);
+    return fetchResource(context, "GET", API_USER);
   }
 
   public static JSONObject getUsers(Context context) {
-    return fetchResource(context, RequestMethod.GET, API_USER_PICK);
+    return fetchResource(context, "GET", API_USER_PICK);
   }
 
   public static JSONObject getTags(Context context) {
-    return fetchResource(context, RequestMethod.GET, API_TAG);
+    return fetchResource(context, "GET", API_TAG);
   }
 
   public static JSONObject getTagPicks(Context context) {
-    return fetchResource(context, RequestMethod.GET, API_TAG_PICK);
+    return fetchResource(context, "GET", API_TAG_PICK);
   }
 
-  private static JSONObject fetchResource(Context context, RequestMethod method, String urn) {
+  private static JSONObject fetchResource(Context context, String method, String urn) {
     return fetchResource(context, method, urn, null);
   }
 
-  private static JSONObject fetchResource(Context context, RequestMethod method, String urn, JSONObject body) {
+  private static JSONObject fetchResource(Context context, String method, String urn, JSONObject body) {
     String baseUrl = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(method, authKey, baseUrl + urn, body);
+  }
+
+  private static JSONObject hardFetchResource(Context context, String method, String urn, JSONObject body) throws Exception {
+    String baseUrl = ForstaPreferences.getForstaApiHost(context);
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
   }
 
   public static String parseLoginToken(String authtoken) {
@@ -345,7 +355,7 @@ public class CcsmApi {
   public static JSONObject sendDebugLog(Context context, JSONObject debugData) {
     String host = ForstaPreferences.getForstaApiHost(context);
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(RequestMethod.POST, null, host + API_DEBUG_LOGS, debugData);
+    return NetworkUtils.apiFetch("POST", null, host + API_DEBUG_LOGS, debugData);
   }
 
   private static boolean isErrorResponse(JSONObject response) {

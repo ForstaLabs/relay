@@ -1,3 +1,4 @@
+// vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.util;
 
 import android.util.Log;
@@ -23,10 +24,6 @@ public class NetworkUtils {
   private NetworkUtils() {
   }
 
-  public enum RequestMethod {
-    GET, POST, PUT, DELETE
-  }
-
   private static void setConnHeader(HttpURLConnection conn, String authKey) {
     if (isAuthKey(authKey)) {
       conn.setRequestProperty("Authorization", "JWT " + authKey);
@@ -35,13 +32,46 @@ public class NetworkUtils {
     conn.setRequestProperty("Accept", "application/json");
   }
 
-  public static JSONObject apiFetch(RequestMethod method, String authKey, String path, JSONObject body) {
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body) {
+    JSONObject error = new JSONObject();
+    try {
+      try {
+        return apiHardFetch(method, authKey, path, body);
+      } catch (MalformedURLException e) {
+        e.printStackTrace();
+        Log.d(TAG, "Bad URL.");
+        error.put("error", e);
+      } catch (ConnectException e) {
+        Log.d(TAG, "Connect Exception.");
+        error.put("error", e);
+      } catch (IOException e) {
+        e.printStackTrace();
+        Log.d(TAG, "IO Exception.");
+        Log.d(TAG, e.getMessage());
+        error.put("error", e);
+      } catch (JSONException e) {
+        e.printStackTrace();
+        Log.d(TAG, "JSON Exception.");
+        error.put("error", e);
+      } catch (Exception e) {
+        e.printStackTrace();
+        Log.d(TAG, "Exception.");
+        error.put("error", e);
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "Internal ERROR: " + e);
+      return null;
+    }
+    return error;
+  }
+
+  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body) throws Exception {
     JSONObject result = new JSONObject();
     HttpURLConnection conn = null;
+    URL url = new URL(fixApiPath(path));
+    conn = (HttpURLConnection) url.openConnection();
     try {
-      URL url = new URL(fixApiPath(path));
-      conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod(method.toString());
+      conn.setRequestMethod(method);
       setConnHeader(conn, authKey);
       if (body != null) {
         conn.setDoOutput(true);
@@ -49,34 +79,17 @@ public class NetworkUtils {
         out.writeBytes(body.toString());
         out.close();
       }
-      int response = conn.getResponseCode();
-      if (response == 200) {
-        result = new JSONObject(readResult(conn.getInputStream()));
-      } else if (response == 204) {
-        result = null;
+      int status = conn.getResponseCode();
+      if (status == 200) {
+        return new JSONObject(readResult(conn.getInputStream()));
+      } else if (status > 200 && status < 300) {
+        return null;
       } else {
-        // 400 on invalid login.
-        // 401 Unauthorized.
-        Log.e(TAG, "API fetch. Bad response: " + response);
-        result.put("error", "" + response);
+        throw new IOException("HTTP ERROR: " + status + " - " + readResult(conn.getInputStream()));
       }
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      Log.d(TAG, "Bad URL.");
-    } catch (ConnectException e) {
-      Log.d(TAG, "Connect Exception.");
-    } catch (IOException e) {
-      e.printStackTrace();
-      Log.d(TAG, "IO Exception.");
-      Log.d(TAG, e.getMessage());
-    } catch (JSONException e) {
-      e.printStackTrace();
-      Log.d(TAG, "JSON Exception.");
     } finally {
-      if (conn != null)
-        conn.disconnect();
+      conn.disconnect();
     }
-    return result;
   }
 
   private static boolean isAuthKey(String authKey) {

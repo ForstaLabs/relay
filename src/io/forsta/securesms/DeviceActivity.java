@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
@@ -28,7 +29,6 @@ import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
 import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
@@ -146,7 +146,7 @@ public class DeviceActivity extends PassphraseRequiredActionBarActivity
       protected Integer doInBackground(Void... params) {
         try {
           Context                     context          = DeviceActivity.this;
-          SignalServiceAccountManager accountManager   = TextSecureCommunicationFactory.createManager(context);
+          ForstaServiceAccountManager accountManager   = TextSecureCommunicationFactory.createManager(context);
           String                      verificationCode = accountManager.getNewDeviceVerificationCode();
           String                      ephemeralId      = uri.getQueryParameter("uuid");
           String                      publicKeyEncoded = uri.getQueryParameter("pub_key");

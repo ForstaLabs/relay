@@ -3,11 +3,11 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.jobqueue.requirements.NetworkRequirement;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.NetworkFailureException;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ public class RefreshAttributesJob extends ContextJob implements InjectableType {
 
   private static final String TAG = RefreshAttributesJob.class.getSimpleName();
 
-  @Inject transient SignalServiceAccountManager textSecureAccountManager;
+  @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
   public RefreshAttributesJob(Context context) {
     super(context, JobParameters.newBuilder()
