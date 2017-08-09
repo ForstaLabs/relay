@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.service.RegistrationService;
 import static io.forsta.securesms.service.RegistrationService.RegistrationState;
@@ -149,6 +150,17 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     startService(intent);
   }
 
+  private void handleStateComplete() {
+    if (visible) {
+      Toast.makeText(this,
+                     R.string.RegistrationProgressActivity_registration_complete,
+                     Toast.LENGTH_LONG).show();
+    }
+    shutdownService();
+    startActivity(new Intent(this, ConversationListActivity.class));
+    finish();
+  }
+
   private void handleStateConnecting() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
@@ -262,6 +274,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
       case RegistrationState.STATE_GCM_REGISTERING:      handleStateGcmRegistering();             break;
       case RegistrationState.STATE_GCM_TIMEOUT:          handleGcmTimeout(state);                 break;
       case RegistrationState.STATE_NETWORK_ERROR:        handleConnectivityError(state);          break;
+      case RegistrationState.STATE_COMPLETE:             handleStateComplete();                   break;
       }
     }
   }

@@ -111,22 +111,19 @@ public class RegistrationService extends Service {
 
   private void handleCcsmRegistrationIntent(Intent intent) {
     markAsVerifying(true);
-
     int registrationId = TextSecurePreferences.getLocalRegistrationId(this);
-
     if (registrationId == 0) {
       registrationId = KeyHelper.generateRegistrationId(false);
       TextSecurePreferences.setLocalRegistrationId(this, registrationId);
     }
-
+    String password     = Util.getSecret(18);
+    String signalingKey = Util.getSecret(52);
+    Context context = getApplicationContext();
+    String addr = ForstaPreferences.getUserId(context);
+    setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
     try {
-      String password     = Util.getSecret(18);
-      String signalingKey = Util.getSecret(52);
-      Context context = getApplicationContext();
-      String addr = ForstaPreferences.getUserId(context);
-      setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
       ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
-      accountManager.createAccount(context, password, signalingKey, registrationId);
+      accountManager.createAccount(context, addr, password, signalingKey, registrationId);
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
       handleCommonRegistration(accountManager, addr, password, signalingKey);
       markAsVerified(addr, password, signalingKey);
@@ -147,7 +144,8 @@ public class RegistrationService extends Service {
     }
   }
 
-  private void handleCommonRegistration(ForstaServiceAccountManager accountManager, String addr, String password, String signalingKey)
+  private void handleCommonRegistration(ForstaServiceAccountManager accountManager, String addr,
+                                        String password, String signalingKey)
       throws IOException
   {
     setState(new RegistrationState(RegistrationState.STATE_GENERATING_KEYS));
@@ -168,10 +166,6 @@ public class RegistrationService extends Service {
 
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());
     DirectoryHelper.refreshDirectory(this, accountManager, addr);
-
-    /* XXX: Need to call? */
-    String verificationToken = accountManager.getAccountVerificationToken();
-
     DirectoryRefreshListener.schedule(this);
   }
 

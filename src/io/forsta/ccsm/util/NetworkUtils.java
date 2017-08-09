@@ -33,46 +33,40 @@ public class NetworkUtils {
   }
 
   public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body) {
-    JSONObject error = new JSONObject();
+    return apiFetch(method, authKey, path, body, 0);
+  }
+
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body, float timeout) {
     try {
+      return apiHardFetch(method, authKey, path, body, timeout);
+    } catch (Exception e) {
+      Log.e(TAG, e.toString());
+      e.printStackTrace();
+      JSONObject error = new JSONObject();
       try {
-        return apiHardFetch(method, authKey, path, body);
-      } catch (MalformedURLException e) {
-        e.printStackTrace();
-        Log.d(TAG, "Bad URL.");
         error.put("error", e);
-      } catch (ConnectException e) {
-        Log.d(TAG, "Connect Exception.");
-        error.put("error", e);
-      } catch (IOException e) {
-        e.printStackTrace();
-        Log.d(TAG, "IO Exception.");
-        Log.d(TAG, e.getMessage());
-        error.put("error", e);
-      } catch (JSONException e) {
-        e.printStackTrace();
-        Log.d(TAG, "JSON Exception.");
-        error.put("error", e);
-      } catch (Exception e) {
-        e.printStackTrace();
-        Log.d(TAG, "Exception.");
-        error.put("error", e);
+      } catch (JSONException je) {
+        Log.e(TAG, "Internal ERROR: " + je);
+        return null;
       }
-    } catch (JSONException e) {
-      Log.e(TAG, "Internal ERROR: " + e);
-      return null;
+      return error;
     }
-    return error;
   }
 
   public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body) throws Exception {
-    JSONObject result = new JSONObject();
-    HttpURLConnection conn = null;
+    return apiHardFetch(method, authKey, path, body, 0);
+  }
+
+  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body, float timeout) throws Exception {
     URL url = new URL(fixApiPath(path));
-    conn = (HttpURLConnection) url.openConnection();
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     try {
       conn.setRequestMethod(method);
       setConnHeader(conn, authKey);
+      if (timeout != 0) {
+        conn.setConnectTimeout((int)(timeout * 1000));
+        conn.setReadTimeout((int)(timeout * 1000));
+      }
       if (body != null) {
         conn.setDoOutput(true);
         DataOutputStream out = new DataOutputStream(conn.getOutputStream());
@@ -80,12 +74,12 @@ public class NetworkUtils {
         out.close();
       }
       int status = conn.getResponseCode();
-      if (status == 200) {
-        return new JSONObject(readResult(conn.getInputStream()));
-      } else if (status > 200 && status < 300) {
-        return null;
+      String result = readResult(conn.getInputStream());
+      JSONObject jsonResult = new JSONObject(result);
+      if (status >= 200 && status < 300) {
+        return jsonResult;
       } else {
-        throw new IOException("HTTP ERROR: " + status + " - " + readResult(conn.getInputStream()));
+        throw new IOException(result);
       }
     } finally {
       conn.disconnect();
@@ -100,18 +94,14 @@ public class NetworkUtils {
     return !path.endsWith("/") ? path + "/" : path;
   }
 
-  private static String readResult(InputStream input) {
+  private static String readResult(InputStream input) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(input));
     String line = null;
     StringBuilder sb = new StringBuilder();
-    try {
-      while ((line = br.readLine()) != null) {
-        sb.append(line);
-      }
-      br.close();
-    } catch (IOException e) {
-      e.printStackTrace();
+    while ((line = br.readLine()) != null) {
+      sb.append(line);
     }
+    br.close();
     return sb.toString();
   }
 }
