@@ -164,20 +164,17 @@ android {
     productFlavors {
         dev {
             applicationIdSuffix '.dev'
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_dev"]
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
         }
         stage {
             applicationIdSuffix '.stage'
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_stage"]
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
         }
         prod {
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher"]
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
         }
@@ -245,6 +242,12 @@ android {
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
+        }
+        dev {
+            res.srcDirs = ['res-dev']
+        }
+        stage {
+            res.srcDirs = ['res-stage']
         }
         androidTest {
             java.srcDirs = ['test/androidTest/java']
