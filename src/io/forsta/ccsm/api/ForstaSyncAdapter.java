@@ -34,9 +34,9 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
 
   private static final String TAG = ForstaSyncAdapter.class.getSimpleName();
-  public static final String FORSTA_SYNC_COMPLETE = "io.forsta.securesms.FORSTA_SYNC_COMPLETE";
+  public static final String FORSTA_SYNC_COMPLETE = BuildConfig.APPLICATION_ID + ".FORSTA_SYNC_COMPLETE";
   public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider.ccsm";
-  private static final String ACCOUNT_TYPE = "io.forsta.securesms";
+  private static final String ACCOUNT_TYPE = BuildConfig.APPLICATION_ID;
   private ContentResolver contentResolver;
 
 
