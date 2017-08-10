@@ -57,10 +57,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import ws.com.google.android.mms.pdu.CharacterSets;
 import ws.com.google.android.mms.pdu.EncodedStringValue;
@@ -173,9 +175,11 @@ public class Util {
   public static String canonicalizeNumber(Context context, String number)
       throws InvalidNumberException
   {
-//    String localNumber = TextSecurePreferences.getLocalNumber(context);
-//    return PhoneNumberFormatter.formatNumber(number, localNumber);
-    return number;
+    if (Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", number)) {
+      return number;
+    }
+    String localNumber = TextSecurePreferences.getLocalNumber(context);
+    return PhoneNumberFormatter.formatNumber(number, localNumber);
   }
 
   public static String canonicalizeNumberOrGroup(@NonNull Context context, @NonNull String number)
