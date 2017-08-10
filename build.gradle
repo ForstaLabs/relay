@@ -160,6 +160,7 @@ android {
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
+        resValue "string", "forsta_account_type", applicationId
     }
     productFlavors {
         dev {
@@ -167,12 +168,14 @@ android {
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
+            resValue "string", "forsta_account_type", applicationId + applicationIdSuffix
         }
         stage {
             applicationIdSuffix '.stage'
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
+            resValue "string", "forsta_account_type", applicationId + applicationIdSuffix
         }
         prod {
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
