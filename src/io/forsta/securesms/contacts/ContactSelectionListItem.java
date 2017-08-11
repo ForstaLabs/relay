@@ -100,7 +100,8 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
     } else if(GroupUtil.isEncodedGroup(number)) {
       this.numberView.setText("Group");
       this.nameView.setEnabled(true);
-      this.labelView.setVisibility(View.GONE);
+      this.labelView.setText(label);
+      this.labelView.setVisibility(View.VISIBLE);
     } else {
       this.numberView.setText(number);
       this.nameView.setEnabled(true);
