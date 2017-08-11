@@ -285,7 +285,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
 
       if (scrub && number != null &&
           !Patterns.EMAIL_ADDRESS.matcher(number).matches() &&
-          !GroupUtil.isEncodedGroup(number))
+          !GroupUtil.isEncodedGroup(number) && !Util.isForstaUid(number))
       {
         number = number.replaceAll("[^0-9+]", "");
       }

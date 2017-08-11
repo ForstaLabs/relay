@@ -68,11 +68,6 @@ public class ContactsCursorLoader extends CursorLoader {
 
     ArrayList<Cursor> cursorList       = new ArrayList<>(3);
 
-    // Increase cursorList to 4 when using this again.
-//    if (mode != MODE_OTHER_ONLY) {
-//      cursorList.add(contactsDatabase.queryTextSecureContacts(filter));
-//    }
-
     if (mode == MODE_ALL) {
       cursorList.add(contactsDatabase.querySystemContacts(filter));
     } else if (mode == MODE_OTHER_ONLY) {
@@ -95,7 +90,8 @@ public class ContactsCursorLoader extends CursorLoader {
     }
 
     //Get cursors from the forsta contacts and group databases.
-    MatrixCursor forstaContactsCursor = new MatrixCursor(new String[] {ContactsDatabase.ID_COLUMN,
+    MatrixCursor forstaContactsCursor = new MatrixCursor(new String[] {
+        ContactsDatabase.ID_COLUMN,
         ContactsDatabase.NAME_COLUMN,
         ContactsDatabase.NUMBER_COLUMN,
         ContactsDatabase.NUMBER_TYPE_COLUMN,
@@ -109,7 +105,7 @@ public class ContactsCursorLoader extends CursorLoader {
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-          ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
           "\u21e2",
           ContactsDatabase.NORMAL_TYPE
       });
@@ -120,10 +116,10 @@ public class ContactsCursorLoader extends CursorLoader {
     Cursor groupCursor = gdb.getForstaGroupsByTitle(filter);
     while (groupCursor.moveToNext()) {
       forstaContactsCursor.addRow(new Object[] {
-          groupCursor.getString(groupCursor.getColumnIndex("_id")),
-          groupCursor.getString(groupCursor.getColumnIndex("title")),
-          groupCursor.getString(groupCursor.getColumnIndex("group_id")),
-          ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
+          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ID)),
+          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
+          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
+          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
           "\u21e2",
           ContactsDatabase.NORMAL_TYPE
       });

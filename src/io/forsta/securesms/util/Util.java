@@ -171,10 +171,14 @@ public class Util {
     }
   }
 
+  public static boolean isForstaUid(String address) {
+    return Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", address);
+  }
+
   public static String canonicalizeNumber(Context context, String number)
       throws InvalidNumberException
   {
-    if (Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", number)) {
+    if (isForstaUid(number)) {
       return number;
     }
     String localNumber = TextSecurePreferences.getLocalNumber(context);
