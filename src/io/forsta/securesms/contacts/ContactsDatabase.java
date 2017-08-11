@@ -93,7 +93,7 @@ public class ContactsDatabase {
       String registeredNumber = registeredContact.getNumber();
 
       registeredNumbers.put(registeredNumber, registeredContact);
-      boolean isSyncNumber = registeredNumber.equals(ForstaPreferences.getForstaSyncNumber(context));
+      boolean isSyncNumber = registeredNumber.equals(BuildConfig.FORSTA_SYNC_NUMBER);
 
       if (!currentContacts.containsKey(registeredNumber) && !isSyncNumber) {
         Optional<SystemContactInfo> systemContactInfo = getSystemContactInfo(registeredNumber, localNumber);

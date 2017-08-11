@@ -80,7 +80,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private MasterCipher mMasterCipher;
   private Spinner mSpinner;
   private Spinner mConfigSpinner;
-  private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
   private ProgressBar mProgressBar;
 
@@ -115,62 +114,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private void initView() {
     mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
-    mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
     mDebugText = (TextView) findViewById(R.id.debug_text);
-    mConfigSpinner = (Spinner) findViewById(R.id.dashboard_change_configuration);
-    List<String> configOptions = new ArrayList<>();
-    configOptions.add("Production");
-    configOptions.add("Stage");
-    configOptions.add("Development");
-    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, configOptions);
-    mConfigSpinner.setAdapter(configAdapter);
-    String apiUrl = ForstaPreferences.getForstaApiHost(DashboardActivity.this);
-    if (apiUrl.contains("dev")) {
-      mConfigSpinner.setSelection(2);
-    } else if (apiUrl.contains("stage")) {
-      mConfigSpinner.setSelection(1);
-    } else {
-      mConfigSpinner.setSelection(0);
-    }
-    mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        Pair<String, String> build = ForstaPreferences.getForstaBuild(DashboardActivity.this);
-        switch (i) {
-          case 0:
-            if (!build.equals(ForstaPreferences.CONFIG_PROD)) {
-              ForstaPreferences.setForstaBuild(DashboardActivity.this, "prod");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-          case 1:
-            if (!build.equals(ForstaPreferences.CONFIG_STAGE)) {
-              ForstaPreferences.setForstaBuild(DashboardActivity.this, "stage");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-          case 2:
-            if (!build.equals(ForstaPreferences.CONFIG_DEV)) {
-              ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-        }
-
-        printLoginInformation();
-      }
-
-      @Override
-      public void onNothingSelected(AdapterView<?> adapterView) {
-
-      }
-    });
-
     mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
@@ -192,9 +138,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
       public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (position == 0) {
-          showChangeNumber();
-        } else {
+        if (position != 0) {
           showScrollView();
         }
         switch (position) {
@@ -268,12 +212,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private void showScrollView() {
     mScrollView.setVisibility(View.VISIBLE);
-    mChangeNumberContainer.setVisibility(View.GONE);
-  }
-
-  private void showChangeNumber() {
-    mScrollView.setVisibility(View.GONE);
-    mChangeNumberContainer.setVisibility(View.VISIBLE);
   }
 
   private void startLoginIntent() {
@@ -291,10 +229,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     ForstaJWT jwt = new ForstaJWT(token);
 
     sb.append("API Host:");
-    sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
+    sb.append(BuildConfig.FORSTA_API_URL);
     sb.append("\n");
     sb.append("Sync Number:");
-    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
+    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
     sb.append("\n");
     sb.append("Last Login: ");
     sb.append(lastLogin);

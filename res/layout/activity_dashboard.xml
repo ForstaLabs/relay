@@ -21,22 +21,6 @@
             android:id="@+id/dashboard_login_info"
             android:textSize="10sp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="10dp"
-            android:id="@+id/dashboard_change_number_container">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Forsta Configuration (Changing this will log you out):"/>
-            <Spinner android:id="@+id/dashboard_change_configuration"
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     ></Spinner>
-        </LinearLayout>
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

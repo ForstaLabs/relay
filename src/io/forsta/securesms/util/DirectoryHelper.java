@@ -12,10 +12,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.SessionUtil;
@@ -91,6 +93,8 @@ public class DirectoryHelper {
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
+    eligibleContactAddresses.add(TextSecurePreferences.getLocalNumber(context));
+    eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
 
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
     List<ContactTokenDetails> activeTokens = accountManager.getContacts(eligibleContactAddresses);
