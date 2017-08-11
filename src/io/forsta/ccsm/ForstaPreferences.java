@@ -10,11 +10,13 @@ import com.h6ah4i.android.compat.utils.SharedPreferencesJsonStringSetWrapperUtil
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaJWT;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.Base64;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.io.IOException;
 import java.util.Date;
@@ -66,6 +68,8 @@ public class ForstaPreferences {
 
   public static void setRegisteredForsta(Context context, String value) {
     setStringPreference(context, API_KEY, value);
+    ForstaJWT jwt = new ForstaJWT(value);
+    TextSecurePreferences.setLocalNumber(context, jwt.getUserInfo().uid);
   }
 
   public static String getRegisteredKey(Context context) {
