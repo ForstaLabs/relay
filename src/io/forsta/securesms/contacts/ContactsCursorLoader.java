@@ -108,7 +108,7 @@ public class ContactsCursorLoader extends CursorLoader {
       forstaContactsCursor.addRow(new Object[] {
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NUMBER)),
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
           ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
           "\u21e2",
           ContactsDatabase.NORMAL_TYPE

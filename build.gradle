@@ -68,7 +68,7 @@ dependencies {
     compile 'org.whispersystems:libpastelog:1.0.7'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     compile 'org.whispersystems:curve25519-android:0.2.4'
-    compile('com.github.ForstaLabs:libsignal-service-java:forsta-v2.3.1.6') {
+    compile('com.github.ForstaLabs:libsignal-service-java:forsta-v2.3.1.8') {
         exclude group: 'org.whispersystems', module: 'curve25519-java'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
@@ -147,45 +147,39 @@ dependencyVerification {
 
 android {
     compileSdkVersion 22
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.1'
     dexOptions {
         javaMaxHeapSize "4g"
     }
     defaultConfig {
         applicationId 'io.forsta.relay'
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 22
-        versionName "0.1.24"
-        versionCode 124
+        versionName "0.1.25"
+        versionCode 125
         multiDexEnabled true
-        buildConfigField "String", "USER_AGENT", "\"OWA\""
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
+        resValue "string", "forsta_account_type", applicationId
     }
     productFlavors {
         dev {
             applicationIdSuffix '.dev'
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_dev"]
-            buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328731\""
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
+            resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         stage {
             applicationIdSuffix '.stage'
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher_stage"]
-            buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\""
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\"" // XXX put in new value (see jeff)
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
+            resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         prod {
-            manifestPlaceholders = [appIcon: "@mipmap/ic_launcher"]
-            buildConfigField "String", "TEXTSECURE_URL", "\"https://textsecure.forsta.services\""
-            // XXX: Move to heroku when it's ready..
-            //buildConfigField "String", "TEXTSECURE_URL", "\"https://forsta-signalserver.herokuapp.com\""
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\""
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\"" // XXX put in new value (see jeff)
         }
     }
     compileOptions {
@@ -251,6 +245,12 @@ android {
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
+        }
+        dev {
+            res.srcDirs = ['res-dev']
+        }
+        stage {
+            res.srcDirs = ['res-stage']
         }
         androidTest {
             java.srcDirs = ['test/androidTest/java']

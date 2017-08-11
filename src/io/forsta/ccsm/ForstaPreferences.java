@@ -86,6 +86,12 @@ public class ForstaPreferences {
     return jwt.getExpireDate();
   }
 
+  public static String getUserId(Context context) {
+    String token = getStringPreference(context, API_KEY);
+    ForstaJWT jwt = new ForstaJWT(token);
+    return jwt.getUserInfo().uid;
+  }
+
   public static void setCCSMDebug(Context context, boolean value) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     prefs.edit().putBoolean(CCSM_DEBUG, value).apply();

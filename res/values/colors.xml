@@ -23,7 +23,7 @@
     <color name="textsecure_primary_alpha33">@color/signal_primary_alpha33</color>
 
     <color name="white">#ffffffff</color>
-    <color name="black">#ff000000</color>
+    <color name="black">#000000</color>
     <color name="gray5">#ffeeeeee</color>
     <color name="gray10">#ffdddddd</color>
     <color name="gray12">#ffe0e0e0</color>

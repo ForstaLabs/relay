@@ -100,7 +100,9 @@ public class RecipientProvider {
 
   @NonNull Recipients getRecipients(Context context, long[] recipientIds, boolean asynchronous) {
     Recipients cachedRecipients = recipientsCache.get(new RecipientIds(recipientIds));
-    if (cachedRecipients != null && !cachedRecipients.isStale()) return cachedRecipients;
+    if (cachedRecipients != null && !cachedRecipients.isStale()) {
+      return cachedRecipients;
+    }
 
     List<Recipient> recipientList = new LinkedList<>();
 
@@ -146,13 +148,12 @@ public class RecipientProvider {
     Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(new long[]{recipientId});
     MaterialColor color       = preferences.isPresent() ? preferences.get().getColor() : null;
 
-
     ContactDb db = DbFactory.getContactDb(context);
     Cursor cursor  = db.getContactByAddress(number);
     try {
       if (cursor != null && cursor.moveToFirst()) {
-        final String resultNumber = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
-        if (resultNumber != null) {
+        final String uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
+        if (uid != null) {
           URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
           String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
@@ -160,31 +161,11 @@ public class RecipientProvider {
           if (gravatar != null) {
             contactPhoto = new BitmapContactPhoto(gravatar);
           }
-          return new RecipientDetails(name, resultNumber, Uri.EMPTY, contactPhoto, color);
+          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
       }
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
-
-    Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-    cursor = context.getContentResolver().query(uri, CALLER_ID_PROJECTION, null, null, null);
-    try {
-      if (cursor != null && cursor.moveToFirst()) {
-        final String resultNumber = cursor.getString(3);
-        if (resultNumber != null) {
-          Uri contactUri = Contacts.getLookupUri(cursor.getLong(2), cursor.getString(1));
-          String name = resultNumber.equals(cursor.getString(0)) ? null : cursor.getString(0);
-          ContactPhoto contactPhoto = ContactPhotoFactory.getContactPhoto(context,
-              Uri.withAppendedPath(Contacts.CONTENT_URI, cursor.getLong(2) + ""),
-              name);
-          return new RecipientDetails(cursor.getString(0), resultNumber, contactUri, contactPhoto, color);
-        }
-      }
-
     } finally {
       if (cursor != null)
         cursor.close();

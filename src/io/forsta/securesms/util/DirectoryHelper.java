@@ -12,9 +12,9 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -29,7 +29,6 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -86,29 +85,25 @@ public class DirectoryHelper {
   }
 
   public static @NonNull List<String> refreshDirectory(@NonNull Context context,
-                                                       @NonNull SignalServiceAccountManager accountManager,
+                                                       @NonNull ForstaServiceAccountManager accountManager,
                                                        @NonNull String localNumber)
       throws IOException
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
-    Set<String> forstaContacts = contactsDb.getNumbers();
+    Set<String> eligibleContactAddresses = contactsDb.getAddresses();
 
-    TextSecureDirectory directory              = TextSecureDirectory.getInstance(context);
-    Set<String>               eligibleContactNumbers = directory.getPushEligibleContactNumbers(localNumber);
-
-    // Merge contact system entries and forsta contacts to update the TextSecure Directory of registered users.
-    eligibleContactNumbers.addAll(forstaContacts);
-    List<ContactTokenDetails> activeTokens           = accountManager.getContacts(eligibleContactNumbers);
+    TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
+    List<ContactTokenDetails> activeTokens = accountManager.getContacts(eligibleContactAddresses);
 
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
-        eligibleContactNumbers.remove(activeToken.getNumber());
+        eligibleContactAddresses.remove(activeToken.getNumber());
         activeToken.setNumber(activeToken.getNumber()); //Huh?
       }
 
-      directory.setNumbers(activeTokens, eligibleContactNumbers);
+      directory.setNumbers(activeTokens, eligibleContactAddresses);
       // Update the forsta contacts db to set active users.
-      contactsDb.setActiveForstaNumbers(activeTokens);
+      contactsDb.setActiveForstaAddresses(activeTokens);
       contactsDb.close();
 //      return updateContactsDatabase(context, localNumber, activeTokens, true);
     }
@@ -124,7 +119,7 @@ public class DirectoryHelper {
   {
     try {
       TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
-      SignalServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+      ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
       String                        number         = Util.canonicalizeNumber(context, recipients.getPrimaryRecipient().getNumber());
       Optional<ContactTokenDetails> details        = accountManager.getContact(number);
 

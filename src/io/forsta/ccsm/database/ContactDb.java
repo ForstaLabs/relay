@@ -78,7 +78,7 @@ public class ContactDb extends DbBase {
 
   public Cursor getContactByAddress(String address) {
     try {
-      return getRecords(TABLE_NAME, null, NUMBER + " = ?", new String[] {address}, NUMBER);
+      return getRecords(TABLE_NAME, null, UID + " = ?", new String[] {address}, UID);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -126,6 +126,20 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return numbers;
+  }
+
+  public Set<String> getAddresses() {
+    Set<String> addresses = new HashSet<>();
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
+      while (c.moveToNext()) {
+        addresses.add(c.getString(c.getColumnIndex(UID)));
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return addresses;
   }
 
   public Map<String, String> getUids() {
@@ -228,14 +242,14 @@ public class ContactDb extends DbBase {
     db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
   }
 
-  public void setActiveForstaNumbers(List<ContactTokenDetails> activeTokens) {
+  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
     for (ContactTokenDetails token : activeTokens) {
-      String number = token.getNumber();
+      String address = token.getNumber();
       ContentValues values = new ContentValues();
       values.put(TSREGISTERED, true);
-      db.update(TABLE_NAME, values, NUMBER + "=?", new String[] { number });
+      db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
     }
     db.close();
   }

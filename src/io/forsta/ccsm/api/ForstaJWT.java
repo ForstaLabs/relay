@@ -71,10 +71,6 @@ public class ForstaJWT {
       user.uid = obj.getString("user_id");
       user.email = obj.getString("email");
       user.slug = user.username = obj.getString("username");
-
-//        int expire = obj.getInt("exp");
-//        long expireTime = (long) expire * 1000;
-//        expireDate = new Date(expireTime);
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     } catch (IOException e) {

@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaLogSubmitActivity;
 import io.forsta.ccsm.ForstaPreferences;
@@ -35,7 +36,6 @@ import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.exceptions.AuthorizationFailedException;
 
 import java.io.IOException;
@@ -199,7 +199,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
       protected Integer doInBackground(Void... params) {
         try {
           Context                     context                = getActivity();
-          SignalServiceAccountManager accountManager         = TextSecureCommunicationFactory.createManager(context);
+          ForstaServiceAccountManager accountManager         = TextSecureCommunicationFactory.createManager(context);
 
           try {
             accountManager.setGcmId(Optional.<String>absent());

@@ -1,3 +1,4 @@
+// vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.util;
 
 import android.util.Log;
@@ -23,10 +24,6 @@ public class NetworkUtils {
   private NetworkUtils() {
   }
 
-  public enum RequestMethod {
-    GET, POST, PUT, DELETE
-  }
-
   private static void setConnHeader(HttpURLConnection conn, String authKey) {
     if (isAuthKey(authKey)) {
       conn.setRequestProperty("Authorization", "JWT " + authKey);
@@ -35,46 +32,58 @@ public class NetworkUtils {
     conn.setRequestProperty("Accept", "application/json");
   }
 
-  public static JSONObject apiFetch(RequestMethod method, String authKey, String path, JSONObject body) {
-    JSONObject result = new JSONObject();
-    HttpURLConnection conn = null;
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body) {
+    return apiFetch(method, authKey, path, body, 0);
+  }
+
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body, float timeout) {
     try {
-      URL url = new URL(fixApiPath(path));
-      conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod(method.toString());
+      return apiHardFetch(method, authKey, path, body, timeout);
+    } catch (Exception e) {
+      Log.e(TAG, e.toString());
+      e.printStackTrace();
+      JSONObject error = new JSONObject();
+      try {
+        error.put("error", e);
+      } catch (JSONException je) {
+        Log.e(TAG, "Internal ERROR: " + je);
+        return null;
+      }
+      return error;
+    }
+  }
+
+  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body) throws Exception {
+    return apiHardFetch(method, authKey, path, body, 0);
+  }
+
+  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body, float timeout) throws Exception {
+    URL url = new URL(fixApiPath(path));
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    try {
+      conn.setRequestMethod(method);
       setConnHeader(conn, authKey);
+      if (timeout != 0) {
+        conn.setConnectTimeout((int)(timeout * 1000));
+        conn.setReadTimeout((int)(timeout * 1000));
+      }
       if (body != null) {
         conn.setDoOutput(true);
         DataOutputStream out = new DataOutputStream(conn.getOutputStream());
         out.writeBytes(body.toString());
         out.close();
       }
-      int response = conn.getResponseCode();
-      if (response == 200) {
-        result = new JSONObject(readResult(conn.getInputStream()));
+      int status = conn.getResponseCode();
+      String result = readResult(conn.getInputStream());
+      JSONObject jsonResult = new JSONObject(result);
+      if (status >= 200 && status < 300) {
+        return jsonResult;
       } else {
-        // 400 on invalid login.
-        // 401 Unauthorized.
-        Log.e(TAG, "API fetch. Bad response: " + response);
-        result.put("error", "" + response);
+        throw new IOException(result);
       }
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      Log.d(TAG, "Bad URL.");
-    } catch (ConnectException e) {
-      Log.d(TAG, "Connect Exception.");
-    } catch (IOException e) {
-      e.printStackTrace();
-      Log.d(TAG, "IO Exception.");
-      Log.d(TAG, e.getMessage());
-    } catch (JSONException e) {
-      e.printStackTrace();
-      Log.d(TAG, "JSON Exception.");
     } finally {
-      if (conn != null)
-        conn.disconnect();
+      conn.disconnect();
     }
-    return result;
   }
 
   private static boolean isAuthKey(String authKey) {
@@ -85,18 +94,14 @@ public class NetworkUtils {
     return !path.endsWith("/") ? path + "/" : path;
   }
 
-  private static String readResult(InputStream input) {
+  private static String readResult(InputStream input) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(input));
     String line = null;
     StringBuilder sb = new StringBuilder();
-    try {
-      while ((line = br.readLine()) != null) {
-        sb.append(line);
-      }
-      br.close();
-    } catch (IOException e) {
-      e.printStackTrace();
+    while ((line = br.readLine()) != null) {
+      sb.append(line);
     }
+    br.close();
     return sb.toString();
   }
 }
