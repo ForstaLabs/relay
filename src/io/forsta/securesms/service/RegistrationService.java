@@ -120,6 +120,7 @@ public class RegistrationService extends Service {
     String signalingKey = Util.getSecret(52);
     Context context = getApplicationContext();
     String addr = ForstaPreferences.getUserId(context);
+    TextSecurePreferences.setLocalNumber(context, addr);
     setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
     try {
       ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
