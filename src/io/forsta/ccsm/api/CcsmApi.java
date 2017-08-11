@@ -64,7 +64,6 @@ public class CcsmApi {
   private static final String API_ORG = "/v1/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
-  private static final String API_DEBUG_LOGS = "/v1/log/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
@@ -72,7 +71,7 @@ public class CcsmApi {
   }
 
   public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
-    String host = ForstaPreferences.getForstaApiHost(context);
+    String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
@@ -143,7 +142,7 @@ public class CcsmApi {
   }
 
   public static JSONObject forstaSendToken(Context context, String org, String username) {
-    String host = ForstaPreferences.getForstaApiHost(context);
+    String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = NetworkUtils.apiFetch("GET", null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
     return result;
   }
@@ -203,13 +202,13 @@ public class CcsmApi {
   }
 
   private static JSONObject fetchResource(Context context, String method, String urn, JSONObject body) {
-    String baseUrl = ForstaPreferences.getForstaApiHost(context);
+    String baseUrl = BuildConfig.FORSTA_API_URL;
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch(method, authKey, baseUrl + urn, body);
   }
 
   private static JSONObject hardFetchResource(Context context, String method, String urn, JSONObject body) throws Exception {
-    String baseUrl = ForstaPreferences.getForstaApiHost(context);
+    String baseUrl = BuildConfig.FORSTA_API_URL;
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
   }
@@ -350,12 +349,6 @@ public class CcsmApi {
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();
     db.updateGroups(groups, activeNumbers);
-  }
-
-  public static JSONObject sendDebugLog(Context context, JSONObject debugData) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch("POST", null, host + API_DEBUG_LOGS, debugData);
   }
 
   private static boolean isErrorResponse(JSONObject response) {

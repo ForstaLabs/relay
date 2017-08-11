@@ -4,7 +4,7 @@
 
     <item android:title="" android:id="@+id/menu_call_recipient"
         android:icon="@drawable/ic_call_white_24dp"
-        app:showAsAction="always" />
+        app:showAsAction="always" android:visible="false" />
 
     <item android:title="@string/conversation__menu_add_attachment"
           android:id="@+id/menu_add_attachment" />

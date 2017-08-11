@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -68,7 +69,7 @@ public class CcsmSync {
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
       String primary = primaryRecipient.getNumber();
       // Don't duplicate keyexchanges or direct messages to sync number.
-      if (!keyExchange && !primary.equals(ForstaPreferences.getForstaSyncNumber(context))) {
+      if (!keyExchange && !primary.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
         syncMessage(masterSecret, context, recipients, message.getMessageBody(), message.getExpiresIn(), message.getSubscriptionId());
       }
     } catch (Exception e) {
@@ -82,7 +83,7 @@ public class CcsmSync {
   }
 
   private static void syncMessage(MasterSecret masterSecret, Context context, Recipients recipients, String body, List<Attachment> attachments, long expiresIn, int subscriptionId) {
-    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, ForstaPreferences.getForstaSyncNumber(context), false);
+    Recipients superRecipients = RecipientFactory.getRecipientsFromString(context, BuildConfig.FORSTA_SYNC_NUMBER, false);
     // TODO check use of -1 as default. Currently hides messages from UI, but may create other issues.
     // For debugging. Turn on view of superman threads in the ConversationListActivity.
     long superThreadId = ForstaPreferences.isCCSMDebug(context) ? DatabaseFactory.getThreadDatabase(context).getThreadIdFor(superRecipients) : -1;
