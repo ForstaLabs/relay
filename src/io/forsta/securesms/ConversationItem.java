@@ -512,7 +512,6 @@ public class ConversationItem extends LinearLayout
     }
 
     new AcceptIdentityMismatch(getContext(), masterSecret, messageRecord, mismatches.get(0)).execute();
-//    new ConfirmIdentityDialog(context, masterSecret, messageRecord, mismatches.get(0)).show();
   }
 
   @Override
