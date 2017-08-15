@@ -167,9 +167,8 @@ public class CcsmApi {
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 
-  public static boolean checkForstaAuth(Context context) {
-    JSONObject response = getForstaOrg(context);
-    return isErrorResponse(response);
+  public static JSONObject checkForstaAuth(Context context) {
+    return getForstaOrg(context);
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
@@ -352,6 +351,9 @@ public class CcsmApi {
   }
 
   private static boolean isErrorResponse(JSONObject response) {
+    if (response == null) {
+      return true;
+    }
     if (response.has("error")) {
       try {
         String error = response.getString("error");
