@@ -26,8 +26,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.internal.ws.WebSocket;
+import com.squareup.okhttp.internal.ws.WebSocketListener;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.signalservice.internal.websocket.OkHttpClientWrapper;
 
 import io.forsta.ccsm.api.ForstaJWT;
 import io.forsta.ccsm.database.model.ForstaGroup;
@@ -68,6 +73,7 @@ import java.util.Map;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.GroupUtil;
+import okio.BufferedSource;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
@@ -90,6 +96,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
+
   }
 
   @Override
@@ -728,6 +735,26 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
       mDebugText.setText(sb.toString());
       mProgressBar.setVisibility(View.GONE);
+    }
+  }
+
+
+
+  private class CcsmWebSocketListener implements WebSocketListener {
+
+    @Override
+    public void onMessage(BufferedSource payload, WebSocket.PayloadType type) throws IOException {
+
+    }
+
+    @Override
+    public void onClose(int code, String reason) {
+
+    }
+
+    @Override
+    public void onFailure(IOException e) {
+
     }
   }
 }
