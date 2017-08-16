@@ -21,6 +21,16 @@
             android:id="@+id/dashboard_login_info"
             android:textSize="10sp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button
+                android:id="@+id/socket_tester"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open Socket"/>
+        </LinearLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
