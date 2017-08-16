@@ -513,7 +513,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           String slug = m.group();
           slug = slug.substring(1);
           if (forstaSlugs.containsKey(slug)) {
-            forstaRecipients.put(slug, forstaSlugs.get(slug).number);
+            forstaRecipients.put(slug, forstaSlugs.get(slug).uuid);
           }
         }
 

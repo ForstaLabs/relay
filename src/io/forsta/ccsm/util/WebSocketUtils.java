@@ -49,7 +49,6 @@ public class WebSocketUtils {
         return true;
       }
     });
-    socket.send("hello");
   }
 
   public void disconnect() {
