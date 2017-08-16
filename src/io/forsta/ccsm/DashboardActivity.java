@@ -135,7 +135,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   }
 
   private void initSocket() {
-    socketUtils = new WebSocketUtils(DashboardActivity.this, "https://ccsm-dev-api.forsta.io/ccsm/", this);
+    socketUtils = new WebSocketUtils(DashboardActivity.this, this);
   }
 
   private void initView() {
@@ -650,7 +650,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   @Override
   public void onStatusChanged(boolean connected) {
-
+    if (!connected) {
+      socketTester.setText("Open socket");
+    } else {
+      socketTester.setText("Close socket");
+    }
   }
 
   private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
