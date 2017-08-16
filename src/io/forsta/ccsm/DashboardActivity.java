@@ -35,6 +35,7 @@ import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -71,7 +72,7 @@ import io.forsta.securesms.util.GroupUtil;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
-public class DashboardActivity extends PassphraseRequiredActionBarActivity {
+public class DashboardActivity extends PassphraseRequiredActionBarActivity implements WebSocketUtils.MessageCallback{
   private static final String TAG = DashboardActivity.class.getSimpleName();
   private TextView mDebugText;
   private TextView mLoginInfo;
@@ -82,6 +83,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private Spinner mConfigSpinner;
   private ScrollView mScrollView;
   private ProgressBar mProgressBar;
+  private WebSocketUtils socketUtils;
+  private Button socketTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -90,6 +93,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
+    initSocket();
   }
 
   @Override
@@ -112,7 +116,42 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (socketUtils.socketOpen) {
+      socketTester.setText("Close socket");
+    } else {
+      socketTester.setText("Open socket");
+    }
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    if (socketUtils.socketOpen) {
+      socketUtils.disconnect();
+    }
+  }
+
+  private void initSocket() {
+    socketUtils = new WebSocketUtils(DashboardActivity.this, "https://ccsm-dev-api.forsta.io/ccsm/", this);
+  }
+
   private void initView() {
+    socketTester = (Button) findViewById(R.id.socket_tester);
+    socketTester.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (!socketUtils.socketOpen) {
+          socketUtils.connect();
+          socketTester.setText("Close Socket");
+        } else {
+          socketUtils.disconnect();
+          socketTester.setText("Open Socket");
+        }
+      }
+    });
     mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
@@ -601,6 +640,17 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       return sb.toString();
     }
     return "MasterSecret NULL";
+  }
+
+  @Override
+  public void onMessage(String message) {
+    showScrollView();
+    mDebugText.setText(message);
+  }
+
+  @Override
+  public void onStatusChanged(boolean connected) {
+
   }
 
   private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {

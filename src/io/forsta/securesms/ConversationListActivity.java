@@ -571,6 +571,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleLogout() {
+    ForstaPreferences.clearLogin(ConversationListActivity.this);
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
@@ -761,26 +762,35 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class VerifyCcsmToken extends AsyncTask<Void, Void, Boolean> {
+  public class VerifyCcsmToken extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
-    protected Boolean doInBackground(Void... voids) {
+    protected JSONObject doInBackground(Void... voids) {
       return CcsmApi.checkForstaAuth(getApplicationContext());
     }
 
     @Override
-    protected void onPostExecute(Boolean isError) {
-      if (isError) {
-        // Not authorized. Start intent for LoginActivity to re-auth.
-        Log.d(TAG, "Not Authorized");
-        ForstaPreferences.clearLogin(ConversationListActivity.this);
-        Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-      } else {
-        Log.d(TAG, "Authorized");
+    protected void onPostExecute(JSONObject response) {
+      if (response == null) {
+        showVagueError();
+      }
+      if (response.has("error")) {
+        try {
+          String error = response.getString("error");
+          if (error.equals("401")) {
+            Log.d(TAG, "Not Authorized");
+            handleLogout();
+          }
+        } catch (JSONException e) {
+          e.printStackTrace();
+          showVagueError();
+        }
       }
     }
+  }
+
+  private void showVagueError() {
+    Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
   private void sendForstaDistribution() {
