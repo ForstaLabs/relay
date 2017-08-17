@@ -5,6 +5,7 @@ import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.os.Build;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
@@ -35,6 +37,7 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -109,7 +112,6 @@ public class DirectoryHelper {
       // Update the forsta contacts db to set active users.
       contactsDb.setActiveForstaAddresses(activeTokens);
       contactsDb.close();
-//      return updateContactsDatabase(context, localNumber, activeTokens, true);
     }
 
     return new LinkedList<>();
@@ -129,14 +131,10 @@ public class DirectoryHelper {
 
       if (details.isPresent()) {
         directory.setNumber(details.get(), true);
-
-        List<String> newUsers = updateContactsDatabase(context, localNumber, details.get());
-
-        if (!newUsers.isEmpty() && TextSecurePreferences.isMultiDevice(context)) {
-          ApplicationContext.getInstance(context).getJobManager().add(new MultiDeviceContactUpdateJob(context));
-        }
-
-        notifyNewUsers(context, masterSecret, newUsers);
+        List<ContactTokenDetails> activeTokens = new ArrayList<>();
+        activeTokens.add(details.get());
+        ContactDb contactsDb = DbFactory.getContactDb(context);
+        contactsDb.setActiveForstaAddresses(activeTokens);
 
         return new UserCapabilities(Capability.SUPPORTED, details.get().isVoice() ? Capability.SUPPORTED : Capability.UNSUPPORTED);
       } else {
@@ -243,7 +241,7 @@ public class DirectoryHelper {
 
   public static Optional<Account> getOrCreateAccount(Context context) {
     AccountManager accountManager = AccountManager.get(context);
-    Account[]      accounts       = accountManager.getAccountsByType("io.forsta.securesms");
+    Account[]      accounts       = accountManager.getAccountsByType(BuildConfig.APPLICATION_ID);
 
     Optional<Account> account;
 
@@ -259,7 +257,7 @@ public class DirectoryHelper {
 
   private static Optional<Account> createAccount(Context context) {
     AccountManager accountManager = AccountManager.get(context);
-    Account        account        = new Account(context.getString(R.string.app_name), "io.forsta.securesms");
+    Account        account        = new Account(context.getString(R.string.app_name), BuildConfig.APPLICATION_ID);
 
     if (accountManager.addAccountExplicitly(account, null, null)) {
       Log.w(TAG, "Created new account...");
