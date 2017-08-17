@@ -62,20 +62,23 @@ public class WebSocketUtils {
     socketOpen = state;
   }
 
+  private void handleMessage(String text) {
+    Message message = messageHandler.obtainMessage(0, text);
+    messageHandler.sendMessage(message);
+  }
+
   private class SocketListener extends WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
       Log.d(TAG, "Socket open");
       setSocketState(true);
-      Message message = messageHandler.obtainMessage(0, "Socket open");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket open");
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
       Log.d(TAG, text);
-      Message message = messageHandler.obtainMessage(0, text);
-      messageHandler.sendMessage(message);
+      handleMessage(text);
     }
 
     @Override
@@ -87,16 +90,14 @@ public class WebSocketUtils {
     public void onClosed(WebSocket webSocket, int code, String reason) {
       Log.d(TAG, "Socket closed");
       setSocketState(false);
-      Message message = messageHandler.obtainMessage(0, "Socket closed");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket closed");
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
       Log.d(TAG, "Socket Failed");
       setSocketState(false);
-      Message message = messageHandler.obtainMessage(0, "Socket failed");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket failed");
     }
   }
 
