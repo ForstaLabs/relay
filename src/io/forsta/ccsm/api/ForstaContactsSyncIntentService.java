@@ -45,7 +45,8 @@ public class ForstaContactsSyncIntentService extends IntentService {
       Log.d(TAG, "Syncing Forsta Contacts");
       Context context = getApplicationContext();
       MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
-      CcsmApi.syncForstaContacts(context, masterSecret);
+      DirectoryHelper.refreshDirectory(context, masterSecret);
+//      CcsmApi.syncForstaContacts(context, masterSecret);
     } catch (Exception e) {
       e.printStackTrace();
     }

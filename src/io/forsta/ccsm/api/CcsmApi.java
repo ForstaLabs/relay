@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.ccsm.LoginActivity;
@@ -23,6 +24,7 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -147,7 +150,7 @@ public class CcsmApi {
     return result;
   }
 
-  public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
+  public static void syncForstaContacts(Context context) {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
     // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
@@ -156,15 +159,10 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-//    createSystemContacts(context, forstaContacts);
     syncForstaContactsDb(context, forstaContacts);
-    try {
-      DirectoryHelper.refreshDirectory(context, masterSecret);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    CcsmApi.syncForstaGroups(context, masterSecret);
+    CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+
   }
 
   public static JSONObject checkForstaAuth(Context context) {
@@ -341,7 +339,7 @@ public class CcsmApi {
     forstaDb.close();
   }
 
-  private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+  private static void syncForstaGroups(Context context) {
     JSONObject response = getTags(context);
     List<ForstaGroup> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);

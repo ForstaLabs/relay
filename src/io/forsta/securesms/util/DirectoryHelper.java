@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -76,6 +77,7 @@ public class DirectoryHelper {
   public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret)
       throws IOException
   {
+    CcsmApi.syncForstaContacts(context);
     List<String> newUsers = refreshDirectory(context,
                                              TextSecureCommunicationFactory.createManager(context),
                                              TextSecurePreferences.getLocalNumber(context));
@@ -86,7 +88,7 @@ public class DirectoryHelper {
                         .add(new MultiDeviceContactUpdateJob(context));
     }
 
-    notifyNewUsers(context, masterSecret, newUsers);
+//    notifyNewUsers(context, masterSecret, newUsers);
   }
 
   public static @NonNull List<String> refreshDirectory(@NonNull Context context,
@@ -96,7 +98,7 @@ public class DirectoryHelper {
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
-    eligibleContactAddresses.add(TextSecurePreferences.getLocalNumber(context));
+    eligibleContactAddresses.add(TextUtils.isEmpty(localNumber) ? TextSecurePreferences.getLocalNumber(context) : localNumber);
     eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
 
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
@@ -131,6 +133,7 @@ public class DirectoryHelper {
 
       if (details.isPresent()) {
         directory.setNumber(details.get(), true);
+
         List<ContactTokenDetails> activeTokens = new ArrayList<>();
         activeTokens.add(details.get());
         ContactDb contactsDb = DbFactory.getContactDb(context);
