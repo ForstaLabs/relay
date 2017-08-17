@@ -1345,9 +1345,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       if (recipients == null) {
         throw new RecipientFormattingException("Badly formatted");
-      }
-
-      if ((!recipients.isSingleRecipient() || recipients.isEmailRecipient()) && !isMmsEnabled) {
+      }if ((!recipients.isSingleRecipient() || recipients.isEmailRecipient()) && !isMmsEnabled) {
         handleManualMmsRequired();
       } else if (attachmentManager.isAttachmentPresent() || !recipients.isSingleRecipient() || recipients.isGroupRecipient() || recipients.isEmailRecipient()) {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
@@ -1384,8 +1382,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     subscriptionId,
                                                                     expiresIn,
                                                                     distributionType);
-    outgoingMessage.setForstaJsonBody(context, recipients);
     if (isSecureText && !forceSms) {
+      outgoingMessage.setForstaJsonBody(context, recipients);
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
 
