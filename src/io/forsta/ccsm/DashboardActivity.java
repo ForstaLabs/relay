@@ -272,9 +272,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append("\n");
     sb.append("Sync Number:");
     sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
-    sb.append("\n");
-    sb.append("Last Login: ");
-    sb.append(lastLogin);
     Date tokenExpire = jwt.getExpireDate();
     sb.append("\n");
     sb.append("Token Expires: ");
