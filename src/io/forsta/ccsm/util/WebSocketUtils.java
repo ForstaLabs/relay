@@ -36,7 +36,7 @@ public class WebSocketUtils {
     this.authKey = ForstaPreferences.getRegisteredKey(context);
     this.uri = BuildConfig.FORSTA_API_URL + "/ccsm/" + authKey + "/";
     this.callback = callback;
-    client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(false).build();
+    client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
   }
 
   public void connect() {
