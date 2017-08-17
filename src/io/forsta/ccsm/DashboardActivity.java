@@ -162,9 +162,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Canonical Address Db");
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
-    options.add("TextSecure Contacts");
-    options.add("System Contact RawContacts");
-    options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
     options.add("Threads");
     options.add("Forsta Contacts");
@@ -196,34 +193,25 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             mDebugText.setText(printDirectory());
             break;
           case 4:
-            mDebugText.setText(printTextSecureContacts());
-            break;
-          case 5:
-            mDebugText.setText(printAllRawContacts());
-            break;
-          case 6:
-            mDebugText.setText(printAllContactData());
-            break;
-          case 7:
             GetMessages getMessages = new GetMessages();
             getMessages.execute();
             break;
-          case 8:
+          case 5:
             mDebugText.setText(printThreads());
             break;
-          case 9:
+          case 6:
             mDebugText.setText(printForstaContacts());
             break;
-          case 10:
+          case 7:
             mDebugText.setText(printGroups());
             break;
-          case 11:
+          case 8:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 12:
+          case 9:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
