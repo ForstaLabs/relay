@@ -74,7 +74,8 @@ public class WebSocketUtils {
   }
 
   private void handleMessage(String text) {
-    messageHandler.sendMessage(messageHandler.obtainMessage(0, text));
+    Message message = messageHandler.obtainMessage(0, text);
+    messageHandler.sendMessage(message);
   }
 
   private class SocketListener extends WebSocketListener {
