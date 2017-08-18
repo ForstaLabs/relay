@@ -135,7 +135,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   }
 
   private void initSocket() {
-    socketUtils = new WebSocketUtils(DashboardActivity.this, this);
+    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, this);
   }
 
   private void initView() {

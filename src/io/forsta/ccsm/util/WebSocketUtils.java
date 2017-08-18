@@ -31,12 +31,23 @@ public class WebSocketUtils {
   private MessageCallback callback;
   public boolean socketOpen = false;
   private Handler messageHandler;
+  private static WebSocketUtils instance;
+  private static final Object lock = new Object();
 
-  public WebSocketUtils(Context context, MessageCallback callback) {
+  private WebSocketUtils(Context context, MessageCallback callback) {
     this.authKey = ForstaPreferences.getRegisteredKey(context);
     this.uri = BuildConfig.FORSTA_API_URL + "/ccsm/" + authKey + "/";
     this.callback = callback;
     client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
+  }
+
+  public static WebSocketUtils getInstance(Context context, MessageCallback callback) {
+    synchronized (lock) {
+      if (instance == null)
+        instance = new WebSocketUtils(context, callback);
+
+      return instance;
+    }
   }
 
   public void connect() {
@@ -63,8 +74,7 @@ public class WebSocketUtils {
   }
 
   private void handleMessage(String text) {
-    Message message = messageHandler.obtainMessage(0, text);
-    messageHandler.sendMessage(message);
+    messageHandler.sendMessage(messageHandler.obtainMessage(0, text));
   }
 
   private class SocketListener extends WebSocketListener {
