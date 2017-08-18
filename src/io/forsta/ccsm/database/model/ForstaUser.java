@@ -32,16 +32,11 @@ public class ForstaUser {
     try {
       String name = getContactName(userObj);
       this.name = name;
-      JSONArray tags = userObj.getJSONArray("tags");
-      for (int i=0; i<tags.length(); i++) {
-        JSONObject tagObject = tags.getJSONObject(i);
-        String association = tagObject.getString("association_type");
-        // Only getting the username tag for the user, not the other tags.
-        if (association.equals("USERNAME")) {
-          JSONObject tag = tagObject.getJSONObject("tag");
+      if (userObj.has("tag")) {
+        JSONObject tag = userObj.getJSONObject("tag");
+        if (tag.has("id")) {
           this.tag_id = tag.getString("id");
           this.slug = tag.getString("slug");
-          break;
         }
       }
       this.uid = userObj.getString("id");

@@ -72,7 +72,7 @@ public class ForstaDirectoryAdapter extends CursorRecyclerViewAdapter<ForstaDire
     public void setData(Cursor cursor) {
       name.setText(cursor.getString(cursor.getColumnIndex(ContactDb.NAME)));
       number.setText(cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER)));
-      slug.setText(cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME)));
+      slug.setText(cursor.getString(cursor.getColumnIndex(ContactDb.SLUG)));
     }
   }
 }

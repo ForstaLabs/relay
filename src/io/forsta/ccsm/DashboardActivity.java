@@ -168,6 +168,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Groups");
     options.add("Get API Users");
     options.add("Get API Groups");
+    options.add("Get Directory");
 
     ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
     mSpinner.setAdapter(adapter);
@@ -217,6 +218,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
+          case 10:
+            mDebugText.setText("");
+            GetDirectory directory = new GetDirectory();
+            directory.execute();
         }
       }
 
@@ -278,6 +283,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       sb.append("\n");
       sb.append("Tag Id: ");
       sb.append(user.tag_id);
+      sb.append("\n");
+      sb.append("Slug: ");
+      sb.append(user.slug);
       sb.append("\n");
       sb.append("Phone: ");
       sb.append(user.phone);
@@ -767,6 +775,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       }
       mDebugText.setText(sb.toString());
       mProgressBar.setVisibility(View.GONE);
+    }
+  }
+
+  private class GetDirectory extends AsyncTask<Void, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(Void... voids) {
+      return CcsmApi.getUserDirectory(DashboardActivity.this);
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      mDebugText.setText(jsonObject.toString());
     }
   }
 }

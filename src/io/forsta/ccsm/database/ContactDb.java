@@ -85,6 +85,20 @@ public class ContactDb extends DbBase {
     return null;
   }
 
+  public ForstaUser getUserByAddress(String address) {
+    ForstaUser user = null;
+    try {
+      Cursor cursor = getRecords(TABLE_NAME, null, UID + " = ?", new String[] {address}, UID);
+      if (cursor != null && cursor.moveToNext()) {
+        user = new ForstaUser(cursor);
+      }
+      cursor.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return user;
+  }
+
   public HashMap<String, String> getContactSlugs() {
     HashMap<String, String> contacts = new HashMap<>();
     try {
@@ -105,7 +119,7 @@ public class ContactDb extends DbBase {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
         ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
-        contacts.put(c.getString(c.getColumnIndex(USERNAME)), recipient);
+        contacts.put(c.getString(c.getColumnIndex(SLUG)), recipient);
       }
       c.close();
     } catch (Exception e) {

@@ -18,6 +18,7 @@ import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
@@ -137,6 +138,11 @@ public class DirectoryHelper {
         List<ContactTokenDetails> activeTokens = new ArrayList<>();
         activeTokens.add(details.get());
         ContactDb contactsDb = DbFactory.getContactDb(context);
+        ForstaUser user = contactsDb.getUserByAddress(number);
+        if (user == null) {
+          // We do not recognize this user. Try to refresh from CCSM.
+          CcsmApi.syncForstaContacts(context);
+        }
         contactsDb.setActiveForstaAddresses(activeTokens);
 
         return new UserCapabilities(Capability.SUPPORTED, details.get().isVoice() ? Capability.SUPPORTED : Capability.UNSUPPORTED);
