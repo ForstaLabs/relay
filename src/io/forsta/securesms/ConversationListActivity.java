@@ -256,6 +256,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     dynamicLanguage.onResume(this);
     registerReceiver(syncReceiver, syncIntentFilter);
     getSlugs();
+
   }
 
   @Override
@@ -766,6 +767,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
+      String testString = "@john-lewis Hey.";
+      JSONObject result = CcsmApi.putDistributionExpression(ConversationListActivity.this, testString);
       return CcsmApi.checkForstaAuth(getApplicationContext());
     }
 
