@@ -51,7 +51,7 @@ public class ContactDb extends DbBase {
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
-      "CONSTRAINT item_number_unique UNIQUE (" + NUMBER + ")" +
+      "CONSTRAINT item_uid_unique UNIQUE (" + UID + ")" +
       ")";
 
   public static String[] allColumns = {
