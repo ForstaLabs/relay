@@ -210,7 +210,7 @@ public class CcsmApi {
     JSONObject response = new JSONObject();
     try {
       jsonObject.put("expression", expression);
-      response = fetchResource(context, "PUT", API_RESOLVE, jsonObject);
+      response = fetchResource(context, "POST", API_RESOLVE, jsonObject);
     } catch (JSONException e) {
       e.printStackTrace();
     }
