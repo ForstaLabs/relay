@@ -153,9 +153,8 @@ public class ContactSelectionListFragment extends    Fragment
 
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-    // TODO change to DirectoryLoader. Must change adapter to bind new fields to UI component.
     return new ContactsCursorLoader(getActivity(),
-                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_ALL),
+                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_PUSH_ONLY),
                                     cursorFilter);
   }
 

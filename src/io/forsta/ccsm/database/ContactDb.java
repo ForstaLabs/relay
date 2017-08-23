@@ -51,7 +51,7 @@ public class ContactDb extends DbBase {
       ORGID + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
-      "CONSTRAINT item_uid_unique UNIQUE (" + UID + ")" +
+      "CONSTRAINT item_number_unique UNIQUE (" + UID + ")" +
       ")";
 
   public static String[] allColumns = {
@@ -272,7 +272,7 @@ public class ContactDb extends DbBase {
     String queryFilter = TSREGISTERED + " = 1";
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
-      queryFilter += " AND (" + NAME + " LIKE ? OR " + NUMBER + " LIKE ?)";
+      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ?)";
       queryValues = new String[] { "%" + filter + "%", "%" + filter + "%" };
     }
 

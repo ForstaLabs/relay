@@ -55,6 +55,15 @@ public class ContactsCursorLoader extends CursorLoader {
   private final String filter;
   private final int    mode;
 
+  private final String[] columns = {
+      ContactsDatabase.ID_COLUMN,
+      ContactsDatabase.NAME_COLUMN,
+      ContactsDatabase.NUMBER_COLUMN,
+      ContactsDatabase.NUMBER_TYPE_COLUMN,
+      ContactsDatabase.LABEL_COLUMN,
+      ContactsDatabase.CONTACT_TYPE_COLUMN
+  };
+
   public ContactsCursorLoader(Context context, int mode, String filter) {
     super(context);
 
@@ -75,12 +84,7 @@ public class ContactsCursorLoader extends CursorLoader {
     }
 
     if (!TextUtils.isEmpty(filter) && NumberUtil.isValidSmsOrEmail(filter)) {
-      MatrixCursor newNumberCursor = new MatrixCursor(new String[] {ContactsDatabase.ID_COLUMN,
-                                                                    ContactsDatabase.NAME_COLUMN,
-                                                                    ContactsDatabase.NUMBER_COLUMN,
-                                                                    ContactsDatabase.NUMBER_TYPE_COLUMN,
-                                                                    ContactsDatabase.LABEL_COLUMN,
-                                                                    ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
+      MatrixCursor newNumberCursor = new MatrixCursor(columns, 1);
 
       newNumberCursor.addRow(new Object[] {-1L, getContext().getString(R.string.contact_selection_list__unknown_contact),
                                            filter, ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
@@ -90,13 +94,7 @@ public class ContactsCursorLoader extends CursorLoader {
     }
 
     //Get cursors from the forsta contacts and group databases.
-    MatrixCursor forstaContactsCursor = new MatrixCursor(new String[] {
-        ContactsDatabase.ID_COLUMN,
-        ContactsDatabase.NAME_COLUMN,
-        ContactsDatabase.NUMBER_COLUMN,
-        ContactsDatabase.NUMBER_TYPE_COLUMN,
-        ContactsDatabase.LABEL_COLUMN,
-        ContactsDatabase.CONTACT_TYPE_COLUMN}, 1);
+    MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
 
     ContactDb contactDb = DbFactory.getContactDb(getContext());
     Cursor contactsCursor = contactDb.getActiveRecipients(filter);
@@ -106,8 +104,8 @@ public class ContactsCursorLoader extends CursorLoader {
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
           contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-          "\u21e2",
-          ContactsDatabase.NORMAL_TYPE
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+          ContactsDatabase.PUSH_TYPE
       });
     }
     contactsCursor.close();
@@ -120,8 +118,8 @@ public class ContactsCursorLoader extends CursorLoader {
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
-          "\u21e2",
-          ContactsDatabase.NORMAL_TYPE
+          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+          ContactsDatabase.PUSH_TYPE
       });
     }
     groupCursor.close();
@@ -134,12 +132,7 @@ public class ContactsCursorLoader extends CursorLoader {
   private @NonNull Cursor filterNonPushContacts(@NonNull Cursor cursor) {
     try {
       final long startMillis = System.currentTimeMillis();
-      final MatrixCursor matrix = new MatrixCursor(new String[]{ContactsDatabase.ID_COLUMN,
-                                                                ContactsDatabase.NAME_COLUMN,
-                                                                ContactsDatabase.NUMBER_COLUMN,
-                                                                ContactsDatabase.NUMBER_TYPE_COLUMN,
-                                                                ContactsDatabase.LABEL_COLUMN,
-                                                                ContactsDatabase.CONTACT_TYPE_COLUMN});
+      final MatrixCursor matrix = new MatrixCursor(columns);
       while (cursor.moveToNext()) {
         final String number = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN));
         final Recipients recipients = RecipientFactory.getRecipientsFromString(getContext(), number, true);

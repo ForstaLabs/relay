@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.os.Build;
 import android.os.RemoteException;
@@ -16,6 +17,7 @@ import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -90,6 +92,7 @@ public class DirectoryHelper {
     }
 
 //    notifyNewUsers(context, masterSecret, newUsers);
+    context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
   }
 
   public static @NonNull List<String> refreshDirectory(@NonNull Context context,

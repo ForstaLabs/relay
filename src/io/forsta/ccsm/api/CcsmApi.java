@@ -67,7 +67,7 @@ public class CcsmApi {
   private static final String API_ORG = "/v1/org/";
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
-  private static final String API_RESOLVE = "/v1/tag/resolve/";
+  private static final String API_RESOLVE = "/v1/tag/resolve";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
@@ -205,7 +205,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_TAG_PICK);
   }
 
-  public static JSONObject putDistributionExpression(Context context, String expression) {
+  public static JSONObject getDistributionExpression(Context context, String expression) {
     JSONObject jsonObject = new JSONObject();
     JSONObject response = new JSONObject();
     try {
