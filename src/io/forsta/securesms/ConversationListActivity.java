@@ -87,6 +87,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
 import io.forsta.securesms.mms.MediaConstraints;
@@ -98,6 +99,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.GroupUtil;
@@ -316,7 +318,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   //    case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();            return true;
-      case R.id.menu_directory:         handleDirectory();       return true;
+      case R.id.menu_directory:         handleDirectoryRefresh();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:
         onSwitchToArchive();
@@ -566,6 +568,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void handleDirectory() {
     Intent directoryIntent = new Intent(this, NewConversationActivity.class);
     startActivity(directoryIntent);
+  }
+
+  private void handleDirectoryRefresh() {
+    syncIndicator.setVisibility(View.VISIBLE);
+    ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext()));
   }
 
   private void handleDisplaySettings() {
