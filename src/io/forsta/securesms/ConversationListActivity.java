@@ -473,47 +473,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       }
     });
 
-    composeText.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-      }
-
-      @Override
-      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
-        Matcher m = p.matcher(charSequence);
-        String input = charSequence.toString();
-
-        int slugStart = input.lastIndexOf("@");
-        String slugPart = input.substring(slugStart + 1);
-        if (slugPart.contains(" ") || input.length() == 0) {
-          hideDirectory();
-        } else {
-          recipientSelectionFragment.setQueryFilter(slugPart);
-          if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
-            showDirectory();
-          }
-        }
-
-        forstaRecipients.clear();
-        while (m.find()) {
-          String slug = m.group();
-          slug = slug.substring(1);
-          if (forstaSlugs.containsKey(slug)) {
-            forstaRecipients.put(slug, forstaSlugs.get(slug).uuid);
-          }
-        }
-
-        // TODO remove this. For development only.
-        recipientCount.setText("" + forstaRecipients.size());
-      }
-
-      @Override
-      public void afterTextChanged(Editable editable) {
-
-      }
-    });
+    composeText.addTextChangedListener(new TextChangedWatcher());
   }
 
   private void getSlugs() {
@@ -756,39 +716,13 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class VerifyCcsmToken extends AsyncTask<Void, Void, JSONObject> {
-
-    @Override
-    protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.checkForstaAuth(getApplicationContext());
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject response) {
-      if (response == null) {
-        showVagueError();
-      }
-      if (response.has("error")) {
-        try {
-          String error = response.getString("error");
-          if (error.equals("401")) {
-            Log.d(TAG, "Not Authorized");
-            handleLogout();
-          }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          showVagueError();
-        }
-      }
-    }
-  }
-
   private void showVagueError() {
     Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
   private void sendForstaDistribution() {
     String message = composeText.getText().toString();
+
     if (forstaRecipients.size() > 0) {
       if (forstaRecipients.size() == 1) {
         sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
@@ -904,6 +838,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void sendMessage(String message, Recipients messageRecipients) {
     long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
+    JSONObject expression = CcsmApi.getDistributionExpression(ConversationListActivity.this, message);
+
+    if (expression.has("error")) {
+      Toast.makeText(ConversationListActivity.this, "Invalid recipient in message body", Toast.LENGTH_LONG).show();
+    }
+
     OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
     mediaMessage.setForstaJsonBody(ConversationListActivity.this, messageRecipients);
     new AsyncTask<OutgoingMediaMessage, Void, Void>() {
@@ -941,6 +881,76 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       fragment.getListAdapter().notifyDataSetChanged();
       recipientSelectionFragment.resetQueryFilter();
       getSlugs();
+    }
+  }
+
+  public class VerifyCcsmToken extends AsyncTask<Void, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(Void... voids) {
+      return CcsmApi.checkForstaAuth(getApplicationContext());
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject response) {
+      if (response == null) {
+        showVagueError();
+      }
+      if (response.has("error")) {
+        try {
+          String error = response.getString("error");
+          if (error.equals("401")) {
+            Log.d(TAG, "Not Authorized");
+            handleLogout();
+          }
+        } catch (JSONException e) {
+          e.printStackTrace();
+          showVagueError();
+        }
+      }
+    }
+  }
+
+  private class TextChangedWatcher implements TextWatcher {
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+      Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
+      Matcher m = p.matcher(charSequence);
+      String input = charSequence.toString();
+
+      int slugStart = input.lastIndexOf("@");
+      String slugPart = input.substring(slugStart + 1);
+      if (slugPart.contains(" ") || input.length() == 0) {
+        hideDirectory();
+      } else {
+        recipientSelectionFragment.setQueryFilter(slugPart);
+        if (i2 > 0 && charSequence.length() > 0 && charSequence.charAt(charSequence.length() - 1) == "@".charAt(0)) {
+          showDirectory();
+        }
+      }
+
+      forstaRecipients.clear();
+      while (m.find()) {
+        String slug = m.group();
+        slug = slug.substring(1);
+        if (forstaSlugs.containsKey(slug)) {
+          forstaRecipients.put(slug, forstaSlugs.get(slug).uuid);
+        }
+      }
+
+      // TODO remove this. For development only.
+      recipientCount.setText("" + forstaRecipients.size());
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
     }
   }
 }
