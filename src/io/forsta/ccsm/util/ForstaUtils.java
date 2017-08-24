@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
@@ -132,6 +133,42 @@ public class ForstaUtils {
     return null;
   }
 
+  public static JSONArray getResolvedDistributionIds(JSONObject jsonObject) {
+    JSONArray result = new JSONArray();
+
+
+
+    return result;
+  }
+
+  public static String getMessageDistribution(String body) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, body);
+      if (jsonObject.has("distribution")) {
+        result = jsonObject.getString("distribution");
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return result;
+  }
+
+  private static JSONObject getVersion(int version, String body) {
+    try {
+      JSONArray jsonArray = new JSONArray(body);
+      for (int i=0; i<jsonArray.length(); i++) {
+        JSONObject versionObject = jsonArray.getJSONObject(i);
+        if (versionObject.getInt("version") == 1) {
+          return versionObject;
+        }
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return new JSONObject();
+  }
+
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
@@ -220,6 +257,7 @@ public class ForstaUtils {
       body.put(bodyPlain);
 
       data.put("body", body);
+      version1.put("messageId", UUID.randomUUID().toString());
       version1.put("threadId", threadId);
       version1.put("threadTitle", threadTitle);
       version1.put("type", type);

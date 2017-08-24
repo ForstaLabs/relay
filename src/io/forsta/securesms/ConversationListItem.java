@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.RippleDrawable;
+import android.os.AsyncTask;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
@@ -32,6 +33,12 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
@@ -40,11 +47,18 @@ import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.model.ThreadRecord;
+import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.ResUtil;
 import io.forsta.securesms.util.ViewUtil;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -113,11 +127,47 @@ public class ConversationListItem extends RelativeLayout
     ViewUtil.setTextViewGravityStart(this.subjectView, getContext());
   }
 
-  public void bind(@NonNull MasterSecret masterSecret, @NonNull ThreadRecord thread,
+  public void bind(@NonNull final MasterSecret masterSecret, @NonNull ThreadRecord thread,
                    @NonNull Locale locale, @NonNull Set<Long> selectedThreads, boolean batchMode)
   {
     this.selectedThreads  = selectedThreads;
     this.recipients       = thread.getRecipients();
+    // Check the resolve endpoint to discover unknown recipients.
+    // Create unknown groups.
+    final Recipient primary = recipients.getPrimaryRecipient();
+    final String messageBody = thread.getDisplayBody().toString();
+    String name = primary.getName();
+    String slug = primary.getSlug();
+    if (ForstaUtils.isJsonBody(messageBody) && primary.getName() == null && primary.getSlug() == null) {
+      new AsyncTask<Context, Void, Void>() {
+        @Override
+        protected Void doInBackground(Context... params) {
+          Context context = params[0];
+          String distribution = ForstaUtils.getMessageDistribution(messageBody);
+          JSONObject result = CcsmApi.getDistributionExpression(context, distribution);
+          if (result.has("userids")) {
+            try {
+              JSONArray users = result.getJSONArray("userids");
+              List<String> userList = new ArrayList<String>();
+              for (int i=0; i<users.length(); i++) {
+                userList.add(users.getString(i));
+              }
+              String pretty = result.getString("pretty");
+              Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(context, userList, false);
+              List<String> addresses = recipients.toNumberStringList(false);
+              String stop = "";
+
+//              GroupManager.createForstaGroup(context, primary.getNumber().getBytes(), pretty, addresses);
+
+            } catch (JSONException e) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        }
+      }.execute(getContext());
+    }
+
     this.threadId         = thread.getThreadId();
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();

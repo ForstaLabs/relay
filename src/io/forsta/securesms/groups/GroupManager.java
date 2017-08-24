@@ -24,6 +24,8 @@ import io.forsta.securesms.util.BitmapUtil;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+
+import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
@@ -88,6 +90,11 @@ public class GroupManager {
     }
 
     return results;
+  }
+
+  public static void createForstaGroup(Context context, byte[] groupId, String title, List<String> members) {
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    db.createForstaGroup(groupId, title, members, null, null);
   }
 
   public static void updateForstaGroup(@NonNull  Context        context,
