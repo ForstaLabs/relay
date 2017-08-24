@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.ccsm.LoginActivity;
@@ -23,6 +24,7 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.groups.GroupManager;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -62,6 +65,9 @@ public class CcsmApi {
   private static final String API_TAG_PICK = "/v1/tag-pick/";
   private static final String API_USER_TAG = "/v1/usertag/";
   private static final String API_ORG = "/v1/org/";
+  private static final String API_DIRECTORY_USER = "/v1/directory/user/";
+  private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
+  private static final String API_RESOLVE = "/v1/tag/resolve";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
@@ -147,7 +153,7 @@ public class CcsmApi {
     return result;
   }
 
-  public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
+  public static void syncForstaContacts(Context context) {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
     // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
@@ -156,15 +162,18 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-//    createSystemContacts(context, forstaContacts);
     syncForstaContactsDb(context, forstaContacts);
-    try {
-      DirectoryHelper.refreshDirectory(context, masterSecret);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    CcsmApi.syncForstaGroups(context, masterSecret);
+    CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+
+  }
+
+  public static JSONObject getUserDirectory(Context context) {
+    return fetchResource(context, "GET", API_DIRECTORY_USER);
+  }
+
+  public static JSONObject getDomainDirectory(Context context) {
+    return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
   }
 
   public static JSONObject checkForstaAuth(Context context) {
@@ -180,20 +189,32 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_ORG);
   }
 
-  public static JSONObject getUser(Context context) {
-    return fetchResource(context, "GET", API_USER);
+  public static JSONObject getUserPick(Context context) {
+    return fetchResource(context, "GET", API_USER_PICK);
   }
 
   public static JSONObject getUsers(Context context) {
-    return fetchResource(context, "GET", API_USER_PICK);
+    return fetchResource(context, "GET", API_USER);
   }
 
   public static JSONObject getTags(Context context) {
     return fetchResource(context, "GET", API_TAG);
   }
 
-  public static JSONObject getTagPicks(Context context) {
+  public static JSONObject getTagPick(Context context) {
     return fetchResource(context, "GET", API_TAG_PICK);
+  }
+
+  public static JSONObject getDistributionExpression(Context context, String expression) {
+    JSONObject jsonObject = new JSONObject();
+    JSONObject response = new JSONObject();
+    try {
+      jsonObject.put("expression", expression);
+      response = fetchResource(context, "POST", API_RESOLVE, jsonObject);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return response;
   }
 
   private static JSONObject fetchResource(Context context, String method, String urn) {
@@ -341,7 +362,7 @@ public class CcsmApi {
     forstaDb.close();
   }
 
-  private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+  private static void syncForstaGroups(Context context) {
     JSONObject response = getTags(context);
     List<ForstaGroup> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);

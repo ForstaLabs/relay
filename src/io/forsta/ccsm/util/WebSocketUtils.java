@@ -31,12 +31,23 @@ public class WebSocketUtils {
   private MessageCallback callback;
   public boolean socketOpen = false;
   private Handler messageHandler;
+  private static WebSocketUtils instance;
+  private static final Object lock = new Object();
 
-  public WebSocketUtils(Context context, MessageCallback callback) {
+  private WebSocketUtils(Context context, MessageCallback callback) {
     this.authKey = ForstaPreferences.getRegisteredKey(context);
     this.uri = BuildConfig.FORSTA_API_URL + "/ccsm/" + authKey + "/";
     this.callback = callback;
-    client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(false).build();
+    client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
+  }
+
+  public static WebSocketUtils getInstance(Context context, MessageCallback callback) {
+    synchronized (lock) {
+      if (instance == null)
+        instance = new WebSocketUtils(context, callback);
+
+      return instance;
+    }
   }
 
   public void connect() {
@@ -62,20 +73,23 @@ public class WebSocketUtils {
     socketOpen = state;
   }
 
+  private void handleMessage(String text) {
+    Message message = messageHandler.obtainMessage(0, text);
+    messageHandler.sendMessage(message);
+  }
+
   private class SocketListener extends WebSocketListener {
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
       Log.d(TAG, "Socket open");
       setSocketState(true);
-      Message message = messageHandler.obtainMessage(0, "Socket open");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket open");
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
       Log.d(TAG, text);
-      Message message = messageHandler.obtainMessage(0, text);
-      messageHandler.sendMessage(message);
+      handleMessage(text);
     }
 
     @Override
@@ -87,16 +101,14 @@ public class WebSocketUtils {
     public void onClosed(WebSocket webSocket, int code, String reason) {
       Log.d(TAG, "Socket closed");
       setSocketState(false);
-      Message message = messageHandler.obtainMessage(0, "Socket closed");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket closed");
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
       Log.d(TAG, "Socket Failed");
       setSocketState(false);
-      Message message = messageHandler.obtainMessage(0, "Socket failed");
-      messageHandler.sendMessage(message);
+      handleMessage("Socket failed");
     }
   }
 

@@ -113,18 +113,18 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   @Override
   public void onBindItemViewHolder(ViewHolder viewHolder, @NonNull Cursor cursor) {
-    long   id          = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsDatabase.ID_COLUMN));
-    int    contactType = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.CONTACT_TYPE_COLUMN));
-    String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN));
-    String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN));
-    String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN));
-    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN));
+    long   id          = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsDatabase.ID_COLUMN)); //ContactsDb.ID
+    int    contactType = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.CONTACT_TYPE_COLUMN)); //ContactsDatabase.PUSH_TYPE
+    String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN)); //ContactsDb.NAME
+    String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN)); //ContactsDb.UID
+    String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.SLUG
+    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.SLUG
 
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);
 
     viewHolder.getView().unbind();
-    viewHolder.getView().set(id, contactType, name, number, labelText, color, multiSelect);
+    viewHolder.getView().set(id, contactType, name, number, label, color, multiSelect);
     viewHolder.getView().setChecked(selectedContacts.containsKey(id));
   }
 

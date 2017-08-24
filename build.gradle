@@ -139,7 +139,6 @@ dependencyVerification {
         'com.google.protobuf:protobuf-java:e0c1c64575c005601725e7c6a02cebf9e1285e888f756b2a1d73ffa8d725cc74',
         'com.squareup.okhttp:okhttp:89b7f63e2e5b6c410266abc14f50fe52ea8d2d8a57260829e499b1cd9f0e61af',
         'com.fasterxml.jackson.core:jackson-databind:835097bcdd11f5bc8a08378c70d4c8054dfa4b911691cc2752063c75534d198d',
-//        'com.squareup.okio:okio:5e1098bd3fdee4c3347f5ab815b40ba851e4ab1b348c5e49a5b0362f0ce6e978',
         'com.fasterxml.jackson.core:jackson-annotations:0ca408c24202a7626ec8b861e99d85eca5e38b73311dd6dd12e3e9deecc3fe94',
         'com.fasterxml.jackson.core:jackson-core:cbf4604784b4de226262845447a1ad3bb38a6728cebe86562e2c5afada8be2c0',
         'com.android.support:support-v4:c62f0d025dafa86f423f48df9185b0d89496adbc5f6a9be5a7c394d84cf91423',
@@ -156,8 +155,8 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 14
         targetSdkVersion 22
-        versionName "0.1.27"
-        versionCode 127
+        versionName "0.1.28"
+        versionCode 128
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
