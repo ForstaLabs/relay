@@ -176,11 +176,7 @@ public class ConversationListItem extends RelativeLayout
     this.fromView.setText(recipients, read);
 
     String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
-    if (forstaBody != null) {
-      subjectView.setText(forstaBody);
-    } else {
-      this.subjectView.setText(thread.getDisplayBody());
-    }
+    subjectView.setText(forstaBody);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {

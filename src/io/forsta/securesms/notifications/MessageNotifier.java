@@ -380,10 +380,7 @@ public class MessageNotifier {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
-      String forstaMessage = ForstaUtils.getForstaPlainTextBody(body.toString());
-      if (forstaMessage != null) {
-        body = forstaMessage;
-      }
+      body = ForstaUtils.getForstaPlainTextBody(body.toString());
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));

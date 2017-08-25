@@ -34,7 +34,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemAnimator.ItemAnimatorFinishedListener;
 import android.text.ClipboardManager;
-import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
@@ -328,14 +327,11 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(String body) {
-    Spanned forstaBody = ForstaUtils.getForstaJsonBody(body);
-    if (forstaBody == null) {
-      String plainBody = ForstaUtils.getForstaPlainTextBody(body);
-      if (plainBody == null) {
-        return body;
-      }
+    Spanned forstaBody = ForstaUtils.getForstaHtmlBody(body);
+    if (forstaBody != null) {
+      return forstaBody.toString();
     }
-    return forstaBody.toString();
+    return ForstaUtils.getForstaPlainTextBody(body);
   }
 
   private void handleForwardMessage(MessageRecord message) {

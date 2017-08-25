@@ -447,7 +447,6 @@ public class PushDecryptJob extends ContextJob {
 
     // TODO implement this feature someplace near here.
     // Look at payload threadId and create local group if it does not exist.
-    ForstaUtils.createForstaGroupFromMessagePayload(body);
 
     Pair<Long, Long> messageAndThreadId;
 

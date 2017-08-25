@@ -21,14 +21,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.util.Linkify;
@@ -52,20 +50,15 @@ import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.IdentityDatabase;
-import io.forsta.securesms.database.MmsAddressDatabase;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
-import io.forsta.securesms.jobs.IdentityUpdateJob;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
-import io.forsta.securesms.jobs.PushDecryptJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
@@ -73,8 +66,6 @@ import io.forsta.securesms.mms.SlideClickListener;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -82,14 +73,8 @@ import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
-import org.whispersystems.signalservice.internal.push.SignalServiceProtos;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -299,16 +284,12 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      Spanned forstaBody = ForstaUtils.getForstaJsonBody(messageRecord.getDisplayBody().toString());
+      Spanned forstaBody = ForstaUtils.getForstaHtmlBody(messageRecord.getDisplayBody().toString());
       if (forstaBody != null) {
         bodyText.setText(forstaBody);
       } else {
         String forstaPlainBody = ForstaUtils.getForstaPlainTextBody(messageRecord.getDisplayBody().toString());
-        if (forstaPlainBody != null) {
-          bodyText.setText(forstaPlainBody);
-        } else {
-          bodyText.setText(messageRecord.getDisplayBody());
-        }
+        bodyText.setText(forstaPlainBody);
       }
       bodyText.setVisibility(View.VISIBLE);
     }

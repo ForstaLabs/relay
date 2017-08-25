@@ -74,63 +74,43 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaHtmlBody, Not a Forsta JSON message body");
     }
     return false;
   }
 
-  public static Spanned getForstaJsonBody(String messageBody) {
+  public static Spanned getForstaHtmlBody(String messageBody) {
     try {
-      JSONArray forstaArray = new JSONArray(messageBody);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          JSONObject data = version.getJSONObject("data");
-          JSONArray body =  data.getJSONArray("body");
-          for (int j=0; j<body.length(); j++) {
-            JSONObject object = body.getJSONObject(j);
-            if (object.getString("type").equals("text/html")) {
-              String htmlText = object.getString("value");
-              return Html.fromHtml(htmlText);
-            }
-          }
+      JSONObject version = getVersion(1, messageBody);
+      JSONObject data = version.getJSONObject("data");
+      JSONArray body =  data.getJSONArray("body");
+      for (int j=0; j<body.length(); j++) {
+        JSONObject object = body.getJSONObject(j);
+        if (object.getString("type").equals("text/html")) {
+          return Html.fromHtml(object.getString("value"));
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaHtmlBody, Not a Forsta JSON message body");
     }
     return null;
   }
 
   public static String getForstaPlainTextBody(String messageBody) {
     try {
-      JSONArray forstaArray= new JSONArray(messageBody);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          if (version.has("data")) {
-            JSONObject data = version.getJSONObject("data");
-            if (data.has("body")) {
-              JSONArray body =  data.getJSONArray("body");
-              for (int j=0; j<body.length(); j++) {
-                JSONObject object = body.getJSONObject(j);
-                if (object.getString("type").equals("text/plain")) {
-                  return object.getString("value");
-                }
-              }
-            } else {
-              // Body is missing, but is a JSON blob. Assume attachment. Return a blank message.
-              return "";
-            }
-          } else {
-            return "";
-          }
+      JSONObject version = getVersion(1, messageBody);
+      JSONObject data = version.getJSONObject("data");
+      JSONArray body =  data.getJSONArray("body");
+      for (int j=0; j<body.length(); j++) {
+        JSONObject object = body.getJSONObject(j);
+        if (object.getString("type").equals("text/plain")) {
+          return object.getString("value");
         }
       }
     } catch (JSONException e) {
       Log.w(TAG, "JSON exception. getForstaPlainTextBody, Not a Forsta JSON message body");
     }
-    return null;
+    return messageBody;
   }
 
   public static JSONArray getResolvedDistributionIds(JSONObject jsonObject) {
@@ -291,23 +271,5 @@ public class ForstaUtils {
       Log.w(TAG, "JSON exception. Not a Forsta group title blob.");
     }
     return null;
-  }
-
-  public static void createForstaGroupFromMessagePayload(String body) {
-    try {
-      JSONArray forstaArray = new JSONArray(body);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          String groupId = version.getString("threadId");
-          if (GroupUtil.isEncodedGroup(groupId)) {
-            String title = version.getString("threadTitle");
-
-          }
-        }
-      }
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
   }
 }
