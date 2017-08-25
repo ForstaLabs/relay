@@ -157,7 +157,7 @@ public class ForstaUtils {
       version1.put("version", 1);
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
-      String type = "ordinary";
+      String type = "conversation";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
