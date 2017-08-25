@@ -1228,12 +1228,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
       Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
       if (cursor.moveToFirst()) {
-        String slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
-        // Do not allow modification of tags.
-        // Add check for groupDistribution once group info can be passed to other clients via JSON blob in title field of Group update messages.
-        // int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
-        if (slug != null) {
-          result = true;
+        int distribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
+        if (distribution == 1) {
+          return true;
         }
       }
       cursor.close();
