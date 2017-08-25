@@ -132,42 +132,6 @@ public class ConversationListItem extends RelativeLayout
   {
     this.selectedThreads  = selectedThreads;
     this.recipients       = thread.getRecipients();
-    // Check the resolve endpoint to discover unknown recipients.
-    // Create unknown groups.
-    final Recipient primary = recipients.getPrimaryRecipient();
-    final String messageBody = thread.getDisplayBody().toString();
-    String name = primary.getName();
-    String slug = primary.getSlug();
-    if (ForstaUtils.isJsonBody(messageBody) && primary.getName() == null && primary.getSlug() == null) {
-      new AsyncTask<Context, Void, Void>() {
-        @Override
-        protected Void doInBackground(Context... params) {
-          Context context = params[0];
-          String distribution = ForstaUtils.getMessageDistribution(messageBody);
-          JSONObject result = CcsmApi.getDistributionExpression(context, distribution);
-          if (result.has("userids")) {
-            try {
-              JSONArray users = result.getJSONArray("userids");
-              List<String> userList = new ArrayList<String>();
-              for (int i=0; i<users.length(); i++) {
-                userList.add(users.getString(i));
-              }
-              String pretty = result.getString("pretty");
-              Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(context, userList, false);
-              List<String> addresses = recipients.toNumberStringList(false);
-              String stop = "";
-
-//              GroupManager.createForstaGroup(context, primary.getNumber().getBytes(), pretty, addresses);
-
-            } catch (JSONException e) {
-              e.printStackTrace();
-            }
-          }
-          return null;
-        }
-      }.execute(getContext());
-    }
-
     this.threadId         = thread.getThreadId();
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
