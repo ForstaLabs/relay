@@ -313,7 +313,7 @@ public class ContactDb extends DbBase {
 
     String query = "";
     String queryNumbers = TextUtils.join("','", numbers);
-    query = NUMBER + " IN ('" + queryNumbers + "')";
+    query = UID + " IN ('" + queryNumbers + "')";
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
       while (c.moveToNext()) {

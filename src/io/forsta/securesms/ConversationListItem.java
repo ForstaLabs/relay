@@ -28,7 +28,9 @@ import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -140,6 +142,12 @@ public class ConversationListItem extends RelativeLayout
     this.fromView.setText(recipients, read);
 
     String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
+    String distribution = ForstaUtils.getMessageDistribution(thread.getDisplayBody().toString());
+    if (!TextUtils.isEmpty(distribution)) {
+      ResolveUsers task = new ResolveUsers(getContext());
+      task.execute(distribution);
+    }
+
     subjectView.setText(forstaBody);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
@@ -254,6 +262,32 @@ public class ConversationListItem extends RelativeLayout
         setRippleColor(recipients);
       }
     });
+  }
+
+  private class ResolveUsers extends AsyncTask<String, Void, JSONObject> {
+    private Context context;
+
+    public ResolveUsers(Context context) {
+      this.context = context;
+    }
+
+    @Override
+    protected JSONObject doInBackground(String... params) {
+      JSONObject result = CcsmApi.getDistributionExpression(context, params[0]);
+      try {
+        JSONArray userIds = result.getJSONArray("userids");
+        String idsin = userIds.join(",").replaceAll("\"", "");
+        return CcsmApi.getUserDirectory(context, idsin);
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+      return null;
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      Log.d(TAG, "Got it.");
+    }
   }
 
   private static class ThumbnailPositioner implements Runnable {

@@ -154,16 +154,15 @@ public class ForstaUtils {
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
     try {
-      version1.put("version", 1);
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
-      String type = "conversation";
+      String threadType = "conversation";
+      String messageType = "content";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
       JSONObject tagExpression = new JSONObject();
       String presentation = "";
-
       String threadId = "";
       String threadTitle = "";
 
@@ -220,10 +219,8 @@ public class ForstaUtils {
       for (ForstaRecipient r : forstaRecipients) {
         userIds.put(r.uuid);
       }
-      tagExpression.put("type", "+");
-      tagExpression.put("presentation", presentation);
       recipients.put("userIds", userIds);
-      recipients.put("expression", tagExpression);
+      recipients.put("expression", presentation);
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
@@ -237,14 +234,17 @@ public class ForstaUtils {
       body.put(bodyPlain);
 
       data.put("body", body);
+      version1.put("version", 1);
+      version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());
+      version1.put("messageType", messageType);
       version1.put("threadId", threadId);
       version1.put("threadTitle", threadTitle);
-      version1.put("type", type);
+      version1.put("threadType", threadType);
       version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
-      version1.put("recipients", recipients);
+      version1.put("distribution", recipients);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");

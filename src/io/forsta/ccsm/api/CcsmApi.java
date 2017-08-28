@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -168,8 +169,12 @@ public class CcsmApi {
 
   }
 
-  public static JSONObject getUserDirectory(Context context) {
-    return fetchResource(context, "GET", API_DIRECTORY_USER);
+  public static JSONObject getUserDirectory(Context context, String ids) {
+    String query = "";
+    if (!TextUtils.isEmpty(ids)) {
+      query = "?id_in=" + ids;
+    }
+    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 
   public static JSONObject getDomainDirectory(Context context) {

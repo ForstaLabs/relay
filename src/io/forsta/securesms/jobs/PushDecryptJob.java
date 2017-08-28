@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
@@ -40,6 +41,8 @@ import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
+
+import org.json.JSONObject;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -439,14 +442,15 @@ public class PushDecryptJob extends ContextJob {
   {
     EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
+
+    String distribution = ForstaUtils.getMessageDistribution(body);
+    JSONObject users = CcsmApi.getUserDirectory(getContext(), distribution);
+
     Recipients            recipients = getMessageDestination(envelope, message);
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
-
-    // TODO implement this feature someplace near here.
-    // Look at payload threadId and create local group if it does not exist.
 
     Pair<Long, Long> messageAndThreadId;
 
