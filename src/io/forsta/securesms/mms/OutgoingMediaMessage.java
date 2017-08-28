@@ -3,6 +3,8 @@ package io.forsta.securesms.mms;
 import android.content.Context;
 import android.text.TextUtils;
 
+import org.json.JSONObject;
+
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
@@ -18,6 +20,8 @@ public class OutgoingMediaMessage {
   private   final int              distributionType;
   private   final int              subscriptionId;
   private   final long             expiresIn;
+  protected String universalExpression;
+  protected String prettyExpression;
 
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,
@@ -104,5 +108,22 @@ public class OutgoingMediaMessage {
 
   public void setForstaJsonBody(Context context, Recipients recipients) {
     this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients);
+  }
+
+  public void setForstaJsonBody(Context context, String universalExpression, String prettyExpression) {
+    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, universalExpression, prettyExpression);
+  }
+
+  public void setForstaDistribution(String universalExpression, String prettyExpression) {
+    this.universalExpression = universalExpression;
+    this.prettyExpression = prettyExpression;
+  }
+
+  public String getUniversalExpression() {
+    return universalExpression;
+  }
+
+  public String getPrettyExpression() {
+    return prettyExpression;
   }
 }

@@ -150,6 +150,10 @@ public class ForstaUtils {
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
+    return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "");
+  }
+
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -212,6 +216,8 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
+
+        threadTitle = prettyExpression;
       }
 
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
@@ -244,7 +250,7 @@ public class ForstaUtils {
       version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
-      version1.put("distribution", recipients);
+      version1.put("distribution", universalExpression);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");

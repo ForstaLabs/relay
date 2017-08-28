@@ -63,6 +63,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -128,6 +129,8 @@ import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
+
+import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -1409,6 +1412,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     final Context context = getApplicationContext();
     OutgoingTextMessage message;
 
+    new ValidateDistributionExpression(context).execute(getMessage());
+
     if (isSecureText && !forceSms) {
       String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
       message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
@@ -1694,6 +1699,22 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateInviteReminder(result.second != null && result.second.hasSeenInviteReminder());
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
+    }
+  }
+
+  private class ValidateDistributionExpression extends AsyncTask<String, Void, JSONObject> {
+
+    private Context context;
+
+    ValidateDistributionExpression(Context context) {
+      this.context = context;
+    }
+
+    @Override
+    protected JSONObject doInBackground(String... strings) {
+      JSONObject result = CcsmApi.getDistributionExpression(context, strings[0]);
+
+      return null;
     }
   }
 }

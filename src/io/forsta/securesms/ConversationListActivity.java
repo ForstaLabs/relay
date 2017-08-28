@@ -50,6 +50,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -96,10 +97,8 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.GroupUtil;
@@ -444,7 +443,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     sendButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        sendForstaDistribution();
+        sendForstaMessage();
       }
     });
 
@@ -720,18 +719,71 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
-  private void sendForstaDistribution() {
-    String message = composeText.getText().toString();
+  private void sendForstaMessage() {
+    new AsyncTask<String, Void, String>() {
 
-    if (forstaRecipients.size() > 0) {
-      if (forstaRecipients.size() == 1) {
-        sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
-      } else {
-        sendGroupDistribution(message);
+      @Override
+      protected String doInBackground(String... params) {
+        List<String> addresses = new ArrayList<String>();
+        String universalExpression = "";
+        String prettyExpression = "";
+        String message = params[0];
+
+        JSONObject result = CcsmApi.getDistributionExpression(ConversationListActivity.this, message);
+          // This can go in the RecipientFactory getRecipientsFromJson
+          try {
+            JSONArray userids = result.getJSONArray("userids");
+            for (int i=0; i<userids.length(); i++) {
+              addresses.add(userids.getString(i));
+            }
+            universalExpression = result.getString("universal");
+            prettyExpression = result.getString("pretty");
+          } catch (JSONException e) {
+            e.printStackTrace();
+            return "Error reading from CCSM";
+          }
+
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, addresses, false);
+        if (messageRecipients.isEmpty()) {
+          return "No recipients found in message";
+        }
+        long expiresIn = messageRecipients.getExpireMessages() * 1000;
+
+        final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(messageRecipients);
+        for (Recipient recipient : messageRecipients) {
+          Recipients singleRecipient = RecipientFactory.getRecipientsFor(ConversationListActivity.this, recipient, false);
+          OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(singleRecipient, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+          mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression);
+          mediaMessage.setForstaDistribution(universalExpression, prettyExpression);
+          MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
+        }
+        return null;
       }
-    } else {
-      Toast.makeText(ConversationListActivity.this, "There are no recipients in this messsage.", Toast.LENGTH_SHORT).show();
-    }
+
+      @Override
+      protected void onPostExecute(String result) {
+        //Maybe return threadid?
+        if (!TextUtils.isEmpty(result)) {
+          Toast.makeText(ConversationListActivity.this, result, Toast.LENGTH_LONG);
+        } else {
+          fragment.getListAdapter().notifyDataSetChanged();
+          attachmentManager.clear();
+          composeText.setText("");
+          forstaRecipients.clear();
+          recipientCount.setText("0");
+        }
+      }
+    }.execute(composeText.getText().toString());
+
+//    if (forstaRecipients.size() > 0) {
+//      if (forstaRecipients.size() == 1) {
+//        sendSingleRecipientMessage(message, new ArrayList<String>(forstaRecipients.values()));
+//      } else {
+//        sendGroupDistribution(message);
+//      }
+//    } else {
+//      Toast.makeText(ConversationListActivity.this, "There are no recipients in this messsage.", Toast.LENGTH_SHORT).show();
+//    }
   }
 
   private void sendSingleRecipientMessage(final String message, List<String> numbers) {
@@ -835,25 +887,19 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }.execute(numbers);
   }
 
-  private void sendMessage(String message, Recipients messageRecipients) {
-    long expiresIn = messageRecipients.getExpireMessages() * 1000;
+  private void sendMessage(final String message, final Recipients messageRecipients) {
 
-    JSONObject expression = CcsmApi.getDistributionExpression(ConversationListActivity.this, message);
-
-    if (expression.has("error")) {
-      Toast.makeText(ConversationListActivity.this, "Invalid recipient in message body", Toast.LENGTH_LONG).show();
-    }
-
-    OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-    mediaMessage.setForstaJsonBody(ConversationListActivity.this, messageRecipients);
-    new AsyncTask<OutgoingMediaMessage, Void, Void>() {
+    new AsyncTask<Void, Void, Void>() {
 
       @Override
-      protected Void doInBackground(OutgoingMediaMessage... params) {
+      protected Void doInBackground(Void... params) {
         try {
+          long expiresIn = messageRecipients.getExpireMessages() * 1000;
+          OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+          mediaMessage.setForstaJsonBody(ConversationListActivity.this, messageRecipients);
           // This will create a threadId if there is not one already.
-          final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(params[0].getRecipients());
-          MessageSender.send(ConversationListActivity.this, masterSecret, params[0], threadId, false);
+          final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(mediaMessage.getRecipients());
+          MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -868,7 +914,12 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         forstaRecipients.clear();
         recipientCount.setText("0");
       }
-    }.execute(mediaMessage);
+    }.execute();
+  }
+
+  private void sendMessage(OutgoingMediaMessage message) {
+    final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(message.getRecipients());
+    MessageSender.send(ConversationListActivity.this, masterSecret, message, threadId, false);
   }
 
   private class ContactsSyncReceiver extends BroadcastReceiver {
