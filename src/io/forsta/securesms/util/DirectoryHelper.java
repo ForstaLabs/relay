@@ -33,6 +33,7 @@ import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
@@ -43,6 +44,8 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -159,6 +162,25 @@ public class DirectoryHelper {
       Log.w(TAG, e);
       return UserCapabilities.UNSUPPORTED;
     }
+  }
+
+  public static UserCapabilities refreshDirectoryFor(@NonNull Context context, @Nullable MasterSecret masterSecret, @NonNull Recipients recipients) {
+    TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
+    ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+
+    try {
+      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(recipients.toNumberStringList(false)));
+      directory.setNumbers(details, new ArrayList<String>());
+      String ids = TextUtils.join(",", recipients.toNumberStringList(false));
+      CcsmApi.syncForstaContacts(context, ids);
+      ContactDb contactsDb = DbFactory.getContactDb(context);
+      contactsDb.setActiveForstaAddresses(details);
+      RecipientFactory.clearCache(context);
+      return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context,

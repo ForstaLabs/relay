@@ -21,6 +21,8 @@ import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,7 +54,6 @@ public class CcsmApi {
   private static final String API_ORG = "/v1/org/";
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
-  private static final String API_RESOLVE = "/v1/tag/resolve/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
@@ -147,10 +148,15 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-    syncForstaContactsDb(context, forstaContacts);
+    syncForstaContactsDb(context, forstaContacts, true);
     CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+  }
 
+  public static void syncForstaContacts(Context context, String ids) {
+    JSONObject response = getUserDirectory(context, ids);
+    List<ForstaUser> forstaContacts = parseUsers(context, response);
+    syncForstaContactsDb(context, forstaContacts, false);
   }
 
   public static JSONObject getUserDirectory(Context context, String ids) {
@@ -206,8 +212,10 @@ public class CcsmApi {
     JSONObject response = new JSONObject();
     try {
       jsonObject.put("expression", expression);
-      response = fetchResource(context, "GET", API_RESOLVE, jsonObject);
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + URLEncoder.encode(expression, "UTF-8"));
     } catch (JSONException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
     return response;
@@ -246,8 +254,8 @@ public class CcsmApi {
       JSONArray results = jsonObject.getJSONArray("results");
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
-        if (user.getBoolean("is_active")) {
-
+        boolean isActive = user.has("is_active") ? user.getBoolean("is_active") : true;
+        if (isActive) {
           ForstaUser forstaUser = new ForstaUser(user);
           // Temporary to remove duplicates returning from API
           if (forstaUids.contains(forstaUser.uid)) {
@@ -352,9 +360,9 @@ public class CcsmApi {
     }
   }
 
-  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts) {
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
     ContactDb forstaDb = DbFactory.getContactDb(context);
-    forstaDb.updateUsers(contacts);
+    forstaDb.updateUsers(contacts, removeExisting);
     forstaDb.close();
   }
 

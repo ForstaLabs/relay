@@ -200,7 +200,7 @@ public class ContactDb extends DbBase {
     return recipients;
   }
 
-  public void updateUsers(List<ForstaUser> users) {
+  public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Set<String> forstaUids = new HashSet<>();
     Map<String, String> uids = getUids();
@@ -233,17 +233,18 @@ public class ContactDb extends DbBase {
     finally {
       db.endTransaction();
     }
-    db.beginTransaction();
-    try {
-      // Now remove entries that are no longer valid.
-      for (String uid : uids.keySet()) {
-        db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+    if (removeExisting) {
+      db.beginTransaction();
+      try {
+        // Now remove entries that are no longer valid.
+        for (String uid : uids.keySet()) {
+          db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+        }
+        db.setTransactionSuccessful();
+      } finally {
+        db.endTransaction();
       }
-      db.setTransactionSuccessful();
-    } finally {
-      db.endTransaction();
     }
-
     db.close();
   }
 

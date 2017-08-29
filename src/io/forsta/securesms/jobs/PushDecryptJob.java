@@ -39,6 +39,7 @@ import io.forsta.securesms.sms.IncomingPreKeyBundleMessage;
 import io.forsta.securesms.sms.IncomingTextMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.Base64;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -331,6 +332,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     Recipients           recipients   = getMessageDestination(envelope, message);
+    DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
                                                                  localNumber, message.getTimestamp(), -1,
                                                                  message.getExpiresInSeconds() * 1000, false,
@@ -443,11 +445,9 @@ public class PushDecryptJob extends ContextJob {
     EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
-    String distribution = ForstaUtils.getMessageDistribution(body);
-    JSONObject users = CcsmApi.getUserDirectory(getContext(), distribution);
-
     Recipients            recipients = getMessageDestination(envelope, message);
-
+    DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+    
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
