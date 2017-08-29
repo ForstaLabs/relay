@@ -419,7 +419,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         } else {
           menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
         }
-      } else if (isActiveGroup() && !isForstaGroup()) {
+      } else if (isActiveGroup()) {
         inflater.inflate(R.menu.conversation_push_group_options, menu);
       }
     }
@@ -785,6 +785,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeEnabledCheck() {
     boolean enabled = !(isPushGroupConversation() && !isActiveGroup());
+    enabled = true;
     inputPanel.setEnabled(enabled);
     sendButton.setEnabled(enabled);
     attachButton.setEnabled(enabled);
@@ -1225,30 +1226,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private boolean isForstaGroup() {
-    boolean result = false;
-    try {
-      byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
-      Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
-      if (cursor.moveToFirst()) {
-        int distribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
-        if (distribution == 1) {
-          return true;
-        }
-      }
-      cursor.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return result;
-  }
-
   private boolean isSingleConversation() {
     return getRecipients() != null && getRecipients().isSingleRecipient() && !getRecipients().isGroupRecipient();
   }
 
   private boolean isActiveGroup() {
     if (!isGroupConversation()) return false;
+
+    if (!GroupUtil.isEncodedGroup(getRecipients().getPrimaryRecipient().getNumber())) return false;
 
     try {
       byte[]      groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
@@ -1275,7 +1260,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private boolean isPushGroupConversation() {
-    return getRecipients() != null && getRecipients().isGroupRecipient();
+//    return getRecipients() != null && getRecipients().isGroupRecipient();
+    return isGroupConversation();
   }
 
   protected Recipients getRecipients() {
@@ -1411,8 +1397,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final Context context = getApplicationContext();
     OutgoingTextMessage message;
-
-    new ValidateDistributionExpression(context).execute(getMessage());
 
     if (isSecureText && !forceSms) {
       String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
@@ -1699,22 +1683,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateInviteReminder(result.second != null && result.second.hasSeenInviteReminder());
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
-    }
-  }
-
-  private class ValidateDistributionExpression extends AsyncTask<String, Void, JSONObject> {
-
-    private Context context;
-
-    ValidateDistributionExpression(Context context) {
-      this.context = context;
-    }
-
-    @Override
-    protected JSONObject doInBackground(String... strings) {
-      JSONObject result = CcsmApi.getDistributionExpression(context, strings[0]);
-
-      return null;
     }
   }
 }

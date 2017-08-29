@@ -229,6 +229,10 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getNumber());
   }
 
+  public boolean isForstaGroup() {
+    return this.recipients.size() > 1;
+  }
+
   public boolean isEmpty() {
     return this.recipients.isEmpty();
   }

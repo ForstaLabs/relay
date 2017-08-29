@@ -123,7 +123,7 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
                                                                              .asEndSessionMessage(message.isEndSession())
                                                                              .build();
 
-
+      // TODO modify this send to allow multiple recipients? See PushMediaSendJob.
       messageSender.sendMessage(address, textSecureMessage);
     } catch (InvalidNumberException | UnregisteredUserException e) {
       Log.w(TAG, e);

@@ -47,14 +47,6 @@ public class FromTextView extends EmojiTextView {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
     } else {
       fromString = recipients.toShortString();
-      // Could use the group name field to store extended information
-//      String forstaTitle = ForstaUtils.getForstaGroupTitle(recipients.toShortString());
-//      if (forstaTitle != null) {
-//        // Forsta group JSON blob is stored in the protocol SignalServiceGroup message "name" field
-//        fromString = forstaTitle;
-//      } else {
-//        fromString = recipients.toShortString();
-//      }
     }
 
     int typeface;

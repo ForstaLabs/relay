@@ -153,7 +153,7 @@ public class Recipient {
   }
 
   public synchronized String toShortString() {
-    return (name == null ? number : name);
+    return (name == null ? "Unknown Recipient" : name);
   }
 
   public synchronized @NonNull ContactPhoto getContactPhoto() {

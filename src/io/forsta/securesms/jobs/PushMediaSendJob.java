@@ -125,10 +125,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     SignalServiceMessageSender messageSender = messageSenderFactory.create();
 
     try {
-
-      Recipients recipients = message.getRecipients();
-      boolean single = recipients.isSingleRecipient();
-
       SignalServiceAddress          address           = getPushAddress(message.getRecipients().getPrimaryRecipient().getNumber());
       List<Attachment>              scaledAttachments = scaleAttachments(masterSecret, MediaConstraints.PUSH_CONSTRAINTS, message.getAttachments());
       List<SignalServiceAttachment> attachmentStreams = getAttachmentsFor(masterSecret, scaledAttachments);

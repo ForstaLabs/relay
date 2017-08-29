@@ -58,8 +58,7 @@ public class NetworkUtils {
   }
 
   public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body, float timeout) throws Exception {
-    URL url = new URL(fixApiPath(path));
-    url = new URL(path);
+    URL url = new URL(path);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     try {
       conn.setRequestMethod(method);

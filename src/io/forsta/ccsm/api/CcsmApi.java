@@ -4,11 +4,7 @@ package io.forsta.ccsm.api;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.Context;
-import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
@@ -17,18 +13,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -36,19 +28,11 @@ import java.util.List;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.securesms.R;
 import io.forsta.securesms.contacts.ContactsDatabase;
-import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.groups.GroupManager;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
-import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.ccsm.util.NetworkUtils;
 
@@ -68,7 +52,7 @@ public class CcsmApi {
   private static final String API_ORG = "/v1/org/";
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
-  private static final String API_RESOLVE = "/v1/tag/resolve";
+  private static final String API_RESOLVE = "/v1/tag/resolve/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
@@ -182,7 +166,7 @@ public class CcsmApi {
   }
 
   public static JSONObject checkForstaAuth(Context context) {
-    return getForstaOrg(context);
+    return getForstaAuth(context);
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
@@ -190,8 +174,15 @@ public class CcsmApi {
   }
 
   // TODO These should all be private. They are exposed right now for the debug dashboard.
-  public static JSONObject getForstaOrg(Context context) {
-    return fetchResource(context, "GET", API_ORG);
+  public static JSONObject getForstaAuth(Context context) {
+    String userId = "";
+    try {
+      JSONObject object = new JSONObject(ForstaPreferences.getForstaUser(context));
+      userId = object.getString("id") + "/";
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return fetchResource(context, "GET", API_USER + userId);
   }
 
   public static JSONObject getUserPick(Context context) {
@@ -215,7 +206,7 @@ public class CcsmApi {
     JSONObject response = new JSONObject();
     try {
       jsonObject.put("expression", expression);
-      response = fetchResource(context, "POST", API_RESOLVE, jsonObject);
+      response = fetchResource(context, "GET", API_RESOLVE, jsonObject);
     } catch (JSONException e) {
       e.printStackTrace();
     }
