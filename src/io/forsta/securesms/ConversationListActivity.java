@@ -732,6 +732,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         JSONObject result = CcsmApi.getDistributionExpression(ConversationListActivity.this, message);
           // This can go in the RecipientFactory getRecipientsFromJson
           try {
+
+            JSONArray warnings = result.getJSONArray("warnings");
+            if (warnings.length() > 0) {
+              return warnings.getString(0);
+            }
             JSONArray userids = result.getJSONArray("userids");
             for (int i=0; i<userids.length(); i++) {
               addresses.add(userids.getString(i));
@@ -750,13 +755,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
 
         final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(messageRecipients);
-        for (Recipient recipient : messageRecipients) {
-          Recipients singleRecipient = RecipientFactory.getRecipientsFor(ConversationListActivity.this, recipient, false);
-          OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(singleRecipient, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-          mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression);
-          mediaMessage.setForstaDistribution(universalExpression, prettyExpression);
-          MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
-        }
+        OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
+        mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression);
+        MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
         return null;
       }
 
@@ -764,7 +765,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       protected void onPostExecute(String result) {
         //Maybe return threadid?
         if (!TextUtils.isEmpty(result)) {
-          Toast.makeText(ConversationListActivity.this, result, Toast.LENGTH_LONG);
+          Toast.makeText(ConversationListActivity.this, result, Toast.LENGTH_LONG).show();
         } else {
           fragment.getListAdapter().notifyDataSetChanged();
           attachmentManager.clear();

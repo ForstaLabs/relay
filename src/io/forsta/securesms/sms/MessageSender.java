@@ -50,6 +50,7 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.List;
 
 import io.forsta.ccsm.api.CcsmSync;
 import ws.com.google.android.mms.MmsException;
@@ -261,7 +262,7 @@ public class MessageSender {
       }
 
       if (recipients.getRecipientsList().size() > 1) {
-        return false;
+        return isForstaGroupDestination(context, recipients.toNumberStringList(false));
       }
 
       Recipient recipient   = recipients.getPrimaryRecipient();
@@ -319,6 +320,14 @@ public class MessageSender {
         return false;
       }
     }
+  }
+
+  private static boolean isForstaGroupDestination(Context context, List<String> destinations) {
+    boolean result = false;
+    for (String address : destinations) {
+      result = isPushDestination(context, address);
+    }
+    return result;
   }
 
 }
