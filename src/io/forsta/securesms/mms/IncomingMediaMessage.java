@@ -4,6 +4,7 @@ import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.MmsAddresses;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
@@ -22,6 +23,7 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
+  private Recipients forstaRecipients;
 
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
@@ -71,6 +73,14 @@ public class IncomingMediaMessage {
 
     this.to.add(to);
     this.attachments.addAll(PointerAttachment.forPointers(masterSecret, attachments));
+  }
+
+  public void setForstaRecipients(Recipients recipients) {
+    this.forstaRecipients = recipients;
+  }
+
+  public Recipients getForstaRecipients() {
+    return forstaRecipients;
   }
 
   public int getSubscriptionId() {

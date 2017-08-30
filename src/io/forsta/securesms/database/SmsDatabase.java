@@ -509,9 +509,11 @@ public class SmsDatabase extends MessagingDatabase {
 
     Recipients recipients;
 
-    if (message.getSender() != null) {
+    if (message.getForstaRecipients() != null) {
+      recipients = RecipientFactory.getRecipientsFor(context, message.getForstaRecipients().getRecipientsList(), false);
+    } else if (message.getSender() != null) {
       recipients = RecipientFactory.getRecipientsFromString(context, message.getSender(), true);
-    } else {
+    } else  {
       Log.w(TAG, "Sender is null, returning unknown recipient");
       recipients = RecipientFactory.getRecipientsFor(context, Recipient.getUnknownRecipient(), false);
     }

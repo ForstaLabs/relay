@@ -126,6 +126,7 @@ public class DirectoryHelper {
     return new LinkedList<>();
   }
 
+  // Obsolete
   public static UserCapabilities refreshDirectoryFor(@NonNull  Context context,
                                                      @Nullable MasterSecret masterSecret,
                                                      @NonNull  Recipients recipients,
@@ -169,9 +170,11 @@ public class DirectoryHelper {
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
 
     try {
-      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(recipients.toNumberStringList(false)));
+      List<String> addresses = recipients.toNumberStringList(false);
+      String ids = TextUtils.join(",", addresses);
+
+      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
       directory.setNumbers(details, new ArrayList<String>());
-      String ids = TextUtils.join(",", recipients.toNumberStringList(false));
       CcsmApi.syncForstaContacts(context, ids);
       ContactDb contactsDb = DbFactory.getContactDb(context);
       contactsDb.setActiveForstaAddresses(details);

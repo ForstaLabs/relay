@@ -27,8 +27,6 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -38,7 +36,6 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
@@ -49,18 +46,11 @@ import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.model.ThreadRecord;
-import io.forsta.securesms.groups.GroupManager;
-import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
-import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.ResUtil;
 import io.forsta.securesms.util.ViewUtil;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -256,32 +246,6 @@ public class ConversationListItem extends RelativeLayout
         setRippleColor(recipients);
       }
     });
-  }
-
-  private class ResolveUsers extends AsyncTask<String, Void, JSONObject> {
-    private Context context;
-
-    public ResolveUsers(Context context) {
-      this.context = context;
-    }
-
-    @Override
-    protected JSONObject doInBackground(String... params) {
-      JSONObject result = CcsmApi.getDistributionExpression(context, params[0]);
-      try {
-        JSONArray userIds = result.getJSONArray("userids");
-        String idsin = userIds.join(",").replaceAll("\"", "");
-        return CcsmApi.getUserDirectory(context, idsin);
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject jsonObject) {
-      Log.d(TAG, "Got it.");
-    }
   }
 
   private static class ThumbnailPositioner implements Runnable {

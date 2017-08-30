@@ -53,15 +53,11 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +83,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.groups.GroupManager;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
@@ -101,7 +96,6 @@ import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -729,8 +723,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         String prettyExpression = "";
         String message = params[0];
 
-        JSONObject result = CcsmApi.getDistributionExpression(ConversationListActivity.this, message);
-          // This can go in the RecipientFactory getRecipientsFromJson
+        JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
           try {
 
             JSONArray warnings = result.getJSONArray("warnings");
@@ -745,7 +738,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             prettyExpression = result.getString("pretty");
           } catch (JSONException e) {
             e.printStackTrace();
-            return "Error reading from CCSM";
+            return "Error reading from directory";
           }
 
         Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, addresses, false);

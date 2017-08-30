@@ -36,6 +36,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.Browser;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
@@ -89,6 +90,8 @@ import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
+import io.forsta.securesms.database.MmsSmsDatabase;
+import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -222,7 +225,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   @Override
-  protected void onCreate(Bundle state, @NonNull MasterSecret masterSecret) {
+  protected void onCreate(Bundle state, @NonNull final MasterSecret masterSecret) {
     Log.w(TAG, "onCreate()");
     this.masterSecret = masterSecret;
 
@@ -242,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         initializeDraft();
       }
     });
+
   }
 
   @Override
@@ -848,14 +852,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           if (capabilities.getTextCapability() == Capability.UNKNOWN ||
               capabilities.getVoiceCapability() == Capability.UNKNOWN)
           {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients,
-                                                               TextSecurePreferences.getLocalNumber(context));
+            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
           }
 
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
                             !isSelfConversation());
-        } catch (IOException e) {
+        } catch (Exception e) {
           Log.w(TAG, e);
           return new Pair<>(false, false);
         }
@@ -1030,6 +1033,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
+
+    new AsyncTask<Void, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(Void... voids) {
+        DirectoryHelper.refreshDirectoryFor(getApplicationContext(), masterSecret, recipients);
+        return null;
+      }
+    }.execute();
   }
 
   @Override
@@ -1369,7 +1381,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     expiresIn,
                                                                     distributionType);
     if (isSecureText && !forceSms) {
-      outgoingMessage.setForstaJsonBody(context, recipients);
+      String distribution = getThreadDistribution();
+      outgoingMessage.setForstaJsonBody(context, distribution, "");
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
 
@@ -1399,7 +1412,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     OutgoingTextMessage message;
 
     if (isSecureText && !forceSms) {
-      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
+      String distribution = getThreadDistribution();
+      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients, distribution, "");
       message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
     } else {
       message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
@@ -1684,5 +1698,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
     }
+  }
+
+  private String getThreadDistribution() {
+    String distribution = "";
+    Cursor cursor = DatabaseFactory.getMmsSmsDatabase(ConversationActivity.this).getConversation(threadId, 1);
+    try {
+      if (cursor != null && cursor.moveToFirst()) {
+        String body = cursor.getString(cursor.getColumnIndex(SmsDatabase.BODY));
+        distribution = ForstaUtils.getMessageDistribution(body);
+      }
+    } finally {
+      cursor.close();
+    }
+    return distribution;
   }
 }

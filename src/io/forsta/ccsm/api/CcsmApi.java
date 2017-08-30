@@ -148,7 +148,7 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-    syncForstaContactsDb(context, forstaContacts, true);
+    syncForstaContactsDb(context, forstaContacts, false);
     CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
@@ -207,7 +207,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_TAG_PICK);
   }
 
-  public static JSONObject getDistributionExpression(Context context, String expression) {
+  public static JSONObject getDistribution(Context context, String expression) {
     JSONObject jsonObject = new JSONObject();
     JSONObject response = new JSONObject();
     try {
@@ -247,24 +247,12 @@ public class CcsmApi {
 
   public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
     List<ForstaUser> users = new ArrayList<>();
-    // TODO Temporary to remove duplicates returning from API
-    Set<String> forstaUids = new HashSet<>();
-
     try {
       JSONArray results = jsonObject.getJSONArray("results");
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
-        boolean isActive = user.has("is_active") ? user.getBoolean("is_active") : true;
-        if (isActive) {
-          ForstaUser forstaUser = new ForstaUser(user);
-          // Temporary to remove duplicates returning from API
-          if (forstaUids.contains(forstaUser.uid)) {
-            Log.d(TAG, "Duplicate user entry");
-            continue;
-          }
-          forstaUids.add(forstaUser.uid);
-          users.add(forstaUser);
-        }
+        ForstaUser forstaUser = new ForstaUser(user);
+        users.add(forstaUser);
       }
     } catch (Exception e) {
       Log.e(TAG, "parseUsers exception: " + e.getMessage());

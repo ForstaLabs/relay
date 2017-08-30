@@ -23,6 +23,8 @@ import android.text.TextUtils;
 
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.util.Util;
+
+import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.Collection;
@@ -33,7 +35,6 @@ import java.util.StringTokenizer;
 public class RecipientFactory {
 
   public static final String RECIPIENT_CLEAR_ACTION = "io.forsta.securesms.database.RecipientFactory.CLEAR";
-
   private static final RecipientProvider provider = new RecipientProvider();
 
   public static Recipients getRecipientsForIds(Context context, String recipientIds, boolean asynchronous) {

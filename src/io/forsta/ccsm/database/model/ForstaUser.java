@@ -43,8 +43,10 @@ public class ForstaUser {
       this.org_id = userObj.getString("org_id");
       this.username = userObj.getString("username");
       this.email = userObj.getString("email");
-      this.phone = userObj.getString("phone");
-      this.tsRegistered = false;
+      if (userObj.has("phone")) {
+        this.phone = userObj.getString("phone");
+      }
+      this.tsRegistered = userObj.has("is_active") ? userObj.getBoolean("is_active") : true;
     } catch (JSONException e) {
       e.printStackTrace();
     }

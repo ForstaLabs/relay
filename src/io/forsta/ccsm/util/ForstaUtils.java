@@ -113,14 +113,6 @@ public class ForstaUtils {
     return messageBody;
   }
 
-  public static JSONArray getResolvedDistributionIds(JSONObject jsonObject) {
-    JSONArray result = new JSONArray();
-
-
-
-    return result;
-  }
-
   public static String getMessageDistribution(String body) {
     String result = "";
     try {
@@ -139,7 +131,7 @@ public class ForstaUtils {
       JSONArray jsonArray = new JSONArray(body);
       for (int i=0; i<jsonArray.length(); i++) {
         JSONObject versionObject = jsonArray.getJSONObject(i);
-        if (versionObject.getInt("version") == 1) {
+        if (versionObject.getInt("version") == version) {
           return versionObject;
         }
       }
@@ -217,7 +209,7 @@ public class ForstaUtils {
           }
         }
 
-        threadTitle = prettyExpression;
+        threadTitle = !TextUtils.isEmpty(prettyExpression) ? prettyExpression: threadTitle;
       }
 
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);

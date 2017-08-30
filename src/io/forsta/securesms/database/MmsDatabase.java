@@ -693,7 +693,10 @@ public class MmsDatabase extends MessagingDatabase {
                                               long threadId, long mailbox)
       throws MmsException
   {
-    if (threadId == -1 || retrieved.isGroupMessage()) {
+
+    if (threadId == -1 && retrieved.getForstaRecipients() != null) {
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(retrieved.getForstaRecipients());
+    } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);
       } catch (RecipientFormattingException e) {
