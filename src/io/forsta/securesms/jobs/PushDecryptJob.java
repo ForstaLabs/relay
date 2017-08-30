@@ -480,6 +480,12 @@ public class PushDecryptJob extends ContextJob {
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
 
+      String distribution = ForstaUtils.getMessageDistribution(body);
+      String title = ForstaUtils.getMessageTitle(body);
+
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+      threadDb.updateForstaDistribution(messageAndThreadId.second, distribution, title);
+
       if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
     }
 
@@ -677,7 +683,6 @@ public class PushDecryptJob extends ContextJob {
       e.printStackTrace();
     }
     if (ids.size() > 0) {
-      ids.remove(ForstaPreferences.getUserId(context));
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, ids, false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       return recipients;

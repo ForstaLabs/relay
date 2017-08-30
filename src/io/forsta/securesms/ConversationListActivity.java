@@ -56,8 +56,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,6 +71,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
@@ -718,14 +721,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected String doInBackground(String... params) {
-        List<String> addresses = new ArrayList<String>();
+        Set<String> addresses = new HashSet<String>();
         String universalExpression = "";
         String prettyExpression = "";
         String message = params[0];
 
-        JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
           try {
-
+            ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
+            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + user.slug);
             JSONArray warnings = result.getJSONArray("warnings");
             if (warnings.length() > 0) {
               return warnings.getString(0);
@@ -741,7 +744,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             return "Error reading from directory";
           }
 
-        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, addresses, false);
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(addresses), false);
         if (messageRecipients.isEmpty()) {
           return "No recipients found in message";
         }

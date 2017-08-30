@@ -64,6 +64,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
@@ -284,6 +285,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     dynamicLanguage.onResume(this);
     quickAttachmentDrawer.onResume();
 
+    Pair<String, String> distribution = getThreadDistribution();
+
     initializeEnabledCheck();
     initializeMmsEnabledCheck();
     composeText.setTransport(sendButton.getSelectedTransport());
@@ -295,6 +298,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+
   }
 
   @Override
@@ -1381,8 +1385,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     expiresIn,
                                                                     distributionType);
     if (isSecureText && !forceSms) {
-      String distribution = getThreadDistribution();
-      outgoingMessage.setForstaJsonBody(context, distribution, "");
+      Pair<String, String> distribution = getThreadDistribution();
+      outgoingMessage.setForstaJsonBody(context, distribution.first, distribution.second);
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
 
@@ -1412,8 +1416,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     OutgoingTextMessage message;
 
     if (isSecureText && !forceSms) {
-      String distribution = getThreadDistribution();
-      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients, distribution, "");
+      Pair<String, String> distribution = getThreadDistribution();
+
+      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients, distribution.first, distribution.second);
       message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
     } else {
       message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
@@ -1700,17 +1705,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private String getThreadDistribution() {
-    String distribution = "";
-    Cursor cursor = DatabaseFactory.getMmsSmsDatabase(ConversationActivity.this).getConversation(threadId, 1);
-    try {
-      if (cursor != null && cursor.moveToFirst()) {
-        String body = cursor.getString(cursor.getColumnIndex(SmsDatabase.BODY));
-        distribution = ForstaUtils.getMessageDistribution(body);
-      }
-    } finally {
-      cursor.close();
+  private Pair<String, String> getThreadDistribution() {
+    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+    Pair<String, String> distAndTitle = db.getThreadDistribution(threadId);
+    if (distAndTitle == null) {
+      distAndTitle = new Pair<>("", "");
     }
-    return distribution;
+    return distAndTitle;
   }
 }

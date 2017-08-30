@@ -126,6 +126,19 @@ public class ForstaUtils {
     return result;
   }
 
+  public static String getMessageTitle(String messageBody) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, messageBody);
+      if (jsonObject.has("title")) {
+        result = jsonObject.getString("title");
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return result;
+  }
+
   private static JSONObject getVersion(int version, String body) {
     try {
       JSONArray jsonArray = new JSONArray(body);

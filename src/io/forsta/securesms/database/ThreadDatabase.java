@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterCipher;
@@ -540,6 +541,29 @@ public class ThreadDatabase extends Database {
       if (reader != null)
         reader.close();
     }
+  }
+
+  public void updateForstaDistribution(long threadId, String distribution, String title) {
+    ContentValues values = new ContentValues();
+    values.put(DISTRIBUTION, distribution);
+    values.put(TITLE, title);
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+    notifyConversationListListeners();
+  }
+
+  public Pair<String, String> getThreadDistribution(long threadId) {
+    Pair<String, String> result = null;
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    Cursor cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
+    try {
+      if (cursor != null && cursor.moveToFirst()) {
+        result = new Pair(cursor.getString(cursor.getColumnIndex(DISTRIBUTION)), cursor.getString(cursor.getColumnIndex(TITLE)));
+      }
+    } finally {
+      cursor.close();
+    }
+    return result;
   }
 
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {
