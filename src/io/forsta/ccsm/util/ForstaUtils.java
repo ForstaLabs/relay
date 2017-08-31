@@ -171,8 +171,8 @@ public class ForstaUtils {
       JSONArray userIds = new JSONArray();
       JSONObject tagExpression = new JSONObject();
       String presentation = "";
-      String threadId = "";
-      String threadTitle = "";
+      String threadId = threadUid;
+      String threadTitle = prettyExpression;
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
@@ -185,7 +185,6 @@ public class ForstaUtils {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
           String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
-          threadId = new String(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
           presentation = group.getSlug();
@@ -196,23 +195,8 @@ public class ForstaUtils {
       } else {
         List<String> singleRecipient = messageRecipients.toNumberStringList(false);
         List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
-        List<String> forstaSlugs = new ArrayList<>();
-        Set<String> names = new HashSet<>();
-        for (ForstaRecipient recipient : forstaSingleRecipients) {
-          forstaSlugs.add(recipient.slug);
-          // Should only ever be one recipient. Groups represent multiple recipients, unless it is a mix of secure and non-secure recipients.
-          names.add(TextUtils.isEmpty(recipient.name) ? recipient.number : recipient.name);
-        }
-
-        // If the recipients are unknown to CCSM
-        for (Recipient unknownRecipient : messageRecipients.getRecipientsList()) {
-          names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
-        }
-
         threadId = forstaSingleRecipients.size() > 0 ? forstaSingleRecipients.get(0).uuid : "";
-        threadTitle = TextUtils.join(",", names);
 
-        presentation = TextUtils.join("+", forstaSlugs);
         for (String recipient : messageRecipients.toNumberStringList(false)) {
           try {
             recipientList.add(Util.canonicalizeNumber(context, recipient));
