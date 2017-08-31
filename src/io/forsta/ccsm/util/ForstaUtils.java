@@ -258,15 +258,4 @@ public class ForstaUtils {
     df.setTimeZone(tz);
     return df.format(date);
   }
-
-  public static String getForstaGroupTitle(String name) {
-    try {
-      JSONObject nameObj = new JSONObject(name);
-      String title = nameObj.getString("title");
-      return title;
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. Not a Forsta group title blob.");
-    }
-    return null;
-  }
 }
