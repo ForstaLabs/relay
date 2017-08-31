@@ -122,7 +122,7 @@ public class ForstaUtils {
         result = distribution.getString("expression");
       }
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.w(TAG, "JSON exception. getMessageDistribution. No Forsta expression");
     }
     return result;
   }
@@ -133,7 +133,18 @@ public class ForstaUtils {
       JSONObject jsonObject = getVersion(1, messageBody);
       result = jsonObject.getString("threadTitle");
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
+    }
+    return result;
+  }
+
+  public static String getMessageThreadId(String messageBody) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, messageBody);
+      result = jsonObject.getString("threadId");
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
     }
     return result;
   }
@@ -148,7 +159,7 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.w(TAG, "JSON exception. No Forsta message body");
     }
     return new JSONObject();
   }

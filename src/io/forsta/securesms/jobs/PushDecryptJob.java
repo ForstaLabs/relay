@@ -495,8 +495,10 @@ public class PushDecryptJob extends ContextJob {
   private void setThreadDistribution(long threadId, String body) {
     String distribution = ForstaUtils.getMessageDistribution(body);
     String title = ForstaUtils.getMessageTitle(body);
+    String threadUId = ForstaUtils.getMessageThreadId(body);
 
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+    // TODO add threadUid to this method to store threadUid of sender.
     threadDb.updateForstaDistribution(threadId, distribution, title);
   }
 

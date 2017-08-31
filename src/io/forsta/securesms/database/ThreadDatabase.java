@@ -565,11 +565,24 @@ public class ThreadDatabase extends Database {
     try {
       if (cursor != null && cursor.moveToFirst()) {
         result = cursor.getString(cursor.getColumnIndex(UID));
+        if (result == null) {
+          ContentValues values = new ContentValues(1);
+          values.put(UID, UUID.randomUUID().toString());
+          result = values.getAsString(UID);
+          db.update(TABLE_NAME, values, ID + " = ? ", new String[]{threadId + ""});
+        }
       }
     } finally {
       cursor.close();
     }
     return result;
+  }
+
+  public void updateThreadUid(long threadId, String uid) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    ContentValues values = new ContentValues(1);
+    values.put(UID, uid);
+    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
   }
 
   public Cursor getThread(long threadId) {
