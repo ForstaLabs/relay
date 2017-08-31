@@ -74,7 +74,8 @@ public class DatabaseFactory {
   private static final int INTRODUCED_SUBSCRIPTION_ID_VERSION              = 27;
   private static final int INTRODUCED_EXPIRE_MESSAGES_VERSION              = 28;
   private static final int INTRODUCE_FORSTA_DISTRIBUTION = 29;
-  private static final int DATABASE_VERSION                                = 29;
+  private static final int INTRODUCE_FORSTA_THREADID = 30;
+  private static final int DATABASE_VERSION                                = 30;
 
 
   private static final String DATABASE_NAME    = "messages.db";
@@ -835,6 +836,10 @@ public class DatabaseFactory {
       if (oldVersion < INTRODUCE_FORSTA_DISTRIBUTION) {
         db.execSQL("ALTER TABLE thread ADD COLUMN distribution TEXT");
         db.execSQL("ALTER TABLE thread ADD COLUMN title TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_THREADID) {
+        db.execSQL("ALTER TABLE thread ADD COLUMN uid TEXT");
       }
 
       db.setTransactionSuccessful();

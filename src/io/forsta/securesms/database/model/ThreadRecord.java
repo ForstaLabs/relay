@@ -47,11 +47,14 @@ public class ThreadRecord extends DisplayRecord {
   private           final int     distributionType;
   private           final boolean archived;
   private           final long    expiresIn;
+  private final String distribution;
+  private final String title;
+  private final String threadUid;
 
   public ThreadRecord(@NonNull Context context, @NonNull Body body, @Nullable Uri snippetUri,
                       @NonNull Recipients recipients, long date, long count, boolean read,
                       long threadId, int receiptCount, int status, long snippetType,
-                      int distributionType, boolean archived, long expiresIn)
+                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid)
   {
     super(context, body, recipients, date, date, threadId, status, receiptCount, snippetType);
     this.context          = context.getApplicationContext();
@@ -61,6 +64,9 @@ public class ThreadRecord extends DisplayRecord {
     this.distributionType = distributionType;
     this.archived         = archived;
     this.expiresIn        = expiresIn;
+    this.distribution = distribution;
+    this.title = title;
+    this.threadUid = threadUid;
   }
 
   public @Nullable Uri getSnippetUri() {
@@ -145,5 +151,17 @@ public class ThreadRecord extends DisplayRecord {
 
   public long getExpiresIn() {
     return expiresIn;
+  }
+
+  public String getDistribution() {
+    return distribution;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public String getThreadUid() {
+    return threadUid;
   }
 }

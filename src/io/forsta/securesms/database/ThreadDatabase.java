@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class ThreadDatabase extends Database {
 
@@ -73,6 +74,7 @@ public class ThreadDatabase extends Database {
   public  static final String EXPIRES_IN      = "expires_in";
   public static final String DISTRIBUTION = "distribution";
   public static final String TITLE = "title";
+  public static final String UID = "uid";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -81,7 +83,10 @@ public class ThreadDatabase extends Database {
     TYPE + " INTEGER DEFAULT 0, " + ERROR + " INTEGER DEFAULT 0, "                                 +
     SNIPPET_TYPE + " INTEGER DEFAULT 0, " + SNIPPET_URI + " TEXT DEFAULT NULL, "                   +
     ARCHIVED + " INTEGER DEFAULT 0, " + STATUS + " INTEGER DEFAULT 0, "                            +
-    RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " + DISTRIBUTION + " TEXT, " + TITLE + " TEXT);";
+    RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
+      DISTRIBUTION + " TEXT, " +
+      TITLE + " TEXT " +
+      UID + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -123,7 +128,7 @@ public class ThreadDatabase extends Database {
   }
 
   private long createThreadForRecipients(String recipients, int recipientCount, int distributionType) {
-    ContentValues contentValues = new ContentValues(4);
+    ContentValues contentValues = new ContentValues(5);
     long date                   = System.currentTimeMillis();
 
     contentValues.put(DATE, date - date % 1000);
@@ -133,6 +138,7 @@ public class ThreadDatabase extends Database {
       contentValues.put(TYPE, distributionType);
 
     contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(UID, UUID.randomUUID().toString());
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
@@ -622,11 +628,14 @@ public class ThreadDatabase extends Database {
       int status              = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.STATUS));
       int receiptCount        = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.RECEIPT_COUNT));
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(ThreadDatabase.EXPIRES_IN));
+      String distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
+      String title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
+      String threadUid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
       Uri snippetUri          = getSnippetUri(cursor);
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn);
+                              expiresIn, distribution, title, threadUid);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {
