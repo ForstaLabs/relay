@@ -762,9 +762,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
         // TODO change this to use the distribution to look up the threadId, or use the threadId in the message body.
+        // Need to change all other methods that look up the thread by recipients.
         final long threadId = threadDb.getThreadIdFor(messageRecipients);
         String threadUid = threadDb.getThreadUid(threadId);
-        threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression);
+        threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression, null);
 
         // TODO Always send media message?
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);

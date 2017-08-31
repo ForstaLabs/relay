@@ -499,7 +499,7 @@ public class PushDecryptJob extends ContextJob {
 
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     // TODO add threadUid to this method to store threadUid of sender.
-    threadDb.updateForstaDistribution(threadId, distribution, title);
+    threadDb.updateForstaDistribution(threadId, distribution, title, threadUId);
   }
 
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
