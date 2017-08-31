@@ -35,6 +35,7 @@ public class ContactDb extends DbBase {
   public static final String TAGID = "tagid";
   public static final String SLUG = "slug";
   public static final String ORGID = "orgid";
+  public static final String ORGSLUG = "org_slug";
   public static final String DATE = "date";
   public static final String TSREGISTERED = "tsregistered";
 
@@ -49,6 +50,7 @@ public class ContactDb extends DbBase {
       TAGID + ", " +
       SLUG + ", " +
       ORGID + ", " +
+      ORGSLUG + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
       "CONSTRAINT item_number_unique UNIQUE (" + UID + ")" +
@@ -64,6 +66,7 @@ public class ContactDb extends DbBase {
       TAGID,
       SLUG,
       ORGID,
+      ORGSLUG,
       DATE,
       TSREGISTERED
   };
