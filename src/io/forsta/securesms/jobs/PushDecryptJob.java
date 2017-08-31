@@ -498,7 +498,10 @@ public class PushDecryptJob extends ContextJob {
     String threadUId = ForstaUtils.getMessageThreadId(body);
 
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-    // TODO add threadUid to this method to store threadUid of sender.
+    String existingUid = threadDb.getThreadUid(threadId);
+    if (existingUid != null) {
+      threadUId = null;
+    }
     threadDb.updateForstaDistribution(threadId, distribution, title, threadUId);
   }
 
