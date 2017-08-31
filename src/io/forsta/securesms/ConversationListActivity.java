@@ -728,7 +728,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
           try {
             ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
-            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + user.slug);
+            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
+
             JSONArray warnings = result.getJSONArray("warnings");
             if (warnings.length() > 0) {
               return warnings.getString(0);
