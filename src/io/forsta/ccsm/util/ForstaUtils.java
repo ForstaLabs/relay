@@ -169,8 +169,6 @@ public class ForstaUtils {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      JSONObject tagExpression = new JSONObject();
-      String presentation = "";
       String threadId = threadUid;
       String threadTitle = prettyExpression;
 
@@ -187,16 +185,11 @@ public class ForstaUtils {
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
-          presentation = group.getSlug();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
           e.printStackTrace();
         }
       } else {
-        List<String> singleRecipient = messageRecipients.toNumberStringList(false);
-        List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
-        threadId = forstaSingleRecipients.size() > 0 ? forstaSingleRecipients.get(0).uuid : "";
-
         for (String recipient : messageRecipients.toNumberStringList(false)) {
           try {
             recipientList.add(Util.canonicalizeNumber(context, recipient));
@@ -204,7 +197,6 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
-
         threadTitle = !TextUtils.isEmpty(prettyExpression) ? prettyExpression: threadTitle;
       }
 
