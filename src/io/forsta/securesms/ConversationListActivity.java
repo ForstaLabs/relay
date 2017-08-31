@@ -729,7 +729,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           try {
             JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
 
-//            JSONArray warnings = result.getJSONArray("warnings");
+            JSONArray warnings = result.getJSONArray("warnings");
 //            if (warnings.length() > 0) {
 //              return warnings.getString(0);
 //            }
