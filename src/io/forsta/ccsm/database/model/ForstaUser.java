@@ -22,6 +22,7 @@ public class ForstaUser {
   public String email;
   public String phone;
   public String org_id;
+  public String org_slug;
   public boolean tsRegistered;
 
   public ForstaUser() {
@@ -41,6 +42,7 @@ public class ForstaUser {
       }
       this.uid = userObj.getString("id");
       this.org_id = userObj.getString("org_id");
+      //this.org_slug = userObj.getString("org_slug");
       this.username = userObj.getString("username");
       this.email = userObj.getString("email");
       if (userObj.has("phone")) {
@@ -57,6 +59,7 @@ public class ForstaUser {
     this.id = cursor.getString(cursor.getColumnIndex(ContactDb.ID));
     this.uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
     this.org_id = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.org_slug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
     this.tag_id = cursor.getString(cursor.getColumnIndex(ContactDb.TAGID));
     this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
     this.username = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));
