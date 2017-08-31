@@ -7,6 +7,7 @@ import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
@@ -356,11 +357,8 @@ public class PushDecryptJob extends ContextJob {
     }
 
     Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
-    String distribution = ForstaUtils.getMessageDistribution(body);
-    String title = ForstaUtils.getMessageTitle(body);
 
-    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-    threadDb.updateForstaDistribution(messageAndThreadId.second, distribution, title);
+    setThreadDistribution(messageAndThreadId.second, body);
 
     List<DatabaseAttachment> attachments        = DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageAndThreadId.first);
 
@@ -486,16 +484,20 @@ public class PushDecryptJob extends ContextJob {
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
 
-      String distribution = ForstaUtils.getMessageDistribution(body);
-      String title = ForstaUtils.getMessageTitle(body);
-
-      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-      threadDb.updateForstaDistribution(messageAndThreadId.second, distribution, title);
+      setThreadDistribution(messageAndThreadId.second, body);
 
       if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
     }
 
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
+  }
+
+  private void setThreadDistribution(long threadId, String body) {
+    String distribution = ForstaUtils.getMessageDistribution(body);
+    String title = ForstaUtils.getMessageTitle(body);
+
+    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+    threadDb.updateForstaDistribution(threadId, distribution, title);
   }
 
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
@@ -685,9 +687,15 @@ public class PushDecryptJob extends ContextJob {
           ids.add(userIds.getString(i));
         }
       }
+      if (ids.size() == 2) {
+        //Remove local address if conversation between two clients
+        ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
+        ids.remove(user.uid);
+      }
     } catch (JSONException e) {
       e.printStackTrace();
     }
+
     if (ids.size() > 0) {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, ids, false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);

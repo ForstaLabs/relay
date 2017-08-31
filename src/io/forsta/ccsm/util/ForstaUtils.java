@@ -131,9 +131,7 @@ public class ForstaUtils {
     String result = "";
     try {
       JSONObject jsonObject = getVersion(1, messageBody);
-      if (jsonObject.has("title")) {
-        result = jsonObject.getString("title");
-      }
+      result = jsonObject.getString("threadTitle");
     } catch (JSONException e) {
       e.printStackTrace();
     }

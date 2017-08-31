@@ -85,7 +85,7 @@ public class ThreadDatabase extends Database {
     ARCHIVED + " INTEGER DEFAULT 0, " + STATUS + " INTEGER DEFAULT 0, "                            +
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
-      TITLE + " TEXT " +
+      TITLE + " TEXT, " +
       UID + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
