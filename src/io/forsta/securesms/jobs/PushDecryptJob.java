@@ -356,6 +356,12 @@ public class PushDecryptJob extends ContextJob {
     }
 
     Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
+    String distribution = ForstaUtils.getMessageDistribution(body);
+    String title = ForstaUtils.getMessageTitle(body);
+
+    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+    threadDb.updateForstaDistribution(messageAndThreadId.second, distribution, title);
+
     List<DatabaseAttachment> attachments        = DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageAndThreadId.first);
 
     for (DatabaseAttachment attachment : attachments) {

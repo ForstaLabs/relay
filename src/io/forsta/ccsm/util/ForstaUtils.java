@@ -118,7 +118,8 @@ public class ForstaUtils {
     try {
       JSONObject jsonObject = getVersion(1, body);
       if (jsonObject.has("distribution")) {
-        result = jsonObject.getString("distribution");
+        JSONObject distribution = jsonObject.getJSONObject("distribution");
+        result = distribution.getString("expression");
       }
     } catch (JSONException e) {
       e.printStackTrace();
@@ -155,10 +156,10 @@ public class ForstaUtils {
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
-    return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "");
+    return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "", "");
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression, String threadUid) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -231,7 +232,7 @@ public class ForstaUtils {
         userIds.put(r.uuid);
       }
       recipients.put("userIds", userIds);
-      recipients.put("expression", presentation);
+      recipients.put("expression", universalExpression);
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
@@ -255,7 +256,7 @@ public class ForstaUtils {
       version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
-      version1.put("distribution", universalExpression);
+      version1.put("distribution", recipients);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");

@@ -558,18 +558,23 @@ public class ThreadDatabase extends Database {
     notifyConversationListListeners();
   }
 
-  public Pair<String, String> getThreadDistribution(long threadId) {
-    Pair<String, String> result = null;
+  public String getThreadUid(long threadId) {
+    String result = "";
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     Cursor cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
     try {
       if (cursor != null && cursor.moveToFirst()) {
-        result = new Pair(cursor.getString(cursor.getColumnIndex(DISTRIBUTION)), cursor.getString(cursor.getColumnIndex(TITLE)));
+        result = cursor.getString(cursor.getColumnIndex(UID));
       }
     } finally {
       cursor.close();
     }
     return result;
+  }
+
+  public Cursor getThread(long threadId) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    return db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
   }
 
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {

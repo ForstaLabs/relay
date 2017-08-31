@@ -104,7 +104,7 @@ public class OutgoingMediaMessage {
     }
   }
 
-  public void setForstaJsonBody(Context context, String universalExpression, String prettyExpression) {
-    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, universalExpression, prettyExpression);
+  public void setForstaJsonBody(Context context, String universalExpression, String prettyExpression, String threadUid) {
+    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, universalExpression, prettyExpression, threadUid);
   }
 }

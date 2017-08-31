@@ -730,11 +730,22 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
             JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
 
-            JSONArray warnings = result.getJSONArray("warnings");
-            if (warnings.length() > 0) {
-              return warnings.getString(0);
-            }
+//            JSONArray warnings = result.getJSONArray("warnings");
+//            if (warnings.length() > 0) {
+//              return warnings.getString(0);
+//            }
             JSONArray userids = result.getJSONArray("userids");
+            if (userids.length() > 1) {
+              // This is a group. Add local address to distribution.
+              ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
+              result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
+              userids = result.getJSONArray("userids");
+            }
+
+            if (userids.length() < 1) {
+              return "No recipients found in message";
+            }
+
             for (int i=0; i<userids.length(); i++) {
               addresses.add(userids.getString(i));
             }
@@ -750,11 +761,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           return "No recipients found in message";
         }
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
+        ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
+        // TODO change this to use the distribution to look up the threadId, or use the threadId in the message body.
+        final long threadId = threadDb.getThreadIdFor(messageRecipients);
+        String threadUid = threadDb.getThreadUid(threadId);
+        threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression);
 
-        final long threadId = DatabaseFactory.getThreadDatabase(ConversationListActivity.this).getThreadIdFor(messageRecipients);
         // TODO Always send media message?
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-        mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression);
+        mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression, threadUid);
         MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
         return null;
       }
