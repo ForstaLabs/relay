@@ -134,6 +134,7 @@ import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
@@ -1388,7 +1389,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     expiresIn,
                                                                     distributionType);
     if (isSecureText && !forceSms) {
-      outgoingMessage.setForstaJsonBody(context, distribution, title, threadUid);
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
 
@@ -1398,7 +1398,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+        OutgoingMediaMessage message = messages[0];
+
+        if (message.isSecure()) {
+          createForstaDistribution();
+          message.setForstaJsonBody(context, distribution, title, threadUid);
+        }
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
       @Override
@@ -1416,12 +1422,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final Context context = getApplicationContext();
     OutgoingTextMessage message;
+    String messageText = getMessage();
 
     if (isSecureText && !forceSms) {
-      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients, distribution, title, threadUid);
-      message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
+      message = new OutgoingEncryptedMessage(recipients, messageText, expiresIn);
     } else {
-      message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
+      message = new OutgoingTextMessage(recipients, messageText, expiresIn, subscriptionId);
     }
 
     this.composeText.setText("");
@@ -1429,7 +1435,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingTextMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingTextMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+
+        OutgoingTextMessage message = messages[0];
+        if (message.isSecureMessage()) {
+          createForstaDistribution();
+          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, distribution, title, threadUid);
+          message = message.withBody(forstaBody);
+        }
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
       @Override
@@ -1437,6 +1450,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
       }
     }.execute(message);
+  }
+
+  private void createForstaDistribution() {
+    if (threadId == -1) {
+      String expression = recipients.getRecipientExpression();
+      JSONObject distribution = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      String universal = ForstaUtils.getUniversalDistribution(distribution);
+      String pretty = ForstaUtils.getPrettyDistribution(distribution);
+      ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+      threadId = db.getThreadIdFor(recipients);
+      db.updateForstaDistribution(threadId, universal, pretty, null);
+      getThread();
+    }
   }
 
   private void updateToggleButtonState() {
@@ -1716,10 +1742,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }finally {
       cursor.close();
-    }
-    if (threadUid == null) {
-      threadUid = UUID.randomUUID().toString();
-      db.updateThreadUid(threadId, threadUid);
     }
   }
 }

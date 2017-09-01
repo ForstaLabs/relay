@@ -6,7 +6,7 @@ import io.forsta.securesms.recipients.Recipients;
 public class OutgoingTextMessage {
 
   private final Recipients recipients;
-  private final String     message;
+  protected final String     message;
   private final int        subscriptionId;
   private final long       expiresIn;
 
@@ -75,4 +75,6 @@ public class OutgoingTextMessage {
   public OutgoingTextMessage withBody(String body) {
     return new OutgoingTextMessage(this, body);
   }
+
+
 }

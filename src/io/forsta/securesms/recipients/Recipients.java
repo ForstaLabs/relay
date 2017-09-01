@@ -233,6 +233,14 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return this.recipients.size() > 1;
   }
 
+  public String getRecipientExpression() {
+    StringBuilder sb = new StringBuilder();
+    for (Recipient recipient : recipients) {
+      sb.append("@").append(recipient.getSlug()).append(" ");
+    }
+    return sb.toString();
+  }
+
   public boolean isEmpty() {
     return this.recipients.isEmpty();
   }

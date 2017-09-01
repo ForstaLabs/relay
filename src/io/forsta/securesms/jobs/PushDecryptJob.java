@@ -499,6 +499,7 @@ public class PushDecryptJob extends ContextJob {
 
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     String existingUid = threadDb.getThreadUid(threadId);
+    // Prefer the local UID. Reinstalls will cause new UID to be generated.
     if (existingUid != null) {
       threadUId = null;
     }

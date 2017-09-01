@@ -258,4 +258,31 @@ public class ForstaUtils {
     df.setTimeZone(tz);
     return df.format(date);
   }
+
+  public static JSONObject getDistributionWarnings(JSONObject distribution) {
+    try {
+      return distribution.getJSONObject("warnings");
+    } catch (JSONException e) {
+      Log.w(TAG, "Warnings object does not exist");
+    }
+    return new JSONObject();
+  }
+
+  public static String getUniversalDistribution(JSONObject distribution) {
+    try {
+      return distribution.getString("universal");
+    } catch (JSONException e) {
+      Log.w(TAG, "No universal string in distribution");
+    }
+    return "";
+  }
+
+  public static String getPrettyDistribution(JSONObject distribution) {
+    try {
+      return distribution.getString("pretty");
+    } catch (JSONException e) {
+      Log.w(TAG, "No pretty string in distribution");
+    }
+    return "";
+  }
 }

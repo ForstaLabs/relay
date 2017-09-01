@@ -572,9 +572,11 @@ public class ThreadDatabase extends Database {
     ContentValues values = new ContentValues();
     values.put(DISTRIBUTION, distribution);
     if (uid != null) {
+      values.put(UID, uid);
+    }
+    if (!TextUtils.isEmpty(title)) {
       values.put(TITLE, title);
     }
-    values.put(UID, uid);
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
     notifyConversationListListeners();

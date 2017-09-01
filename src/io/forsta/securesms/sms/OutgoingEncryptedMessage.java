@@ -1,5 +1,8 @@
 package io.forsta.securesms.sms;
 
+import android.content.Context;
+
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.recipients.Recipients;
 
 public class OutgoingEncryptedMessage extends OutgoingTextMessage {
