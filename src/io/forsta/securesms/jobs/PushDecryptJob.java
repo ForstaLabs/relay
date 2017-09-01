@@ -2,6 +2,7 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -49,6 +50,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -498,11 +500,6 @@ public class PushDecryptJob extends ContextJob {
     String threadUId = ForstaUtils.getMessageThreadId(body);
 
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-    String existingUid = threadDb.getThreadUid(threadId);
-    // Prefer the local UID. Reinstalls will cause new UID to be generated.
-    if (existingUid != null) {
-      threadUId = null;
-    }
     threadDb.updateForstaDistribution(threadId, distribution, title, threadUId);
   }
 

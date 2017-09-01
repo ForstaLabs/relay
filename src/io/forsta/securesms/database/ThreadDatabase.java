@@ -590,12 +590,6 @@ public class ThreadDatabase extends Database {
       cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
       if (cursor != null && cursor.moveToFirst()) {
         result = cursor.getString(cursor.getColumnIndex(UID));
-        if (result == null) {
-          ContentValues values = new ContentValues(1);
-          values.put(UID, UUID.randomUUID().toString());
-          result = values.getAsString(UID);
-          db.update(TABLE_NAME, values, ID + " = ? ", new String[]{threadId + ""});
-        }
       }
     } finally {
       cursor.close();
