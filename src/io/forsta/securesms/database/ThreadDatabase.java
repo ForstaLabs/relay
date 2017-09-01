@@ -485,6 +485,25 @@ public class ThreadDatabase extends Database {
     }
   }
 
+  public long getThreadIdFor(Recipients recipients, String distribution) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
+    Cursor cursor          = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, DISTRIBUTION + " = ? ", new String[]{distribution + ""}, null, null, null);
+
+      if (cursor != null && cursor.moveToFirst()) {
+        return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
+      } else {
+        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT);
+      }
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
+  }
+
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;
@@ -564,8 +583,9 @@ public class ThreadDatabase extends Database {
   public String getThreadUid(long threadId) {
     String result = "";
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    Cursor cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
+    Cursor cursor = null;
     try {
+      cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
       if (cursor != null && cursor.moveToFirst()) {
         result = cursor.getString(cursor.getColumnIndex(UID));
         if (result == null) {
