@@ -142,6 +142,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
@@ -1715,6 +1716,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }finally {
       cursor.close();
+    }
+    if (threadUid == null) {
+      threadUid = UUID.randomUUID().toString();
+      db.updateThreadUid(threadId, threadUid);
     }
   }
 }

@@ -180,8 +180,8 @@ public class ForstaUtils {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      String threadId = threadUid;
-      String threadTitle = prettyExpression;
+      String threadId = threadUid != null ? threadUid : "";
+      String threadTitle = "";
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
