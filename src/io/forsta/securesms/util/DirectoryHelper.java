@@ -174,6 +174,9 @@ public class DirectoryHelper {
       String ids = TextUtils.join(",", addresses);
 
       List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
+      if (details.size() == 0) {
+        return new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
+      }
       directory.setNumbers(details, new ArrayList<String>());
       CcsmApi.syncForstaContacts(context, ids);
       ContactDb contactsDb = DbFactory.getContactDb(context);
