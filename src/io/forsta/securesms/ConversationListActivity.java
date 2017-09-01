@@ -728,11 +728,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
           try {
             JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
+            // Temporary. Until object changes on endpoint.
+            try {
+              JSONObject warnings = result.getJSONObject("warnings");
+              if (warnings.has("cue")) {
+                return warnings.getString("cue");
+              }
+            } catch (JSONException e) {
+              Log.w(TAG, "No warnings object found");
+            }
 
-            JSONArray warnings = result.getJSONArray("warnings");
-//            if (warnings.length() > 0) {
-//              return warnings.getString(0);
-//            }
             JSONArray userids = result.getJSONArray("userids");
             if (userids.length() > 1) {
               // This is a group. Add local address to distribution.
