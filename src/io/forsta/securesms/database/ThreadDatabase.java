@@ -580,9 +580,11 @@ public class ThreadDatabase extends Database {
     if (!TextUtils.isEmpty(distribution)) {
       values.put(DISTRIBUTION, distribution);
     }
-    SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
-    notifyConversationListListeners();
+    if (values.size() > 0) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+      notifyConversationListListeners();
+    }
   }
 
   public String getThreadUid(long threadId) {
