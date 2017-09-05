@@ -571,11 +571,14 @@ public class ThreadDatabase extends Database {
   public void updateForstaDistribution(long threadId, String distribution, String title, String uid) {
     ContentValues values = new ContentValues();
     values.put(DISTRIBUTION, distribution);
-    if (uid != null) {
+    if (!TextUtils.isEmpty(uid)) {
       values.put(UID, uid);
     }
     if (!TextUtils.isEmpty(title)) {
       values.put(TITLE, title);
+    }
+    if (!TextUtils.isEmpty(distribution)) {
+      values.put(DISTRIBUTION, distribution);
     }
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
