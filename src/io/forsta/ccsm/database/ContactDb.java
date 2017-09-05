@@ -31,6 +31,7 @@ public class ContactDb extends DbBase {
   public static final String EMAIL = "email";
   public static final String NUMBER = "number";
   public static final String USERNAME = "username";
+  public static final String AVATAR = "avatar";
   public static final String UID = "uid";
   public static final String TAGID = "tagid";
   public static final String SLUG = "slug";
@@ -46,6 +47,7 @@ public class ContactDb extends DbBase {
       EMAIL + ", " +
       NUMBER + ", " +
       USERNAME + ", " +
+      AVATAR + ", " +
       UID + ", " +
       TAGID + ", " +
       SLUG + ", " +
@@ -62,6 +64,7 @@ public class ContactDb extends DbBase {
       EMAIL,
       NUMBER,
       USERNAME,
+      AVATAR,
       UID,
       TAGID,
       SLUG,

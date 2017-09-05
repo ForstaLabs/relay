@@ -65,7 +65,9 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
 import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -1455,7 +1457,16 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void createForstaDistribution() {
     if (threadId == -1) {
       String expression = recipients.getRecipientExpression();
+      try {
+        ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationActivity.this)));
+        expression += "@" + user.slug;
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+
       JSONObject distribution = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      Log.w(TAG, "Expression: " + expression);
+      Log.w(TAG, "Distribution: " +  distribution);
       String universal = ForstaUtils.getUniversalDistribution(distribution);
       String pretty = ForstaUtils.getPrettyDistribution(distribution);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);

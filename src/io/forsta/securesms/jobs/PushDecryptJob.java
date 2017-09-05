@@ -78,7 +78,9 @@ import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSy
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import ws.com.google.android.mms.MmsException;
@@ -341,6 +343,7 @@ public class PushDecryptJob extends ContextJob {
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     Recipients           recipients   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
+    Log.w(TAG, "Receiving media message body: " + body);
     Recipients forstaRecipients = refreshDirectoryForForstaRecipients(masterSecret.getMasterSecret().get(), body, recipients);
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
@@ -460,6 +463,7 @@ public class PushDecryptJob extends ContextJob {
   {
     EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
+    Log.w(TAG, "Receiving text message body: " + body);
 
     // This is the sender
     Recipients            recipients = getMessageDestination(envelope, message);
@@ -681,8 +685,8 @@ public class PushDecryptJob extends ContextJob {
   private Recipients refreshDirectoryForForstaRecipients(MasterSecret masterSecret, String body, Recipients sender) {
     String distribution = ForstaUtils.getMessageDistribution(body);
     JSONObject response = CcsmApi.getDistribution(context, distribution);
-    List<String> ids = new ArrayList<>();
-    ids.add(sender.getPrimaryRecipient().getNumber());
+    Set<String> ids = new HashSet<>();
+    ids.add(sender.getPrimaryRecipient().getNumber()); //Temporary. For messages missing the sender in the distribution.
     try {
       if (response.has("userids")) {
         JSONArray userIds = response.getJSONArray("userids");
@@ -700,7 +704,7 @@ public class PushDecryptJob extends ContextJob {
     }
 
     if (ids.size() > 0) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, ids, false);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, new ArrayList<String>(ids), false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       return recipients;
     }

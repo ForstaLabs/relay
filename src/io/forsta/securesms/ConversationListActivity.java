@@ -727,8 +727,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         String message = params[0];
 
           try {
-            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
-            // Temporary. Until object changes on endpoint.
+            ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
+            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
             try {
               JSONObject warnings = result.getJSONObject("warnings");
               if (warnings.has("cue")) {
@@ -737,21 +737,17 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
             } catch (JSONException e) {
               Log.w(TAG, "No warnings object found");
             }
-
             JSONArray userids = result.getJSONArray("userids");
-            if (userids.length() > 1) {
-              // This is a group. Add local address to distribution.
-              ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
-              result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
-              userids = result.getJSONArray("userids");
-            }
 
             if (userids.length() < 1) {
               return "No recipients found in message";
             }
 
             for (int i=0; i<userids.length(); i++) {
-              addresses.add(userids.getString(i));
+              // TODO Remove myself from recipients locally until we lookup recipients by distribution or threadUid.
+              if (!userids.getString(i).equals(localUser.uid)) {
+                addresses.add(userids.getString(i));
+              }
             }
             universalExpression = result.getString("universal");
             prettyExpression = result.getString("pretty");

@@ -243,6 +243,7 @@ public class ForstaUtils {
       version1.put("sender", sender);
       version1.put("distribution", recipients);
       versions.put(version1);
+      Log.w(TAG, "Sending message body: ThreadId: " + threadId + " threadTitle: " + threadTitle + " distribution.expression: " + universalExpression);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
       e.printStackTrace();

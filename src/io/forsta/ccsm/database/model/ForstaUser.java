@@ -20,6 +20,7 @@ public class ForstaUser {
   public String username;
   public String slug;
   public String email;
+  public String avatar;
   public String phone;
   public String org_id;
   public String org_slug;
@@ -41,9 +42,24 @@ public class ForstaUser {
         }
       }
       this.uid = userObj.getString("id");
-      this.org_id = userObj.getString("org_id");
-      //this.org_slug = userObj.getString("org_slug");
+
+      try {
+        JSONObject org = userObj.getJSONObject("org");
+        this.org_id = org.getString("id");
+        this.org_slug = org.getString("slug");
+      } catch (JSONException e) {
+        if (userObj.has("org_id")) { // Temporary old shape.
+          this.org_id = userObj.getString("org_id");
+        }
+      }
+
       this.username = userObj.getString("username");
+      if (userObj.has("gravatar_hash")) {
+        this.avatar = userObj.getString("gravatar_hash");
+      } else if (userObj.has("gravitar_hash")) { // Temporary misspelling.
+        this.avatar = userObj.getString("gravitar_hash");
+      }
+
       this.email = userObj.getString("email");
       if (userObj.has("phone")) {
         this.phone = userObj.getString("phone");
@@ -59,6 +75,7 @@ public class ForstaUser {
     this.id = cursor.getString(cursor.getColumnIndex(ContactDb.ID));
     this.uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
     this.org_id = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.avatar = cursor.getString(cursor.getColumnIndex(ContactDb.AVATAR));
     this.org_slug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
     this.tag_id = cursor.getString(cursor.getColumnIndex(ContactDb.TAGID));
     this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
