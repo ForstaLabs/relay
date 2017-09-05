@@ -180,7 +180,7 @@ public class ForstaUtils {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      String threadId = threadUid != null ? threadUid : "";
+      String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
       String threadTitle = "";
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));

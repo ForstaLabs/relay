@@ -25,7 +25,7 @@ public class TransportOptions {
   private final Context                          context;
   private final List<TransportOption>            enabledTransports;
 
-  private Type                      defaultTransportType  = Type.SMS;
+  private Type                      defaultTransportType  = Type.TEXTSECURE;
   private Optional<Integer>         defaultSubscriptionId = Optional.absent();
   private Optional<TransportOption> selectedOption        = Optional.absent();
 
@@ -43,7 +43,7 @@ public class TransportOptions {
     if (selectedOption.isPresent() && !isEnabled(selectedOption.get())) {
       setSelectedTransport(null);
     } else {
-      this.defaultTransportType = Type.SMS;
+      this.defaultTransportType = Type.TEXTSECURE;
       this.defaultSubscriptionId = Optional.absent();
 
       notifyTransportChangeListeners();
