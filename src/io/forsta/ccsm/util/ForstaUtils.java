@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
@@ -73,81 +74,113 @@ public class ForstaUtils {
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaHtmlBody, Not a Forsta JSON message body");
     }
     return false;
   }
 
-  public static Spanned getForstaJsonBody(String messageBody) {
+  public static Spanned getForstaHtmlBody(String messageBody) {
     try {
-      JSONArray forstaArray = new JSONArray(messageBody);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          JSONObject data = version.getJSONObject("data");
-          JSONArray body =  data.getJSONArray("body");
-          for (int j=0; j<body.length(); j++) {
-            JSONObject object = body.getJSONObject(j);
-            if (object.getString("type").equals("text/html")) {
-              String htmlText = object.getString("value");
-              return Html.fromHtml(htmlText);
-            }
-          }
+      JSONObject version = getVersion(1, messageBody);
+      JSONObject data = version.getJSONObject("data");
+      JSONArray body =  data.getJSONArray("body");
+      for (int j=0; j<body.length(); j++) {
+        JSONObject object = body.getJSONObject(j);
+        if (object.getString("type").equals("text/html")) {
+          return Html.fromHtml(object.getString("value"));
         }
       }
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaJsonBody, Not a Forsta JSON message body");
+      Log.w(TAG, "JSON exception. getForstaHtmlBody, Not a Forsta JSON message body");
     }
     return null;
   }
 
   public static String getForstaPlainTextBody(String messageBody) {
     try {
-      JSONArray forstaArray= new JSONArray(messageBody);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          if (version.has("data")) {
-            JSONObject data = version.getJSONObject("data");
-            if (data.has("body")) {
-              JSONArray body =  data.getJSONArray("body");
-              for (int j=0; j<body.length(); j++) {
-                JSONObject object = body.getJSONObject(j);
-                if (object.getString("type").equals("text/plain")) {
-                  return object.getString("value");
-                }
-              }
-            } else {
-              // Body is missing, but is a JSON blob. Assume attachment. Return a blank message.
-              return "";
-            }
-          } else {
-            return "";
-          }
+      JSONObject version = getVersion(1, messageBody);
+      JSONObject data = version.getJSONObject("data");
+      JSONArray body =  data.getJSONArray("body");
+      for (int j=0; j<body.length(); j++) {
+        JSONObject object = body.getJSONObject(j);
+        if (object.getString("type").equals("text/plain")) {
+          return object.getString("value");
         }
       }
     } catch (JSONException e) {
       Log.w(TAG, "JSON exception. getForstaPlainTextBody, Not a Forsta JSON message body");
     }
-    return null;
+    return messageBody;
+  }
+
+  public static String getMessageDistribution(String body) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, body);
+      if (jsonObject.has("distribution")) {
+        JSONObject distribution = jsonObject.getJSONObject("distribution");
+        result = distribution.getString("expression");
+      }
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. getMessageDistribution. No Forsta expression");
+    }
+    return result;
+  }
+
+  public static String getMessageTitle(String messageBody) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, messageBody);
+      result = jsonObject.getString("threadTitle");
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
+    }
+    return result;
+  }
+
+  public static String getMessageThreadId(String messageBody) {
+    String result = "";
+    try {
+      JSONObject jsonObject = getVersion(1, messageBody);
+      result = jsonObject.getString("threadId");
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
+    }
+    return result;
+  }
+
+  private static JSONObject getVersion(int version, String body) {
+    try {
+      JSONArray jsonArray = new JSONArray(body);
+      for (int i=0; i<jsonArray.length(); i++) {
+        JSONObject versionObject = jsonArray.getJSONObject(i);
+        if (versionObject.getInt("version") == version) {
+          return versionObject;
+        }
+      }
+    } catch (JSONException e) {
+      Log.w(TAG, "JSON exception. No Forsta message body");
+    }
+    return new JSONObject();
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
+    return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "", "");
+  }
+
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression, String threadUid) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
     try {
-      version1.put("version", 1);
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
-      String type = "ordinary";
+      String threadType = "conversation";
+      String messageType = "content";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      JSONObject tagExpression = new JSONObject();
-      String presentation = "";
-
-      String threadId = "";
+      String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
       String threadTitle = "";
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
@@ -161,34 +194,13 @@ public class ForstaUtils {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
           String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
-          threadId = new String(GroupUtil.getDecodedId(endcodedGroupId));
           threadTitle = group.getTitle();
           recipientList = group.getMembers();
-          presentation = group.getSlug();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
           e.printStackTrace();
         }
       } else {
-        List<String> singleRecipient = messageRecipients.toNumberStringList(false);
-        List<ForstaRecipient> forstaSingleRecipients = contactDb.getRecipientsFromNumbers(singleRecipient);
-        List<String> forstaSlugs = new ArrayList<>();
-        Set<String> names = new HashSet<>();
-        for (ForstaRecipient recipient : forstaSingleRecipients) {
-          forstaSlugs.add(recipient.slug);
-          // Should only ever be one recipient. Groups represent multiple recipients, unless it is a mix of secure and non-secure recipients.
-          names.add(TextUtils.isEmpty(recipient.name) ? recipient.number : recipient.name);
-        }
-
-        // If the recipients are unknown to CCSM
-        for (Recipient unknownRecipient : messageRecipients.getRecipientsList()) {
-          names.add(TextUtils.isEmpty(unknownRecipient.getName()) ? unknownRecipient.getNumber(): unknownRecipient.getName());
-        }
-
-        threadId = forstaSingleRecipients.size() > 0 ? forstaSingleRecipients.get(0).uuid : "";
-        threadTitle = TextUtils.join(",", names);
-
-        presentation = TextUtils.join("+", forstaSlugs);
         for (String recipient : messageRecipients.toNumberStringList(false)) {
           try {
             recipientList.add(Util.canonicalizeNumber(context, recipient));
@@ -196,6 +208,7 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
+        threadTitle = !TextUtils.isEmpty(prettyExpression) ? prettyExpression: threadTitle;
       }
 
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
@@ -203,10 +216,8 @@ public class ForstaUtils {
       for (ForstaRecipient r : forstaRecipients) {
         userIds.put(r.uuid);
       }
-      tagExpression.put("type", "+");
-      tagExpression.put("presentation", presentation);
       recipients.put("userIds", userIds);
-      recipients.put("expression", tagExpression);
+      recipients.put("expression", universalExpression);
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
@@ -220,13 +231,17 @@ public class ForstaUtils {
       body.put(bodyPlain);
 
       data.put("body", body);
+      version1.put("version", 1);
+      version1.put("userAgent", System.getProperty("http.agent", ""));
+      version1.put("messageId", UUID.randomUUID().toString());
+      version1.put("messageType", messageType);
       version1.put("threadId", threadId);
       version1.put("threadTitle", threadTitle);
-      version1.put("type", type);
+      version1.put("threadType", threadType);
       version1.put("sendTime", formatDateISOUTC(new Date()));
       version1.put("data", data);
       version1.put("sender", sender);
-      version1.put("recipients", recipients);
+      version1.put("distribution", recipients);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
@@ -244,32 +259,30 @@ public class ForstaUtils {
     return df.format(date);
   }
 
-  public static String getForstaGroupTitle(String name) {
+  public static JSONObject getDistributionWarnings(JSONObject distribution) {
     try {
-      JSONObject nameObj = new JSONObject(name);
-      String title = nameObj.getString("title");
-      return title;
+      return distribution.getJSONObject("warnings");
     } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. Not a Forsta group title blob.");
+      Log.w(TAG, "Warnings object does not exist");
     }
-    return null;
+    return new JSONObject();
   }
 
-  public static void createForstaGroupFromMessagePayload(String body) {
+  public static String getUniversalDistribution(JSONObject distribution) {
     try {
-      JSONArray forstaArray = new JSONArray(body);
-      for (int i=0; i<forstaArray.length(); i++) {
-        JSONObject version = forstaArray.getJSONObject(i);
-        if (version.getInt("version") == 1) {
-          String groupId = version.getString("threadId");
-          if (GroupUtil.isEncodedGroup(groupId)) {
-            String title = version.getString("threadTitle");
-
-          }
-        }
-      }
+      return distribution.getString("universal");
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.w(TAG, "No universal string in distribution");
     }
+    return "";
+  }
+
+  public static String getPrettyDistribution(JSONObject distribution) {
+    try {
+      return distribution.getString("pretty");
+    } catch (JSONException e) {
+      Log.w(TAG, "No pretty string in distribution");
+    }
+    return "";
   }
 }

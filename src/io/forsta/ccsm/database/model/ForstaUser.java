@@ -22,6 +22,7 @@ public class ForstaUser {
   public String email;
   public String phone;
   public String org_id;
+  public String org_slug;
   public boolean tsRegistered;
 
   public ForstaUser() {
@@ -32,24 +33,22 @@ public class ForstaUser {
     try {
       String name = getContactName(userObj);
       this.name = name;
-      JSONArray tags = userObj.getJSONArray("tags");
-      for (int i=0; i<tags.length(); i++) {
-        JSONObject tagObject = tags.getJSONObject(i);
-        String association = tagObject.getString("association_type");
-        // Only getting the username tag for the user, not the other tags.
-        if (association.equals("USERNAME")) {
-          JSONObject tag = tagObject.getJSONObject("tag");
+      if (userObj.has("tag")) {
+        JSONObject tag = userObj.getJSONObject("tag");
+        if (tag.has("id")) {
           this.tag_id = tag.getString("id");
           this.slug = tag.getString("slug");
-          break;
         }
       }
       this.uid = userObj.getString("id");
       this.org_id = userObj.getString("org_id");
+      //this.org_slug = userObj.getString("org_slug");
       this.username = userObj.getString("username");
       this.email = userObj.getString("email");
-      this.phone = userObj.getString("phone");
-      this.tsRegistered = false;
+      if (userObj.has("phone")) {
+        this.phone = userObj.getString("phone");
+      }
+      this.tsRegistered = userObj.has("is_active") ? userObj.getBoolean("is_active") : true;
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -60,6 +59,7 @@ public class ForstaUser {
     this.id = cursor.getString(cursor.getColumnIndex(ContactDb.ID));
     this.uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
     this.org_id = cursor.getString(cursor.getColumnIndex(ContactDb.ORGID));
+    this.org_slug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
     this.tag_id = cursor.getString(cursor.getColumnIndex(ContactDb.TAGID));
     this.slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
     this.username = cursor.getString(cursor.getColumnIndex(ContactDb.USERNAME));

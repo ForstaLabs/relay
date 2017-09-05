@@ -12,6 +12,7 @@ import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -23,11 +24,13 @@ import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
+import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -132,8 +135,12 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
                                                                                 .withExpiration((int)(message.getExpiresIn() / 1000))
                                                                                 .asExpirationUpdate(message.isExpirationUpdate())
                                                                                 .build();
-
-      messageSender.sendMessage(address, mediaMessage);
+      if (!message.getRecipients().isSingleRecipient()) {
+        List<SignalServiceAddress> addresses = getPushAddresses(message.getRecipients());
+        messageSender.sendMessage(addresses, mediaMessage);
+      } else {
+        messageSender.sendMessage(address, mediaMessage);
+      }
     } catch (InvalidNumberException | UnregisteredUserException e) {
       Log.w(TAG, e);
       throw new InsecureFallbackApprovalException(e);
@@ -143,6 +150,18 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
+    } catch (EncapsulatedExceptions encapsulatedExceptions) {
+      encapsulatedExceptions.printStackTrace();
     }
+  }
+
+  private List<SignalServiceAddress> getPushAddresses(Recipients recipients) throws InvalidNumberException {
+    List<SignalServiceAddress> addresses = new LinkedList<>();
+
+    for (Recipient recipient : recipients.getRecipientsList()) {
+      addresses.add(getPushAddress(recipient.getNumber()));
+    }
+
+    return addresses;
   }
 }

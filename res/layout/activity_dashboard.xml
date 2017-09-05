@@ -28,7 +28,8 @@
                 android:id="@+id/socket_tester"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Open Socket"/>
+                android:text="Open Socket"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <TextView

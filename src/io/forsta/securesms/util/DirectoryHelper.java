@@ -4,17 +4,23 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.os.Build;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
@@ -27,6 +33,7 @@ import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
@@ -35,7 +42,10 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -73,6 +83,7 @@ public class DirectoryHelper {
   public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret)
       throws IOException
   {
+    CcsmApi.syncForstaContacts(context);
     List<String> newUsers = refreshDirectory(context,
                                              TextSecureCommunicationFactory.createManager(context),
                                              TextSecurePreferences.getLocalNumber(context));
@@ -83,7 +94,8 @@ public class DirectoryHelper {
                         .add(new MultiDeviceContactUpdateJob(context));
     }
 
-    notifyNewUsers(context, masterSecret, newUsers);
+//    notifyNewUsers(context, masterSecret, newUsers);
+    context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
   }
 
   public static @NonNull List<String> refreshDirectory(@NonNull Context context,
@@ -93,7 +105,7 @@ public class DirectoryHelper {
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
-    eligibleContactAddresses.add(TextSecurePreferences.getLocalNumber(context));
+    eligibleContactAddresses.add(TextUtils.isEmpty(localNumber) ? TextSecurePreferences.getLocalNumber(context) : localNumber);
     eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
 
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
@@ -109,12 +121,12 @@ public class DirectoryHelper {
       // Update the forsta contacts db to set active users.
       contactsDb.setActiveForstaAddresses(activeTokens);
       contactsDb.close();
-//      return updateContactsDatabase(context, localNumber, activeTokens, true);
     }
 
     return new LinkedList<>();
   }
 
+  // Obsolete
   public static UserCapabilities refreshDirectoryFor(@NonNull  Context context,
                                                      @Nullable MasterSecret masterSecret,
                                                      @NonNull  Recipients recipients,
@@ -130,13 +142,15 @@ public class DirectoryHelper {
       if (details.isPresent()) {
         directory.setNumber(details.get(), true);
 
-        List<String> newUsers = updateContactsDatabase(context, localNumber, details.get());
-
-        if (!newUsers.isEmpty() && TextSecurePreferences.isMultiDevice(context)) {
-          ApplicationContext.getInstance(context).getJobManager().add(new MultiDeviceContactUpdateJob(context));
+        List<ContactTokenDetails> activeTokens = new ArrayList<>();
+        activeTokens.add(details.get());
+        ContactDb contactsDb = DbFactory.getContactDb(context);
+        ForstaUser user = contactsDb.getUserByAddress(number);
+        if (user == null) {
+          // We do not recognize this user. Try to refresh from CCSM.
+          CcsmApi.syncForstaContacts(context);
         }
-
-        notifyNewUsers(context, masterSecret, newUsers);
+        contactsDb.setActiveForstaAddresses(activeTokens);
 
         return new UserCapabilities(Capability.SUPPORTED, details.get().isVoice() ? Capability.SUPPORTED : Capability.UNSUPPORTED);
       } else {
@@ -149,6 +163,30 @@ public class DirectoryHelper {
       Log.w(TAG, e);
       return UserCapabilities.UNSUPPORTED;
     }
+  }
+
+  public static UserCapabilities refreshDirectoryFor(@NonNull Context context, @Nullable MasterSecret masterSecret, @NonNull Recipients recipients) {
+    TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
+    ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+
+    try {
+      List<String> addresses = recipients.toNumberStringList(false);
+      String ids = TextUtils.join(",", addresses);
+
+      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
+      if (details.size() == 0) {
+        return new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
+      }
+      directory.setNumbers(details, new ArrayList<String>());
+      CcsmApi.syncForstaContacts(context, ids);
+      ContactDb contactsDb = DbFactory.getContactDb(context);
+      contactsDb.setActiveForstaAddresses(details);
+      RecipientFactory.clearCache(context);
+      return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context,
@@ -243,7 +281,7 @@ public class DirectoryHelper {
 
   public static Optional<Account> getOrCreateAccount(Context context) {
     AccountManager accountManager = AccountManager.get(context);
-    Account[]      accounts       = accountManager.getAccountsByType("io.forsta.securesms");
+    Account[]      accounts       = accountManager.getAccountsByType(BuildConfig.APPLICATION_ID);
 
     Optional<Account> account;
 
@@ -259,7 +297,7 @@ public class DirectoryHelper {
 
   private static Optional<Account> createAccount(Context context) {
     AccountManager accountManager = AccountManager.get(context);
-    Account        account        = new Account(context.getString(R.string.app_name), "io.forsta.securesms");
+    Account        account        = new Account(context.getString(R.string.app_name), BuildConfig.APPLICATION_ID);
 
     if (accountManager.addAccountExplicitly(account, null, null)) {
       Log.w(TAG, "Created new account...");

@@ -35,6 +35,7 @@ public class ContactDb extends DbBase {
   public static final String TAGID = "tagid";
   public static final String SLUG = "slug";
   public static final String ORGID = "orgid";
+  public static final String ORGSLUG = "org_slug";
   public static final String DATE = "date";
   public static final String TSREGISTERED = "tsregistered";
 
@@ -49,9 +50,10 @@ public class ContactDb extends DbBase {
       TAGID + ", " +
       SLUG + ", " +
       ORGID + ", " +
+      ORGSLUG + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
-      "CONSTRAINT item_number_unique UNIQUE (" + NUMBER + ")" +
+      "CONSTRAINT item_number_unique UNIQUE (" + UID + ")" +
       ")";
 
   public static String[] allColumns = {
@@ -64,6 +66,7 @@ public class ContactDb extends DbBase {
       TAGID,
       SLUG,
       ORGID,
+      ORGSLUG,
       DATE,
       TSREGISTERED
   };
@@ -83,6 +86,20 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public ForstaUser getUserByAddress(String address) {
+    ForstaUser user = null;
+    try {
+      Cursor cursor = getRecords(TABLE_NAME, null, UID + " = ?", new String[] {address}, UID);
+      if (cursor != null && cursor.moveToNext()) {
+        user = new ForstaUser(cursor);
+      }
+      cursor.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return user;
   }
 
   public HashMap<String, String> getContactSlugs() {
@@ -105,7 +122,7 @@ public class ContactDb extends DbBase {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
         ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
-        contacts.put(c.getString(c.getColumnIndex(USERNAME)), recipient);
+        contacts.put(c.getString(c.getColumnIndex(SLUG)), recipient);
       }
       c.close();
     } catch (Exception e) {
@@ -186,7 +203,7 @@ public class ContactDb extends DbBase {
     return recipients;
   }
 
-  public void updateUsers(List<ForstaUser> users) {
+  public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Set<String> forstaUids = new HashSet<>();
     Map<String, String> uids = getUids();
@@ -219,17 +236,18 @@ public class ContactDb extends DbBase {
     finally {
       db.endTransaction();
     }
-    db.beginTransaction();
-    try {
-      // Now remove entries that are no longer valid.
-      for (String uid : uids.keySet()) {
-        db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+    if (removeExisting) {
+      db.beginTransaction();
+      try {
+        // Now remove entries that are no longer valid.
+        for (String uid : uids.keySet()) {
+          db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+        }
+        db.setTransactionSuccessful();
+      } finally {
+        db.endTransaction();
       }
-      db.setTransactionSuccessful();
-    } finally {
-      db.endTransaction();
     }
-
     db.close();
   }
 
@@ -258,7 +276,7 @@ public class ContactDb extends DbBase {
     String queryFilter = TSREGISTERED + " = 1";
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
-      queryFilter += " AND (" + NAME + " LIKE ? OR " + NUMBER + " LIKE ?)";
+      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ?)";
       queryValues = new String[] { "%" + filter + "%", "%" + filter + "%" };
     }
 
@@ -299,7 +317,7 @@ public class ContactDb extends DbBase {
 
     String query = "";
     String queryNumbers = TextUtils.join("','", numbers);
-    query = NUMBER + " IN ('" + queryNumbers + "')";
+    query = UID + " IN ('" + queryNumbers + "')";
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
       while (c.moveToNext()) {

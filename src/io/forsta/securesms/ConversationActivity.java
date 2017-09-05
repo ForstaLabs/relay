@@ -36,6 +36,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.Browser;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
@@ -63,6 +64,8 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -88,6 +91,8 @@ import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
+import io.forsta.securesms.database.MmsSmsDatabase;
+import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -128,6 +133,9 @@ import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -135,6 +143,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
@@ -203,6 +212,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private Recipients recipients;
   private long       threadId;
+  private String threadUid;
+  private String distribution;
+  private String title;
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText;
@@ -219,7 +231,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   @Override
-  protected void onCreate(Bundle state, @NonNull MasterSecret masterSecret) {
+  protected void onCreate(Bundle state, @NonNull final MasterSecret masterSecret) {
     Log.w(TAG, "onCreate()");
     this.masterSecret = masterSecret;
 
@@ -239,6 +251,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         initializeDraft();
       }
     });
+
   }
 
   @Override
@@ -277,6 +290,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     dynamicLanguage.onResume(this);
     quickAttachmentDrawer.onResume();
 
+    getThread();
     initializeEnabledCheck();
     initializeMmsEnabledCheck();
     composeText.setTransport(sendButton.getSelectedTransport());
@@ -288,6 +302,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+
   }
 
   @Override
@@ -416,7 +431,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         } else {
           menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
         }
-      } else if (isActiveGroup() && !isForstaGroup()) {
+      } else if (isActiveGroup()) {
         inflater.inflate(R.menu.conversation_push_group_options, menu);
       }
     }
@@ -782,6 +797,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeEnabledCheck() {
     boolean enabled = !(isPushGroupConversation() && !isActiveGroup());
+    enabled = true;
     inputPanel.setEnabled(enabled);
     sendButton.setEnabled(enabled);
     attachButton.setEnabled(enabled);
@@ -844,14 +860,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           if (capabilities.getTextCapability() == Capability.UNKNOWN ||
               capabilities.getVoiceCapability() == Capability.UNKNOWN)
           {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients,
-                                                               TextSecurePreferences.getLocalNumber(context));
+            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
           }
 
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
                             !isSelfConversation());
-        } catch (IOException e) {
+        } catch (Exception e) {
           Log.w(TAG, e);
           return new Pair<>(false, false);
         }
@@ -1026,6 +1041,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
+
+    new AsyncTask<Void, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(Void... voids) {
+        DirectoryHelper.refreshDirectoryFor(getApplicationContext(), masterSecret, recipients);
+        return null;
+      }
+    }.execute();
   }
 
   @Override
@@ -1222,33 +1246,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private boolean isForstaGroup() {
-    boolean result = false;
-    try {
-      byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
-      Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
-      if (cursor.moveToFirst()) {
-        String slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
-        // Do not allow modification of tags.
-        // Add check for groupDistribution once group info can be passed to other clients via JSON blob in title field of Group update messages.
-        // int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
-        if (slug != null) {
-          result = true;
-        }
-      }
-      cursor.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return result;
-  }
-
   private boolean isSingleConversation() {
     return getRecipients() != null && getRecipients().isSingleRecipient() && !getRecipients().isGroupRecipient();
   }
 
   private boolean isActiveGroup() {
     if (!isGroupConversation()) return false;
+
+    if (!GroupUtil.isEncodedGroup(getRecipients().getPrimaryRecipient().getNumber())) return false;
 
     try {
       byte[]      groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
@@ -1275,7 +1280,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private boolean isPushGroupConversation() {
-    return getRecipients() != null && getRecipients().isGroupRecipient();
+//    return getRecipients() != null && getRecipients().isGroupRecipient();
+    return isGroupConversation();
   }
 
   protected Recipients getRecipients() {
@@ -1383,7 +1389,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     expiresIn,
                                                                     distributionType);
     if (isSecureText && !forceSms) {
-      outgoingMessage.setForstaJsonBody(context, recipients);
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
 
@@ -1393,7 +1398,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+        OutgoingMediaMessage message = messages[0];
+
+        if (message.isSecure()) {
+          createForstaDistribution();
+          message.setForstaJsonBody(context, distribution, title, threadUid);
+        }
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
       @Override
@@ -1411,12 +1422,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final Context context = getApplicationContext();
     OutgoingTextMessage message;
+    String messageText = getMessage();
 
     if (isSecureText && !forceSms) {
-      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
-      message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
+      message = new OutgoingEncryptedMessage(recipients, messageText, expiresIn);
     } else {
-      message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
+      message = new OutgoingTextMessage(recipients, messageText, expiresIn, subscriptionId);
     }
 
     this.composeText.setText("");
@@ -1424,7 +1435,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingTextMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingTextMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+
+        OutgoingTextMessage message = messages[0];
+        if (message.isSecureMessage()) {
+          createForstaDistribution();
+          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, distribution, title, threadUid);
+          message = message.withBody(forstaBody);
+        }
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
       @Override
@@ -1432,6 +1450,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
       }
     }.execute(message);
+  }
+
+  private void createForstaDistribution() {
+    if (threadId == -1) {
+      String expression = recipients.getRecipientExpression();
+      JSONObject distribution = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      String universal = ForstaUtils.getUniversalDistribution(distribution);
+      String pretty = ForstaUtils.getPrettyDistribution(distribution);
+      ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+      threadId = db.getThreadIdFor(recipients);
+      db.updateForstaDistribution(threadId, universal, pretty, null);
+      getThread();
+    }
   }
 
   private void updateToggleButtonState() {
@@ -1697,6 +1728,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateInviteReminder(result.second != null && result.second.hasSeenInviteReminder());
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
+    }
+  }
+
+  private void getThread() {
+    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+    Cursor cursor = db.getThread(threadId);
+    try {
+      if (cursor != null && cursor.moveToFirst()) {
+        threadUid = cursor.getString(cursor.getColumnIndex(ThreadDatabase.UID));
+        distribution = cursor.getString(cursor.getColumnIndex(ThreadDatabase.DISTRIBUTION));
+        title = cursor.getString(cursor.getColumnIndex(ThreadDatabase.TITLE));
+      }
+    }finally {
+      cursor.close();
     }
   }
 }

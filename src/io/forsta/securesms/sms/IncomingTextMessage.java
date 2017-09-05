@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.telephony.SmsMessage;
 
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.messages.SignalServiceGroup;
@@ -37,6 +38,7 @@ public class IncomingTextMessage implements Parcelable {
   private final boolean push;
   private final int     subscriptionId;
   private final long    expiresInMillis;
+  private Recipients forstaRecipients;
 
   public IncomingTextMessage(SmsMessage message, int subscriptionId) {
     this.message              = message.getDisplayMessageBody();
@@ -104,6 +106,7 @@ public class IncomingTextMessage implements Parcelable {
     this.push                 = base.isPush();
     this.subscriptionId       = base.getSubscriptionId();
     this.expiresInMillis      = base.getExpiresIn();
+    this.forstaRecipients = base.getForstaRecipients();
   }
 
   public IncomingTextMessage(List<IncomingTextMessage> fragments) {
@@ -141,6 +144,14 @@ public class IncomingTextMessage implements Parcelable {
     this.push                 = true;
     this.subscriptionId       = -1;
     this.expiresInMillis      = 0;
+  }
+
+  public void setForstaRecipients(Recipients recipients) {
+    this.forstaRecipients = recipients;
+  }
+
+  public Recipients getForstaRecipients() {
+    return forstaRecipients;
   }
 
   public int getSubscriptionId() {

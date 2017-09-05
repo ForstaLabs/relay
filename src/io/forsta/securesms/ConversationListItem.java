@@ -21,17 +21,23 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.RippleDrawable;
+import android.os.AsyncTask;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
-import android.text.Spanned;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
@@ -113,7 +119,7 @@ public class ConversationListItem extends RelativeLayout
     ViewUtil.setTextViewGravityStart(this.subjectView, getContext());
   }
 
-  public void bind(@NonNull MasterSecret masterSecret, @NonNull ThreadRecord thread,
+  public void bind(@NonNull final MasterSecret masterSecret, @NonNull ThreadRecord thread,
                    @NonNull Locale locale, @NonNull Set<Long> selectedThreads, boolean batchMode)
   {
     this.selectedThreads  = selectedThreads;
@@ -126,11 +132,7 @@ public class ConversationListItem extends RelativeLayout
     this.fromView.setText(recipients, read);
 
     String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
-    if (forstaBody != null) {
-      subjectView.setText(forstaBody);
-    } else {
-      this.subjectView.setText(thread.getDisplayBody());
-    }
+    subjectView.setText(forstaBody);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {

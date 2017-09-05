@@ -52,7 +52,11 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
 
     if (TextSecurePreferences.isPushRegistered(getContext())) {
       MasterSecret masterSecret = KeyCachingService.getMasterSecret(getContext());
-      CcsmApi.syncForstaContacts(getContext(), masterSecret);
+      try {
+        DirectoryHelper.refreshDirectory(getContext(), masterSecret);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       getContext().sendBroadcast(new Intent(FORSTA_SYNC_COMPLETE));
     }
   }

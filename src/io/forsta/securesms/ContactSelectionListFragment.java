@@ -154,7 +154,7 @@ public class ContactSelectionListFragment extends    Fragment
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new ContactsCursorLoader(getActivity(),
-                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_ALL),
+                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_PUSH_ONLY),
                                     cursorFilter);
   }
 

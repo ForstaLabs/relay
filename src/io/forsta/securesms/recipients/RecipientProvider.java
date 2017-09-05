@@ -79,7 +79,7 @@ public class RecipientProvider {
   private static final Map<String, RecipientDetails> STATIC_DETAILS = new HashMap<String, RecipientDetails>() {{
     put("262966", new RecipientDetails("Amazon", "262966", null,
                                        ContactPhotoFactory.getResourceContactPhoto(R.drawable.ic_amazon),
-                                       ContactColors.UNKNOWN_COLOR));
+                                       ContactColors.UNKNOWN_COLOR, null));
   }};
 
   @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
@@ -155,13 +155,14 @@ public class RecipientProvider {
         final String uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
         if (uid != null) {
           URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
-          String       name         = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
+          String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
+          String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
           Bitmap gravatar = getContactGravatar(avatarUrl);
           if (gravatar != null) {
             contactPhoto = new BitmapContactPhoto(gravatar);
           }
-          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color);
+          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -171,7 +172,7 @@ public class RecipientProvider {
         cursor.close();
     }
 
-    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color);
+    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null);
   }
 
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
@@ -181,13 +182,13 @@ public class RecipientProvider {
 
       if (record != null) {
         ContactPhoto contactPhoto = ContactPhotoFactory.getGroupContactPhoto(record.getAvatar());
-        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null);
+        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getSlug());
       }
 
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null);
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null);
     } catch (IOException e) {
       Log.w("RecipientProvider", e);
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null);
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null);
     }
   }
 
@@ -215,18 +216,20 @@ public class RecipientProvider {
     @Nullable public final String        name;
     @NonNull  public final String        number;
     @NonNull  public final ContactPhoto  avatar;
+    @Nullable public final String slug;
     @Nullable public final Uri           contactUri;
     @Nullable public final MaterialColor color;
 
     public RecipientDetails(@Nullable String name, @NonNull String number,
                             @Nullable Uri contactUri, @NonNull ContactPhoto avatar,
-                            @Nullable MaterialColor color)
+                            @Nullable MaterialColor color, @Nullable String slug)
     {
       this.name       = name;
       this.number     = number;
       this.avatar     = avatar;
       this.contactUri = contactUri;
       this.color      = color;
+      this.slug = slug;
     }
   }
 

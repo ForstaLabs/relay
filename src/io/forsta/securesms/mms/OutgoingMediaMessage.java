@@ -3,6 +3,8 @@ package io.forsta.securesms.mms;
 import android.content.Context;
 import android.text.TextUtils;
 
+import org.json.JSONObject;
+
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
@@ -102,7 +104,7 @@ public class OutgoingMediaMessage {
     }
   }
 
-  public void setForstaJsonBody(Context context, Recipients recipients) {
-    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients);
+  public void setForstaJsonBody(Context context, String universalExpression, String prettyExpression, String threadUid) {
+    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, universalExpression, prettyExpression, threadUid);
   }
 }

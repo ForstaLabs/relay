@@ -146,7 +146,11 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     @Override
     protected Void doInBackground(Context... params) {
-      CcsmApi.syncForstaContacts(params[0], masterSecret);
+      try {
+        DirectoryHelper.refreshDirectory(params[0], masterSecret);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
       return null;
     }
 
