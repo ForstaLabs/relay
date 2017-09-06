@@ -28,6 +28,7 @@ import android.util.Log;
 
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -98,15 +99,18 @@ public class ContactsCursorLoader extends CursorLoader {
 
     ContactDb contactDb = DbFactory.getContactDb(getContext());
     Cursor contactsCursor = contactDb.getActiveRecipients(filter);
+    ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
     while (contactsCursor.moveToNext()) {
-      forstaContactsCursor.addRow(new Object[] {
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-          contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-          ContactsDatabase.PUSH_TYPE
-      });
+      if (!localUser.uid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
+        forstaContactsCursor.addRow(new Object[] {
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+            ContactsDatabase.PUSH_TYPE
+        });
+      }
     }
     contactsCursor.close();
 

@@ -269,6 +269,19 @@ public class ForstaUtils {
     return new JSONObject();
   }
 
+  public static Set<String> getDistributionUserIds(JSONObject distribution) {
+    Set<String> result = new HashSet<>();
+    try {
+      JSONArray userIds = distribution.getJSONArray("userids");
+      for (int i=0; i<userIds.length(); i++) {
+        result.add(userIds.getString(i));
+      }
+    } catch (JSONException e) {
+      Log.w(TAG, "userids object does not exist");
+    }
+    return result;
+  }
+
   public static String getUniversalDistribution(JSONObject distribution) {
     try {
       return distribution.getString("universal");

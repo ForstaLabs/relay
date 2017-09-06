@@ -1,11 +1,15 @@
 package io.forsta.ccsm.database.model;
 
+import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
 
 /**
@@ -13,6 +17,7 @@ import io.forsta.ccsm.database.ContactDb;
  */
 
 public class ForstaUser {
+  private static final String TAG = ForstaUser.class.getSimpleName();
   public String id; //Db id
   public String uid;
   public String tag_id;
@@ -42,6 +47,10 @@ public class ForstaUser {
         }
       }
       this.uid = userObj.getString("id");
+      this.username = userObj.getString("username");
+      if (TextUtils.isEmpty(this.slug)) {
+        this.slug = this.username;
+      }
 
       try {
         JSONObject org = userObj.getJSONObject("org");
@@ -53,21 +62,33 @@ public class ForstaUser {
         }
       }
 
-      this.username = userObj.getString("username");
       if (userObj.has("gravatar_hash")) {
         this.avatar = userObj.getString("gravatar_hash");
       } else if (userObj.has("gravitar_hash")) { // Temporary misspelling.
         this.avatar = userObj.getString("gravitar_hash");
       }
 
-      this.email = userObj.getString("email");
+      if (userObj.has("email")) {
+        this.email = userObj.getString("email");
+      }
+
       if (userObj.has("phone")) {
         this.phone = userObj.getString("phone");
       }
       this.tsRegistered = userObj.has("is_active") ? userObj.getBoolean("is_active") : true;
+
     } catch (JSONException e) {
       e.printStackTrace();
     }
+  }
+
+  public static ForstaUser getLocalForstaUser(Context context) {
+    try {
+      return new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
+    } catch (JSONException e) {
+      Log.e(TAG, "Exception parsing user object from preferences");
+    }
+    return null;
   }
 
   // Mapper for Db to UI object
