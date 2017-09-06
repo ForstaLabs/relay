@@ -390,7 +390,6 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
-
         <service
             android:name="io.forsta.ccsm.api.ForstaSyncService"
             android:exported="true">
