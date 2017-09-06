@@ -100,34 +100,44 @@ public class ContactsCursorLoader extends CursorLoader {
     ContactDb contactDb = DbFactory.getContactDb(getContext());
     Cursor contactsCursor = contactDb.getActiveRecipients(filter);
     ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
-    while (contactsCursor.moveToNext()) {
-      if (!localUser.uid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
-        forstaContactsCursor.addRow(new Object[] {
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
-            ContactsDatabase.PUSH_TYPE
-        });
+    try {
+      while (contactsCursor != null && contactsCursor.moveToNext()) {
+        if (!localUser.uid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
+          forstaContactsCursor.addRow(new Object[]{
+              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
+              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
+              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
+              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
+              ContactsDatabase.PUSH_TYPE
+          });
+        }
+      }
+    } finally {
+      if (contactsCursor != null) {
+        contactsCursor.close();
       }
     }
-    contactsCursor.close();
+
 
     GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
     Cursor groupCursor = gdb.getForstaGroupsByTitle(filter);
-    while (groupCursor.moveToNext()) {
-      forstaContactsCursor.addRow(new Object[] {
-          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ID)),
-          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
-          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
-          groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
-          groupCursor.getString(contactsCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
-          ContactsDatabase.PUSH_TYPE
-      });
+    try {
+      while (groupCursor!= null && groupCursor.moveToNext()) {
+        forstaContactsCursor.addRow(new Object[] {
+            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ID)),
+            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
+            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
+            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
+            groupCursor.getString(contactsCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
+            ContactsDatabase.PUSH_TYPE
+        });
+      }
+    } finally {
+      if (groupCursor != null) {
+        groupCursor.close();
+      }
     }
-    groupCursor.close();
-
     cursorList.add(forstaContactsCursor);
 
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
