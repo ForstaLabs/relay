@@ -48,7 +48,7 @@ public class GroupDatabase extends Database {
   public static final String ID                  = "_id";
   public static final String GROUP_ID            = "group_id";
   public static final String TITLE               = "title";
-  private static final String MEMBERS             = "members";
+  public static final String MEMBERS             = "members";
   private static final String AVATAR              = "avatar";
   private static final String AVATAR_ID           = "avatar_id";
   private static final String AVATAR_KEY          = "avatar_key";
@@ -56,6 +56,7 @@ public class GroupDatabase extends Database {
   private static final String AVATAR_RELAY        = "avatar_relay";
   public static final String TIMESTAMP           = "timestamp";
   public static final String ORG_ID              = "org_id";
+  public static final String ORG_SLUG = "org_slug";
   public static final String SLUG                = "slug";
   private static final String SLUG_IDS            = "slug_ids";
   public static final String GROUP_DISTRIBUTION  = "group_distribution";
@@ -74,6 +75,7 @@ public class GroupDatabase extends Database {
           AVATAR_RELAY + " TEXT, " +
           TIMESTAMP + " INTEGER, " +
           ORG_ID + " TEXT, " +
+          ORG_SLUG + " TEXT, " +
           SLUG + " TEXT, " +
           SLUG_IDS + " TEXT, " +
           GROUP_DISTRIBUTION + " INTEGER DEFAULT 0, " +
@@ -185,8 +187,9 @@ public class GroupDatabase extends Database {
         if (members.size() > 1 && members.contains(thisNumber)) {
           ContentValues contentValues = new ContentValues();
           contentValues.put(TITLE, group.description);
-          contentValues.put(ORG_ID, group.org);
           contentValues.put(SLUG, group.slug);
+          contentValues.put(ORG_ID, group.org_id);
+          contentValues.put(ORG_SLUG, group.org_slug);
           contentValues.put(MEMBERS, Util.join(members, ","));
           contentValues.put(TIMESTAMP, System.currentTimeMillis());
           contentValues.put(ACTIVE, 1);

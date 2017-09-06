@@ -118,7 +118,8 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN)); //ContactsDb.NAME
     String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN)); //ContactsDb.UID
     String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.SLUG
-    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.SLUG
+    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.ORG_SLUG
+    label = labelText + ":" + label;
 
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);

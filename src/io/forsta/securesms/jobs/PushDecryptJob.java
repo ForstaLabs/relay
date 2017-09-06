@@ -8,6 +8,8 @@ import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ApplicationContext;
@@ -344,7 +346,6 @@ public class PushDecryptJob extends ContextJob {
     Recipients           recipients   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     Log.w(TAG, "Receiving media message body: " + body);
-    Recipients forstaRecipients = refreshDirectoryForForstaRecipients(masterSecret.getMasterSecret().get(), body, recipients);
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
                                                                  localNumber, message.getTimestamp(), -1,
@@ -353,9 +354,13 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getBody(),
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
-    if (forstaRecipients != null) {
-      mediaMessage.setForstaRecipients(forstaRecipients);
-    }
+
+    ForstaMessage forstaMessage = new ForstaMessage(message.getBody().toString());
+    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
+    ForstaDistribution distribution = new ForstaDistribution(response);
+    forstaMessage.distribution = distribution;
+    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
+    mediaMessage.setForstaMessage(forstaMessage);
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -467,7 +472,6 @@ public class PushDecryptJob extends ContextJob {
 
     // This is the sender
     Recipients            recipients = getMessageDestination(envelope, message);
-    Recipients forstaRecipients = refreshDirectoryForForstaRecipients(masterSecret.getMasterSecret().get(), body, recipients);
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -483,9 +487,14 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getTimestamp(), body,
                                                                 message.getGroupInfo(),
                                                                 message.getExpiresInSeconds() * 1000);
-      if (forstaRecipients != null) {
-        textMessage.setForstaRecipients(forstaRecipients);
-      }
+
+      ForstaMessage forstaMessage = new ForstaMessage(body);
+      JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
+      ForstaDistribution distribution = new ForstaDistribution(response);
+      forstaMessage.distribution = distribution;
+      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
+
+      textMessage.setForstaMessage(forstaMessage);
 
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
@@ -682,29 +691,9 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
-  private Recipients refreshDirectoryForForstaRecipients(MasterSecret masterSecret, String body, Recipients sender) {
-    String distribution = ForstaUtils.getMessageDistribution(body);
-    JSONObject response = CcsmApi.getDistribution(context, distribution);
-    Set<String> ids = new HashSet<>();
-    ids.add(sender.getPrimaryRecipient().getNumber()); //Temporary. For messages missing the sender in the distribution.
-    try {
-      if (response.has("userids")) {
-        JSONArray userIds = response.getJSONArray("userids");
-        for (int i=0; i<userIds.length(); i++) {
-          ids.add(userIds.getString(i));
-        }
-      }
-      if (ids.size() == 2) {
-        //Remove local address if conversation between two clients
-        ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
-        ids.remove(user.uid);
-      }
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-
-    if (ids.size() > 0) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, new ArrayList<String>(ids), false);
+  private Recipients refreshDirectoryForRecipients(MasterSecret masterSecret, ForstaDistribution distribution) {
+    if (distribution.hasRecipients()) {
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       return recipients;
     }

@@ -122,10 +122,12 @@ public class ContactDb extends DbBase {
   public HashMap<String, ForstaRecipient> getContactRecipients() {
     HashMap<String, ForstaRecipient> contacts = new HashMap<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
+      Cursor c = getRecords(TABLE_NAME, null, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
+        String fullSlug = c.getString(c.getColumnIndex(SLUG)) + ":" + c.getString(c.getColumnIndex(ORGSLUG));
         ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
-        contacts.put(c.getString(c.getColumnIndex(SLUG)), recipient);
+
+        contacts.put(fullSlug, recipient);
       }
       c.close();
     } catch (Exception e) {
@@ -222,6 +224,7 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.NAME, user.name);
         values.put(ContactDb.ORGID, user.org_id);
+        values.put(ContactDb.ORGSLUG, user.org_slug);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.EMAIL, user.email);

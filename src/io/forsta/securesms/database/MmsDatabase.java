@@ -30,6 +30,7 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -694,8 +695,10 @@ public class MmsDatabase extends MessagingDatabase {
       throws MmsException
   {
 
-    if (threadId == -1 && retrieved.getForstaRecipients() != null) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(retrieved.getForstaRecipients());
+    ForstaMessage forstaMessage = retrieved.getForstaMessage();
+    if (threadId == -1 && forstaMessage != null) {
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);

@@ -1,5 +1,6 @@
 package io.forsta.securesms.mms;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -23,7 +24,7 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
-  private Recipients forstaRecipients;
+  private ForstaMessage forstaMessage;
 
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
@@ -75,12 +76,12 @@ public class IncomingMediaMessage {
     this.attachments.addAll(PointerAttachment.forPointers(masterSecret, attachments));
   }
 
-  public void setForstaRecipients(Recipients recipients) {
-    this.forstaRecipients = recipients;
+  public void setForstaMessage(ForstaMessage forstaMessage) {
+    this.forstaMessage = forstaMessage;
   }
 
-  public Recipients getForstaRecipients() {
-    return forstaRecipients;
+  public ForstaMessage getForstaMessage() {
+    return forstaMessage;
   }
 
   public int getSubscriptionId() {

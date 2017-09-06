@@ -128,6 +128,10 @@ public class ThreadDatabase extends Database {
   }
 
   private long createThreadForRecipients(String recipients, int recipientCount, int distributionType) {
+    return createThreadForRecipients(recipients, recipientCount, distributionType, null);
+  }
+
+  private long createThreadForRecipients(String recipients, int recipientCount, int distributionType, String threadUid) {
     ContentValues contentValues = new ContentValues(5);
     long date                   = System.currentTimeMillis();
 
@@ -136,6 +140,24 @@ public class ThreadDatabase extends Database {
 
     if (recipientCount > 1)
       contentValues.put(TYPE, distributionType);
+
+    if (threadUid != null) {
+      contentValues.put(UID, threadUid);
+    }
+
+    contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(UID, UUID.randomUUID().toString());
+
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    return db.insert(TABLE_NAME, null, contentValues);
+  }
+
+  private long createThreadForDistribution(String recipients, String distribution) {
+    ContentValues contentValues = new ContentValues(5);
+    long date                   = System.currentTimeMillis();
+
+    contentValues.put(DATE, date - date % 1000);
+    contentValues.put(RECIPIENT_IDS, recipients);
 
     contentValues.put(MESSAGE_COUNT, 0);
     contentValues.put(UID, UUID.randomUUID().toString());
@@ -485,7 +507,9 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public long getThreadIdFor(String threadUid) {
+  public long getThreadIdFor(Recipients recipients, String threadUid) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
     try {
@@ -494,34 +518,15 @@ public class ThreadDatabase extends Database {
       if (cursor != null && cursor.moveToFirst()) {
         return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
       } else {
-        //return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT);
+        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT, threadUid);
       }
     } finally {
       if (cursor != null)
         cursor.close();
     }
-    return 0;
   }
 
-  public long getThreadIdForDistribution(String distribution) {
-    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
-    Cursor cursor          = null;
-    try {
-      cursor = db.query(TABLE_NAME, null, DISTRIBUTION + " = ? ", new String[]{distribution + ""}, null, null, null);
-
-      if (cursor != null && cursor.moveToFirst()) {
-        return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
-      } else {
-        //return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT);
-      }
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
-    return 0;
-  }
-
-  public long getThreadIdFor(Recipients recipients, String distribution) {
+  public long getThreadIdForDistribution(Recipients recipients, String distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
@@ -532,7 +537,7 @@ public class ThreadDatabase extends Database {
       if (cursor != null && cursor.moveToFirst()) {
         return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
       } else {
-        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT);
+        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT, distribution);
       }
     } finally {
       if (cursor != null)

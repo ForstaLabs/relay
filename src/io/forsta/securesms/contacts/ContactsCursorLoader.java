@@ -107,7 +107,7 @@ public class ContactsCursorLoader extends CursorLoader {
             contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
             contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
             contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+            contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
             ContactsDatabase.PUSH_TYPE
         });
       }
@@ -122,7 +122,7 @@ public class ContactsCursorLoader extends CursorLoader {
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
           groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
-          groupCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+          groupCursor.getString(contactsCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
           ContactsDatabase.PUSH_TYPE
       });
     }

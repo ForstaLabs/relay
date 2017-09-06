@@ -1,4 +1,4 @@
-package io.forsta.ccsm.api;
+package io.forsta.ccsm.api.model;
 
 import org.json.JSONException;
 import org.json.JSONObject;

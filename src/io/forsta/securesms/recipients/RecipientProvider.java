@@ -157,6 +157,8 @@ public class RecipientProvider {
           URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
           String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
+          String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
+          slug = slug + ":" + orgSlug;
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
           Bitmap gravatar = getContactGravatar(avatarUrl);
           if (gravatar != null) {

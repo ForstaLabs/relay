@@ -149,7 +149,7 @@ public class ForstaUtils {
     return result;
   }
 
-  private static JSONObject getVersion(int version, String body) {
+  public static JSONObject getVersion(int version, String body) {
     try {
       JSONArray jsonArray = new JSONArray(body);
       for (int i=0; i<jsonArray.length(); i++) {

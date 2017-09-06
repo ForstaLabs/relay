@@ -67,6 +67,7 @@ import com.google.protobuf.ByteString;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
@@ -1457,21 +1458,16 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void createForstaDistribution() {
     if (threadId == -1) {
       String expression = recipients.getRecipientExpression();
-      try {
-        ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationActivity.this)));
-        expression += "@" + user.slug;
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
+      ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
+      expression += "@" + user.slug;
 
-      JSONObject distribution = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      ForstaDistribution distribution = new ForstaDistribution(response);
       Log.w(TAG, "Expression: " + expression);
-      Log.w(TAG, "Distribution: " +  distribution);
-      String universal = ForstaUtils.getUniversalDistribution(distribution);
-      String pretty = ForstaUtils.getPrettyDistribution(distribution);
+      Log.w(TAG, "Distribution: " +  distribution.universal);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-      threadId = db.getThreadIdFor(recipients);
-      db.updateForstaDistribution(threadId, universal, pretty, null);
+      threadId = db.getThreadIdForDistribution(recipients, distribution.universal);
+      db.updateForstaDistribution(threadId, distribution.universal, distribution.pretty, null);
       getThread();
     }
   }

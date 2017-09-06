@@ -28,6 +28,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.IdentityKeyMismatchList;
@@ -509,9 +510,7 @@ public class SmsDatabase extends MessagingDatabase {
 
     Recipients recipients;
 
-    if (message.getForstaRecipients() != null) {
-      recipients = RecipientFactory.getRecipientsFor(context, message.getForstaRecipients().getRecipientsList(), false);
-    } else if (message.getSender() != null) {
+    if (message.getSender() != null) {
       recipients = RecipientFactory.getRecipientsFromString(context, message.getSender(), true);
     } else  {
       Log.w(TAG, "Sender is null, returning unknown recipient");
@@ -532,8 +531,15 @@ public class SmsDatabase extends MessagingDatabase {
 
     long       threadId;
 
-    if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
+    ForstaMessage forstaMessage = message.getForstaMessage();
+    if (forstaMessage != null) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+    } else {
+      // Need a UID to identify Forsta thread. Also need recipients list to stay compatible to old system... for now.
+      if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+      else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
+    }
 
     ContentValues values = new ContentValues(6);
     values.put(ADDRESS, message.getSender());

@@ -1,6 +1,7 @@
 package io.forsta.ccsm.database.model;
 
 import android.database.Cursor;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,9 +21,11 @@ import io.forsta.securesms.util.GroupUtil;
  */
 
 public class ForstaGroup {
+  private static final String TAG = ForstaGroup.class.getSimpleName();
   public String id;
-  public String org;
   public String slug;
+  public String org_id;
+  public String org_slug;
   public String description;
   public String parent;
   public Set<String> members = new HashSet<>();
@@ -30,21 +33,24 @@ public class ForstaGroup {
   public ForstaGroup(JSONObject jsonObject) {
     try {
       this.id = jsonObject.getString("id");
-      this.org = jsonObject.getString("org_id");
       this.slug = jsonObject.getString("slug");
       this.description = jsonObject.getString("description");
       this.parent = jsonObject.getString("parent");
+      JSONObject orgObj = jsonObject.getJSONObject("org");
+      this.org_id = orgObj.getString("id");
+      this.org_slug = orgObj.getString("slug");
     } catch (JSONException e) {
+      Log.w(TAG, "Error parsing tag");
       e.printStackTrace();
     }
   }
 
   public ForstaGroup(Cursor cursor) {
-    this.id = cursor.getString(cursor.getColumnIndex("group_id"));
-    this.slug = cursor.getString(cursor.getColumnIndex("slug"));
-    this.org = cursor.getString(cursor.getColumnIndex("org"));
-    this.description = cursor.getString(cursor.getColumnIndex("title"));
-    String members = cursor.getString(cursor.getColumnIndex("members"));
+    this.id = cursor.getString(cursor.getColumnIndex(GroupDatabase.GROUP_ID));
+    this.slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
+    this.org_id = cursor.getString(cursor.getColumnIndex(GroupDatabase.ORG_ID));
+    this.description = cursor.getString(cursor.getColumnIndex(GroupDatabase.TITLE));
+    String members = cursor.getString(cursor.getColumnIndex(GroupDatabase.MEMBERS));
     String[] memberArray = members.split(",");
     this.members = new HashSet<>(Arrays.asList(memberArray));
   }
