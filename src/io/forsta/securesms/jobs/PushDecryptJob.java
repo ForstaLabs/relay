@@ -368,8 +368,6 @@ public class PushDecryptJob extends ContextJob {
 
     Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
 
-    setThreadDistribution(messageAndThreadId.second, body);
-
     List<DatabaseAttachment> attachments        = DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageAndThreadId.first);
 
     for (DatabaseAttachment attachment : attachments) {
@@ -502,21 +500,15 @@ public class PushDecryptJob extends ContextJob {
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
 
-      setThreadDistribution(messageAndThreadId.second, body);
-
       if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
     }
 
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void setThreadDistribution(long threadId, String body) {
-    String distribution = ForstaUtils.getMessageDistribution(body);
-    String title = ForstaUtils.getMessageTitle(body);
-    String threadUId = ForstaUtils.getMessageThreadId(body);
-
+  private void setThreadDistribution(long threadId, ForstaMessage message) {
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-    threadDb.updateForstaDistribution(threadId, distribution, title, threadUId);
+    threadDb.updateForstaDistribution(threadId, message.universalExpression, message.threadTitle);
   }
 
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,

@@ -698,7 +698,10 @@ public class MmsDatabase extends MessagingDatabase {
     ForstaMessage forstaMessage = retrieved.getForstaMessage();
     if (threadId == -1 && forstaMessage != null) {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+      }
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);

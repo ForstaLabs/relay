@@ -563,6 +563,27 @@ public class ThreadDatabase extends Database {
     return db.insert(TABLE_NAME, null, contentValues);
   }
 
+  public long allocateThreadId(Recipients recipients, String distribution, String title, String threadUid) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ContentValues contentValues = new ContentValues(5);
+    long date                   = System.currentTimeMillis();
+
+    contentValues.put(DATE, date - date % 1000);
+    contentValues.put(RECIPIENT_IDS, recipientsList);
+    contentValues.put(TYPE, DistributionTypes.DEFAULT);
+    contentValues.put(UID, threadUid);
+    contentValues.put(DISTRIBUTION, distribution);
+    if (!TextUtils.isEmpty(title)) {
+      contentValues.put(TITLE, title);
+    }
+    contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(UID, UUID.randomUUID().toString());
+
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    return db.insert(TABLE_NAME, null, contentValues);
+  }
+
   public long getThreadIdForUid(String threadUid) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
@@ -643,12 +664,9 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public void updateForstaDistribution(long threadId, String distribution, String title, String uid) {
+  public void updateForstaDistribution(long threadId, String distribution, String title) {
     ContentValues values = new ContentValues();
     values.put(DISTRIBUTION, distribution);
-    if (!TextUtils.isEmpty(uid)) {
-      values.put(UID, uid);
-    }
     if (!TextUtils.isEmpty(title)) {
       values.put(TITLE, title);
     }
