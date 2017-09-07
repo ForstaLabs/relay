@@ -21,6 +21,7 @@ public class ForstaDistribution {
   public String pretty;
   public String universal;
   public Set<String> userIds;
+  public String warning;
 
   public ForstaDistribution(JSONObject jsonResponse) {
     userIds = new HashSet<>();
@@ -29,8 +30,13 @@ public class ForstaDistribution {
       for (int i=0; i<ids.length(); i++) {
         userIds.add(ids.getString(i));
       }
-      this.universal = jsonResponse.getString("universal");
-      this.pretty = jsonResponse.getString("pretty");
+      universal = jsonResponse.getString("universal");
+      pretty = jsonResponse.getString("pretty");
+
+      JSONObject warnings = jsonResponse.getJSONObject("warnings");
+      if (warnings.has("cue")) {
+        warning = warnings.getString("cue");
+      }
     } catch (JSONException e) {
       e.printStackTrace();
     }

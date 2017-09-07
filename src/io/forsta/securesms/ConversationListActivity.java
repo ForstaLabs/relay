@@ -67,6 +67,7 @@ import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
@@ -729,6 +730,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           try {
             ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
             JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
+            ForstaDistribution distribution = new ForstaDistribution(result);
             try {
               JSONObject warnings = result.getJSONObject("warnings");
               if (warnings.has("cue")) {
@@ -764,7 +766,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
         // TODO change this to use the distribution to look up the threadId, or use the threadId in the message body.
         // Need to change all other methods that look up the thread by recipients.
-        final long threadId = threadDb.getThreadIdFor(messageRecipients);
+        final long threadId = threadDb.getThreadIdForDistribution(messageRecipients, universalExpression);
+        // The above method allocates a thread and threadUid if it doesn't exist.
+        // When creating thread, either see if one exists and then allocate, or pass all needed data to get method.
         String threadUid = threadDb.getThreadUid(threadId);
         threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression, null);
 

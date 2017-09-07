@@ -526,6 +526,11 @@ public class ThreadDatabase extends Database {
     }
   }
 
+  public long getThreadIdForForstaDistribution(Recipients recipients, String distribution, String threadUid) {
+
+    return -1;
+  }
+
   public long getThreadIdForDistribution(Recipients recipients, String distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);

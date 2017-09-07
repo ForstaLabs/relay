@@ -1461,9 +1461,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       Log.w(TAG, "Expression: " + expression);
       Log.w(TAG, "Distribution: " +  distribution.universal);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-      threadId = db.getThreadIdForDistribution(recipients, distribution.universal);
-      db.updateForstaDistribution(threadId, distribution.universal, distribution.pretty, null);
-      getThread();
+      long newThreadId = db.getThreadIdForDistribution(recipients, distribution.universal);
+      db.updateForstaDistribution(newThreadId, distribution.universal, distribution.pretty, null);
   }
 
   private void updateToggleButtonState() {

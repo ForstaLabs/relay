@@ -355,7 +355,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
 
-    ForstaMessage forstaMessage = new ForstaMessage(message.getBody().toString());
+    ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
     forstaMessage.distribution = distribution;
@@ -479,6 +479,7 @@ public class PushDecryptJob extends ContextJob {
 
     Pair<Long, Long> messageAndThreadId;
 
+    String sender = envelope.getSource();
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       messageAndThreadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body);
     } else {
