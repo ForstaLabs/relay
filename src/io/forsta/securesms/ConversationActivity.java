@@ -1044,15 +1044,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
-
-    new AsyncTask<Void, Void, Void>() {
-
-      @Override
-      protected Void doInBackground(Void... voids) {
-        DirectoryHelper.refreshDirectoryFor(getApplicationContext(), masterSecret, recipients);
-        return null;
-      }
-    }.execute();
   }
 
   @Override
