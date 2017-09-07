@@ -46,10 +46,10 @@ public class ForstaDistribution {
     return userIds.size() > 0;
   }
 
-  public List<String> getRecipients(Context context) {
+  public List<String> getRecipients(Context context, boolean includeSelf) {
     List<String> users = new ArrayList<>();
     for (String id : userIds) {
-      if (!id.equals(TextSecurePreferences.getLocalNumber(context))) {
+      if (!includeSelf && !id.equals(TextSecurePreferences.getLocalNumber(context))) {
         users.add(id);
       }
     }

@@ -533,10 +533,13 @@ public class SmsDatabase extends MessagingDatabase {
 
     ForstaMessage forstaMessage = message.getForstaMessage();
     if (forstaMessage != null) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+      // Need a UID to identify Forsta thread. Also need recipients list to stay compatible to old system and sms messages... for now.
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
+      // This will allocate a threadId if new. Change this pattern, so things are clear.
+
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
     } else {
-      // Need a UID to identify Forsta thread. Also need recipients list to stay compatible to old system... for now.
+
       if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
       else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
     }

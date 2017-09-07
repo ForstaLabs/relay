@@ -490,6 +490,8 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getExpiresInSeconds() * 1000);
 
       ForstaMessage forstaMessage = new ForstaMessage(body);
+      // Message body does not contain userIds, only tags.
+      // Lookup ids from the distribution expression.
       JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
       ForstaDistribution distribution = new ForstaDistribution(response);
       forstaMessage.distribution = distribution;
@@ -694,7 +696,7 @@ public class PushDecryptJob extends ContextJob {
 
   private Recipients refreshDirectoryForRecipients(MasterSecret masterSecret, ForstaDistribution distribution) {
     if (distribution.hasRecipients()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context, false), false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       return recipients;
     }
