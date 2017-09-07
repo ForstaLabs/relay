@@ -43,6 +43,8 @@ public class ForstaUser {
         JSONObject tag = userObj.getJSONObject("tag");
         if (tag.has("id")) {
           this.tag_id = tag.getString("id");
+        }
+        if (tag.has("slug")) {
           this.slug = tag.getString("slug");
         }
       }
@@ -51,21 +53,17 @@ public class ForstaUser {
       if (TextUtils.isEmpty(this.slug)) {
         this.slug = this.username;
       }
-
-      try {
-        JSONObject org = userObj.getJSONObject("org");
+      JSONObject org = userObj.getJSONObject("org");
+      if (org.has("id")) {
         this.org_id = org.getString("id");
+      }
+
+      if (org.has("slug")) {
         this.org_slug = org.getString("slug");
-      } catch (JSONException e) {
-        if (userObj.has("org_id")) { // Temporary old shape.
-          this.org_id = userObj.getString("org_id");
-        }
       }
 
       if (userObj.has("gravatar_hash")) {
         this.avatar = userObj.getString("gravatar_hash");
-      } else if (userObj.has("gravitar_hash")) { // Temporary misspelling.
-        this.avatar = userObj.getString("gravitar_hash");
       }
 
       if (userObj.has("email")) {
