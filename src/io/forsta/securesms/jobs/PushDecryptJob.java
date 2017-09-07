@@ -506,11 +506,6 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void setThreadDistribution(long threadId, ForstaMessage message) {
-    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-    threadDb.updateForstaDistribution(threadId, message.universalExpression, message.threadTitle);
-  }
-
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
                                                 @NonNull SentTranscriptMessage message,
                                                 @NonNull Optional<Long> smsMessageId)

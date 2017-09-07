@@ -31,6 +31,7 @@ import android.util.Pair;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -696,11 +697,21 @@ public class MmsDatabase extends MessagingDatabase {
   {
 
     ForstaMessage forstaMessage = retrieved.getForstaMessage();
+    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     if (threadId == -1 && forstaMessage != null) {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      ForstaThread current = threadDb.getForstaThread(threadId);
+      if (!TextUtils.isEmpty(forstaMessage.threadTitle)) {
+        if (!forstaMessage.threadTitle.equals(current.title)) {
+          threadDb.updateForstaDistribution(threadId, recipients, null, forstaMessage.threadTitle);
+        }
+        if (!forstaMessage.distribution.universal.equals(current.distribution)) {
+          threadDb.updateForstaDistribution(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+        }
+      }
       if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {

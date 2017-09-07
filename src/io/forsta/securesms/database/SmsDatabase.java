@@ -29,6 +29,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.IdentityKeyMismatchList;
@@ -532,16 +533,26 @@ public class SmsDatabase extends MessagingDatabase {
     long       threadId;
 
     ForstaMessage forstaMessage = message.getForstaMessage();
+    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     if (forstaMessage != null) {
       // Don't include self in message.
       recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      ForstaThread current = threadDb.getForstaThread(threadId);
+      if (!TextUtils.isEmpty(forstaMessage.threadTitle)) {
+        if (!forstaMessage.threadTitle.equals(current.title)) {
+          threadDb.updateForstaDistribution(threadId, recipients, null, forstaMessage.threadTitle);
+        }
+        if (!forstaMessage.distribution.universal.equals(current.distribution)) {
+          threadDb.updateForstaDistribution(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+        }
+      }
       if (threadId == -1) {
         // For now, create new thread, even if sending client has reinstalled and has a matching thread distribution with a different UID.
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
     } else {
-
+      // Old message processing. Find thread based on the recipients or encoded group id.
       if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
       else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
     }

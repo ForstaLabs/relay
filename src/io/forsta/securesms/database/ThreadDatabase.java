@@ -154,20 +154,6 @@ public class ThreadDatabase extends Database {
     return db.insert(TABLE_NAME, null, contentValues);
   }
 
-  private long createThreadForDistribution(String recipients, String distribution) {
-    ContentValues contentValues = new ContentValues(5);
-    long date                   = System.currentTimeMillis();
-
-    contentValues.put(DATE, date - date % 1000);
-    contentValues.put(RECIPIENT_IDS, recipients);
-
-    contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(UID, UUID.randomUUID().toString());
-
-    SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    return db.insert(TABLE_NAME, null, contentValues);
-  }
-
   private void updateThread(long threadId, long count, String body, @Nullable Uri attachment,
                             long date, int status, int receiptCount, long type, boolean unarchive,
                             long expiresIn)
@@ -557,7 +543,6 @@ public class ThreadDatabase extends Database {
     contentValues.put(DISTRIBUTION, distribution.universal);
     contentValues.put(TITLE, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(UID, UUID.randomUUID().toString());
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
@@ -578,7 +563,6 @@ public class ThreadDatabase extends Database {
       contentValues.put(TITLE, title);
     }
     contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(UID, UUID.randomUUID().toString());
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
@@ -664,13 +648,15 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public void updateForstaDistribution(long threadId, String distribution, String title) {
+  public void updateForstaDistribution(long threadId, Recipients recipients, String distribution, String title) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues values = new ContentValues();
-    values.put(DISTRIBUTION, distribution);
     if (!TextUtils.isEmpty(title)) {
       values.put(TITLE, title);
     }
     if (!TextUtils.isEmpty(distribution)) {
+      values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution);
     }
     if (values.size() > 0) {
