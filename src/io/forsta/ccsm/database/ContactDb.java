@@ -222,6 +222,7 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.TAGID, user.tag_id);
         values.put(ContactDb.SLUG, user.slug);
         values.put(ContactDb.UID, user.uid);
+        values.put(ContactDb.AVATAR, user.avatar);
         values.put(ContactDb.NAME, user.name);
         values.put(ContactDb.ORGID, user.org_id);
         values.put(ContactDb.ORGSLUG, user.org_slug);
