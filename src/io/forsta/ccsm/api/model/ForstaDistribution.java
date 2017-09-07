@@ -1,6 +1,7 @@
 package io.forsta.ccsm.api.model;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,5 +55,10 @@ public class ForstaDistribution {
       }
     }
     return users;
+  }
+
+  public String getRecipientsString(Context context, boolean includeSelf) {
+    List<String> users = getRecipients(context, includeSelf);
+    return TextUtils.join(",", users);
   }
 }

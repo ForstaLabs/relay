@@ -28,6 +28,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
@@ -526,14 +528,7 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public long getThreadIdForForstaDistribution(Recipients recipients, String distribution, String threadUid) {
-
-    return -1;
-  }
-
-  public long getThreadIdForDistribution(Recipients recipients, String distribution) {
-    long[] recipientIds    = getRecipientIds(recipients);
-    String recipientsList  = getRecipientsAsString(recipientIds);
+  public long getThreadIdForDistribution(String distribution) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
     try {
@@ -541,13 +536,47 @@ public class ThreadDatabase extends Database {
 
       if (cursor != null && cursor.moveToFirst()) {
         return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
-      } else {
-        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT, distribution);
       }
     } finally {
       if (cursor != null)
         cursor.close();
     }
+    return -1;
+  }
+
+  public long allocateThreadId(Recipients recipients, ForstaDistribution distribution) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ContentValues contentValues = new ContentValues(5);
+    long date                   = System.currentTimeMillis();
+
+    contentValues.put(DATE, date - date % 1000);
+    contentValues.put(RECIPIENT_IDS, recipientsList);
+    contentValues.put(TYPE, DistributionTypes.DEFAULT);
+    contentValues.put(UID, UUID.randomUUID().toString());
+    contentValues.put(DISTRIBUTION, distribution.universal);
+    contentValues.put(TITLE, distribution.pretty);
+    contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(UID, UUID.randomUUID().toString());
+
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    return db.insert(TABLE_NAME, null, contentValues);
+  }
+
+  public long getThreadIdForUid(String threadUid) {
+    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
+    Cursor cursor          = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, UID + " = ? ", new String[]{threadUid + ""}, null, null, null);
+
+      if (cursor != null && cursor.moveToFirst()) {
+        return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
+      }
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
+    return -1;
   }
 
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {
@@ -631,6 +660,20 @@ public class ThreadDatabase extends Database {
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
       notifyConversationListListeners();
     }
+  }
+
+  public ForstaThread getForstaThread(long threadId) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
+      if (cursor != null && cursor.moveToFirst()) {
+        return new ForstaThread(cursor.getLong(cursor.getColumnIndex(ID)), cursor.getString(cursor.getColumnIndex(UID)), cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(DISTRIBUTION)));
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
   }
 
   public String getThreadUid(long threadId) {

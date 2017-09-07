@@ -72,6 +72,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.components.AttachmentTypeSelector;
@@ -722,59 +723,30 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       protected String doInBackground(String... params) {
-        Set<String> addresses = new HashSet<String>();
-        String universalExpression = "";
-        String prettyExpression = "";
         String message = params[0];
 
-          try {
-            ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
-            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
-            ForstaDistribution distribution = new ForstaDistribution(result);
-            try {
-              JSONObject warnings = result.getJSONObject("warnings");
-              if (warnings.has("cue")) {
-                return warnings.getString("cue");
-              }
-            } catch (JSONException e) {
-              Log.w(TAG, "No warnings object found");
-            }
-            JSONArray userids = result.getJSONArray("userids");
+        ForstaUser localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
+        JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
+        ForstaDistribution distribution = new ForstaDistribution(result);
+        if (!TextUtils.isEmpty(distribution.warning)) {
+          return distribution.warning;
+        }
 
-            if (userids.length() < 1) {
-              return "No recipients found in message";
-            }
-
-            for (int i=0; i<userids.length(); i++) {
-              // TODO Remove myself from recipients locally until we lookup recipients by distribution or threadUid.
-              if (!userids.getString(i).equals(localUser.uid)) {
-                addresses.add(userids.getString(i));
-              }
-            }
-            universalExpression = result.getString("universal");
-            prettyExpression = result.getString("pretty");
-          } catch (JSONException e) {
-            e.printStackTrace();
-            return "Error reading from directory";
-          }
-
-        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(addresses), false);
-        if (messageRecipients.isEmpty()) {
+        if (distribution.userIds.size() < 1) {
           return "No recipients found in message";
         }
+
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this, false)), false);
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
-        // TODO change this to use the distribution to look up the threadId, or use the threadId in the message body.
-        // Need to change all other methods that look up the thread by recipients.
-        final long threadId = threadDb.getThreadIdForDistribution(messageRecipients, universalExpression);
-        // The above method allocates a thread and threadUid if it doesn't exist.
-        // When creating thread, either see if one exists and then allocate, or pass all needed data to get method.
-        String threadUid = threadDb.getThreadUid(threadId);
-        threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression, null);
+        long threadId = threadDb.getThreadIdForDistribution(distribution.universal);
+        if (threadId == -1) {
+          threadId = threadDb.allocateThreadId(messageRecipients, distribution);
+        }
+        ForstaThread forstaThread = threadDb.getForstaThread(threadId);
 
-        // TODO Always send media message?
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-        mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression, threadUid);
+        mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread.distribution, forstaThread.title, forstaThread.uid);
         MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
         return null;
       }

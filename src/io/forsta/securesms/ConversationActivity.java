@@ -1461,7 +1461,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       Log.w(TAG, "Expression: " + expression);
       Log.w(TAG, "Distribution: " +  distribution.universal);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-      long newThreadId = db.getThreadIdForDistribution(recipients, distribution.universal);
+      long newThreadId = db.getThreadIdForDistribution(distribution.universal);
+
       db.updateForstaDistribution(newThreadId, distribution.universal, distribution.pretty, null);
   }
 
