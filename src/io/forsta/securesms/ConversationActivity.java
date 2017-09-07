@@ -216,9 +216,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private Recipients recipients;
   private long       threadId;
-  private String threadUid;
-  private String distribution;
-  private String title;
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText;
@@ -1735,20 +1732,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateInviteReminder(result.second != null && result.second.hasSeenInviteReminder());
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
-    }
-  }
-
-  private void getThread() {
-    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-    Cursor cursor = db.getThread(threadId);
-    try {
-      if (cursor != null && cursor.moveToFirst()) {
-        threadUid = cursor.getString(cursor.getColumnIndex(ThreadDatabase.UID));
-        distribution = cursor.getString(cursor.getColumnIndex(ThreadDatabase.DISTRIBUTION));
-        title = cursor.getString(cursor.getColumnIndex(ThreadDatabase.TITLE));
-      }
-    }finally {
-      cursor.close();
     }
   }
 }
