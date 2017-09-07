@@ -100,6 +100,9 @@ public class ForstaUtils {
     try {
       JSONObject version = getVersion(1, messageBody);
       JSONObject data = version.getJSONObject("data");
+      if (!data.has("body")) {
+        return "";
+      }
       JSONArray body =  data.getJSONArray("body");
       for (int j=0; j<body.length(); j++) {
         JSONObject object = body.getJSONObject(j);
