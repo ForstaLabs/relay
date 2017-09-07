@@ -242,8 +242,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
-//    Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
-//    intent.putExtra("next_intent", nextIntent);
     startActivity(intent);
     finish();
   }
@@ -289,97 +287,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     }
 
     mLoginInfo.setText(sb.toString());
-  }
-
-  private String printSystemContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.querySystemContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("System Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllRawContacts() {
-    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllContactData() {
-    String qs = ContactsContract.Data.MIMETYPE + " = ?";
-    String[] q = new String[] {"vnd.android.cursor.item/name"};
-    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
-
-    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printTextSecureContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.queryTextSecureContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-    return sb.toString();
   }
 
   private String printGroups() {
@@ -664,20 +571,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       }
       sb.append(printIdentities());
       mDebugText.setText(sb.toString());
-    }
-  }
-
-  private class RefreshApiToken extends AsyncTask<Void, Void, JSONObject> {
-
-    @Override
-    protected JSONObject doInBackground(Void... params) {
-      return CcsmApi.forstaRefreshToken(DashboardActivity.this);
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject jsonObject) {
-      Log.d(TAG, jsonObject.toString());
-      printLoginInformation();
     }
   }
 

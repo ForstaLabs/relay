@@ -858,13 +858,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         try {
           Context           context      = ConversationActivity.this;
           Recipients        recipients   = params[0];
-          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
+//          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
+//          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
+//              capabilities.getVoiceCapability() == Capability.UNKNOWN)
+//          {
+//            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+//          }
 
-          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
-              capabilities.getVoiceCapability() == Capability.UNKNOWN)
-          {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          }
+          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
 
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
@@ -1395,7 +1396,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         if (message.isSecure()) {
-          createForstaDistribution();
+          if (threadId == -1) {
+            createForstaDistribution();
+          }
           message.setForstaJsonBody(context, distribution, title, threadUid);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
@@ -1432,7 +1435,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
         OutgoingTextMessage message = messages[0];
         if (message.isSecureMessage()) {
-          createForstaDistribution();
+          if (threadId == -1) {
+            createForstaDistribution();
+          }
           String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, distribution, title, threadUid);
           message = message.withBody(forstaBody);
         }
@@ -1447,7 +1452,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void createForstaDistribution() {
-    if (threadId == -1) {
       String expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
       expression += "@" + user.slug;
@@ -1460,7 +1464,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadId = db.getThreadIdForDistribution(recipients, distribution.universal);
       db.updateForstaDistribution(threadId, distribution.universal, distribution.pretty, null);
       getThread();
-    }
   }
 
   private void updateToggleButtonState() {
