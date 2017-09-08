@@ -331,8 +331,10 @@ public class ConversationFragment extends Fragment
     ForstaMessage forstaMessage = new ForstaMessage(body);
     if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
       return forstaMessage.htmlBody.toString();
+    } else if (!TextUtils.isEmpty(forstaMessage.textBody)) {
+      return forstaMessage.textBody;
     }
-    return forstaMessage.textBody;
+    return body;
   }
 
   private void handleForwardMessage(MessageRecord message) {

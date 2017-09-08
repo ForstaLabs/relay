@@ -27,6 +27,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -133,7 +134,8 @@ public class ConversationListItem extends RelativeLayout
     this.fromView.setText(recipients, read);
 
     ForstaMessage forstaMessage = new ForstaMessage(thread.getDisplayBody().toString());
-    subjectView.setText(forstaMessage.textBody);
+    String body = !TextUtils.isEmpty(forstaMessage.textBody) ? forstaMessage.textBody : thread.getDisplayBody().toString();
+    subjectView.setText(body);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
