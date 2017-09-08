@@ -288,10 +288,8 @@ public class ConversationItem extends LinearLayout
       ForstaMessage forstaMessage = new ForstaMessage(messageRecord.getDisplayBody().toString());
       if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
         bodyText.setText(forstaMessage.htmlBody);
-      } else if (!TextUtils.isEmpty(forstaMessage.textBody)){
+      } else {
         bodyText.setText(forstaMessage.textBody);
-      } else{
-        bodyText.setText(messageRecord.getDisplayBody());
       }
       bodyText.setVisibility(View.VISIBLE);
     }

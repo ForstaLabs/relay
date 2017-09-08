@@ -32,31 +32,30 @@ public class ForstaMessage {
     try {
       JSONObject jsonBody = ForstaUtils.getVersion(1, messageBody);
       if (jsonBody == null) {
-        return;
+        textBody = messageBody;
       }
       JSONObject distribution = jsonBody.getJSONObject("distribution");
-      this.universalExpression = distribution.getString("expression");
-      this.threadId = jsonBody.getString("threadId");
-      this.messageId = jsonBody.getString("messageId");
-      this.threadTitle = jsonBody.getString("threadTitle");
-
+      universalExpression = distribution.getString("expression");
+      threadId = jsonBody.getString("threadId");
+      messageId = jsonBody.getString("messageId");
+      if (jsonBody.has("threadTitle")) {
+        threadTitle = jsonBody.getString("threadTitle");
+      }
       JSONObject data = jsonBody.getJSONObject("data");
-      if (!data.has("body")) {
-        this.textBody = "";
-      } else {
+      if (data.has("body")) {
         JSONArray body =  data.getJSONArray("body");
         for (int j=0; j<body.length(); j++) {
           JSONObject object = body.getJSONObject(j);
           if (object.getString("type").equals("text/html")) {
-            this.htmlBody = Html.fromHtml(object.getString("value"));
+            htmlBody = Html.fromHtml(object.getString("value"));
           }
           if (object.getString("type").equals("text/plain")) {
-            this.textBody = object.getString("value");
+            textBody = object.getString("value");
           }
         }
       }
       JSONObject sender = jsonBody.getJSONObject("sender");
-      this.senderId = sender.getString("userId");
+      senderId = sender.getString("userId");
 
     } catch (JSONException e) {
       Log.w(TAG, "Invalid JSON message body");
