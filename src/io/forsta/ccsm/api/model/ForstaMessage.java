@@ -31,6 +31,9 @@ public class ForstaMessage {
   public ForstaMessage(String messageBody) {
     try {
       JSONObject jsonBody = ForstaUtils.getVersion(1, messageBody);
+      if (jsonBody == null) {
+        return;
+      }
       JSONObject distribution = jsonBody.getJSONObject("distribution");
       this.universalExpression = distribution.getString("expression");
       this.threadId = jsonBody.getString("threadId");

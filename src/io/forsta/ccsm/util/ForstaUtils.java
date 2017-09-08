@@ -91,7 +91,7 @@ public class ForstaUtils {
     } catch (JSONException e) {
       Log.w(TAG, "JSON exception. No Forsta message body");
     }
-    return new JSONObject();
+    return null;
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
