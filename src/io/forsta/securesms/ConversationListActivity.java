@@ -820,7 +820,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-      Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
+      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
       Matcher m = p.matcher(charSequence);
       String input = charSequence.toString();
 
