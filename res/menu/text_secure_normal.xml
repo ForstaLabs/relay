@@ -37,6 +37,6 @@
           android:id="@+id/menu_help"/>
 
     <item android:title="@string/text_secure_normal__logout"
-          android:id="@+id/menu_logout"/>
+          android:id="@+id/menu_logout" android:visible="false"/>
 
 </menu>

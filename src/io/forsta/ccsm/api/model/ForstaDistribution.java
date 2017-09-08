@@ -2,6 +2,7 @@ package io.forsta.ccsm.api.model;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +20,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
  */
 
 public class ForstaDistribution {
+  private static final String TAG = ForstaDistribution.class.getSimpleName();
   public String pretty;
   public String universal;
   public Set<String> userIds;
@@ -34,11 +36,10 @@ public class ForstaDistribution {
       universal = jsonResponse.getString("universal");
       pretty = jsonResponse.getString("pretty");
 
-      JSONObject warnings = jsonResponse.getJSONObject("warnings");
-      if (warnings.has("cue")) {
-        warning = warnings.getString("cue");
-      }
+      JSONArray warnings = jsonResponse.getJSONArray("warnings");
+
     } catch (JSONException e) {
+      Log.w(TAG, "ForstaDistribution error: " + jsonResponse);
       e.printStackTrace();
     }
   }

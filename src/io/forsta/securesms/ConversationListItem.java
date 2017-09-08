@@ -38,6 +38,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
@@ -131,8 +132,8 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.fromView.setText(recipients, read);
 
-    String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
-    subjectView.setText(forstaBody);
+    ForstaMessage forstaMessage = new ForstaMessage(thread.getDisplayBody().toString());
+    subjectView.setText(forstaMessage.textBody);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {

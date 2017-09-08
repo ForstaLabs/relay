@@ -701,18 +701,26 @@ public class MmsDatabase extends MessagingDatabase {
     if (threadId == -1 && forstaMessage != null) {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      if (threadId == -1) {
+        Log.w(TAG, "Allocate new thread. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+      }
       ForstaThread current = threadDb.getForstaThread(threadId);
       if (!TextUtils.isEmpty(forstaMessage.threadTitle)) {
         if (!forstaMessage.threadTitle.equals(current.title)) {
+          Log.w(TAG, "Title changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
+          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
           threadDb.updateForstaDistribution(threadId, recipients, null, forstaMessage.threadTitle);
         }
-        if (!forstaMessage.distribution.universal.equals(current.distribution)) {
+      }
+      if (!TextUtils.isEmpty(forstaMessage.universalExpression)) {
+        if (!forstaMessage.universalExpression.equals(current.distribution)) {
+          Log.w(TAG, "Distribution changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
+          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
           threadDb.updateForstaDistribution(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
         }
       }
-      if (threadId == -1) {
-        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
-      }
+
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);

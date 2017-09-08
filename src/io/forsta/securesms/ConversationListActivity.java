@@ -744,6 +744,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           threadId = threadDb.allocateThreadId(messageRecipients, distribution);
         }
         ForstaThread forstaThread = threadDb.getForstaThread(threadId);
+        Log.w(TAG, "Sending message. threadId: " + forstaThread.uid + " distribution: " + forstaThread.distribution + " title: " + forstaThread.title);
 
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
         mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread.distribution, forstaThread.title, forstaThread.uid);

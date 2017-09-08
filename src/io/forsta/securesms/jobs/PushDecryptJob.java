@@ -345,7 +345,6 @@ public class PushDecryptJob extends ContextJob {
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     Recipients           recipients   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-    Log.w(TAG, "Receiving media message body: " + body);
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
                                                                  localNumber, message.getTimestamp(), -1,
@@ -355,6 +354,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
 
+    Log.w(TAG, "Receiving media message body: " + body);
     ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
@@ -466,7 +466,7 @@ public class PushDecryptJob extends ContextJob {
   {
     EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-    Log.w(TAG, "Receiving text message body: " + body);
+
 
     // This is the sender
     Recipients            recipients = getMessageDestination(envelope, message);
@@ -487,6 +487,7 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getGroupInfo(),
                                                                 message.getExpiresInSeconds() * 1000);
 
+      Log.w(TAG, "Receiving text message body: " + body);
       ForstaMessage forstaMessage = new ForstaMessage(body);
       // Message body does not contain userIds, only tags.
       // Lookup ids from the distribution expression.

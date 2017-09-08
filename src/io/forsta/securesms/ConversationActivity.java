@@ -1400,6 +1400,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           } else {
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
+          Log.w(TAG, "Sending media message. threadid: " + threadData.uid + "distribution: " + threadData.distribution + " title: " + threadData.title);
           message.setForstaJsonBody(context, threadData.distribution, threadData.title, threadData.uid);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
@@ -1442,6 +1443,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           } else {
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
+          Log.w(TAG, "Sending text message. threadid: " + threadData.uid + "distribution: " + threadData.distribution + " title: " + threadData.title);
           String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, threadData.distribution, threadData.title, threadData.uid);
           message = message.withBody(forstaBody);
         }
@@ -1462,8 +1464,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);
       ForstaDistribution distribution = new ForstaDistribution(response);
-      Log.w(TAG, "Expression: " + expression);
-      Log.w(TAG, "Distribution: " +  distribution.universal);
+      Log.w(TAG, "Allocate thread. Expression: " + expression);
+      Log.w(TAG, "Allocate thread. Distribution: " +  distribution.universal);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
       long newThreadId = db.allocateThreadId(recipients, distribution);
       return db.getForstaThread(newThreadId);

@@ -47,6 +47,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -327,11 +328,11 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(String body) {
-    Spanned forstaBody = ForstaUtils.getForstaHtmlBody(body);
-    if (forstaBody != null) {
-      return forstaBody.toString();
+    ForstaMessage forstaMessage = new ForstaMessage(body);
+    if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
+      return forstaMessage.htmlBody.toString();
     }
-    return ForstaUtils.getForstaPlainTextBody(body);
+    return forstaMessage.textBody;
   }
 
   private void handleForwardMessage(MessageRecord message) {

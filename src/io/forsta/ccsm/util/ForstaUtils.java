@@ -79,79 +79,6 @@ public class ForstaUtils {
     return false;
   }
 
-  public static Spanned getForstaHtmlBody(String messageBody) {
-    try {
-      JSONObject version = getVersion(1, messageBody);
-      JSONObject data = version.getJSONObject("data");
-      JSONArray body =  data.getJSONArray("body");
-      for (int j=0; j<body.length(); j++) {
-        JSONObject object = body.getJSONObject(j);
-        if (object.getString("type").equals("text/html")) {
-          return Html.fromHtml(object.getString("value"));
-        }
-      }
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaHtmlBody, Not a Forsta JSON message body");
-    }
-    return null;
-  }
-
-  public static String getForstaPlainTextBody(String messageBody) {
-    try {
-      JSONObject version = getVersion(1, messageBody);
-      JSONObject data = version.getJSONObject("data");
-      if (!data.has("body")) {
-        return "";
-      }
-      JSONArray body =  data.getJSONArray("body");
-      for (int j=0; j<body.length(); j++) {
-        JSONObject object = body.getJSONObject(j);
-        if (object.getString("type").equals("text/plain")) {
-          return object.getString("value");
-        }
-      }
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getForstaPlainTextBody, Not a Forsta JSON message body");
-    }
-    return messageBody;
-  }
-
-  public static String getMessageDistribution(String body) {
-    String result = "";
-    try {
-      JSONObject jsonObject = getVersion(1, body);
-      if (jsonObject.has("distribution")) {
-        JSONObject distribution = jsonObject.getJSONObject("distribution");
-        result = distribution.getString("expression");
-      }
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getMessageDistribution. No Forsta expression");
-    }
-    return result;
-  }
-
-  public static String getMessageTitle(String messageBody) {
-    String result = "";
-    try {
-      JSONObject jsonObject = getVersion(1, messageBody);
-      result = jsonObject.getString("threadTitle");
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
-    }
-    return result;
-  }
-
-  public static String getMessageThreadId(String messageBody) {
-    String result = "";
-    try {
-      JSONObject jsonObject = getVersion(1, messageBody);
-      result = jsonObject.getString("threadId");
-    } catch (JSONException e) {
-      Log.w(TAG, "JSON exception. getMessageTitle. No Forsta threadTitle");
-    }
-    return result;
-  }
-
   public static JSONObject getVersion(int version, String body) {
     try {
       JSONArray jsonArray = new JSONArray(body);
@@ -246,7 +173,6 @@ public class ForstaUtils {
       version1.put("sender", sender);
       version1.put("distribution", recipients);
       versions.put(version1);
-      Log.w(TAG, "Sending message body: ThreadId: " + threadId + " threadTitle: " + threadTitle + " distribution.expression: " + universalExpression);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
       e.printStackTrace();
@@ -262,44 +188,5 @@ public class ForstaUtils {
     df.setTimeZone(tz);
     return df.format(date);
   }
-
-  public static JSONObject getDistributionWarnings(JSONObject distribution) {
-    try {
-      return distribution.getJSONObject("warnings");
-    } catch (JSONException e) {
-      Log.w(TAG, "Warnings object does not exist");
-    }
-    return new JSONObject();
-  }
-
-  public static Set<String> getDistributionUserIds(JSONObject distribution) {
-    Set<String> result = new HashSet<>();
-    try {
-      JSONArray userIds = distribution.getJSONArray("userids");
-      for (int i=0; i<userIds.length(); i++) {
-        result.add(userIds.getString(i));
-      }
-    } catch (JSONException e) {
-      Log.w(TAG, "userids object does not exist");
-    }
-    return result;
-  }
-
-  public static String getUniversalDistribution(JSONObject distribution) {
-    try {
-      return distribution.getString("universal");
-    } catch (JSONException e) {
-      Log.w(TAG, "No universal string in distribution");
-    }
-    return "";
-  }
-
-  public static String getPrettyDistribution(JSONObject distribution) {
-    try {
-      return distribution.getString("pretty");
-    } catch (JSONException e) {
-      Log.w(TAG, "No pretty string in distribution");
-    }
-    return "";
-  }
+  
 }
