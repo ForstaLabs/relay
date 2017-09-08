@@ -429,8 +429,14 @@ public class PushDecryptJob extends ContextJob {
     if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
-
-    long threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+    ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
+    long forstaThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+    long threadId;
+    if (forstaThreadId != -1) {
+      threadId = forstaThreadId;
+    } else {
+      threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+    }
     long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
 
     database.markAsSent(messageId);
