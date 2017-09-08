@@ -536,7 +536,7 @@ public class SmsDatabase extends MessagingDatabase {
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     if (forstaMessage != null) {
       // Don't include self in message.
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         // For now, create new thread, even if sending client has reinstalled and has a matching thread distribution with a different UID.

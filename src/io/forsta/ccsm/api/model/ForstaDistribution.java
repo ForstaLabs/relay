@@ -48,18 +48,17 @@ public class ForstaDistribution {
     return userIds.size() > 0;
   }
 
-  public List<String> getRecipients(Context context, boolean includeSelf) {
+  public List<String> getRecipients(Context context) {
     List<String> users = new ArrayList<>();
+    boolean excludeSelf = true;
+    if (userIds.size() > 2) {
+      excludeSelf = false;
+    }
     for (String id : userIds) {
-      if (!includeSelf && !id.equals(TextSecurePreferences.getLocalNumber(context))) {
+      if (!(excludeSelf && id.equals(TextSecurePreferences.getLocalNumber(context)))) {
         users.add(id);
       }
     }
     return users;
-  }
-
-  public String getRecipientsString(Context context, boolean includeSelf) {
-    List<String> users = getRecipients(context, includeSelf);
-    return TextUtils.join(",", users);
   }
 }

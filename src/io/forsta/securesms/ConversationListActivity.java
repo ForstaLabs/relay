@@ -736,7 +736,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           return "No recipients found in message";
         }
 
-        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this, false)), false);
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this)), false);
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
         long threadId = threadDb.getThreadIdForDistribution(distribution.universal);

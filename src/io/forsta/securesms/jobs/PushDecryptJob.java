@@ -477,7 +477,6 @@ public class PushDecryptJob extends ContextJob {
 
     Pair<Long, Long> messageAndThreadId;
 
-    String sender = envelope.getSource();
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       messageAndThreadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body);
     } else {
@@ -684,7 +683,7 @@ public class PushDecryptJob extends ContextJob {
 
   private Recipients refreshDirectoryForRecipients(MasterSecret masterSecret, ForstaDistribution distribution) {
     if (distribution.hasRecipients()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context, false), false);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       return recipients;
     }

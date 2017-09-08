@@ -188,5 +188,5 @@ public class ForstaUtils {
     df.setTimeZone(tz);
     return df.format(date);
   }
-  
+
 }

@@ -699,7 +699,7 @@ public class MmsDatabase extends MessagingDatabase {
     ForstaMessage forstaMessage = retrieved.getForstaMessage();
     ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
     if (threadId == -1 && forstaMessage != null) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context, false), false);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         Log.w(TAG, "Allocate new thread. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
