@@ -27,6 +27,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.PhoneLookup;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import io.forsta.ccsm.database.ContactDb;
@@ -154,7 +155,7 @@ public class RecipientProvider {
       if (cursor != null && cursor.moveToFirst()) {
         final String uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
         if (uid != null) {
-          URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL)));
+          URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.AVATAR)));
           String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
@@ -292,11 +293,10 @@ public class RecipientProvider {
 
   }
 
-  private URL getGravitarUrl(String email) {
+  private URL getGravitarUrl(String gravatarHash) {
     try {
-      if (email != null && email.length() > 0) {
-        String hash = ForstaUtils.md5Hex(email);
-        return new URL("https://www.gravatar.com/avatar/" + hash);
+      if (!TextUtils.isEmpty(gravatarHash)) {
+        return new URL("https://www.gravatar.com/avatar/" + gravatarHash);
       }
     } catch (MalformedURLException e) {
       e.printStackTrace();
