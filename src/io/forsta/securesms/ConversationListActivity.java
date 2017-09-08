@@ -99,6 +99,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.MediaUtil;
@@ -737,6 +738,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         }
 
         Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this)), false);
+        DirectoryHelper.refreshDirectoryFor(ConversationListActivity.this, masterSecret, messageRecipients);
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
         long threadId = threadDb.getThreadIdForDistribution(distribution.universal);
@@ -749,6 +751,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
         mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread.distribution, forstaThread.title, forstaThread.uid);
         MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
+
         return null;
       }
 

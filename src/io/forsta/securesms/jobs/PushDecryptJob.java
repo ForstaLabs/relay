@@ -395,8 +395,17 @@ public class PushDecryptJob extends ContextJob {
     OutgoingExpirationUpdateMessage expirationUpdateMessage = new OutgoingExpirationUpdateMessage(recipients,
                                                                                                   message.getTimestamp(),
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
+    ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
+    long threadId;
+    if (forstaMessage.threadId != null) {
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+      }
 
-    long threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+    } else {
+      threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+    }
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -430,10 +439,13 @@ public class PushDecryptJob extends ContextJob {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
-    long forstaThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
     long threadId;
-    if (forstaThreadId != -1) {
-      threadId = forstaThreadId;
+    if (forstaMessage.threadId != null) {
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+      }
+
     } else {
       threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
     }
@@ -528,10 +540,13 @@ public class PushDecryptJob extends ContextJob {
     }
 
     ForstaMessage forstaMessage = new ForstaMessage(body);
-    long forstaThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
     long threadId;
-    if (forstaThreadId != -1) {
-      threadId = forstaThreadId;
+    if (forstaMessage.threadId != null) {
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+      }
+
     } else {
       threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
     }

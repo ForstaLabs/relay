@@ -58,6 +58,8 @@ public class ForstaMessage {
     } catch (JSONException e) {
       Log.w(TAG, "Invalid JSON message body");
       e.printStackTrace();
+    } catch (Exception e) {
+      Log.w(TAG, "Invalid JSON message body");
     }
   }
 }

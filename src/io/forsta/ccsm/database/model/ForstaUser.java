@@ -50,9 +50,6 @@ public class ForstaUser {
       }
       this.uid = userObj.getString("id");
       this.username = userObj.getString("username");
-      if (TextUtils.isEmpty(this.slug)) {
-        this.slug = this.username;
-      }
       JSONObject org = userObj.getJSONObject("org");
       if (org.has("id")) {
         this.org_id = org.getString("id");
