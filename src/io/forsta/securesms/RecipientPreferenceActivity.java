@@ -57,6 +57,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private static final String TAG = RecipientPreferenceActivity.class.getSimpleName();
 
   public static final String RECIPIENTS_EXTRA = "recipient_ids";
+  public static final String THREAD_ID_EXTRA = "thread_id";
 
   private static final String PREFERENCE_MUTED    = "pref_key_recipient_mute";
   private static final String PREFERENCE_TONE     = "pref_key_recipient_ringtone";
