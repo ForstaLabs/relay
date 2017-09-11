@@ -33,30 +33,30 @@ public class ForstaMessage {
       JSONObject jsonBody = ForstaUtils.getVersion(1, messageBody);
       if (jsonBody == null) {
         textBody = messageBody;
-      }
-      JSONObject distribution = jsonBody.getJSONObject("distribution");
-      universalExpression = distribution.getString("expression");
-      threadId = jsonBody.getString("threadId");
-      messageId = jsonBody.getString("messageId");
-      if (jsonBody.has("threadTitle")) {
-        threadTitle = jsonBody.getString("threadTitle");
-      }
-      JSONObject data = jsonBody.getJSONObject("data");
-      if (data.has("body")) {
-        JSONArray body =  data.getJSONArray("body");
-        for (int j=0; j<body.length(); j++) {
-          JSONObject object = body.getJSONObject(j);
-          if (object.getString("type").equals("text/html")) {
-            htmlBody = Html.fromHtml(object.getString("value"));
-          }
-          if (object.getString("type").equals("text/plain")) {
-            textBody = object.getString("value");
+      } else {
+        JSONObject distribution = jsonBody.getJSONObject("distribution");
+        universalExpression = distribution.getString("expression");
+        threadId = jsonBody.getString("threadId");
+        messageId = jsonBody.getString("messageId");
+        if (jsonBody.has("threadTitle")) {
+          threadTitle = jsonBody.getString("threadTitle");
+        }
+        JSONObject data = jsonBody.getJSONObject("data");
+        if (data.has("body")) {
+          JSONArray body =  data.getJSONArray("body");
+          for (int j=0; j<body.length(); j++) {
+            JSONObject object = body.getJSONObject(j);
+            if (object.getString("type").equals("text/html")) {
+              htmlBody = Html.fromHtml(object.getString("value"));
+            }
+            if (object.getString("type").equals("text/plain")) {
+              textBody = object.getString("value");
+            }
           }
         }
+        JSONObject sender = jsonBody.getJSONObject("sender");
+        senderId = sender.getString("userId");
       }
-      JSONObject sender = jsonBody.getJSONObject("sender");
-      senderId = sender.getString("userId");
-
     } catch (JSONException e) {
       Log.w(TAG, "Invalid JSON message body");
       e.printStackTrace();
