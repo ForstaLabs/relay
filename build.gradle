@@ -173,7 +173,7 @@ android {
         stage {
             applicationIdSuffix '.stage'
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328732\"" // XXX put in new value (see jeff)
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a141a-bb802bb0cefb\"" // XXX put in new value (see jeff)
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
