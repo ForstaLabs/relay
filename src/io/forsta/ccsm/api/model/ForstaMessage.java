@@ -41,16 +41,18 @@ public class ForstaMessage {
         if (jsonBody.has("threadTitle")) {
           threadTitle = jsonBody.getString("threadTitle");
         }
-        JSONObject data = jsonBody.getJSONObject("data");
-        if (data.has("body")) {
-          JSONArray body =  data.getJSONArray("body");
-          for (int j=0; j<body.length(); j++) {
-            JSONObject object = body.getJSONObject(j);
-            if (object.getString("type").equals("text/html")) {
-              htmlBody = Html.fromHtml(object.getString("value"));
-            }
-            if (object.getString("type").equals("text/plain")) {
-              textBody = object.getString("value");
+        if (jsonBody.has("data")) {
+          JSONObject data = jsonBody.getJSONObject("data");
+          if (data.has("body")) {
+            JSONArray body =  data.getJSONArray("body");
+            for (int j=0; j<body.length(); j++) {
+              JSONObject object = body.getJSONObject(j);
+              if (object.getString("type").equals("text/html")) {
+                htmlBody = Html.fromHtml(object.getString("value"));
+              }
+              if (object.getString("type").equals("text/plain")) {
+                textBody = object.getString("value");
+              }
             }
           }
         }
