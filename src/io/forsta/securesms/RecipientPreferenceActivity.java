@@ -26,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
@@ -33,6 +34,7 @@ import io.forsta.securesms.crypto.IdentityKeyParcelable;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
@@ -73,6 +75,9 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private Toolbar           toolbar;
   private TextView          title;
   private TextView          blockedIndicator;
+  private TextView forstaTitle;
+  private TextView forstaUid;
+  private TextView forstaDistribution;
   private BroadcastReceiver staleReceiver;
 
   @Override
@@ -86,11 +91,13 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     setContentView(R.layout.recipient_preference_activity);
 
     long[]     recipientIds = getIntent().getLongArrayExtra(RECIPIENTS_EXTRA);
+    long threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     Recipients recipients   = RecipientFactory.getRecipientsForIds(this, recipientIds, true);
 
     initializeToolbar();
     initializeReceivers();
     setHeader(recipients);
+    initThreadInfo(threadId);
     recipients.addListener(this);
 
     Bundle bundle = new Bundle();
@@ -170,6 +177,17 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
 
     if (recipients.isBlocked()) this.blockedIndicator.setVisibility(View.VISIBLE);
     else                        this.blockedIndicator.setVisibility(View.GONE);
+  }
+
+  private void initThreadInfo(long threadId) {
+    ThreadDatabase db = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this);
+    ForstaThread thread = db.getForstaThread(threadId);
+    forstaTitle = (TextView) findViewById(R.id.forsta_thread_title);
+    forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
+    forstaDistribution = (TextView) findViewById(R.id.forsta_thread_distribution);
+    forstaTitle.setText(thread.title);
+    forstaUid.setText(thread.uid);
+    forstaDistribution.setText(thread.distribution);
   }
 
   @Override
