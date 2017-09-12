@@ -629,7 +629,7 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public void updateForstaDistribution(long threadId, Recipients recipients, String distribution, String title) {
+  public void updateForstaThread(long threadId, Recipients recipients, String distribution, String title) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues values = new ContentValues();
@@ -661,31 +661,11 @@ public class ThreadDatabase extends Database {
     return null;
   }
 
-  public String getThreadUid(long threadId) {
-    String result = "";
-    SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    Cursor cursor = null;
-    try {
-      cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
-      if (cursor != null && cursor.moveToFirst()) {
-        result = cursor.getString(cursor.getColumnIndex(UID));
-      }
-    } finally {
-      cursor.close();
-    }
-    return result;
-  }
-
-  public void updateThreadUid(long threadId, String uid) {
+  public void updateThreadTitle(long threadId, String title) {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     ContentValues values = new ContentValues(1);
-    values.put(UID, uid);
+    values.put(TITLE, title);
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
-  }
-
-  public Cursor getThread(long threadId) {
-    SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    return db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
   }
 
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {

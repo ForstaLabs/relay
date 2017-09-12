@@ -548,14 +548,14 @@ public class SmsDatabase extends MessagingDatabase {
         if (!forstaMessage.threadTitle.equals(current.title)) {
           Log.w(TAG, "Title changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
           Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaDistribution(threadId, recipients, null, forstaMessage.threadTitle);
+          threadDb.updateForstaThread(threadId, recipients, null, forstaMessage.threadTitle);
         }
       }
       if (!TextUtils.isEmpty(forstaMessage.universalExpression)) {
         if (!forstaMessage.universalExpression.equals(current.distribution)) {
           Log.w(TAG, "Distribution changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
           Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaDistribution(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
         }
       }
     } else {
