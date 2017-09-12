@@ -103,7 +103,7 @@ public class ForstaUtils {
     return createForstaMessageBody(context, message, recipients, forstaThread.distribution, forstaThread.title, forstaThread.uid);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression, String threadUid) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String threadTitle, String threadUid) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -143,7 +143,7 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
-        threadTitle = !TextUtils.isEmpty(prettyExpression) ? prettyExpression: threadTitle;
+        threadTitle = !TextUtils.isEmpty(threadTitle) ? threadTitle: threadTitle;
       }
 
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
