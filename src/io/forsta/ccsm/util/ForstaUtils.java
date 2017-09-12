@@ -31,6 +31,7 @@ import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -96,6 +97,10 @@ public class ForstaUtils {
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
     return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "", "");
+  }
+
+  public static String createForstaMessageBody(Context context, String message, Recipients recipients, ForstaThread forstaThread) {
+    return createForstaMessageBody(context, message, recipients, forstaThread.distribution, forstaThread.title, forstaThread.uid);
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String prettyExpression, String threadUid) {

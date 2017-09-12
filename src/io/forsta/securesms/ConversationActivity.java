@@ -1393,7 +1393,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
           Log.w(TAG, "Sending media message. threadid: " + threadData.uid + "distribution: " + threadData.distribution + " title: " + threadData.title);
-          message.setForstaJsonBody(context, threadData.distribution, threadData.title, threadData.uid);
+          message.setForstaJsonBody(context, threadData);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
@@ -1436,7 +1436,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
           Log.w(TAG, "Sending text message. threadid: " + threadData.uid + "distribution: " + threadData.distribution + " title: " + threadData.title);
-          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, threadData.distribution, threadData.title, threadData.uid);
+          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, threadData);
           message = message.withBody(forstaBody);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
