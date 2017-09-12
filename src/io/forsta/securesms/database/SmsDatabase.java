@@ -536,10 +536,11 @@ public class SmsDatabase extends MessagingDatabase {
     if (forstaMessage != null) {
       ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
       if (threadId == -1) {
-        // Don't include self in message.
-        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
         threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+      } else {
+        threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
       }
     } else {
       // Old message processing. Find thread based on the recipients or encoded group id.
