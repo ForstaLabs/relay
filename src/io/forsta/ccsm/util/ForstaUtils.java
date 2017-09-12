@@ -116,7 +116,6 @@ public class ForstaUtils {
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
       String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
-      String threadTitle = "";
 
       ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
       sender.put("tagId", user.tag_id);
@@ -143,7 +142,6 @@ public class ForstaUtils {
             e.printStackTrace();
           }
         }
-        threadTitle = !TextUtils.isEmpty(threadTitle) ? threadTitle: threadTitle;
       }
 
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
