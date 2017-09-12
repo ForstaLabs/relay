@@ -538,7 +538,7 @@ public class SmsDatabase extends MessagingDatabase {
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         // Don't include self in message.
-        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
         threadId = threadDb.allocateThreadId(recipients, forstaMessage);
       }
     } else {

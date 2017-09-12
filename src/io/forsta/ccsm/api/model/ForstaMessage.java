@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.util.ForstaUtils;
 
 /**
@@ -26,7 +27,7 @@ public class ForstaMessage {
   public String universalExpression;
   public String threadId;
   public String threadTitle;
-  public ForstaDistribution distribution;
+  private ForstaDistribution distribution;
 
   public ForstaMessage(String messageBody) {
     try {
@@ -66,5 +67,16 @@ public class ForstaMessage {
       Log.w(TAG, "Exception occurred");
       e.printStackTrace();
     }
+  }
+
+  public void setForstaDistribution(ForstaDistribution forstaDistribution) {
+    this.distribution = forstaDistribution;
+  }
+
+  public ForstaDistribution getForstaDistribution() {
+    if (distribution == null) {
+      return new ForstaDistribution(new JSONObject());
+    }
+    return distribution;
   }
 }

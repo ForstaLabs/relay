@@ -347,7 +347,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.distribution = distribution;
+    forstaMessage.setForstaDistribution(distribution);
     refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
     mediaMessage.setForstaMessage(forstaMessage);
 
@@ -423,7 +423,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.distribution = distribution;
+    forstaMessage.setForstaDistribution(distribution);
     long threadId;
     if (forstaMessage.threadId != null) {
       recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
@@ -503,7 +503,7 @@ public class PushDecryptJob extends ContextJob {
       // Lookup ids from the distribution expression.
       JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
       ForstaDistribution distribution = new ForstaDistribution(response);
-      forstaMessage.distribution = distribution;
+      forstaMessage.setForstaDistribution(distribution);
       refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
 
       textMessage.setForstaMessage(forstaMessage);
@@ -535,7 +535,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(body);
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.distribution = distribution;
+    forstaMessage.setForstaDistribution(distribution);
     long threadId;
     if (forstaMessage.threadId != null) {
       recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);

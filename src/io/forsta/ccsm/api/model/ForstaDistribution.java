@@ -39,7 +39,7 @@ public class ForstaDistribution {
       JSONArray warnings = jsonResponse.getJSONArray("warnings");
 
     } catch (JSONException e) {
-      Log.w(TAG, "ForstaDistribution error: " + jsonResponse);
+      Log.w(TAG, "ForstaDistribution json parsing error:");
       e.printStackTrace();
     }
   }
