@@ -495,25 +495,6 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public long getThreadIdFor(Recipients recipients, String threadUid) {
-    long[] recipientIds    = getRecipientIds(recipients);
-    String recipientsList  = getRecipientsAsString(recipientIds);
-    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
-    Cursor cursor          = null;
-    try {
-      cursor = db.query(TABLE_NAME, null, UID + " = ? ", new String[]{threadUid + ""}, null, null, null);
-
-      if (cursor != null && cursor.moveToFirst()) {
-        return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
-      } else {
-        return createThreadForRecipients(recipientsList, recipientIds.length, DistributionTypes.DEFAULT, threadUid);
-      }
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
-  }
-
   public long getThreadIdForDistribution(String distribution) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;

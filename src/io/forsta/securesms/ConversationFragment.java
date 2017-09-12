@@ -419,6 +419,13 @@ public class ConversationFragment extends Fragment
         list.getAdapter().notifyDataSetChanged();
 
         setCorrectMenuVisibility(actionMode.getMenu());
+      } else {
+        ForstaMessage message = new ForstaMessage(messageRecord.getDisplayBody().toString());
+        new AlertDialog.Builder(getActivity())
+            .setTitle(message.threadTitle)
+            .setMessage("Thread ID: \n" + message.threadId + "\n Expression: \n" + message.universalExpression)
+            .setPositiveButton("Close", null)
+            .show();
       }
     }
 

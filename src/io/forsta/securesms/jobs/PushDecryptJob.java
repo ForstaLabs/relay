@@ -398,7 +398,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
     long threadId;
     if (forstaMessage.threadId != null) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
@@ -441,7 +441,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
     long threadId;
     if (forstaMessage.threadId != null) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
@@ -542,7 +542,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = new ForstaMessage(body);
     long threadId;
     if (forstaMessage.threadId != null) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients, forstaMessage.threadId);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
