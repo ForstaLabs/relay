@@ -1,5 +1,6 @@
 package io.forsta.securesms.sms;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.recipients.Recipients;
 
@@ -75,6 +76,5 @@ public class OutgoingTextMessage {
   public OutgoingTextMessage withBody(String body) {
     return new OutgoingTextMessage(this, body);
   }
-
 
 }

@@ -612,10 +612,10 @@ public class SmsDatabase extends MessagingDatabase {
     else if (message.isEndSession())    type |= Types.END_SESSION_BIT;
     if      (forceSms)                  type |= Types.MESSAGE_FORCE_SMS_BIT;
 
-    String address = message.getRecipients().getPrimaryRecipient().getNumber();
+    String address = PhoneNumberUtils.formatNumber(message.getRecipients().getPrimaryRecipient().getNumber());
 
     ContentValues contentValues = new ContentValues(6);
-    contentValues.put(ADDRESS, PhoneNumberUtils.formatNumber(address));
+    contentValues.put(ADDRESS, address);
     contentValues.put(THREAD_ID, threadId);
     contentValues.put(BODY, message.getMessageBody());
     contentValues.put(DATE_RECEIVED, System.currentTimeMillis());

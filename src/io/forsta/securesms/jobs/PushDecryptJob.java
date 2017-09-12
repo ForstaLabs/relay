@@ -427,28 +427,32 @@ public class PushDecryptJob extends ContextJob {
   {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
     Recipients            recipients   = getSyncMessageDestination(message);
-    OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
-                                                                  PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
-                                                                  message.getTimestamp(), -1,
-                                                                  message.getMessage().getExpiresInSeconds() * 1000,
-                                                                  ThreadDatabase.DistributionTypes.DEFAULT);
-
-    mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
 
     if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
+    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
+    ForstaDistribution distribution = new ForstaDistribution(response);
+    forstaMessage.distribution = distribution;
     long threadId;
     if (forstaMessage.threadId != null) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
-
     } else {
       threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
     }
+
+    OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
+        PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
+        message.getTimestamp(), -1,
+        message.getMessage().getExpiresInSeconds() * 1000,
+        ThreadDatabase.DistributionTypes.DEFAULT);
+
+    mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
     long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -533,23 +537,28 @@ public class PushDecryptJob extends ContextJob {
     Recipients            recipients          = getSyncMessageDestination(message);
     String                body                = message.getMessage().getBody().or("");
     long                  expiresInMillis     = message.getMessage().getExpiresInSeconds() * 1000;
-    OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
 
     if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
 
     ForstaMessage forstaMessage = new ForstaMessage(body);
+    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
+    ForstaDistribution distribution = new ForstaDistribution(response);
+    forstaMessage.distribution = distribution;
     long threadId;
     if (forstaMessage.threadId != null) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
       }
-
     } else {
       threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
     }
+
+    OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
+
     long messageId = database.insertMessageOutbox(masterSecret, threadId, outgoingTextMessage, false, message.getTimestamp());
 
     database.markAsSent(messageId);
