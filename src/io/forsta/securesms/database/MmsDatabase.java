@@ -697,30 +697,14 @@ public class MmsDatabase extends MessagingDatabase {
   {
 
     ForstaMessage forstaMessage = retrieved.getForstaMessage();
-    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+
     if (threadId == -1 && forstaMessage != null) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
-        Log.w(TAG, "Allocate new thread. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
+        Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
       }
-      ForstaThread current = threadDb.getForstaThread(threadId);
-      if (!TextUtils.isEmpty(forstaMessage.threadTitle)) {
-        if (!forstaMessage.threadTitle.equals(current.title)) {
-          Log.w(TAG, "Title changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaThread(threadId, recipients, null, forstaMessage.threadTitle);
-        }
-      }
-      if (!TextUtils.isEmpty(forstaMessage.universalExpression)) {
-        if (!forstaMessage.universalExpression.equals(current.distribution)) {
-          Log.w(TAG, "Distribution changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
-        }
-      }
-
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);

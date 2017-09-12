@@ -531,32 +531,15 @@ public class SmsDatabase extends MessagingDatabase {
                             !message.isIdentityUpdate();
 
     long       threadId;
-
     ForstaMessage forstaMessage = message.getForstaMessage();
-    ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+
     if (forstaMessage != null) {
-      // Don't include self in message.
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
-        // For now, create new thread, even if sending client has reinstalled and has a matching thread distribution with a different UID.
-        Log.w(TAG, "Allocate new thread. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-        threadId = threadDb.allocateThreadId(recipients, forstaMessage.universalExpression, forstaMessage.threadTitle, forstaMessage.threadId);
-      }
-      ForstaThread current = threadDb.getForstaThread(threadId);
-      if (!TextUtils.isEmpty(forstaMessage.threadTitle)) {
-        if (!forstaMessage.threadTitle.equals(current.title)) {
-          Log.w(TAG, "Title changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaThread(threadId, recipients, null, forstaMessage.threadTitle);
-        }
-      }
-      if (!TextUtils.isEmpty(forstaMessage.universalExpression)) {
-        if (!forstaMessage.universalExpression.equals(current.distribution)) {
-          Log.w(TAG, "Distribution changed. id: "+ forstaMessage.threadId + " expression: " + forstaMessage.universalExpression + " title: " + forstaMessage.threadTitle);
-          Log.w(TAG, "Current. id: "+ current.uid + " expression: " + current.distribution + " title: " + current.title);
-          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
-        }
+        // Don't include self in message.
+        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.distribution.getRecipients(context), false);
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
       }
     } else {
       // Old message processing. Find thread based on the recipients or encoded group id.

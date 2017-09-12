@@ -50,16 +50,12 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -167,7 +163,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   // TODO use these or remove them. These are copy pasta from ConversationActivity.
   private Recipients recipients;
-  private long threadId;
   private int distributionType;
   private boolean archived;
   private boolean isSecureText;
@@ -741,16 +736,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         DirectoryHelper.refreshDirectoryFor(ConversationListActivity.this, masterSecret, messageRecipients);
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
-        long threadId = threadDb.getThreadIdForDistribution(distribution.universal);
-        if (threadId == -1) {
-          threadId = threadDb.allocateThreadId(messageRecipients, distribution);
+        ForstaThread forstaThread = threadDb.getThreadIdForDistribution(distribution.universal);
+        if (forstaThread == null) {
+          forstaThread = threadDb.allocateThread(messageRecipients, distribution);
         }
-        ForstaThread forstaThread = threadDb.getForstaThread(threadId);
         Log.w(TAG, "Sending message. threadId: " + forstaThread.uid + " distribution: " + forstaThread.distribution + " title: " + forstaThread.title);
 
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
         mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread.distribution, forstaThread.title, forstaThread.uid);
-        MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
+        MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, forstaThread.threadid, false);
 
         return null;
       }
