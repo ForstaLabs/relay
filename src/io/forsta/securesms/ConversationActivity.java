@@ -40,6 +40,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
@@ -288,6 +289,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     composeText.setTransport(sendButton.getSelectedTransport());
 
     titleView.setTitle(recipients);
+    setForstaTitle();
+
     setActionBarColor(recipients.getColor());
     setBlockedUserState(recipients);
     calculateCharactersRemaining();
@@ -295,6 +298,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
 
+  }
+
+  private void setForstaTitle() {
+    if (threadId != -1) {
+      ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+      if (!TextUtils.isEmpty(forstaThread.title)) {
+        titleView.setForstaTitle(forstaThread.title);
+      }
+    }
   }
 
   @Override
@@ -1043,6 +1055,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void run() {
         titleView.setTitle(recipients);
+        setForstaTitle();
         setBlockedUserState(recipients);
         setActionBarColor(recipients.getColor());
         invalidateOptionsMenu();

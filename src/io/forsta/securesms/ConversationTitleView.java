@@ -90,8 +90,8 @@ public class ConversationTitleView extends LinearLayout {
     subtitle.setVisibility(View.VISIBLE);
   }
 
-
-
-
+  public void setForstaTitle(String forstaTitle) {
+    title.setText(forstaTitle);
+  }
 
 }

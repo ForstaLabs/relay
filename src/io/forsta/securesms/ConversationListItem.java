@@ -93,6 +93,7 @@ public class ConversationListItem extends RelativeLayout
 
   private final Handler handler = new Handler();
   private int distributionType;
+  private String forstaThreadTitle;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -129,9 +130,11 @@ public class ConversationListItem extends RelativeLayout
     this.threadId         = thread.getThreadId();
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
-
     this.recipients.addListener(this);
+    this.forstaThreadTitle = thread.getTitle();
+
     this.fromView.setText(recipients, read);
+    setForstaThreadTitle();
 
     ForstaMessage forstaMessage = new ForstaMessage(thread.getDisplayBody().toString());
     String body = forstaMessage.textBody;
@@ -245,6 +248,7 @@ public class ConversationListItem extends RelativeLayout
       @Override
       public void run() {
         fromView.setText(recipients, read);
+        setForstaThreadTitle();
         contactPhotoImage.setAvatar(recipients, true);
         setRippleColor(recipients);
       }
@@ -287,4 +291,9 @@ public class ConversationListItem extends RelativeLayout
     }
   }
 
+  private void setForstaThreadTitle() {
+    if (!TextUtils.isEmpty(forstaThreadTitle)) {
+      this.fromView.setForstaTitle(forstaThreadTitle, read);
+    }
+  }
 }
