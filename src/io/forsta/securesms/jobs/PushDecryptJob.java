@@ -2,6 +2,7 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -344,8 +345,12 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getAttachments());
 
     ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
-    getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
-    mediaMessage.setForstaMessage(forstaMessage);
+    try {
+      getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
+      mediaMessage.setForstaMessage(forstaMessage);
+    } catch (Exception e) {
+      Log.e(TAG, e.getMessage());
+    }
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -493,8 +498,12 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getGroupInfo(),
                                                                 message.getExpiresInSeconds() * 1000);
       ForstaMessage forstaMessage = new ForstaMessage(body);
-      getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
-      textMessage.setForstaMessage(forstaMessage);
+      try {
+        getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
+        textMessage.setForstaMessage(forstaMessage);
+      } catch (Exception e) {
+        Log.e(TAG, e.getMessage());
+      }
 
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
@@ -705,12 +714,12 @@ public class PushDecryptJob extends ContextJob {
     return null;
   }
 
-  private void getForstaMessageDistribution(MasterSecret masterSecret, ForstaMessage forstaMessage) {
-    //TODO add try block around this and throw error. Set forstaMessage null if error.
-    // This will cause the message to process like a normal message
-    // Or we can reject these kinds of messages on error.
+  private void getForstaMessageDistribution(MasterSecret masterSecret, ForstaMessage forstaMessage) throws Exception {
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
+    if (TextUtils.isEmpty(distribution.universal)) {
+      throw new Exception("Invalid or missing universal expression found in message body");
+    }
     forstaMessage.setForstaDistribution(distribution);
     refreshDirectoryForRecipients(masterSecret, distribution);
   }
