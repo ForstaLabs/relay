@@ -631,7 +631,7 @@ public class ThreadDatabase extends Database {
     String recipientsList  = getRecipientsAsString(recipientIds);
     ForstaThread forstaThread = getForstaThread(threadId);
     ContentValues values = new ContentValues();
-    if (!forstaThread.title.equals(title)) {
+    if (forstaThread.title != null && !forstaThread.title.equals(title)) {
       values.put(TITLE, title);
     }
     if (!forstaThread.distribution.equals(distribution) && !TextUtils.isEmpty(distribution)) {
