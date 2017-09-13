@@ -736,7 +736,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         DirectoryHelper.refreshDirectoryFor(ConversationListActivity.this, masterSecret, messageRecipients);
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
-        ForstaThread forstaThread = threadDb.getThreadIdForDistribution(distribution.universal);
+        ForstaThread forstaThread = threadDb.getThreadForDistribution(distribution.universal);
         if (forstaThread == null) {
           forstaThread = threadDb.allocateThread(messageRecipients, distribution);
         }

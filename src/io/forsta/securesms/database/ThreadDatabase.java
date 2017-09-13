@@ -494,7 +494,7 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public ForstaThread getThreadIdForDistribution(String distribution) {
+  public ForstaThread getThreadForDistribution(String distribution) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
     try {

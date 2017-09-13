@@ -17,27 +17,25 @@
 package io.forsta.securesms;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import org.json.JSONObject;
 
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.util.DirectoryHelper;
 
 /**
  * Activity container for starting a new conversation.
@@ -59,19 +57,44 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   @Override
   public void onContactSelected(String number) {
-    Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, true);
+    final Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, true);
 
-    Intent intent = new Intent(this, ConversationActivity.class);
-    intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-    intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
-    intent.setDataAndType(getIntent().getData(), getIntent().getType());
+    StringBuilder sb = new StringBuilder();
 
-    long existingThread = DatabaseFactory.getThreadDatabase(this).getThreadIdIfExistsFor(recipients);
+    for (Recipient recipient: recipients) {
+      sb.append("@").append(recipient.getSlug()).append(" ");
+    }
+    new AsyncTask<String, Void, ForstaDistribution>() {
 
-    intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
-    intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-    startActivity(intent);
-    finish();
+      @Override
+      protected ForstaDistribution doInBackground(String... params) {
+        String expression = params[0];
+        JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
+        return new ForstaDistribution(result);
+      }
+
+      @Override
+      protected void onPostExecute(ForstaDistribution distribution) {
+        ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+
+        Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
+        intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+        intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
+        intent.setDataAndType(getIntent().getData(), getIntent().getType());
+
+        long existingThread = -1L;
+        if (forstaThread != null) {
+          existingThread = forstaThread.threadid;
+        } else {
+          existingThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadIdIfExistsFor(recipients);
+        }
+
+        intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
+        intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+        startActivity(intent);
+        finish();
+      }
+    }.execute(sb.toString());
   }
 
   @Override
