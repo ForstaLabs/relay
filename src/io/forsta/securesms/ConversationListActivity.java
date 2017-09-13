@@ -30,6 +30,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
@@ -715,46 +716,45 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void sendForstaMessage() {
-    new AsyncTask<String, Void, String>() {
+    new AsyncTask<String, Void, Pair<String, Recipients>>() {
 
       @Override
-      protected String doInBackground(String... params) {
+      protected Pair<String, Recipients> doInBackground(String... params) {
         String message = params[0];
 
         ForstaUser localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
         JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
         ForstaDistribution distribution = new ForstaDistribution(result);
         if (!TextUtils.isEmpty(distribution.warning)) {
-          return distribution.warning;
+          return new Pair(distribution.warning, null);
         }
 
         if (distribution.userIds.size() < 1) {
-          return "No recipients found in message";
+          return new Pair("No recipients found in message", null);
         }
 
         Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this)), false);
-        DirectoryHelper.refreshDirectoryFor(ConversationListActivity.this, masterSecret, messageRecipients);
+
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
         ForstaThread forstaThread = threadDb.getThreadForDistribution(distribution.universal);
         if (forstaThread == null) {
           forstaThread = threadDb.allocateThread(messageRecipients, distribution);
         }
-        Log.w(TAG, "Sending message. threadId: " + forstaThread.uid + " distribution: " + forstaThread.distribution + " title: " + forstaThread.title);
 
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
         mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread);
         MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, forstaThread.threadid, false);
 
-        return null;
+        return new Pair(null, messageRecipients);
       }
 
       @Override
-      protected void onPostExecute(String result) {
-        //Maybe return threadid?
-        if (!TextUtils.isEmpty(result)) {
-          Toast.makeText(ConversationListActivity.this, result, Toast.LENGTH_LONG).show();
+      protected void onPostExecute(Pair<String, Recipients> result) {
+        if (!TextUtils.isEmpty(result.first)) {
+          Toast.makeText(ConversationListActivity.this, result.first, Toast.LENGTH_LONG).show();
         } else {
+          ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), masterSecret, result.second));
           fragment.getListAdapter().notifyDataSetChanged();
           attachmentManager.clear();
           composeText.setText("");
