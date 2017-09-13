@@ -183,9 +183,8 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     else                        this.blockedIndicator.setVisibility(View.GONE);
   }
 
-  private void initThreadInfo(long threadId) {
-    ThreadDatabase db = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this);
-    ForstaThread thread = db.getForstaThread(threadId);
+  private void initThreadInfo(final long threadId) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this).getForstaThread(threadId);
     forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
     forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
     forstaDistribution = (TextView) findViewById(R.id.forsta_thread_distribution);
@@ -193,11 +192,8 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     forstaSaveTitle.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (!TextUtils.isEmpty(forstaTitle.getText().toString())) {
-
-
-          Toast.makeText(RecipientPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
-        }
+        DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
+        Toast.makeText(RecipientPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
       }
     });
 
