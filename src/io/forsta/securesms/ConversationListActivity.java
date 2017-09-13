@@ -56,6 +56,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -729,11 +730,13 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           return new Pair(distribution.warning, null);
         }
 
-        if (distribution.userIds.size() < 1) {
+        List<String> recipientList = distribution.getRecipients(ConversationListActivity.this);
+        if (recipientList.size() < 1) {
+          // TODO Fix this so that someone can send to themselves? Right now, it removes local user from message send.
           return new Pair("No recipients found in message", null);
         }
 
-        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(distribution.getRecipients(ConversationListActivity.this)), false);
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, recipientList, false);
 
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);

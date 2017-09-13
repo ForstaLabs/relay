@@ -24,7 +24,10 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.color.MaterialColor;
@@ -75,9 +78,10 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private Toolbar           toolbar;
   private TextView          title;
   private TextView          blockedIndicator;
-  private TextView forstaTitle;
+  private EditText forstaTitle;
   private TextView forstaUid;
   private TextView forstaDistribution;
+  private ImageButton forstaSaveTitle;
   private BroadcastReceiver staleReceiver;
 
   @Override
@@ -182,10 +186,25 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private void initThreadInfo(long threadId) {
     ThreadDatabase db = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this);
     ForstaThread thread = db.getForstaThread(threadId);
-    forstaTitle = (TextView) findViewById(R.id.forsta_thread_title);
+    forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
     forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
     forstaDistribution = (TextView) findViewById(R.id.forsta_thread_distribution);
+    forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
+    forstaSaveTitle.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (!TextUtils.isEmpty(forstaTitle.getText().toString())) {
+
+
+          Toast.makeText(RecipientPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+        }
+      }
+    });
+
     forstaTitle.setText(thread.title);
+//    if (!TextUtils.isEmpty(thread.title)) {
+//      title.setText(thread.title);
+//    }
     forstaUid.setText(thread.uid);
     forstaDistribution.setText(thread.distribution);
   }

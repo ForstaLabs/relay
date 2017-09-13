@@ -37,10 +37,21 @@ public class ForstaDistribution {
       pretty = jsonResponse.getString("pretty");
 
       JSONArray warnings = jsonResponse.getJSONArray("warnings");
-
+      StringBuilder sb = new StringBuilder();
+      for (int i=0; i<warnings.length(); i++) {
+        JSONObject object = warnings.getJSONObject(i);
+        if (object.has("kind")) {
+          sb.append(object.getString("kind")).append(": ");
+        }
+        if (object.has("cue")) {
+          sb.append(object.getString("cue"));
+        }
+      }
+      this.warning = sb.toString();
     } catch (JSONException e) {
       Log.w(TAG, "ForstaDistribution json parsing error:");
       e.printStackTrace();
+      this.warning = "Bad response from server";
     }
   }
 
