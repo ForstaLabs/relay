@@ -635,7 +635,7 @@ public class ThreadDatabase extends Database {
     if (!forstaThread.title.equals(title)) {
       values.put(TITLE, title);
     }
-    if (!forstaThread.distribution.equals(distribution)) {
+    if (!forstaThread.distribution.equals(distribution) && !TextUtils.isEmpty(distribution)) {
       values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution);
     }
