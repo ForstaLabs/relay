@@ -421,9 +421,14 @@ public class ConversationFragment extends Fragment
         setCorrectMenuVisibility(actionMode.getMenu());
       } else {
         ForstaMessage message = new ForstaMessage(messageRecord.getDisplayBody().toString());
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sender: ").append(message.senderId).append("\n");
+        sb.append("Thread: ").append(message.threadId).append("\n");
+        sb.append("Thread Title: ").append(message.threadTitle).append("\n");
+        sb.append("Expression: ").append(message.universalExpression).append("\n");
         new AlertDialog.Builder(getActivity())
             .setTitle(message.threadTitle)
-            .setMessage("Thread ID: \n" + message.threadId + "\n Expression: \n" + message.universalExpression)
+            .setMessage(sb.toString())
             .setPositiveButton("Close", null)
             .show();
       }
