@@ -1388,7 +1388,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         if (message.isSecure()) {
           ForstaThread threadData;
           if (threadId == -1) {
-            threadData = createForstaDistribution();
+            threadData = createForstaThread();
           } else {
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
@@ -1430,7 +1430,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         if (message.isSecureMessage()) {
           ForstaThread threadData;
           if (threadId == -1) {
-            threadData = createForstaDistribution();
+            threadData = createForstaThread();
           } else {
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
@@ -1447,7 +1447,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }.execute(message);
   }
 
-  private ForstaThread createForstaDistribution() {
+  private ForstaThread createForstaThread() {
       String expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
       expression += "@" + user.slug;
