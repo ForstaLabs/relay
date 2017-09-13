@@ -521,7 +521,6 @@ public class ThreadDatabase extends Database {
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, UUID.randomUUID().toString());
     contentValues.put(DISTRIBUTION, distribution.universal);
-    contentValues.put(TITLE, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
