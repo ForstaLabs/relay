@@ -343,12 +343,8 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
 
-    Log.w(TAG, "Receiving media message body: " + body);
     ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
-    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
-    ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.setForstaDistribution(distribution);
-    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
+    getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
     mediaMessage.setForstaMessage(forstaMessage);
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
@@ -496,16 +492,8 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getTimestamp(), body,
                                                                 message.getGroupInfo(),
                                                                 message.getExpiresInSeconds() * 1000);
-
-      Log.w(TAG, "Receiving text message body: " + body);
       ForstaMessage forstaMessage = new ForstaMessage(body);
-      // Message body does not contain userIds, only tags.
-      // Lookup ids from the distribution expression.
-      JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
-      ForstaDistribution distribution = new ForstaDistribution(response);
-      forstaMessage.setForstaDistribution(distribution);
-      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), distribution);
-
+      getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
       textMessage.setForstaMessage(forstaMessage);
 
       textMessage = new IncomingEncryptedMessage(textMessage, body);
@@ -715,5 +703,15 @@ public class PushDecryptJob extends ContextJob {
       return recipients;
     }
     return null;
+  }
+
+  private void getForstaMessageDistribution(MasterSecret masterSecret, ForstaMessage forstaMessage) {
+    //TODO add try block around this and throw error. Set forstaMessage null if error.
+    // This will cause the message to process like a normal message
+    // Or we can reject these kinds of messages on error.
+    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
+    ForstaDistribution distribution = new ForstaDistribution(response);
+    forstaMessage.setForstaDistribution(distribution);
+    refreshDirectoryForRecipients(masterSecret, distribution);
   }
 }
