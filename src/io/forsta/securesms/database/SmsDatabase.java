@@ -533,8 +533,7 @@ public class SmsDatabase extends MessagingDatabase {
     long       threadId;
     ForstaMessage forstaMessage = message.getForstaMessage();
 
-    // Check for forstaMessage.threadId != null?
-    if (forstaMessage != null) {
+    if (!TextUtils.isEmpty(forstaMessage.threadId)) {
       ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
       recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);

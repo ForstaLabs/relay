@@ -46,6 +46,7 @@ import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -345,8 +346,9 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getAttachments());
 
     ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
-    getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
+    getForstaMessageDistribution(forstaMessage);
     mediaMessage.setForstaMessage(forstaMessage);
+    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -383,7 +385,7 @@ public class PushDecryptJob extends ContextJob {
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
     long threadId;
-    if (forstaMessage.threadId != null) {
+    if (!TextUtils.isEmpty(forstaMessage.threadId)) {
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
@@ -417,13 +419,11 @@ public class PushDecryptJob extends ContextJob {
     if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
+
     ForstaMessage forstaMessage = new ForstaMessage(message.getMessage().getBody().get());
-    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
-    ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.setForstaDistribution(distribution);
     long threadId;
-    if (forstaMessage.threadId != null) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    if (!TextUtils.isEmpty(forstaMessage.threadId)) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
@@ -494,8 +494,9 @@ public class PushDecryptJob extends ContextJob {
                                                                 message.getGroupInfo(),
                                                                 message.getExpiresInSeconds() * 1000);
       ForstaMessage forstaMessage = new ForstaMessage(body);
-      getForstaMessageDistribution(masterSecret.getMasterSecret().get(), forstaMessage);
+      getForstaMessageDistribution(forstaMessage);
       textMessage.setForstaMessage(forstaMessage);
+      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
 
       textMessage = new IncomingEncryptedMessage(textMessage, body);
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
@@ -520,14 +521,12 @@ public class PushDecryptJob extends ContextJob {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
 
-    //TODO Have ForstaMessage throw an exception? and then fall back to processing by recipient.
     ForstaMessage forstaMessage = new ForstaMessage(body);
-    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
-    ForstaDistribution distribution = new ForstaDistribution(response);
-    forstaMessage.setForstaDistribution(distribution);
+    getForstaMessageDistribution(forstaMessage);
+
     long threadId;
-    if (forstaMessage.threadId != null) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    if (!TextUtils.isEmpty(forstaMessage.threadId)) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
@@ -706,13 +705,12 @@ public class PushDecryptJob extends ContextJob {
     return null;
   }
 
-  private void getForstaMessageDistribution(MasterSecret masterSecret, ForstaMessage forstaMessage) {
+  private void getForstaMessageDistribution(ForstaMessage forstaMessage) {
     JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
     ForstaDistribution distribution = new ForstaDistribution(response);
 //    if (TextUtils.isEmpty(distribution.universal)) {
 //      throw new Exception("Invalid or missing universal expression found in message body");
 //    }
     forstaMessage.setForstaDistribution(distribution);
-    refreshDirectoryForRecipients(masterSecret, distribution);
   }
 }
