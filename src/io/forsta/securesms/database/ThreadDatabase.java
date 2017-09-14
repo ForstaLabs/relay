@@ -651,7 +651,7 @@ public class ThreadDatabase extends Database {
     try {
       cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
       if (cursor != null && cursor.moveToFirst()) {
-        return new ForstaThread(cursor.getLong(cursor.getColumnIndex(ID)), cursor.getString(cursor.getColumnIndex(UID)), cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(DISTRIBUTION)));
+        return new ForstaThread(cursor);
       }
     } finally {
       cursor.close();
