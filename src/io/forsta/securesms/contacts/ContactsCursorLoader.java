@@ -129,7 +129,7 @@ public class ContactsCursorLoader extends CursorLoader {
             groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
             groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
             groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
-            groupCursor.getString(contactsCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
+            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
             ContactsDatabase.PUSH_TYPE
         });
       }

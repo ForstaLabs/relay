@@ -37,7 +37,9 @@ public class ForstaGroup {
       this.description = jsonObject.getString("description");
       this.parent = jsonObject.getString("parent");
       JSONObject orgObj = jsonObject.getJSONObject("org");
-      this.org_id = orgObj.getString("id");
+      if (orgObj.has("id")) {
+        this.org_id = orgObj.getString("id");
+      }
       this.org_slug = orgObj.getString("slug");
     } catch (JSONException e) {
       Log.w(TAG, "Error parsing tag");
@@ -49,6 +51,7 @@ public class ForstaGroup {
     this.id = cursor.getString(cursor.getColumnIndex(GroupDatabase.GROUP_ID));
     this.slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
     this.org_id = cursor.getString(cursor.getColumnIndex(GroupDatabase.ORG_ID));
+    this.org_slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.ORG_SLUG));
     this.description = cursor.getString(cursor.getColumnIndex(GroupDatabase.TITLE));
     String members = cursor.getString(cursor.getColumnIndex(GroupDatabase.MEMBERS));
     String[] memberArray = members.split(",");

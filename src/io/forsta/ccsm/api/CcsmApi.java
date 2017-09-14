@@ -280,8 +280,7 @@ public class CcsmApi {
             isGroup = true;
             JSONObject user = userObj.getJSONObject("user");
             String userId = user.getString("id");
-            String primaryPhone = user.getString("phone");
-            members.add(primaryPhone);
+            members.add(userId);
           }
         }
         if (isGroup) {

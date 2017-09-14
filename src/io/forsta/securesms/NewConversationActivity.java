@@ -27,15 +27,20 @@ import android.view.View;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.List;
+
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.GroupUtil;
 
 /**
  * Activity container for starting a new conversation.
@@ -57,24 +62,35 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   @Override
   public void onContactSelected(String number) {
-    final Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, true);
-
     StringBuilder sb = new StringBuilder();
-
-    for (Recipient recipient: recipients) {
-      sb.append("@").append(recipient.getSlug()).append(" ");
+    if (GroupUtil.isEncodedGroup(number)) {
+      try {
+        GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(GroupUtil.getDecodedId(number));
+        sb.append("@").append(group.getSlug()).append(":").append(group.getOrgSlug());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } else {
+      // This is only a single user or tag.
+      Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, false);
+      for (Recipient recipient: recipients) {
+        sb.append("@").append(recipient.getSlug()).append(" ");
+      }
     }
+
     new AsyncTask<String, Void, ForstaDistribution>() {
 
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
+
         JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
         return new ForstaDistribution(result);
       }
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
+        Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
         ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
 
         Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
