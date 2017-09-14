@@ -24,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -90,25 +91,29 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
-        ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+        if (distribution.hasRecipients()) {
+          Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
+          ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
 
-        Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
-        intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-        intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
-        intent.setDataAndType(getIntent().getData(), getIntent().getType());
+          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
+          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
+          intent.setDataAndType(getIntent().getData(), getIntent().getType());
 
-        long existingThread = -1L;
-        if (forstaThread != null) {
-          existingThread = forstaThread.threadid;
+          long existingThread = -1L;
+          if (forstaThread != null) {
+            existingThread = forstaThread.threadid;
+          } else {
+            existingThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadIdIfExistsFor(recipients);
+          }
+
+          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
+          intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+          startActivity(intent);
+          finish();
         } else {
-          existingThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadIdIfExistsFor(recipients);
+          Toast.makeText(NewConversationActivity.this, "No recipients found for selection", Toast.LENGTH_LONG).show();
         }
-
-        intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
-        intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-        startActivity(intent);
-        finish();
       }
     }.execute(sb.toString());
   }
