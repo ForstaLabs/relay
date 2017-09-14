@@ -425,7 +425,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         Recipients recipients = RecipientFactory.getRecipientsFromString(ConversationListActivity.this, uid, false);
         Recipient recipient = recipients.getPrimaryRecipient();
         String slug = recipient.getSlug();
+        String orgSlug = recipient.getOrgSlug();
+        ForstaUser localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
+
+        if (!TextUtils.equals(orgSlug, localUser.org_slug)) {
+          slug += ":" + orgSlug;
+        }
         sb.append("@").append(slug).append(" ");
+
         composeText.setText(sb.toString());
         composeText.setSelection(composeText.getText().length());
         hideDirectory();

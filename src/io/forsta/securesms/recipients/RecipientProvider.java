@@ -80,7 +80,7 @@ public class RecipientProvider {
   private static final Map<String, RecipientDetails> STATIC_DETAILS = new HashMap<String, RecipientDetails>() {{
     put("262966", new RecipientDetails("Amazon", "262966", null,
                                        ContactPhotoFactory.getResourceContactPhoto(R.drawable.ic_amazon),
-                                       ContactColors.UNKNOWN_COLOR, null));
+                                       ContactColors.UNKNOWN_COLOR, null, null));
   }};
 
   @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
@@ -159,13 +159,12 @@ public class RecipientProvider {
           String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
-          slug = slug + ":" + orgSlug;
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
           Bitmap gravatar = getContactGravatar(avatarUrl);
           if (gravatar != null) {
             contactPhoto = new BitmapContactPhoto(gravatar);
           }
-          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug);
+          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug, orgSlug);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -175,7 +174,7 @@ public class RecipientProvider {
         cursor.close();
     }
 
-    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null);
+    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null, null);
   }
 
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
@@ -185,13 +184,13 @@ public class RecipientProvider {
 
       if (record != null) {
         ContactPhoto contactPhoto = ContactPhotoFactory.getGroupContactPhoto(record.getAvatar());
-        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getSlug());
+        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getSlug(), record.getOrgSlug());
       }
 
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null);
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null);
     } catch (IOException e) {
       Log.w("RecipientProvider", e);
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null);
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null);
     }
   }
 
@@ -220,12 +219,13 @@ public class RecipientProvider {
     @NonNull  public final String        number;
     @NonNull  public final ContactPhoto  avatar;
     @Nullable public final String slug;
+    @Nullable public final String orgSlug;
     @Nullable public final Uri           contactUri;
     @Nullable public final MaterialColor color;
 
     public RecipientDetails(@Nullable String name, @NonNull String number,
                             @Nullable Uri contactUri, @NonNull ContactPhoto avatar,
-                            @Nullable MaterialColor color, @Nullable String slug)
+                            @Nullable MaterialColor color, @Nullable String slug, @Nullable String orgSlug)
     {
       this.name       = name;
       this.number     = number;
@@ -233,6 +233,7 @@ public class RecipientProvider {
       this.contactUri = contactUri;
       this.color      = color;
       this.slug = slug;
+      this.orgSlug = orgSlug;
     }
   }
 
