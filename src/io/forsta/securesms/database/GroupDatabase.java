@@ -11,8 +11,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.securesms.BuildConfig;
@@ -275,13 +277,13 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
     }
     cursor.close();
     return recipients;
   }
 
-  public Map<String, ForstaRecipient> getForstaRecipients() {
+  public Map<String, ForstaRecipient> getForstaRecipients(String localOrgSlug) {
     Map<String, ForstaRecipient> recipients = new HashMap<>();
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
@@ -293,7 +295,13 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
+      String slug = cursor.getString(cursor.getColumnIndex(SLUG));
+      String orgSlug = cursor.getString(cursor.getColumnIndex(ORG_SLUG));
+      if (!TextUtils.equals(orgSlug, localOrgSlug)) {
+        slug += ":" + orgSlug;
+      }
+
+      recipients.put(slug, new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
     }
     cursor.close();
     return recipients;

@@ -131,6 +131,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private ContentObserver observer;
   private MasterSecret masterSecret;
+  private ForstaUser localUser;
 
   private static final int PICK_IMAGE        = 1;
   private static final int PICK_VIDEO        = 2;
@@ -187,6 +188,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
+    localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
     if (savedState != null && savedState.getString(DRAFT_KEY) != null) {
       composeText.setText(savedState.getString(DRAFT_KEY));
     }
@@ -426,7 +428,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         Recipient recipient = recipients.getPrimaryRecipient();
         String slug = recipient.getSlug();
         String orgSlug = recipient.getOrgSlug();
-        ForstaUser localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
 
         if (!TextUtils.equals(orgSlug, localUser.org_slug)) {
           slug += ":" + orgSlug;
@@ -482,8 +483,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void getSlugs() {
     ContactDb db = DbFactory.getContactDb(ConversationListActivity.this);
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-    forstaSlugs = db.getContactRecipients();
-    forstaSlugs.putAll(groupDb.getForstaRecipients());
+    forstaSlugs = db.getContactRecipients(localUser.org_slug);
+    forstaSlugs.putAll(groupDb.getForstaRecipients(localUser.org_slug));
   }
 
   private void addAttachmentContactInfo(Uri contactUri) {
@@ -526,11 +527,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
-  }
-
-  private void handleDirectory() {
-    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
-    startActivity(directoryIntent);
   }
 
   private void handleDirectoryRefresh() {
@@ -730,7 +726,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       protected Pair<String, Recipients> doInBackground(String... params) {
         String message = params[0];
 
-        ForstaUser localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
         JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
         ForstaDistribution distribution = new ForstaDistribution(result);
         if (!TextUtils.isEmpty(distribution.warning)) {

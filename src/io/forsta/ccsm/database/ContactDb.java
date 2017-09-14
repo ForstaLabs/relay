@@ -119,15 +119,19 @@ public class ContactDb extends DbBase {
     return contacts;
   }
 
-  public HashMap<String, ForstaRecipient> getContactRecipients() {
+  public HashMap<String, ForstaRecipient> getContactRecipients(String localOrgSlug) {
     HashMap<String, ForstaRecipient> contacts = new HashMap<>();
     try {
       Cursor c = getRecords(TABLE_NAME, null, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
-        String fullSlug = c.getString(c.getColumnIndex(SLUG)) + ":" + c.getString(c.getColumnIndex(ORGSLUG));
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        String slug = c.getString(c.getColumnIndex(SLUG));
+        String orgSlug = c.getString(c.getColumnIndex(ContactDb.ORGSLUG));
+        if (!TextUtils.equals(orgSlug, localOrgSlug)) {
+          slug += ":" + orgSlug;
+        }
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
 
-        contacts.put(fullSlug, recipient);
+        contacts.put(slug, recipient);
       }
       c.close();
     } catch (Exception e) {
@@ -198,7 +202,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
         recipients.add(recipient);
       }
       c.close();
@@ -328,7 +332,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
         recipients.add(recipient);
       }
       c.close();
