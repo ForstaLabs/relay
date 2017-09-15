@@ -23,11 +23,10 @@ public class ForstaDistribution {
   private static final String TAG = ForstaDistribution.class.getSimpleName();
   public String pretty;
   public String universal;
-  public Set<String> userIds;
+  public Set<String> userIds = new HashSet<>();
   public String warning;
 
   public ForstaDistribution(JSONObject jsonResponse) {
-    userIds = new HashSet<>();
     try {
       JSONArray ids = jsonResponse.getJSONArray("userids");
       for (int i=0; i<ids.length(); i++) {

@@ -242,7 +242,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  localNumber, message.getTimestamp(), -1,
                                                                  message.getExpiresInSeconds() * 1000, true,
                                                                  Optional.fromNullable(envelope.getRelay()),
-                                                                 Optional.<String>absent(), message.getGroupInfo(),
+                                                                 message.getBody(), message.getGroupInfo(),
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
 
@@ -345,7 +345,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
 
-    ForstaMessage forstaMessage = new ForstaMessage(message.getBody().get());
+    ForstaMessage forstaMessage = new ForstaMessage(body);
     getForstaMessageDistribution(forstaMessage);
     mediaMessage.setForstaMessage(forstaMessage);
     refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
