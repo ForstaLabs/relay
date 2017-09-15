@@ -408,16 +408,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       sb.append("Thread: ");
       sb.append(tId);
       sb.append("\n");
-      sb.append("Thread Message: ").append("\n");
-      sb.append(trecord.getDisplayBody().toString());
-      sb.append("\n");
       Recipients trecipients = trecord.getRecipients();
 
       if (trecipients.isGroupRecipient()) {
         String groupId = trecipients.getPrimaryRecipient().getNumber();
         sb.append("Group Recipients").append("\n");
         sb.append("Group ID: ").append(groupId).append("\n");
-        Log.d(TAG, "TextSecure Group: " + groupId);
         try {
           byte[] id = GroupUtil.getDecodedId(groupId);
           Log.d(TAG, "Decoded Group: " + id);
@@ -456,15 +452,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         Recipients recipients = record.getRecipients();
         long threadId = record.getThreadId();
         CharSequence body = record.getDisplayBody();
+        String rawBody = record.getBody().getBody();
         long timestamp = record.getTimestamp();
         Date dt = new Date(timestamp);
         List<Recipient> recipList = recipients.getRecipientsList();
         List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
-        sb.append("Group Update: ").append(record.isGroupUpdate());
+        sb.append("Expiration Timer: ").append(record.isExpirationTimerUpdate());
         sb.append("\n");
-        sb.append("Group Action: ").append(record.isGroupAction());
-        sb.append("\n");
-        sb.append("Group Quit: ").append(record.isGroupQuit());
+        sb.append("Key Exchange: ").append(record.isBundleKeyExchange());
         sb.append("\n");
         sb.append("Message Recipients: ").append("\n");
         for (Recipient r : recipList) {
@@ -478,7 +473,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append(dt.toString());
         sb.append("\n");
         sb.append("Message: ");
-        sb.append(body.toString());
+        sb.append(rawBody);
         sb.append("\n");
         sb.append("Attachments:");
         for (DatabaseAttachment item : attachments) {
