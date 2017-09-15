@@ -422,6 +422,7 @@ public class ConversationFragment extends Fragment
       } else {
         ForstaMessage message = new ForstaMessage(messageRecord.getDisplayBody().toString());
         StringBuilder sb = new StringBuilder();
+        sb.append("Message: ").append(message.messageId).append("\n");
         sb.append("Sender: ").append(message.senderId).append("\n");
         sb.append("Thread: ").append(message.threadId).append("\n");
         sb.append("Thread Title: ").append(message.threadTitle).append("\n");
