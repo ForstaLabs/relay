@@ -630,7 +630,7 @@ public class MmsDatabase extends MessagingDatabase {
         if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
           return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
         } else if (Types.isExpirationTimerUpdate(outboxType)) {
-          return new OutgoingExpirationUpdateMessage(recipients, timestamp, expiresIn);
+          return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
         OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
