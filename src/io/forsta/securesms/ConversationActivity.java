@@ -530,7 +530,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                            .setExpireMessages(recipients, expirationTime);
             recipients.setExpireMessages(expirationTime);
 
+
             OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
+            ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+            outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
             MessageSender.send(ConversationActivity.this, masterSecret, outgoingMessage, threadId, false);
 
             invalidateOptionsMenu();

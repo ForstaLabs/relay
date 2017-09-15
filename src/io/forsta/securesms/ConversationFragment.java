@@ -420,7 +420,7 @@ public class ConversationFragment extends Fragment
 
         setCorrectMenuVisibility(actionMode.getMenu());
       } else {
-        ForstaMessage message = new ForstaMessage(messageRecord.getDisplayBody().toString());
+        ForstaMessage message = new ForstaMessage(messageRecord.getBody().getBody());
         StringBuilder sb = new StringBuilder();
         sb.append("Message: ").append(message.messageId).append("\n");
         sb.append("Sender: ").append(message.senderId).append("\n");

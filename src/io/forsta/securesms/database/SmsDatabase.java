@@ -596,6 +596,7 @@ public class SmsDatabase extends MessagingDatabase {
     else if (message.isEndSession())    type |= Types.END_SESSION_BIT;
     if      (forceSms)                  type |= Types.MESSAGE_FORCE_SMS_BIT;
 
+    // Only one on one messages go through this method, so only one recipient.
     String address = PhoneNumberUtils.formatNumber(message.getRecipients().getPrimaryRecipient().getNumber());
 
     ContentValues contentValues = new ContentValues(6);
