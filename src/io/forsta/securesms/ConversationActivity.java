@@ -1447,8 +1447,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           } else {
             threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
           }
-          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, threadData);
-          message = message.withBody(forstaBody);
+          message.setForstaJsonBody(ConversationActivity.this, threadData);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
