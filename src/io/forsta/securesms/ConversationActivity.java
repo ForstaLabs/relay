@@ -998,11 +998,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     titleView.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
-        intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
-        intent.putExtra(RecipientPreferenceActivity.THREAD_ID_EXTRA, threadId);
+        if (threadId != -1) {
+          Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
+          intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
+          intent.putExtra(RecipientPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-        startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+        }
       }
     });
 
