@@ -70,7 +70,7 @@ public class ForstaUser {
       if (userObj.has("phone")) {
         this.phone = userObj.getString("phone");
       }
-      this.tsRegistered = userObj.has("is_active") ? userObj.getBoolean("is_active") : true;
+      this.tsRegistered = false;
 
     } catch (JSONException e) {
       e.printStackTrace();
