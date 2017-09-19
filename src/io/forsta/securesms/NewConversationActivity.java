@@ -30,11 +30,13 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -74,9 +76,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     } else {
       // This is only a single user or tag.
-      Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, false);
+      ForstaUser forstaUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+      List<String> recipientList = new ArrayList<>();
+      recipientList.add(number);
+      recipientList.add(forstaUser.uid);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, recipientList, false);
       for (Recipient recipient: recipients) {
-        sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug());
+        sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug()).append(" ");
       }
     }
 
