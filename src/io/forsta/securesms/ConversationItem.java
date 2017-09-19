@@ -40,6 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
@@ -284,12 +285,11 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      Spanned forstaBody = ForstaUtils.getForstaHtmlBody(messageRecord.getDisplayBody().toString());
-      if (forstaBody != null) {
-        bodyText.setText(forstaBody);
+      ForstaMessage forstaMessage = new ForstaMessage(messageRecord.getDisplayBody().toString());
+      if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
+        bodyText.setText(forstaMessage.htmlBody);
       } else {
-        String forstaPlainBody = ForstaUtils.getForstaPlainTextBody(messageRecord.getDisplayBody().toString());
-        bodyText.setText(forstaPlainBody);
+        bodyText.setText(forstaMessage.textBody);
       }
       bodyText.setVisibility(View.VISIBLE);
     }

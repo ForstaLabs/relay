@@ -119,7 +119,7 @@ public class DirectoryHelper {
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
       // Update the forsta contacts db to set active users.
-      contactsDb.setActiveForstaAddresses(activeTokens);
+      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
       contactsDb.close();
     }
 

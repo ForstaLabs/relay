@@ -30,6 +30,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
@@ -50,16 +51,13 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,10 +65,12 @@ import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.components.AttachmentTypeSelector;
@@ -97,6 +97,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.MediaUtil;
@@ -130,6 +131,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   private ContentObserver observer;
   private MasterSecret masterSecret;
+  private ForstaUser localUser;
 
   private static final int PICK_IMAGE        = 1;
   private static final int PICK_VIDEO        = 2;
@@ -164,7 +166,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   // TODO use these or remove them. These are copy pasta from ConversationActivity.
   private Recipients recipients;
-  private long threadId;
   private int distributionType;
   private boolean archived;
   private boolean isSecureText;
@@ -187,6 +188,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
+    localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
     if (savedState != null && savedState.getString(DRAFT_KEY) != null) {
       composeText.setText(savedState.getString(DRAFT_KEY));
     }
@@ -359,13 +361,17 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   public void onCreateConversation(long threadId, Recipients recipients, int distributionType) {
-    Intent intent = new Intent(this, ConversationActivity.class);
-    intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-    intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
-    intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, distributionType);
+    if (recipients == null || recipients.isEmpty()) {
+      Toast.makeText(ConversationListActivity.this, "Error. This thread has no recipients. Please remove it.", Toast.LENGTH_LONG).show();
+    } else {
+      Intent intent = new Intent(this, ConversationActivity.class);
+      intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+      intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
+      intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, distributionType);
 
-    startActivity(intent);
-    overridePendingTransition(R.anim.slide_from_right, R.anim.fade_scale_out);
+      startActivity(intent);
+      overridePendingTransition(R.anim.slide_from_right, R.anim.fade_scale_out);
+    }
   }
 
   @Override
@@ -425,7 +431,13 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         Recipients recipients = RecipientFactory.getRecipientsFromString(ConversationListActivity.this, uid, false);
         Recipient recipient = recipients.getPrimaryRecipient();
         String slug = recipient.getSlug();
+        String orgSlug = recipient.getOrgSlug();
+
+        if (!TextUtils.equals(orgSlug, localUser.org_slug)) {
+          slug += ":" + orgSlug;
+        }
         sb.append("@").append(slug).append(" ");
+
         composeText.setText(sb.toString());
         composeText.setSelection(composeText.getText().length());
         hideDirectory();
@@ -475,8 +487,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private void getSlugs() {
     ContactDb db = DbFactory.getContactDb(ConversationListActivity.this);
     GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(ConversationListActivity.this);
-    forstaSlugs = db.getContactRecipients();
-    forstaSlugs.putAll(groupDb.getForstaRecipients());
+    forstaSlugs = db.getContactRecipients(localUser.org_slug);
+    forstaSlugs.putAll(groupDb.getForstaRecipients(localUser.org_slug));
   }
 
   private void addAttachmentContactInfo(Uri contactUri) {
@@ -519,11 +531,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
-  }
-
-  private void handleDirectory() {
-    Intent directoryIntent = new Intent(this, NewConversationActivity.class);
-    startActivity(directoryIntent);
   }
 
   private void handleDirectoryRefresh() {
@@ -717,74 +724,46 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void sendForstaMessage() {
-    new AsyncTask<String, Void, String>() {
+    new AsyncTask<String, Void, Pair<String, Recipients>>() {
 
       @Override
-      protected String doInBackground(String... params) {
-        Set<String> addresses = new HashSet<String>();
-        String universalExpression = "";
-        String prettyExpression = "";
+      protected Pair<String, Recipients> doInBackground(String... params) {
         String message = params[0];
 
-          try {
-            JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message);
-            // Temporary. Until object changes on endpoint.
-            try {
-              JSONObject warnings = result.getJSONObject("warnings");
-              if (warnings.has("cue")) {
-                return warnings.getString("cue");
-              }
-            } catch (JSONException e) {
-              Log.w(TAG, "No warnings object found");
-            }
-
-            JSONArray userids = result.getJSONArray("userids");
-            if (userids.length() > 1) {
-              // This is a group. Add local address to distribution.
-              ForstaUser localUser = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(ConversationListActivity.this)));
-              result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
-              userids = result.getJSONArray("userids");
-            }
-
-            if (userids.length() < 1) {
-              return "No recipients found in message";
-            }
-
-            for (int i=0; i<userids.length(); i++) {
-              addresses.add(userids.getString(i));
-            }
-            universalExpression = result.getString("universal");
-            prettyExpression = result.getString("pretty");
-          } catch (JSONException e) {
-            e.printStackTrace();
-            return "Error reading from directory";
-          }
-
-        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, new ArrayList<String>(addresses), false);
-        if (messageRecipients.isEmpty()) {
-          return "No recipients found in message";
+        JSONObject result = CcsmApi.getDistribution(ConversationListActivity.this, message + " @" + localUser.slug);
+        ForstaDistribution distribution = new ForstaDistribution(result);
+        if (!TextUtils.isEmpty(distribution.warning)) {
+          return new Pair(distribution.warning, null);
         }
+
+        List<String> recipientList = distribution.getRecipients(ConversationListActivity.this);
+        if (recipientList.size() < 1) {
+          // TODO Fix this so that someone can send to themselves? Right now, it removes local user from message send.
+          return new Pair("No recipients found in message", null);
+        }
+
+        Recipients messageRecipients = RecipientFactory.getRecipientsFromStrings(ConversationListActivity.this, recipientList, false);
+
         long expiresIn = messageRecipients.getExpireMessages() * 1000;
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(ConversationListActivity.this);
-        // TODO change this to use the distribution to look up the threadId, or use the threadId in the message body.
-        // Need to change all other methods that look up the thread by recipients.
-        final long threadId = threadDb.getThreadIdFor(messageRecipients);
-        String threadUid = threadDb.getThreadUid(threadId);
-        threadDb.updateForstaDistribution(threadId, universalExpression, prettyExpression, null);
+        ForstaThread forstaThread = threadDb.getThreadForDistribution(distribution.universal);
+        if (forstaThread == null) {
+          forstaThread = threadDb.allocateThread(messageRecipients, distribution);
+        }
 
-        // TODO Always send media message?
         OutgoingMediaMessage mediaMessage = new OutgoingMediaMessage(messageRecipients, attachmentManager.buildSlideDeck(), message, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.DEFAULT);
-        mediaMessage.setForstaJsonBody(ConversationListActivity.this, universalExpression, prettyExpression, threadUid);
-        MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, threadId, false);
-        return null;
+        mediaMessage.setForstaJsonBody(ConversationListActivity.this, forstaThread);
+        MessageSender.send(ConversationListActivity.this, masterSecret, mediaMessage, forstaThread.threadid, false);
+
+        return new Pair(null, messageRecipients);
       }
 
       @Override
-      protected void onPostExecute(String result) {
-        //Maybe return threadid?
-        if (!TextUtils.isEmpty(result)) {
-          Toast.makeText(ConversationListActivity.this, result, Toast.LENGTH_LONG).show();
+      protected void onPostExecute(Pair<String, Recipients> result) {
+        if (!TextUtils.isEmpty(result.first)) {
+          Toast.makeText(ConversationListActivity.this, result.first, Toast.LENGTH_LONG).show();
         } else {
+          ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), masterSecret, result.second));
           fragment.getListAdapter().notifyDataSetChanged();
           attachmentManager.clear();
           composeText.setText("");
@@ -844,7 +823,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-      Pattern p = Pattern.compile("@[a-zA-Z0-9-]+");
+      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
       Matcher m = p.matcher(charSequence);
       String input = charSequence.toString();
 

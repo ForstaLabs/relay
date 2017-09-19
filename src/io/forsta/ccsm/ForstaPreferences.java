@@ -3,28 +3,11 @@ package io.forsta.ccsm;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.ArrayMap;
-import android.util.Pair;
 
-import com.h6ah4i.android.compat.utils.SharedPreferencesJsonStringSetWrapperUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
-
-import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.ccsm.api.ForstaJWT;
-import io.forsta.securesms.BuildConfig;
-import io.forsta.securesms.util.Base64;
+import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.securesms.util.TextSecurePreferences;
 
-import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
 
 /**
  * Created by jlewis on 1/6/17.

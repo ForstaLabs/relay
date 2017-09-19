@@ -31,6 +31,7 @@ public class ContactDb extends DbBase {
   public static final String EMAIL = "email";
   public static final String NUMBER = "number";
   public static final String USERNAME = "username";
+  public static final String AVATAR = "avatar";
   public static final String UID = "uid";
   public static final String TAGID = "tagid";
   public static final String SLUG = "slug";
@@ -46,6 +47,7 @@ public class ContactDb extends DbBase {
       EMAIL + ", " +
       NUMBER + ", " +
       USERNAME + ", " +
+      AVATAR + ", " +
       UID + ", " +
       TAGID + ", " +
       SLUG + ", " +
@@ -62,6 +64,7 @@ public class ContactDb extends DbBase {
       EMAIL,
       NUMBER,
       USERNAME,
+      AVATAR,
       UID,
       TAGID,
       SLUG,
@@ -116,13 +119,19 @@ public class ContactDb extends DbBase {
     return contacts;
   }
 
-  public HashMap<String, ForstaRecipient> getContactRecipients() {
+  public HashMap<String, ForstaRecipient> getContactRecipients(String localOrgSlug) {
     HashMap<String, ForstaRecipient> contacts = new HashMap<>();
     try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
+      Cursor c = getRecords(TABLE_NAME, null, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
-        contacts.put(c.getString(c.getColumnIndex(SLUG)), recipient);
+        String slug = c.getString(c.getColumnIndex(SLUG));
+        String orgSlug = c.getString(c.getColumnIndex(ContactDb.ORGSLUG));
+        if (!TextUtils.equals(orgSlug, localOrgSlug)) {
+          slug += ":" + orgSlug;
+        }
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
+
+        contacts.put(slug, recipient);
       }
       c.close();
     } catch (Exception e) {
@@ -193,7 +202,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
         recipients.add(recipient);
       }
       c.close();
@@ -217,8 +226,10 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.TAGID, user.tag_id);
         values.put(ContactDb.SLUG, user.slug);
         values.put(ContactDb.UID, user.uid);
+        values.put(ContactDb.AVATAR, user.avatar);
         values.put(ContactDb.NAME, user.name);
         values.put(ContactDb.ORGID, user.org_id);
+        values.put(ContactDb.ORGSLUG, user.org_slug);
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.EMAIL, user.email);
@@ -258,6 +269,24 @@ public class ContactDb extends DbBase {
     values.put(TSREGISTERED, user.tsRegistered);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
+  }
+
+  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
+    for (ContactTokenDetails token : activeTokens) {
+      String address = token.getNumber();
+      ContentValues values = new ContentValues();
+      values.put(TSREGISTERED, true);
+      db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
+    }
+
+    for (String address : eligibleAddresses) {
+      ContentValues values = new ContentValues();
+      values.put(TSREGISTERED, false);
+      db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
+    }
+    db.close();
   }
 
   public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens) {
@@ -321,7 +350,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
       while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGID)));
+        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
         recipients.add(recipient);
       }
       c.close();

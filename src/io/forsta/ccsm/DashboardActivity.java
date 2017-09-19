@@ -7,9 +7,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.text.Spanned;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,23 +16,19 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.forsta.ccsm.api.ForstaJWT;
+import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -248,8 +242,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
-//    Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
-//    intent.putExtra("next_intent", nextIntent);
     startActivity(intent);
     finish();
   }
@@ -295,97 +287,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     }
 
     mLoginInfo.setText(sb.toString());
-  }
-
-  private String printSystemContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.querySystemContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("System Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllRawContacts() {
-    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllContactData() {
-    String qs = ContactsContract.Data.MIMETYPE + " = ?";
-    String[] q = new String[] {"vnd.android.cursor.item/name"};
-    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
-
-    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printTextSecureContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.queryTextSecureContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-    return sb.toString();
   }
 
   private String printGroups() {
@@ -507,16 +408,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       sb.append("Thread: ");
       sb.append(tId);
       sb.append("\n");
-      sb.append("Thread Message: ").append("\n");
-      sb.append(trecord.getDisplayBody().toString());
-      sb.append("\n");
       Recipients trecipients = trecord.getRecipients();
 
       if (trecipients.isGroupRecipient()) {
         String groupId = trecipients.getPrimaryRecipient().getNumber();
         sb.append("Group Recipients").append("\n");
         sb.append("Group ID: ").append(groupId).append("\n");
-        Log.d(TAG, "TextSecure Group: " + groupId);
         try {
           byte[] id = GroupUtil.getDecodedId(groupId);
           Log.d(TAG, "Decoded Group: " + id);
@@ -555,15 +452,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         Recipients recipients = record.getRecipients();
         long threadId = record.getThreadId();
         CharSequence body = record.getDisplayBody();
+        String rawBody = record.getBody().getBody();
         long timestamp = record.getTimestamp();
         Date dt = new Date(timestamp);
         List<Recipient> recipList = recipients.getRecipientsList();
         List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
-        sb.append("Group Update: ").append(record.isGroupUpdate());
+        sb.append("Expiration Timer: ").append(record.isExpirationTimerUpdate());
         sb.append("\n");
-        sb.append("Group Action: ").append(record.isGroupAction());
-        sb.append("\n");
-        sb.append("Group Quit: ").append(record.isGroupQuit());
+        sb.append("Key Exchange: ").append(record.isBundleKeyExchange());
         sb.append("\n");
         sb.append("Message Recipients: ").append("\n");
         for (Recipient r : recipList) {
@@ -577,7 +473,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append(dt.toString());
         sb.append("\n");
         sb.append("Message: ");
-        sb.append(body.toString());
+        sb.append(rawBody);
         sb.append("\n");
         sb.append("Attachments:");
         for (DatabaseAttachment item : attachments) {
@@ -670,20 +566,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       }
       sb.append(printIdentities());
       mDebugText.setText(sb.toString());
-    }
-  }
-
-  private class RefreshApiToken extends AsyncTask<Void, Void, JSONObject> {
-
-    @Override
-    protected JSONObject doInBackground(Void... params) {
-      return CcsmApi.forstaRefreshToken(DashboardActivity.this);
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject jsonObject) {
-      Log.d(TAG, jsonObject.toString());
-      printLoginInformation();
     }
   }
 

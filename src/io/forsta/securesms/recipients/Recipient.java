@@ -46,6 +46,7 @@ public class Recipient {
   private @NonNull  String  number;
   private @Nullable String  name;
   private @Nullable String slug;
+  private @Nullable String orgSlug;
   private String email;
   private boolean stale;
 
@@ -70,6 +71,7 @@ public class Recipient {
       this.contactPhoto = stale.contactPhoto;
       this.color        = stale.color;
       this.slug = stale.slug;
+      this.orgSlug = stale.orgSlug;
     }
 
     future.addListener(new FutureTaskListener<RecipientDetails>() {
@@ -83,6 +85,7 @@ public class Recipient {
             Recipient.this.contactPhoto = result.avatar;
             Recipient.this.color        = result.color;
             Recipient.this.slug = result.slug;
+            Recipient.this.orgSlug = result.orgSlug;
           }
 
           notifyListeners();
@@ -104,6 +107,7 @@ public class Recipient {
     this.contactPhoto = details.avatar;
     this.color        = details.color;
     this.slug = details.slug;
+    this.orgSlug = details.orgSlug;
   }
 
   public synchronized @Nullable Uri getContactUri() {
@@ -116,6 +120,10 @@ public class Recipient {
 
   public synchronized @Nullable String getSlug() {
     return this.slug;
+  }
+
+  public synchronized @Nullable String getOrgSlug() {
+    return this.orgSlug;
   }
 
   public synchronized @NonNull MaterialColor getColor() {
@@ -162,7 +170,7 @@ public class Recipient {
 
   public static Recipient getUnknownRecipient() {
     return new Recipient(-1, new RecipientDetails("Unknown", "Unknown", null,
-                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null));
+                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null));
   }
 
   @Override
