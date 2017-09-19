@@ -7,7 +7,7 @@
           app:showAsAction="never" />
 
     <item android:title="@string/text_secure_normal__menu_new_group"
-        android:id="@+id/menu_new_group" />
+        android:id="@+id/menu_new_group" android:visible="false" />
 
     <!--<item android:title="@string/text_secure_normal__invite_friends"-->
         <!--android:id="@+id/menu_invite" />-->
