@@ -76,7 +76,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       // This is only a single user or tag.
       Recipients recipients = RecipientFactory.getRecipientsFromString(this, number, false);
       for (Recipient recipient: recipients) {
-        sb.append("@").append(recipient.getSlug()).append(" ");
+        sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug());
       }
     }
 
