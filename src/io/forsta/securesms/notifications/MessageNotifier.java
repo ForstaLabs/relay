@@ -38,6 +38,7 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.R;
@@ -380,7 +381,8 @@ public class MessageNotifier {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
-      body = ForstaUtils.getForstaPlainTextBody(body.toString());
+      ForstaMessage forstaMessage = new ForstaMessage(body.toString());
+      body = forstaMessage.textBody;
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));

@@ -30,6 +30,8 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -628,7 +630,7 @@ public class MmsDatabase extends MessagingDatabase {
         if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
           return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
         } else if (Types.isExpirationTimerUpdate(outboxType)) {
-          return new OutgoingExpirationUpdateMessage(recipients, timestamp, expiresIn);
+          return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
         OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
@@ -694,8 +696,17 @@ public class MmsDatabase extends MessagingDatabase {
       throws MmsException
   {
 
-    if (threadId == -1 && retrieved.getForstaRecipients() != null) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(retrieved.getForstaRecipients());
+    ForstaMessage forstaMessage = retrieved.getForstaMessage();
+
+    if (threadId == -1 && (forstaMessage != null && !TextUtils.isEmpty(forstaMessage.threadId))) {
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+      if (threadId == -1) {
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+      } else {
+        threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+      }
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
       try {
         threadId = getThreadIdFor(retrieved);

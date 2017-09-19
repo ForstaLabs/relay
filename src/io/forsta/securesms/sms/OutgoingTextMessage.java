@@ -1,12 +1,17 @@
 package io.forsta.securesms.sms;
 
+import android.content.Context;
+
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.recipients.Recipients;
 
 public class OutgoingTextMessage {
 
   private final Recipients recipients;
-  protected final String     message;
+  protected String     message;
   private final int        subscriptionId;
   private final long       expiresIn;
 
@@ -76,5 +81,8 @@ public class OutgoingTextMessage {
     return new OutgoingTextMessage(this, body);
   }
 
+  public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
+    this.message = ForstaUtils.createForstaMessageBody(context, this.message, recipients, forstaThread);
+  }
 
 }

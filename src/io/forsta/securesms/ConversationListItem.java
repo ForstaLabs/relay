@@ -27,6 +27,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +39,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
@@ -91,6 +93,7 @@ public class ConversationListItem extends RelativeLayout
 
   private final Handler handler = new Handler();
   private int distributionType;
+  private String forstaThreadTitle;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -127,12 +130,15 @@ public class ConversationListItem extends RelativeLayout
     this.threadId         = thread.getThreadId();
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
-
     this.recipients.addListener(this);
-    this.fromView.setText(recipients, read);
+    this.forstaThreadTitle = thread.getTitle();
 
-    String forstaBody = ForstaUtils.getForstaPlainTextBody(thread.getDisplayBody().toString());
-    subjectView.setText(forstaBody);
+    this.fromView.setText(recipients, read);
+    setForstaThreadTitle();
+
+    ForstaMessage forstaMessage = new ForstaMessage(thread.getDisplayBody().toString());
+    String body = forstaMessage.textBody;
+    subjectView.setText(body);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
@@ -242,6 +248,7 @@ public class ConversationListItem extends RelativeLayout
       @Override
       public void run() {
         fromView.setText(recipients, read);
+        setForstaThreadTitle();
         contactPhotoImage.setAvatar(recipients, true);
         setRippleColor(recipients);
       }
@@ -284,4 +291,9 @@ public class ConversationListItem extends RelativeLayout
     }
   }
 
+  private void setForstaThreadTitle() {
+    if (!TextUtils.isEmpty(forstaThreadTitle)) {
+      this.fromView.setForstaTitle(forstaThreadTitle, read);
+    }
+  }
 }

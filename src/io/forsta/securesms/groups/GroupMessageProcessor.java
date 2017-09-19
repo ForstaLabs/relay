@@ -60,6 +60,7 @@ public class GroupMessageProcessor {
     SignalServiceGroup group    = message.getGroupInfo().get();
     byte[]             id       = group.getGroupId();
     GroupRecord        record   = database.getGroup(id);
+    Log.w(TAG, "Received group message type: " + group.getType() + " name: " + group.getName());
 
     if (record != null && group.getType() == SignalServiceGroup.Type.UPDATE) {
       return handleGroupUpdate(context, masterSecret, envelope, group, record, outgoing);

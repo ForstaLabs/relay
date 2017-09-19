@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import org.json.JSONObject;
 
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
@@ -104,7 +105,7 @@ public class OutgoingMediaMessage {
     }
   }
 
-  public void setForstaJsonBody(Context context, String universalExpression, String prettyExpression, String threadUid) {
-    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, universalExpression, prettyExpression, threadUid);
+  public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
+    this.body = ForstaUtils.createForstaMessageBody(context, this.body, recipients, forstaThread);
   }
 }

@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
@@ -36,12 +35,12 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.provider.Browser;
 import android.provider.ContactsContract;
-import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
@@ -49,7 +48,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -64,8 +62,10 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
-import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -91,8 +91,6 @@ import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
-import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -134,7 +132,6 @@ import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
@@ -143,7 +140,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
@@ -212,9 +208,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private Recipients recipients;
   private long       threadId;
-  private String threadUid;
-  private String distribution;
-  private String title;
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText;
@@ -245,7 +238,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeActionBar();
     initializeViews();
     initializeResources();
-    initializeSecurity(false, false).addListener(new AssertedSuccessListener<Boolean>() {
+    initializeSecurity(true, false).addListener(new AssertedSuccessListener<Boolean>() {
       @Override
       public void onSuccess(Boolean result) {
         initializeDraft();
@@ -271,7 +264,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     setIntent(intent);
     initializeResources();
-    initializeSecurity(false, false).addListener(new AssertedSuccessListener<Boolean>() {
+    initializeSecurity(true, false).addListener(new AssertedSuccessListener<Boolean>() {
       @Override
       public void onSuccess(Boolean result) {
         initializeDraft();
@@ -290,19 +283,30 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     dynamicLanguage.onResume(this);
     quickAttachmentDrawer.onResume();
 
-    getThread();
+
     initializeEnabledCheck();
     initializeMmsEnabledCheck();
     composeText.setTransport(sendButton.getSelectedTransport());
 
     titleView.setTitle(recipients);
-//    setActionBarColor(recipients.getColor());
+    setForstaTitle();
+
+    setActionBarColor(recipients.getColor());
     setBlockedUserState(recipients);
     calculateCharactersRemaining();
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
 
+  }
+
+  private void setForstaTitle() {
+    if (threadId != -1) {
+      ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+      if (!TextUtils.isEmpty(forstaThread.title)) {
+        titleView.setForstaTitle(forstaThread.title);
+      }
+    }
   }
 
   @Override
@@ -526,7 +530,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                            .setExpireMessages(recipients, expirationTime);
             recipients.setExpireMessages(expirationTime);
 
+
             OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
+            ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+            outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
             MessageSender.send(ConversationActivity.this, masterSecret, outgoingMessage, threadId, false);
 
             invalidateOptionsMenu();
@@ -855,13 +862,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         try {
           Context           context      = ConversationActivity.this;
           Recipients        recipients   = params[0];
-          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
+//          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
+//          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
+//              capabilities.getVoiceCapability() == Capability.UNKNOWN)
+//          {
+//            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+//          }
 
-          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
-              capabilities.getVoiceCapability() == Capability.UNKNOWN)
-          {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          }
+          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
 
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
@@ -990,10 +998,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     titleView.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
-        intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
+        if (threadId != -1) {
+          Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
+          intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
+          intent.putExtra(RecipientPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-        startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+        }
       }
     });
 
@@ -1041,15 +1052,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
-
-    new AsyncTask<Void, Void, Void>() {
-
-      @Override
-      protected Void doInBackground(Void... voids) {
-        DirectoryHelper.refreshDirectoryFor(getApplicationContext(), masterSecret, recipients);
-        return null;
-      }
-    }.execute();
   }
 
   @Override
@@ -1058,6 +1060,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void run() {
         titleView.setTitle(recipients);
+        setForstaTitle();
         setBlockedUserState(recipients);
         setActionBarColor(recipients.getColor());
         invalidateOptionsMenu();
@@ -1401,8 +1404,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         if (message.isSecure()) {
-          createForstaDistribution();
-          message.setForstaJsonBody(context, distribution, title, threadUid);
+          ForstaThread threadData;
+          if (threadId == -1) {
+            threadData = createForstaThread();
+          } else {
+            threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+          }
+          message.setForstaJsonBody(context, threadData);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
@@ -1438,9 +1446,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
         OutgoingTextMessage message = messages[0];
         if (message.isSecureMessage()) {
-          createForstaDistribution();
-          String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, message.getMessageBody(), recipients, distribution, title, threadUid);
-          message = message.withBody(forstaBody);
+          ForstaThread threadData;
+          if (threadId == -1) {
+            threadData = createForstaThread();
+          } else {
+            threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+          }
+          message.setForstaJsonBody(ConversationActivity.this, threadData);
         }
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
@@ -1452,17 +1464,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }.execute(message);
   }
 
-  private void createForstaDistribution() {
-    if (threadId == -1) {
+  private ForstaThread createForstaThread() {
       String expression = recipients.getRecipientExpression();
-      JSONObject distribution = CcsmApi.getDistribution(ConversationActivity.this, expression);
-      String universal = ForstaUtils.getUniversalDistribution(distribution);
-      String pretty = ForstaUtils.getPrettyDistribution(distribution);
+      ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
+      expression += "@" + user.slug;
+
+      JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);
+      ForstaDistribution distribution = new ForstaDistribution(response);
       ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-      threadId = db.getThreadIdFor(recipients);
-      db.updateForstaDistribution(threadId, universal, pretty, null);
-      getThread();
-    }
+      return db.allocateThread(recipients, distribution);
   }
 
   private void updateToggleButtonState() {
@@ -1728,20 +1738,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateInviteReminder(result.second != null && result.second.hasSeenInviteReminder());
         updateDefaultSubscriptionId(result.second != null ? result.second.getDefaultSubscriptionId() : Optional.<Integer>absent());
       }
-    }
-  }
-
-  private void getThread() {
-    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-    Cursor cursor = db.getThread(threadId);
-    try {
-      if (cursor != null && cursor.moveToFirst()) {
-        threadUid = cursor.getString(cursor.getColumnIndex(ThreadDatabase.UID));
-        distribution = cursor.getString(cursor.getColumnIndex(ThreadDatabase.DISTRIBUTION));
-        title = cursor.getString(cursor.getColumnIndex(ThreadDatabase.TITLE));
-      }
-    }finally {
-      cursor.close();
     }
   }
 }

@@ -16,6 +16,7 @@ import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingGroupMediaMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
@@ -50,8 +51,8 @@ public class CcsmSync {
         byte[] decodedGroupId = GroupUtil.getDecodedId(primary);
         recipients = DatabaseFactory.getGroupDatabase(context).getGroupMembers(decodedGroupId, false);
       }
-      // Filters out group create/update messages.
-      if (!(message instanceof OutgoingGroupMediaMessage)) {
+      // Filters out group create/update messages and expiration update messages.
+      if (!(message instanceof OutgoingGroupMediaMessage || message.isExpirationUpdate())) {
         syncMessage(masterSecret, context, recipients, message.getBody(), message.getAttachments(), message.getExpiresIn(), message.getSubscriptionId());
       }
 
