@@ -3,6 +3,7 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -159,7 +160,10 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = new LinkedList<>();
 
     for (Recipient recipient : recipients.getRecipientsList()) {
-      addresses.add(getPushAddress(recipient.getNumber()));
+      ForstaUser forstaUser = ForstaUser.getLocalForstaUser(getContext());
+      if (!forstaUser.uid.equals(recipient.getNumber())) {
+        addresses.add(getPushAddress(recipient.getNumber()));
+      }
     }
 
     return addresses;
