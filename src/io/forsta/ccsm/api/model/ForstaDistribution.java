@@ -28,6 +28,8 @@ public class ForstaDistribution {
 
   public ForstaDistribution(JSONObject jsonResponse) {
     try {
+      Log.w(TAG, "Distribution object:");
+      Log.w(TAG, jsonResponse.toString());
       JSONArray ids = jsonResponse.getJSONArray("userids");
       for (int i=0; i<ids.length(); i++) {
         userIds.add(ids.getString(i));
