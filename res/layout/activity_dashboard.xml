@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Show Sync Messages"
-            android:id="@+id/dashboard_toggle_sync_messages"/>
+            android:id="@+id/dashboard_toggle_sync_messages" android:visibility="gone"/>
         <TextView android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/dashboard_login_info"

@@ -45,6 +45,7 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 /**
  * Activity container for starting a new conversation.
@@ -76,10 +77,10 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     } else {
       // This is only a single user or tag. Add local user to distribution.
-      ForstaUser forstaUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+      String localUid = TextSecurePreferences.getLocalNumber(NewConversationActivity.this);
       List<String> recipientList = new ArrayList<>();
       recipientList.add(number);
-      recipientList.add(forstaUser.uid);
+      recipientList.add(localUid);
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, recipientList, false);
       for (Recipient recipient: recipients) {
         sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug()).append(" ");

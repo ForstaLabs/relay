@@ -37,6 +37,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.NumberUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.ArrayList;
 
@@ -100,9 +101,10 @@ public class ContactsCursorLoader extends CursorLoader {
     ContactDb contactDb = DbFactory.getContactDb(getContext());
     Cursor contactsCursor = contactDb.getActiveRecipients(filter);
     ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
+    String localUid = TextSecurePreferences.getLocalNumber(getContext());
     try {
       while (contactsCursor != null && contactsCursor.moveToNext()) {
-        if (!localUser.uid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
+        if (!localUid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
           forstaContactsCursor.addRow(new Object[]{
               contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
               contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),

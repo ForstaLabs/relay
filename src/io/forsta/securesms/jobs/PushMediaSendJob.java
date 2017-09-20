@@ -37,6 +37,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
+import io.forsta.securesms.util.TextSecurePreferences;
 import ws.com.google.android.mms.MmsException;
 
 public class PushMediaSendJob extends PushSendJob implements InjectableType {
@@ -161,7 +162,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
     for (Recipient recipient : recipients.getRecipientsList()) {
       ForstaUser forstaUser = ForstaUser.getLocalForstaUser(getContext());
-      if (!forstaUser.uid.equals(recipient.getNumber())) {
+      String localUid = TextSecurePreferences.getLocalNumber(context);
+      if (!localUid.equals(recipient.getNumber())) {
         addresses.add(getPushAddress(recipient.getNumber()));
       }
     }
