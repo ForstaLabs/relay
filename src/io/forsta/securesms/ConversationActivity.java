@@ -862,14 +862,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         try {
           Context           context      = ConversationActivity.this;
           Recipients        recipients   = params[0];
-//          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
-//          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
-//              capabilities.getVoiceCapability() == Capability.UNKNOWN)
-//          {
-//            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-//          }
 
-          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          UserCapabilities capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
+          if (capabilities.getTextCapability() == Capability.UNKNOWN) {
+            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          }
 
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
@@ -1467,7 +1464,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private ForstaThread createForstaThread() {
       String expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
-      expression += "@" + user.slug;
+      if (!recipients.isGroupRecipient()) {
+        expression += "@" + user.slug;
+      }
 
       JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);
       ForstaDistribution distribution = new ForstaDistribution(response);

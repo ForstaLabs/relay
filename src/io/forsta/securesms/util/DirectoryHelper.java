@@ -33,6 +33,7 @@ import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
@@ -170,6 +171,14 @@ public class DirectoryHelper {
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
 
     try {
+      if (recipients.isGroupRecipient()) {
+        Optional<ContactTokenDetails> details = accountManager.getContact(recipients.getPrimaryRecipient().getNumber());
+        if (details.isPresent()) {
+          directory.setNumber(details.get(), true);
+          // Now go get unknown tag from CCSM
+          return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+        }
+      }
       List<String> addresses = recipients.toNumberStringList(false);
       String ids = TextUtils.join(",", addresses);
 
@@ -202,6 +211,13 @@ public class DirectoryHelper {
       }
 
       if (!recipients.isSingleRecipient()) {
+        boolean isSecure = false;
+        for (Recipient recipient : recipients) {
+          isSecure  = TextSecureDirectory.getInstance(context).isSecureTextSupported(recipient.getNumber());
+        }
+        if (isSecure) {
+          return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+        }
         return UserCapabilities.UNSUPPORTED;
       }
 

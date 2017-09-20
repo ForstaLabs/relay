@@ -75,7 +75,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         e.printStackTrace();
       }
     } else {
-      // This is only a single user or tag.
+      // This is only a single user or tag. Add local user to distribution.
       ForstaUser forstaUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
       List<String> recipientList = new ArrayList<>();
       recipientList.add(number);
