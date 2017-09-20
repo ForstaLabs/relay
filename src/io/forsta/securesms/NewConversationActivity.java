@@ -65,7 +65,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   }
 
   @Override
-  public void onContactSelected(String number) {
+  public void onContactSelected(final String number) {
     StringBuilder sb = new StringBuilder();
     if (GroupUtil.isEncodedGroup(number)) {
       try {
@@ -99,14 +99,8 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
         if (distribution.hasRecipients()) {
-          Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
+          Recipients recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
-          
-          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
-          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
-          intent.setDataAndType(getIntent().getData(), getIntent().getType());
-
           long existingThread = -1L;
           if (forstaThread != null) {
             existingThread = forstaThread.threadid;
@@ -114,6 +108,10 @@ public class NewConversationActivity extends ContactSelectionActivity {
             existingThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadIdIfExistsFor(recipients);
           }
 
+          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
+          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
+          intent.setDataAndType(getIntent().getData(), getIntent().getType());
           intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
           startActivity(intent);
