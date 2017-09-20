@@ -218,7 +218,7 @@ public class DirectoryHelper {
         if (isSecure) {
           return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
         }
-        return UserCapabilities.UNSUPPORTED;
+        return UserCapabilities.UNKNOWN;
       }
 
       if (recipients.isGroupRecipient()) {

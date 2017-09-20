@@ -210,8 +210,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private long       threadId;
   private int        distributionType;
   private boolean    archived;
-  private boolean    isSecureText;
-  private boolean    isSecureVoice;
+  private boolean    isSecureText = true;
+  private boolean    isSecureVoice = false;
   private boolean    isMmsEnabled = true;
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();

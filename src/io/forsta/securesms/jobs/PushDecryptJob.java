@@ -144,7 +144,19 @@ public class PushDecryptJob extends ContextJob {
       SignalServiceAddress localAddress = new SignalServiceAddress(TextSecurePreferences.getLocalNumber(context));
       SignalServiceCipher  cipher       = new SignalServiceCipher(localAddress, axolotlStore);
 
-      SignalServiceContent content = cipher.decrypt(envelope);
+      SignalServiceContent content = null;
+      try {
+        content = cipher.decrypt(envelope);
+      } catch (UntrustedIdentityException e) {
+        Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
+        long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
+        byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
+        PreKeySignalMessage whisperMessage = new PreKeySignalMessage(encryptedContent);
+        IdentityKey           identityKey    = whisperMessage.getIdentityKey();
+        DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+        SignalServiceCipher  updatedCipher       = new SignalServiceCipher(localAddress, axolotlStore);
+        content = updatedCipher.decrypt(envelope);
+      }
 
       if (content.getDataMessage().isPresent()) {
         SignalServiceDataMessage message = content.getDataMessage().get();
