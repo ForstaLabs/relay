@@ -245,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     });
 
+
   }
 
   @Override
@@ -1051,6 +1052,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
+
+    new AsyncTask<Void, Void, Void>() {
+      @Override
+      protected Void doInBackground(Void... params) {
+        DirectoryHelper.refreshDirectoryFor(ConversationActivity.this, masterSecret, recipients);
+        return null;
+      }
+    }.execute();
   }
 
   @Override
@@ -1467,7 +1476,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       String expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
       if (!recipients.isGroupRecipient()) {
-        expression += "@" + user.slug;
+        expression += "@" + user.slug + ":" + user.org_slug;
       }
 
       JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);

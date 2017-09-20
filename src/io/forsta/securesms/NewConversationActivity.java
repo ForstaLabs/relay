@@ -105,8 +105,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
           long existingThread = -1L;
           if (forstaThread != null) {
             existingThread = forstaThread.threadid;
-          } else {
-            existingThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadIdIfExistsFor(recipients);
           }
 
           Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
