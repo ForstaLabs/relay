@@ -101,11 +101,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         if (distribution.hasRecipients()) {
           Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
-
-          if (forstaThread == null && !TextUtils.isEmpty(distribution.universal)) {
-            forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
-          }
-
+          
           Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
           intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
           intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
