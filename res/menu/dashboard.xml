@@ -3,4 +3,10 @@
 
     <item android:title="Logout"
           android:id="@+id/menu_dashboard_logout"/>
+
+    <item android:title="Clear all threads"
+          android:id="@+id/menu_dashboard_clear_threads"/>
+
+    <item android:title="Clear Directory"
+          android:id="@+id/menu_dashboard_clear_directory"/>
 </menu>

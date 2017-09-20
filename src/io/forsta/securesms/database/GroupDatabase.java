@@ -439,6 +439,11 @@ public class GroupDatabase extends Database {
     db.close();
   }
 
+  public void removeAllGroups() {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.delete(TABLE_NAME, null, null);
+    db.close();
+  }
   private List<String> getCurrentMembers(byte[] id) {
     Cursor cursor = null;
 

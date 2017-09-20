@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -7,6 +8,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -104,6 +107,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       case R.id.menu_dashboard_logout: {
         ForstaPreferences.clearLogin(DashboardActivity.this);
         startLoginIntent();
+        break;
+      }
+      case R.id.menu_dashboard_clear_directory: {
+        handleClearDirectory();
+        break;
+      }
+      case R.id.menu_dashboard_clear_threads: {
+        handleClearThreads();
         break;
       }
     }
@@ -239,6 +250,42 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private void showScrollView() {
     mScrollView.setVisibility(View.VISIBLE);
   }
+
+  private void handleClearThreads() {
+    new AlertDialog.Builder(DashboardActivity.this)
+        .setTitle("Confirm")
+        .setMessage("Are you sure?")
+        .setNegativeButton("Cancel", null)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            ThreadDatabase db = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+            db.deleteAllConversations();
+            Toast.makeText(DashboardActivity.this, "All threads deleted", Toast.LENGTH_LONG).show();
+          }
+        }).show();
+
+
+  }
+
+  private void handleClearDirectory() {
+    new AlertDialog.Builder(DashboardActivity.this)
+        .setTitle("Confirm")
+        .setMessage("Are you sure?")
+        .setNegativeButton("Cancel", null)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            ContactDb db = DbFactory.getContactDb(DashboardActivity.this);
+            db.removeAll();
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
+            groupDb.removeAllGroups();
+            Toast.makeText(DashboardActivity.this, "All contacts and groups deleted", Toast.LENGTH_LONG).show();
+          }
+        }).show();
+  }
+
+
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);

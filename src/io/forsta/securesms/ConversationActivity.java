@@ -608,6 +608,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         }).show();
   }
 
+
+
   private void handleInviteLink() {
     try {
       boolean a = SecureRandom.getInstance("SHA1PRNG").nextBoolean();
