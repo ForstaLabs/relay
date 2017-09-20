@@ -149,7 +149,6 @@ public class PushDecryptJob extends ContextJob {
         content = cipher.decrypt(envelope);
       } catch (UntrustedIdentityException e) {
         Log.w(TAG, "Auto handling untrusted identity");
-        Log.e(TAG, e.getMessage());
         Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
         long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
         byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
