@@ -212,7 +212,8 @@ public class CcsmApi {
     JSONObject response = new JSONObject();
     try {
       jsonObject.put("expression", expression);
-      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + URLEncoder.encode(expression, "UTF-8"));
+      String urlEncoded = TextUtils.isEmpty(expression) ? "" : URLEncoder.encode(expression, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + urlEncoded);
     } catch (JSONException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
