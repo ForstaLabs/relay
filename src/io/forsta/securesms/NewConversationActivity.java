@@ -42,6 +42,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.loaders.ConversationListLoader;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -122,6 +123,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
           intent.setDataAndType(getIntent().getData(), getIntent().getType());
           intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
+          intent.putExtra(ConversationActivity.DISTRIBUTION_EXPRESSION_EXTRA, distribution.universal);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
           startActivity(intent);
           finish();

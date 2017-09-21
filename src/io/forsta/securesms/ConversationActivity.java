@@ -173,6 +173,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public static final String IS_ARCHIVED_EXTRA       = "is_archived";
   public static final String TEXT_EXTRA              = "draft_text";
   public static final String DISTRIBUTION_TYPE_EXTRA = "distribution_type";
+  public static final String DISTRIBUTION_EXPRESSION_EXTRA = "distribution_expression";
 
   private static final int PICK_IMAGE        = 1;
   private static final int PICK_VIDEO        = 2;
@@ -209,6 +210,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private Recipients recipients;
   private long       threadId;
   private int        distributionType;
+  private String distribution_expression;
   private boolean    archived;
   private boolean    isSecureText = true;
   private boolean    isSecureVoice = false;
@@ -1044,6 +1046,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     threadId         = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     archived         = getIntent().getBooleanExtra(IS_ARCHIVED_EXTRA, false);
     distributionType = getIntent().getIntExtra(DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+    distribution_expression = getIntent().getStringExtra(DISTRIBUTION_EXPRESSION_EXTRA);
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       LinearLayout conversationContainer = ViewUtil.findById(this, R.id.conversation_container);
@@ -1411,8 +1414,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
 
+        ForstaThread threadData = null;
         if (message.isSecure()) {
-          ForstaThread threadData;
           if (threadId == -1) {
             threadData = createForstaThread();
           } else {
@@ -1420,7 +1423,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           }
           message.setForstaJsonBody(context, threadData);
         }
-        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+        return MessageSender.send(context, masterSecret, message, (threadData != null && threadData.threadid > 0) ? threadData.threadid : threadId, forceSms);
       }
 
       @Override
@@ -1453,8 +1456,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Long doInBackground(OutgoingTextMessage... messages) {
 
         OutgoingTextMessage message = messages[0];
+        ForstaThread threadData = null;
         if (message.isSecureMessage()) {
-          ForstaThread threadData;
           if (threadId == -1) {
             threadData = createForstaThread();
           } else {
@@ -1462,7 +1465,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           }
           message.setForstaJsonBody(ConversationActivity.this, threadData);
         }
-        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+        return MessageSender.send(context, masterSecret, message, (threadData != null && threadData.threadid > 0) ? threadData.threadid : threadId, forceSms);
       }
 
       @Override
@@ -1473,17 +1476,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private ForstaThread createForstaThread() {
-      String expression = recipients.getRecipientExpression();
+
+    if (TextUtils.isEmpty(distribution_expression)) {
+      distribution_expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
       if (!recipients.isGroupRecipient()) {
-        expression += "@" + user.slug + ":" + user.org_slug;
+        distribution_expression += "@" + user.slug + ":" + user.org_slug;
       }
+    }
 
-      JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, expression);
-      ForstaDistribution distribution = new ForstaDistribution(response);
-      ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-      return db.allocateThread(recipients, distribution);
-  }
+    JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, distribution_expression);
+    ForstaDistribution distribution = new ForstaDistribution(response);
+    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+    return db.allocateThread(recipients, distribution);
+}
 
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
