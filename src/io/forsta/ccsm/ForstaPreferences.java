@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.Date;
@@ -18,6 +19,7 @@ public class ForstaPreferences {
   private static final String API_LAST_LOGIN = "last_login";
   private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
   private static final String FORSTA_ORG_NAME = "forsta_org_name";
+  private static final String FORSTA_ORG = "forsta_org";
   private static final String FORSTA_USER_NAME = "forsta_user_name";
   private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
   private static final String FORSTA_USER = "forsta_user";
@@ -111,6 +113,14 @@ public class ForstaPreferences {
 
   public static String getForstaOrgName(Context context) {
     return getStringPreference(context, FORSTA_ORG_NAME);
+  }
+
+  public static void setForstaOrg(Context context, String json) {
+    setStringPreference(context, FORSTA_ORG, json);
+  }
+
+  public static String getForstaOrg(Context context) {
+    return getStringPreference(context, FORSTA_ORG);
   }
 
   public static long getForstaContactSync(Context context) {

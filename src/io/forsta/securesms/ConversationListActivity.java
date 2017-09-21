@@ -66,6 +66,7 @@ import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaOrg;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
@@ -217,6 +218,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       syncIndicator.setVisibility(View.VISIBLE);
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
+
+    RefreshOrg task = new RefreshOrg();
+    task.execute();
 
     initializeViews();
     initializeListeners();
@@ -811,6 +815,25 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           showVagueError();
         }
       }
+    }
+  }
+
+  public class RefreshOrg extends AsyncTask<Void, Void, Void> {
+
+    @Override
+    protected Void doInBackground(Void... voids) {
+      JSONObject response = CcsmApi.getOrg(ConversationListActivity.this);
+      if (response.has("id")) {
+        ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
+      }
+      return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+      ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
+      getSupportActionBar().setDisplayShowTitleEnabled(true);
+      getSupportActionBar().setTitle("    " + forstaOrg.getName());
     }
   }
 

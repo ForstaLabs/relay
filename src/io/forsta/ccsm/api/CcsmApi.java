@@ -222,6 +222,16 @@ public class CcsmApi {
     return response;
   }
 
+  public static JSONObject getOrg(Context context) {
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    return getOrg(context, localAccount.org_id);
+  }
+
+  public static JSONObject getOrg(Context context, String id) {
+    JSONObject response = new JSONObject();
+    return fetchResource(context, "GET", API_ORG + id + "/");
+  }
+
   private static JSONObject fetchResource(Context context, String method, String urn) {
     return fetchResource(context, method, urn, null);
   }
