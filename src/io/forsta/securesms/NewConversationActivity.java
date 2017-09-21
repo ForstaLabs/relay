@@ -32,6 +32,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
@@ -102,6 +103,15 @@ public class NewConversationActivity extends ContactSelectionActivity {
         if (distribution.hasRecipients()) {
           Recipients recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+          if (GroupUtil.isEncodedGroup(number)) {
+            try {
+              Set<String> addresses = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroupMembers(GroupUtil.getDecodedId(number));
+              recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, new ArrayList<String>(addresses), false);
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
+
           long existingThread = -1L;
           if (forstaThread != null) {
             existingThread = forstaThread.threadid;
