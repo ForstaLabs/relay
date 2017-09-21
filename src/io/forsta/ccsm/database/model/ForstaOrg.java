@@ -39,6 +39,6 @@ public class ForstaOrg {
     } catch (JSONException e) {
       e.printStackTrace();
     }
-    return new ForstaOrg();
+    return null;
   }
 }

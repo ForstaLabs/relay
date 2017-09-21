@@ -832,8 +832,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     @Override
     protected void onPostExecute(Void aVoid) {
       ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
-      getSupportActionBar().setDisplayShowTitleEnabled(true);
-      getSupportActionBar().setTitle("    " + forstaOrg.getName());
+      if (forstaOrg != null) {
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setTitle("    " + forstaOrg.getName());
+      }
     }
   }
 
