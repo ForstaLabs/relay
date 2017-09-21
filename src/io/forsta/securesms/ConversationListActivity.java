@@ -226,7 +226,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     initializeListeners();
 
     // TODO Remove this if completely disconnecting from ContactsContract.
-    initializeContactUpdatesReceiver();
+//    initializeContactUpdatesReceiver();
 //    DirectoryRefreshListener.schedule(this);
     // TODO decide on use of the rating manager
 //    RatingManager.showRatingDialogIfNecessary(this);
