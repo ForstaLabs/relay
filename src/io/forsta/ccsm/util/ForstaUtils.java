@@ -107,6 +107,12 @@ public class ForstaUtils {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
+
+    // Looking for a empty expression being sent.
+    if (TextUtils.isEmpty(universalExpression)) {
+      Log.e(TAG, "No universal expression for thread: " + threadUid);
+    }
+
     try {
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
@@ -178,6 +184,8 @@ public class ForstaUtils {
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
+      Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getNumber());
+      Log.e(TAG, "Thread: "+ threadUid);
       e.printStackTrace();
       // Something failed. Return original message body
       return richTextMessage;

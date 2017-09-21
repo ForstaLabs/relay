@@ -61,8 +61,8 @@ public class ForstaMessage {
         senderId = sender.getString("userId");
       }
     } catch (JSONException e) {
-      Log.w(TAG, "Invalid JSON message body");
-      e.printStackTrace();
+      Log.e(TAG, "Invalid JSON message body");
+      Log.e(TAG, messageBody);
     } catch (Exception e) {
       Log.w(TAG, "Exception occurred");
       e.printStackTrace();
