@@ -74,19 +74,25 @@ public class NewConversationActivity extends ContactSelectionActivity {
   @Override
   public void onContactSelected(final String number) {
     StringBuilder sb = new StringBuilder();
+    String local = TextSecurePreferences.getLocalNumber(NewConversationActivity.this);
+    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+
     if (GroupUtil.isEncodedGroup(number)) {
       try {
         GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(GroupUtil.getDecodedId(number));
+        List<String> members = group.getMembers();
+        if (!members.contains(localUser.uid)) {
+          sb.append(localUser.getFullTag()).append(" ");
+        }
         sb.append("@").append(group.getSlug()).append(":").append(group.getOrgSlug());
       } catch (IOException e) {
         e.printStackTrace();
       }
     } else {
       // This is only a single user or tag. Add local user to distribution.
-      String localUid = TextSecurePreferences.getLocalNumber(NewConversationActivity.this);
       List<String> recipientList = new ArrayList<>();
       recipientList.add(number);
-      recipientList.add(localUid);
+      recipientList.add(localUser.uid);
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, recipientList, false);
       for (Recipient recipient: recipients) {
         sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug()).append(" ");

@@ -118,4 +118,8 @@ public class ForstaUser {
     name.append(lastName);
     return name.toString();
   }
+
+  public String getFullTag() {
+    return "@" + slug + ":" + org_slug;
+  }
 }
