@@ -186,7 +186,7 @@ public class GroupDatabase extends Database {
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
-        if (members.size() > 0) {
+        if (!(members.size() == 1 && members.contains(thisNumber))) {
           ContentValues contentValues = new ContentValues();
           contentValues.put(TITLE, group.description);
           contentValues.put(SLUG, group.slug);
