@@ -66,7 +66,6 @@ import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -1349,7 +1348,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       MessageNotifier.setVisibleThread(threadId);
     }
 
-    fragment.scrollToTop();
+    fragment.scrollToBottom();
     attachmentManager.cleanup();
   }
 

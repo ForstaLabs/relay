@@ -123,7 +123,6 @@ public class ConversationListFragment extends Fragment
 
     list.setHasFixedSize(true);
     LinearLayoutManager lm = new LinearLayoutManager(getActivity());
-    lm.setStackFromEnd(true);
     list.setLayoutManager(lm);
 
     new ItemTouchHelper(new ArchiveListenerCallback()).attachToRecyclerView(list);
