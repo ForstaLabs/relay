@@ -17,6 +17,7 @@ import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -89,6 +90,19 @@ public class GroupDatabase extends Database {
 
   public GroupDatabase(Context context, SQLiteOpenHelper databaseHelper) {
     super(context, databaseHelper);
+  }
+
+  public @Nullable GroupRecord getGroup(String endcodedGroupId) {
+    @SuppressLint("Recycle")
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?",
+        new String[] {endcodedGroupId},
+        null, null, null);
+
+    Reader      reader = new Reader(cursor);
+    GroupRecord record = reader.getNext();
+
+    reader.close();
+    return record;
   }
 
   public @Nullable GroupRecord getGroup(byte[] groupId) {
@@ -607,6 +621,20 @@ public class GroupDatabase extends Database {
 
     public String getOrgSlug() {
       return org_slug;
+    }
+
+    public String getFullSlug() {
+      return new StringBuilder().append("@").append(slug).append(":").append(org_slug).toString();
+    }
+
+    public String getExpression(ForstaUser localUser) {
+      StringBuilder sb = new StringBuilder();
+      List<String> members = getMembers();
+      if (!members.contains(localUser.uid)) {
+        sb.append(localUser.getFullTag()).append(" ");
+      }
+      sb.append(getFullSlug());
+      return sb.toString();
     }
   }
 }

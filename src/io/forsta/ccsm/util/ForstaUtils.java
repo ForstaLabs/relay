@@ -193,6 +193,14 @@ public class ForstaUtils {
     return versions.toString();
   }
 
+  public static String createExpression(List<ForstaUser> users) {
+    StringBuilder sb = new StringBuilder();
+    for (ForstaUser user : users) {
+      sb.append("@").append(user.getFullTag()).append(" ");
+    }
+    return sb.toString();
+  }
+
   public static String formatDateISOUTC(Date date) {
     TimeZone tz = TimeZone.getTimeZone("UTC");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");

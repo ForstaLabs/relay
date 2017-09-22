@@ -74,37 +74,24 @@ public class NewConversationActivity extends ContactSelectionActivity {
   @Override
   public void onContactSelected(final String number) {
     StringBuilder sb = new StringBuilder();
-    String local = TextSecurePreferences.getLocalNumber(NewConversationActivity.this);
     ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+    final Recipients recipients;
 
+    // XXXX Groups are currently used for non-user tags and have no device address associated with them.
     if (GroupUtil.isEncodedGroup(number)) {
-      try {
-        GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(GroupUtil.getDecodedId(number));
-        List<String> members = group.getMembers();
-        if (!members.contains(localUser.uid)) {
-          sb.append(localUser.getFullTag()).append(" ");
-        }
-        sb.append("@").append(group.getSlug()).append(":").append(group.getOrgSlug());
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
+      recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, group.getMembers(), false);
+      sb.append(group.getExpression(localUser));
     } else {
-      // This is only a single user or tag. Add local user to distribution.
-      List<String> recipientList = new ArrayList<>();
-      recipientList.add(number);
-      recipientList.add(localUser.uid);
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, recipientList, false);
-      for (Recipient recipient: recipients) {
-        sb.append("@").append(recipient.getSlug()).append(":").append(recipient.getOrgSlug()).append(" ");
-      }
+      ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
+      recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
+      sb.append(user.getExpression(localUser));
     }
 
     new AsyncTask<String, Void, ForstaDistribution>() {
-
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
-
         JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
         return new ForstaDistribution(result);
       }
@@ -112,27 +99,17 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
         if (distribution.hasRecipients()) {
-          Recipients recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
-          if (GroupUtil.isEncodedGroup(number)) {
-            try {
-              Set<String> addresses = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroupMembers(GroupUtil.getDecodedId(number));
-              recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, new ArrayList<String>(addresses), false);
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-
-          long existingThread = -1L;
+          long threadId = -1L;
           if (forstaThread != null) {
-            existingThread = forstaThread.threadid;
+            threadId = forstaThread.threadid;
           }
 
           Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
           intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
           intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
           intent.setDataAndType(getIntent().getData(), getIntent().getType());
-          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, existingThread);
+          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
           intent.putExtra(ConversationActivity.DISTRIBUTION_EXPRESSION_EXTRA, distribution.universal);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
           startActivity(intent);

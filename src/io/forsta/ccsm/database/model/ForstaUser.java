@@ -122,4 +122,8 @@ public class ForstaUser {
   public String getFullTag() {
     return "@" + slug + ":" + org_slug;
   }
+
+  public String getExpression(ForstaUser localUser) {
+    return getFullTag() + " " + localUser.getFullTag();
+  }
 }
