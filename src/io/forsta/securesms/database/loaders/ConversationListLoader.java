@@ -61,7 +61,6 @@ public class ConversationListLoader extends AbstractCursorLoader {
   }
 
   private Cursor getFilteredConversationList(String filter) {
-    List<String> numbers = ContactAccessor.getInstance().getNumbersForThreadSearchFilter(context, filter);
-    return DatabaseFactory.getThreadDatabase(context).getFilteredConversationList(numbers);
+    return DatabaseFactory.getThreadDatabase(context).getFilteredConversationList(filter);
   }
 }
