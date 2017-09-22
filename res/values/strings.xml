@@ -10,7 +10,7 @@
     <string name="forsta_login_title">Join Forsta</string>
     <string name="forsta_login_username_label">Username</string>
     <string name="forsta_login_password_label">Password</string>
-    <string name="forsta_login_org_label">Domain</string>
+    <string name="forsta_login_org_label">Organization</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
     <string name="forsta_login_send_link_button">Login</string>
     <string name="forsta_login_create_domain_button">Create Domain</string>

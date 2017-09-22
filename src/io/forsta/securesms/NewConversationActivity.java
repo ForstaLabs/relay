@@ -32,10 +32,12 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -58,6 +60,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
+  private Map<String, String> slugs;
 
   @Override
   public void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
@@ -65,6 +68,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    slugs = DbFactory.getContactDb(NewConversationActivity.this).getContactSlugs();
   }
 
   @Override

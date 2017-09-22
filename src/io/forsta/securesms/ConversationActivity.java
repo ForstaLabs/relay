@@ -1349,7 +1349,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       MessageNotifier.setVisibleThread(threadId);
     }
 
-    fragment.scrollToBottom();
+    fragment.scrollToTop();
     attachmentManager.cleanup();
   }
 

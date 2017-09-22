@@ -21,13 +21,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -40,7 +47,10 @@ import io.forsta.securesms.util.ViewUtil;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Base activity container for selecting a list of contacts.
@@ -58,6 +68,9 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   protected ContactSelectionListFragment contactsFragment;
+  protected EditText selectedRecipients;
+  protected ListView selectedList;
+  protected SelectedTagsAdapter selectedListAdapter;
 
   private MasterSecret masterSecret;
   private   ContactFilterToolbar toolbar;
@@ -83,6 +96,11 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     if (syncing) {
       Log.d(TAG, "Show sync indicator");
     }
+
+    selectedRecipients = (EditText) findViewById(R.id.contact_selection_selected);
+    selectedList = (ListView) findViewById(R.id.contact_selected_list);
+    selectedListAdapter = new SelectedTagsAdapter(ContactSelectionActivity.this, android.R.layout.simple_spinner_dropdown_item, new ArrayList<String>());
+    selectedList.setAdapter(selectedListAdapter);
 
     initializeToolbar();
     initializeResources();
@@ -117,6 +135,9 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   private void initializeSearch() {
     toolbar.setOnFilterChangedListener(new OnFilterChangedListener() {
       @Override public void onFilterChanged(String filter) {
+        if (filter.startsWith("@")) {
+          filter = filter.substring(1, filter.length());
+        }
         contactsFragment.setQueryFilter(filter);
       }
     });
@@ -132,6 +153,22 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onContactDeselected(String number) {}
+
+  protected class SelectedTagsAdapter extends ArrayAdapter<String> {
+
+    private List<String> selectedTags;
+
+    public SelectedTagsAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<String> tags) {
+      super(context, resource, tags);
+      this.selectedTags = tags;
+    }
+
+    @Override
+    public void add(@Nullable String object) {
+      selectedTags.add(object);
+      notifyDataSetChanged();
+    }
+  }
 
   private class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
 

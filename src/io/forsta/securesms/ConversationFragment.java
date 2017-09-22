@@ -232,7 +232,7 @@ public class ConversationFragment extends Fragment
     }
   }
 
-  public void scrollToBottom() {
+  public void scrollToTop() {
     list.getItemAnimator().isRunning(new ItemAnimatorFinishedListener() {
       @Override
       public void onAnimationsFinished() {
