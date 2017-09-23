@@ -867,11 +867,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Context           context      = ConversationActivity.this;
           Recipients        recipients   = params[0];
 
-          UserCapabilities capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
-          if (capabilities.getTextCapability() == Capability.UNKNOWN) {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          }
-
+          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
                             !isSelfConversation());
@@ -1054,14 +1050,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
-
-    new AsyncTask<Void, Void, Void>() {
-      @Override
-      protected Void doInBackground(Void... params) {
-        DirectoryHelper.refreshDirectoryFor(ConversationActivity.this, masterSecret, recipients);
-        return null;
-      }
-    }.execute();
   }
 
   @Override
