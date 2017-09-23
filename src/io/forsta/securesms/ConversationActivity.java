@@ -1480,7 +1480,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       distribution_expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
       if (!recipients.isGroupRecipient()) {
-        distribution_expression += "@" + user.slug + ":" + user.org_slug;
+        distribution_expression += user.getFullTag();
       }
     }
 
