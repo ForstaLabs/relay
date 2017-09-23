@@ -81,11 +81,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
       recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, group.getMembers(), false);
+      // If tag contains the current user, don't add them to the expression.
       sb.append(group.getExpression(localUser));
     } else {
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
       recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
-      sb.append(user.getExpression(localUser));
+      // Always add self to conversations.
+      sb.append(user.getFullTag() + " " + localUser.getFullTag());
     }
 
     new AsyncTask<String, Void, ForstaDistribution>() {
@@ -93,7 +95,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
         JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
-        return new ForstaDistribution(result);
+        return ForstaDistribution.fromJson(result);
       }
 
       @Override

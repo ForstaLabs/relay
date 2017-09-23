@@ -328,7 +328,7 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(String body) {
-    ForstaMessage forstaMessage = new ForstaMessage(body);
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
     if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
       return forstaMessage.htmlBody.toString();
     }
@@ -420,7 +420,7 @@ public class ConversationFragment extends Fragment
 
         setCorrectMenuVisibility(actionMode.getMenu());
       } else {
-        ForstaMessage message = new ForstaMessage(messageRecord.getBody().getBody());
+        ForstaMessage message = ForstaMessage.fromJsonString(messageRecord.getBody().getBody());
         StringBuilder sb = new StringBuilder();
         sb.append("Message: ").append(message.messageId).append("\n");
         sb.append("Sender: ").append(message.senderId).append("\n");

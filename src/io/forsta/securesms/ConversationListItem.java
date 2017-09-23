@@ -136,7 +136,7 @@ public class ConversationListItem extends RelativeLayout
     this.fromView.setText(recipients, read);
     setForstaThreadTitle();
 
-    ForstaMessage forstaMessage = new ForstaMessage(thread.getDisplayBody().toString());
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(thread.getDisplayBody().toString());
     String body = forstaMessage.textBody;
     subjectView.setText(body);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);

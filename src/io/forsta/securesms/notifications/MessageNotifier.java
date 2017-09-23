@@ -381,7 +381,7 @@ public class MessageNotifier {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
-      ForstaMessage forstaMessage = new ForstaMessage(body.toString());
+      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body.toString());
       body = forstaMessage.textBody;
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
