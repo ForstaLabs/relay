@@ -172,26 +172,20 @@ public class DirectoryHelper {
 
     try {
       if (recipients.isGroupRecipient()) {
-        Optional<ContactTokenDetails> details = accountManager.getContact(recipients.getPrimaryRecipient().getNumber());
-        if (details.isPresent()) {
-          directory.setNumber(details.get(), true);
-          // Now go get unknown tag from CCSM
-          return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
-        }
+        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
       }
       List<String> addresses = recipients.toNumberStringList(false);
       String ids = TextUtils.join(",", addresses);
+      CcsmApi.syncForstaContacts(context, ids);
 
       List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
-      directory.setNumbers(details, new ArrayList<String>());
-      CcsmApi.syncForstaContacts(context, ids);
-      ContactDb contactsDb = DbFactory.getContactDb(context);
-      contactsDb.setActiveForstaAddresses(details);
-      RecipientFactory.clearCache(context);
-      if (details.size() == 0) {
-        return new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
+      if (details.size() > 0) {
+        directory.setNumbers(details, new ArrayList<String>());
+        ContactDb contactsDb = DbFactory.getContactDb(context);
+        contactsDb.setActiveForstaAddresses(details);
+        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
       }
-      return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+      return new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -13,8 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -29,8 +27,6 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -623,7 +619,7 @@ public class GroupDatabase extends Database {
       return org_slug;
     }
 
-    public String getFullSlug() {
+    public String getFullTag() {
       return new StringBuilder().append("@").append(slug).append(":").append(org_slug).toString();
     }
 
@@ -633,7 +629,7 @@ public class GroupDatabase extends Database {
       if (!members.contains(localUser.uid)) {
         sb.append(localUser.getFullTag()).append(" ");
       }
-      sb.append(getFullSlug());
+      sb.append(getFullTag());
       return sb.toString();
     }
   }

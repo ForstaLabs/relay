@@ -98,7 +98,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     }
 
     recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
-    recipientsInput.addTextChangedListener(new TextChangedWatcher());
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
     startRecipientButton.setOnClickListener(new View.OnClickListener() {
@@ -119,10 +118,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
-  }
-
-  protected void setCreateConversationClickListener(View.OnClickListener clickListener) {
-    createConversationButton.setOnClickListener(clickListener);
   }
 
   protected ContactFilterToolbar getToolbar() {
@@ -164,40 +159,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onContactDeselected(String number) {}
-
-  private class TextChangedWatcher implements TextWatcher {
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
-      Matcher m = p.matcher(charSequence);
-      String input = charSequence.toString();
-
-      int slugStart = input.lastIndexOf("@");
-      String slugPart = input.substring(slugStart + 1);
-      if (slugPart.contains(" ")) {
-        contactsFragment.resetQueryFilter();
-      } else {
-        contactsFragment.setQueryFilter(slugPart);
-      }
-
-      while (m.find()) {
-        String slug = m.group();
-        slug = slug.substring(1);
-
-      }
-    }
-
-    @Override
-    public void afterTextChanged(Editable editable) {
-
-    }
-  }
 
   private class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
 

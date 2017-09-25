@@ -20,7 +20,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,13 +30,11 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.DbFactory;
@@ -45,12 +44,9 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.database.loaders.ConversationListLoader;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
-import io.forsta.securesms.util.TextSecurePreferences;
 
 /**
  * Activity container for starting a new conversation.
@@ -61,6 +57,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
+  private Set<String> selectedTags = new HashSet<>();
 
   @Override
   public void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
@@ -68,26 +65,38 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    setCreateConversationClickListener(new View.OnClickListener() {
+    createConversationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         handleCreateConversation(recipientsInput.getText().toString());
       }
     });
+
+    recipientsInput.addTextChangedListener(new TextChangedWatcher());
     recipientsInput.requestFocus();
   }
 
   @Override
   public void onContactSelected(final String number) {
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
+    String text = recipientsInput.getText().toString();
+    if (!text.endsWith(" ")) {
+      int recipientIndex = text.lastIndexOf("@") != -1 ? text.lastIndexOf("@") : 0;
+      recipientsInput.setText(text.substring(0, recipientIndex));
+    }
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      recipientsInput.append(group.getFullSlug() + " ");
+      if (!selectedTags.contains(group.getFullTag())) {
+        recipientsInput.append(group.getFullTag() + " ");
+      }
     } else {
 
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      recipientsInput.append(user.getFullTag() + " ");
+      if (!selectedTags.contains(user.getFullTag())) {
+        recipientsInput.append(user.getFullTag() + " ");
+      }
     }
+    recipientsInput.setSelection(recipientsInput.length());
   }
 
   private void handleCreateConversation(String inputText) {
@@ -125,6 +134,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
           intent.putExtra(ConversationActivity.DISTRIBUTION_EXPRESSION_EXTRA, distribution.universal);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+          recipientsInput.setText("");
           startActivity(intent);
           finish();
         } else {
@@ -168,5 +178,38 @@ public class NewConversationActivity extends ContactSelectionActivity {
     inflater.inflate(R.menu.new_conversation_activity, menu);
     super.onPrepareOptionsMenu(menu);
     return true;
+  }
+
+  private class TextChangedWatcher implements TextWatcher {
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
+      Matcher m = p.matcher(charSequence);
+      String input = charSequence.toString();
+
+      int slugStart = input.lastIndexOf("@");
+      String slugPart = input.substring(slugStart + 1);
+      if (slugPart.contains(" ")) {
+        contactsFragment.resetQueryFilter();
+      } else {
+        contactsFragment.setQueryFilter(slugPart);
+      }
+
+      selectedTags.clear();
+      while (m.find()) {
+        String tag = m.group();
+      }
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
+    }
   }
 }
