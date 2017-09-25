@@ -129,6 +129,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           long threadId = -1L;
           if (forstaThread != null) {
+            // Show dialog asking to select this thread or create a new thread.
             threadId = forstaThread.threadid;
           }
 
