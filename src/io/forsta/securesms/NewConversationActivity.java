@@ -105,20 +105,21 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
-        JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
-        ForstaDistribution initialDistribution = ForstaDistribution.fromJson(result);
         ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-        if (!initialDistribution.userIds.contains(localUser.uid)) {
-          String newExpression = initialDistribution.pretty + localUser.getFullTag();
-          JSONObject newResult = CcsmApi.getDistribution(NewConversationActivity.this, newExpression);
-          initialDistribution = ForstaDistribution.fromJson(newResult);
+        if (!(expression.contains(localUser.getTag()) || expression.contains(localUser.getFullTag()))) {
+          expression += " " + localUser.getFullTag();
         }
-
-        return initialDistribution;
+        JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
+        return ForstaDistribution.fromJson(result);
       }
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
+        if (distribution.hasWarnings()) {
+          Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
+          return;
+        }
+
         if (distribution.hasRecipients()) {
           Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
@@ -204,12 +205,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
       selectedTags.clear();
       while (m.find()) {
         String tag = m.group();
+        selectedTags.add(tag);
       }
     }
 
     @Override
     public void afterTextChanged(Editable editable) {
-
+      recipientCount.setText(selectedTags.size() + "");
     }
   }
 }

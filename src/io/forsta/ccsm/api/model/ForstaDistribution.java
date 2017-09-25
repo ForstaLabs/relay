@@ -24,7 +24,7 @@ public class ForstaDistribution {
   public String pretty;
   public String universal;
   public Set<String> userIds = new HashSet<>();
-  public String warning;
+  public String warning = "";
 
   public ForstaDistribution() {
 
@@ -53,11 +53,11 @@ public class ForstaDistribution {
           sb.append(object.getString("cue"));
         }
       }
-      forstaDistribution.warning = sb.toString();
+      forstaDistribution.appendWarning(sb.toString());
     } catch (JSONException e) {
       Log.w(TAG, "ForstaDistribution json parsing error:");
       e.printStackTrace();
-      forstaDistribution.warning = "Bad response from server";
+      forstaDistribution.appendWarning("Bad response from server");
     }
     return forstaDistribution;
   }
@@ -82,5 +82,21 @@ public class ForstaDistribution {
       }
     }
     return users;
+  }
+
+  public boolean hasWarnings() {
+    return !TextUtils.isEmpty(warning);
+  }
+
+  public String getWarnings() {
+    return warning;
+  }
+
+  private void appendWarning(String warningMessage) {
+    if (warning == null) {
+      warning = warningMessage;
+    } else {
+      warning += " " + warningMessage;
+    }
   }
 }

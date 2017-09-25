@@ -31,29 +31,30 @@
             android:background="@color/forsta_accent"
             android:padding="5dp"
             android:layout_margin="1dp">
-            <TextView android:id="@+id/forsta_input_type"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="Recipients:"
-                      android:textColor="@color/textsecure_primary"
-                      android:layout_alignParentLeft="true"
-                      android:layout_centerVertical="true"/>
-            <TextView android:id="@+id/forsta_input_recipients"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="0"
-                      android:textColor="@color/textsecure_primary"
-                      android:layout_toRightOf="@id/forsta_input_type"
-                      android:layout_centerVertical="true"
-                      android:layout_marginLeft="3dp"/>
-
             <ImageButton android:id="@+id/forsta_start_recipient"
                          android:layout_width="30dp"
                          android:layout_height="30dp"
-                         android:layout_marginRight="5dp"
                          android:background="@null"
                          android:src="@drawable/ic_tag"
-                         android:layout_alignParentRight="true"/>
+                         android:layout_alignParentLeft="true"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true">
+                <TextView android:id="@+id/forsta_input_type"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="Recipients:"
+                          android:textColor="@color/textsecure_primary"/>
+                <TextView android:id="@+id/forsta_input_recipients"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="0"
+                          android:textColor="@color/textsecure_primary"
+                          android:layout_marginLeft="3dp"/>
+            </LinearLayout>
 
         </RelativeLayout>
 
@@ -66,6 +67,7 @@
                       android:layout_height="60dp"
                       android:gravity="top"
                       android:background="@color/white"
+                      android:textSize="14sp"
                       android:padding="5dp" android:layout_weight="1">
             </EditText>
             <ImageButton
@@ -73,7 +75,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:src="@drawable/check_dark"
+                android:src="@drawable/check"
                 android:background="@drawable/rounded_button"
                 android:layout_marginRight="5dp"
                 />

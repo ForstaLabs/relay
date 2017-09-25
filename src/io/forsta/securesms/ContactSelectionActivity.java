@@ -33,6 +33,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.components.ContactFilterToolbar;
@@ -71,6 +72,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected EditText recipientsInput;
   protected ImageButton createConversationButton;
   protected ImageButton startRecipientButton;
+  protected TextView recipientCount;
 
   private MasterSecret masterSecret;
   private   ContactFilterToolbar toolbar;
@@ -99,6 +101,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
+    recipientCount = (TextView) findViewById(R.id.forsta_input_recipients);
     startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
     startRecipientButton.setOnClickListener(new View.OnClickListener() {
       @Override
