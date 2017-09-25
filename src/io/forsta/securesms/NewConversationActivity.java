@@ -74,24 +74,19 @@ public class NewConversationActivity extends ContactSelectionActivity {
         handleCreateConversation(recipientsInput.getText().toString());
       }
     });
+    recipientsInput.requestFocus();
   }
 
   @Override
   public void onContactSelected(final String number) {
-    StringBuilder sb = new StringBuilder();
-
-    final Recipients recipients;
-
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-//      sb.append(group.getExpression(localUser));
-      recipientsInput.append(group.getFullSlug());
+      recipientsInput.append(group.getFullSlug() + " ");
     } else {
 
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-//      sb.append(user.getFullTag() + " " + localUser.getFullTag());
-      recipientsInput.append(user.getFullTag());
+      recipientsInput.append(user.getFullTag() + " ");
     }
   }
 

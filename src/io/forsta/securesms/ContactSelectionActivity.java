@@ -70,6 +70,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ContactSelectionListFragment contactsFragment;
   protected EditText recipientsInput;
   protected ImageButton createConversationButton;
+  protected ImageButton startRecipientButton;
 
   private MasterSecret masterSecret;
   private   ContactFilterToolbar toolbar;
@@ -99,6 +100,14 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
     recipientsInput.addTextChangedListener(new TextChangedWatcher());
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
+    startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
+    startRecipientButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        recipientsInput.append("@");
+        recipientsInput.requestFocus();
+      }
+    });
 
     initializeToolbar();
     initializeResources();
