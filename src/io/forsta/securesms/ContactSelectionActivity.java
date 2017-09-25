@@ -25,16 +25,16 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
-import io.forsta.ccsm.database.DbFactory;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -48,9 +48,9 @@ import io.forsta.securesms.util.ViewUtil;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Base activity container for selecting a list of contacts.
@@ -68,9 +68,8 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   protected ContactSelectionListFragment contactsFragment;
-  protected EditText selectedRecipients;
-  protected ListView selectedList;
-  protected SelectedTagsAdapter selectedListAdapter;
+  protected EditText recipientsInput;
+  protected ImageButton createConversationButton;
 
   private MasterSecret masterSecret;
   private   ContactFilterToolbar toolbar;
@@ -97,10 +96,9 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
       Log.d(TAG, "Show sync indicator");
     }
 
-    selectedRecipients = (EditText) findViewById(R.id.contact_selection_selected);
-    selectedList = (ListView) findViewById(R.id.contact_selected_list);
-    selectedListAdapter = new SelectedTagsAdapter(ContactSelectionActivity.this, android.R.layout.simple_spinner_dropdown_item, new ArrayList<String>());
-    selectedList.setAdapter(selectedListAdapter);
+    recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
+    recipientsInput.addTextChangedListener(new TextChangedWatcher());
+    createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
 
     initializeToolbar();
     initializeResources();
@@ -112,6 +110,10 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+  }
+
+  protected void setCreateConversationClickListener(View.OnClickListener clickListener) {
+    createConversationButton.setOnClickListener(clickListener);
   }
 
   protected ContactFilterToolbar getToolbar() {
@@ -154,19 +156,37 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   @Override
   public void onContactDeselected(String number) {}
 
-  protected class SelectedTagsAdapter extends ArrayAdapter<String> {
+  private class TextChangedWatcher implements TextWatcher {
 
-    private List<String> selectedTags;
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-    public SelectedTagsAdapter(@NonNull Context context, @LayoutRes int resource, @NonNull List<String> tags) {
-      super(context, resource, tags);
-      this.selectedTags = tags;
     }
 
     @Override
-    public void add(@Nullable String object) {
-      selectedTags.add(object);
-      notifyDataSetChanged();
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
+      Matcher m = p.matcher(charSequence);
+      String input = charSequence.toString();
+
+      int slugStart = input.lastIndexOf("@");
+      String slugPart = input.substring(slugStart + 1);
+      if (slugPart.contains(" ")) {
+        contactsFragment.resetQueryFilter();
+      } else {
+        contactsFragment.setQueryFilter(slugPart);
+      }
+
+      while (m.find()) {
+        String slug = m.group();
+        slug = slug.substring(1);
+
+      }
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+
     }
   }
 

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.DbFactory;
@@ -60,7 +61,6 @@ import io.forsta.securesms.util.TextSecurePreferences;
 public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
-  private Map<String, String> slugs;
 
   @Override
   public void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
@@ -68,39 +68,55 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    slugs = DbFactory.getContactDb(NewConversationActivity.this).getContactSlugs();
+    setCreateConversationClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        handleCreateConversation(recipientsInput.getText().toString());
+      }
+    });
   }
 
   @Override
   public void onContactSelected(final String number) {
     StringBuilder sb = new StringBuilder();
-    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+
     final Recipients recipients;
 
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, group.getMembers(), false);
-      // If tag contains the current user, don't add them to the expression.
-      sb.append(group.getExpression(localUser));
+//      sb.append(group.getExpression(localUser));
+      recipientsInput.append(group.getFullSlug());
     } else {
+
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      recipients = RecipientFactory.getRecipientsFromString(NewConversationActivity.this, number, false);
-      // Always add self to conversations.
-      sb.append(user.getFullTag() + " " + localUser.getFullTag());
+//      sb.append(user.getFullTag() + " " + localUser.getFullTag());
+      recipientsInput.append(user.getFullTag());
     }
+  }
+
+  private void handleCreateConversation(String inputText) {
 
     new AsyncTask<String, Void, ForstaDistribution>() {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
         JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
-        return ForstaDistribution.fromJson(result);
+        ForstaDistribution initialDistribution = ForstaDistribution.fromJson(result);
+        ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+        if (!initialDistribution.userIds.contains(localUser.uid)) {
+          String newExpression = initialDistribution.pretty + localUser.getFullTag();
+          JSONObject newResult = CcsmApi.getDistribution(NewConversationActivity.this, newExpression);
+          initialDistribution = ForstaDistribution.fromJson(newResult);
+        }
+
+        return initialDistribution;
       }
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
         if (distribution.hasRecipients()) {
+          Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           long threadId = -1L;
           if (forstaThread != null) {
@@ -117,10 +133,10 @@ public class NewConversationActivity extends ContactSelectionActivity {
           startActivity(intent);
           finish();
         } else {
-          Toast.makeText(NewConversationActivity.this, "No recipients found for selection", Toast.LENGTH_LONG).show();
+          Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
         }
       }
-    }.execute(sb.toString());
+    }.execute(inputText);
   }
 
   @Override
