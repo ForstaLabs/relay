@@ -93,7 +93,7 @@ public class ForstaDistribution {
   }
 
   private void appendWarning(String warningMessage) {
-    if (warning == null) {
+    if (!hasWarnings()) {
       warning = warningMessage;
     } else {
       warning += " " + warningMessage;

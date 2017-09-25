@@ -105,12 +105,16 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
-        ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-        if (!(expression.contains(localUser.getTag()) || expression.contains(localUser.getFullTag()))) {
-          expression += " " + localUser.getFullTag();
-        }
         JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
-        return ForstaDistribution.fromJson(result);
+        ForstaDistribution initialDistribution = ForstaDistribution.fromJson(result);
+        ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+        if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid)) {
+          return initialDistribution;
+        } else {
+          String newExpression = initialDistribution.pretty + " " + localUser.getFullTag();
+          JSONObject newResult = CcsmApi.getDistribution(NewConversationActivity.this, newExpression);
+          return ForstaDistribution.fromJson(newResult);
+        }
       }
 
       @Override
