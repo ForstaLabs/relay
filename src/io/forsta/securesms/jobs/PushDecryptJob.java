@@ -513,6 +513,7 @@ public class PushDecryptJob extends ContextJob {
       refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
 
       textMessage = new IncomingEncryptedMessage(textMessage, body);
+      //XXX Thread processing happens in the database
       messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
 
       if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());

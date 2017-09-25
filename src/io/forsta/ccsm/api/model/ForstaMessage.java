@@ -58,7 +58,6 @@ public class ForstaMessage {
       if (jsonBody == null) {
         forstaMessage.textBody = messageBody;
       } else {
-
         forstaMessage.threadId = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
@@ -84,7 +83,6 @@ public class ForstaMessage {
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
       }
-
     } catch (JSONException e) {
       Log.e(TAG, "Invalid JSON message body");
       Log.e(TAG, messageBody);
@@ -108,6 +106,14 @@ public class ForstaMessage {
 
   public static boolean isJsonBody(String body) {
     return getVersion(1, body) != null;
+  }
+
+  public boolean hasThreadUid() {
+    return !TextUtils.isEmpty(threadId);
+  }
+
+  public boolean hasDistributionExpression() {
+    return !TextUtils.isEmpty(universalExpression);
   }
 
   public static JSONObject getVersion(int version, String body) {
