@@ -18,8 +18,7 @@
         <LinearLayout android:id="@+id/toggle_container"
                       android:layout_width="match_parent"
                       android:layout_height="match_parent"
-                      android:orientation="horizontal"
-            android:visibility="gone">
+                      android:orientation="horizontal">
 
             <EditText android:id="@+id/search_view"
                       android:layout_height="wrap_content"
@@ -78,11 +77,6 @@
             </io.forsta.securesms.components.AnimatingToggle>
 
         </LinearLayout>
-        <TextView
-            android:textColor="@color/white"
-            android:text="Create Conversation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 
 </merge>

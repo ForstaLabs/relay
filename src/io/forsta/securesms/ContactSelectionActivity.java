@@ -73,6 +73,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ImageButton createConversationButton;
   protected ImageButton startRecipientButton;
   protected TextView recipientCount;
+  protected TextView recipientExpression;
 
   private MasterSecret masterSecret;
   private   ContactFilterToolbar toolbar;
@@ -102,6 +103,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     recipientCount = (TextView) findViewById(R.id.forsta_input_recipients);
+    recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
     startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
     startRecipientButton.setOnClickListener(new View.OnClickListener() {
       @Override

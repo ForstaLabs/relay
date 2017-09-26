@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +31,7 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -58,6 +60,8 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
   private Set<String> selectedTags = new HashSet<>();
+  private Set<String> customTags = new HashSet<>();
+  private Recipients selectedRecipients;
 
   @Override
   public void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
@@ -73,7 +77,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     });
 
     recipientsInput.addTextChangedListener(new TextChangedWatcher());
-    recipientsInput.requestFocus();
   }
 
   @Override
@@ -88,15 +91,28 @@ public class NewConversationActivity extends ContactSelectionActivity {
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
       if (!selectedTags.contains(group.getFormattedTag(localUser.getOrgTag()))) {
-        recipientsInput.append(group.getFormattedTag(localUser.getOrgTag()) + " ");
+//        recipientsInput.append(group.getFormattedTag(localUser.getOrgTag()) + " ");
+        selectedTags.add(group.getFormattedTag(localUser.getOrgTag()));
+      } else {
+        selectedTags.remove(group.getFormattedTag(localUser.getOrgTag()));
       }
     } else {
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
       if (!selectedTags.contains(user.getFormattedTag(localUser.getOrgTag()))) {
-        recipientsInput.append(user.getFormattedTag(localUser.getOrgTag()) + " ");
+//        recipientsInput.append(user.getFormattedTag(localUser.getOrgTag()) + " ");
+        selectedTags.add(user.getFormattedTag(localUser.getOrgTag()));
+      } else {
+        selectedTags.remove(user.getFormattedTag(localUser.getOrgTag()));
       }
     }
+    recipientExpression.setText(getConversationExpression());
     recipientsInput.setSelection(recipientsInput.length());
+  }
+
+  private String getConversationExpression() {
+    String selectedExpression = TextUtils.join(" + ", selectedTags);
+    String customExpression = TextUtils.join(" + ", customTags);
+    return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
   }
 
   private void handleCreateConversation(String inputText) {
@@ -205,11 +221,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
         contactsFragment.setQueryFilter(slugPart);
       }
 
-      selectedTags.clear();
+      customTags.clear();
       while (m.find()) {
         String tag = m.group();
-        selectedTags.add(tag);
+        customTags.add(tag);
       }
+      recipientExpression.setText(getConversationExpression());
     }
 
     @Override
