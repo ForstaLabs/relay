@@ -79,6 +79,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   @Override
   public void onContactSelected(final String number) {
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
+    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
     String text = recipientsInput.getText().toString();
     if (!text.endsWith(" ")) {
       int recipientIndex = text.lastIndexOf("@") != -1 ? text.lastIndexOf("@") : 0;
@@ -86,14 +87,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
     }
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      if (!selectedTags.contains(group.getFullTag())) {
-        recipientsInput.append(group.getFullTag() + " ");
+      if (!selectedTags.contains(group.getFormattedTag(localUser.getOrgTag()))) {
+        recipientsInput.append(group.getFormattedTag(localUser.getOrgTag()) + " ");
       }
     } else {
-
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      if (!selectedTags.contains(user.getFullTag())) {
-        recipientsInput.append(user.getFullTag() + " ");
+      if (!selectedTags.contains(user.getFormattedTag(localUser.getOrgTag()))) {
+        recipientsInput.append(user.getFormattedTag(localUser.getOrgTag()) + " ");
       }
     }
     recipientsInput.setSelection(recipientsInput.length());
@@ -111,7 +111,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid)) {
           return initialDistribution;
         } else {
-          String newExpression = initialDistribution.pretty + " " + localUser.getFullTag();
+          String newExpression = initialDistribution.pretty + " + @" + localUser.getTag();
           JSONObject newResult = CcsmApi.getDistribution(NewConversationActivity.this, newExpression);
           return ForstaDistribution.fromJson(newResult);
         }

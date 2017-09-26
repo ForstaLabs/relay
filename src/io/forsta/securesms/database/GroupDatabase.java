@@ -611,16 +611,20 @@ public class GroupDatabase extends Database {
       return active;
     }
 
-    public String getSlug() {
+    public String getTag() {
       return slug;
     }
 
-    public String getOrgSlug() {
+    public String getOrgTag() {
       return org_slug;
     }
 
     public String getFullTag() {
-      return new StringBuilder().append("@").append(slug).append(":").append(org_slug).toString();
+      return new StringBuilder().append(slug).append(":").append(org_slug).toString();
+    }
+
+    public String getFormattedTag(String currentOrg) {
+      return "@" + (currentOrg.equals(org_slug) ? getTag() : getFullTag());
     }
 
     public String getExpression(ForstaUser localUser) {

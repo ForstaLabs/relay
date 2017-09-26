@@ -119,12 +119,19 @@ public class ForstaUser {
     return name.toString();
   }
 
+  public String getOrgTag() {
+    return org_slug;
+  }
+
   public String getTag() {
-    return "@" + slug;
+    return slug;
   }
 
   public String getFullTag() {
-    return "@" + slug + ":" + org_slug;
+    return slug + ":" + org_slug;
   }
 
+  public String getFormattedTag(String currentOrg) {
+    return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag());
+  }
 }
