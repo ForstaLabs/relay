@@ -69,6 +69,7 @@
                       android:layout_height="60dp"
                       android:gravity="top"
                       android:background="@color/white"
+                      android:textColor="@color/black"
                       android:textSize="14sp"
                       android:padding="5dp" android:layout_weight="1">
             </EditText>
