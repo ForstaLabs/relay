@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaLogSubmitActivity;
@@ -44,8 +45,9 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   private static final String TAG = AdvancedPreferenceFragment.class.getSimpleName();
 
   private static final String PUSH_MESSAGING_PREF   = "pref_toggle_push_messaging";
-  private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
+    private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
   private static final String FORSTA_DASHBOARD_PREFERENCE = "preference_forsta_dashboard";
+  private static final String FORSTA_OTR_PREF   = "pref_forsta_otr";
 
   private static final int PICK_IDENTITY_CONTACT = 1;
 
@@ -69,8 +71,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
-    // Disable submit debug log. This submits to api.github.com/gists and is part of a fragment contained in Whispersystems JAR.
-//    preferenceScreen.removePreference(submitDebugLog);
+    initializeOffTheRecordToggle();
   }
 
   @Override
@@ -91,6 +92,17 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
   }
 
+  private void initializeOffTheRecordToggle() {
+    CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(FORSTA_OTR_PREF);
+    if (ForstaPreferences.getOffTheRecord(getActivity())) {
+      preference.setChecked(true);
+    } else {
+      preference.setChecked(false);
+    }
+
+    preference.setOnPreferenceChangeListener(new OffTheRecordClickListener());
+  }
+
   private void initializePushMessagingToggle() {
     CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(PUSH_MESSAGING_PREF);
 
@@ -103,6 +115,10 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
 
     preference.setOnPreferenceChangeListener(new PushMessagingClickListener());
+
+    //XXX Remove this preference for now.
+    PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
+    preferenceScreen.removePreference(preference);
   }
 
   private void initializeIdentitySelection() {
@@ -253,6 +269,17 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
       Intent intent = new Intent(getActivity(), DashboardActivity.class);
       startActivity(intent);
       return true;
+    }
+  }
+
+  private class OffTheRecordClickListener implements Preference.OnPreferenceChangeListener {
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object o) {
+      boolean value = (boolean) o;
+      ForstaPreferences.setOffTheRecord(getActivity(), value);
+      initializeOffTheRecordToggle();
+      return value;
     }
   }
 }

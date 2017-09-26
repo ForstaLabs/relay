@@ -398,16 +398,7 @@ public class PushDecryptJob extends ContextJob {
                                                                                                   message.getTimestamp(),
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
-    long threadId;
-    if (forstaMessage.hasThreadUid()) {
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-
-    } else {
-      threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    }
+    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -437,16 +428,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
     getForstaMessageDistribution(forstaMessage);
 
-    long threadId;
-    if (forstaMessage.hasThreadUid()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-    } else {
-      threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    }
+    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
 
     OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
         PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
@@ -541,16 +523,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
     getForstaMessageDistribution(forstaMessage);
 
-    long threadId;
-    if (forstaMessage.hasThreadUid()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-    } else {
-      threadId  = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    }
+    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
 
     OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
 
@@ -720,6 +693,21 @@ public class PushDecryptJob extends ContextJob {
       return recipients;
     }
     return null;
+  }
+
+  private long getOrAllocateThreadId(ForstaMessage forstaMessage, Recipients threadUid) {
+    long threadId;
+    if (forstaMessage.hasThreadUid()) {
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
+      }
+    } else {
+      //XXX Fallback to finding a thread based on the destination if not in ForstaMessage
+      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(threadUid, forstaMessage);
+    }
+    return threadId;
   }
 
   private void getForstaMessageDistribution(ForstaMessage forstaMessage) {

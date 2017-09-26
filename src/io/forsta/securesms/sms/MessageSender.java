@@ -20,6 +20,7 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -82,7 +83,9 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    CcsmSync.syncTextMessage(masterSecret, context, message);
+    if (!ForstaPreferences.getOffTheRecord(context)) {
+      CcsmSync.syncTextMessage(masterSecret, context, message);
+    }
 
     return allocatedThreadId;
   }
@@ -110,7 +113,9 @@ public class MessageSender {
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
-      CcsmSync.syncMediaMessage(masterSecret, context, message);
+      if (!ForstaPreferences.getOffTheRecord(context)) {
+        CcsmSync.syncMediaMessage(masterSecret, context, message);
+      }
 
       return allocatedThreadId;
     } catch (MmsException e) {

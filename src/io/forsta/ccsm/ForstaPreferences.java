@@ -24,6 +24,7 @@ public class ForstaPreferences {
   private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
   private static final String FORSTA_USER = "forsta_user";
   private static final String CCSM_DEBUG = "ccsm_debug";
+  private static final String FORSTA_OTR = "forsta_otr";
 
   public static void clearPreferences(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -137,6 +138,14 @@ public class ForstaPreferences {
 
   public static void setForstaUser(Context context, String json) {
     setStringPreference(context, FORSTA_USER, json);
+  }
+
+  public static boolean getOffTheRecord(Context context) {
+    return getBooleanPreference(context, FORSTA_OTR);
+  }
+
+  public static void setOffTheRecord(Context context, boolean value) {
+    setBooleanPreference(context, FORSTA_OTR, value);
   }
 
   private static void setStringPreference(Context context, String key, String value) {
