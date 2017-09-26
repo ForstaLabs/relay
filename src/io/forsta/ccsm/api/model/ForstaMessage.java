@@ -116,6 +116,10 @@ public class ForstaMessage {
     return !TextUtils.isEmpty(universalExpression);
   }
 
+  public String getUniversalExpression() {
+    return universalExpression;
+  }
+
   public static JSONObject getVersion(int version, String body) {
     try {
       JSONArray jsonArray = new JSONArray(body);

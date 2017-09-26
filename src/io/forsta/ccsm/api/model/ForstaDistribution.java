@@ -70,6 +70,10 @@ public class ForstaDistribution {
     return userIds.size() > 0;
   }
 
+  public boolean hasSufficientRecipients() {
+    return userIds.size() > 1;
+  }
+
   public List<String> getRecipients(Context context) {
     List<String> users = new ArrayList<>();
     boolean excludeSelf = true;

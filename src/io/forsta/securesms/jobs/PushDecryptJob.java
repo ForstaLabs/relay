@@ -711,8 +711,7 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void getForstaMessageDistribution(ForstaMessage forstaMessage) {
-    JSONObject response = CcsmApi.getDistribution(context, forstaMessage.universalExpression);
-    ForstaDistribution distribution = ForstaDistribution.fromJson(response);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
 //    if (TextUtils.isEmpty(distribution.universal)) {
 //      throw new InvalidDistributionException("Invalid or missing universal expression found in message body");
 //    }

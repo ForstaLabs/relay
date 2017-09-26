@@ -105,21 +105,19 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
-        JSONObject result = CcsmApi.getDistribution(NewConversationActivity.this, expression);
-        ForstaDistribution initialDistribution = ForstaDistribution.fromJson(result);
+        ForstaDistribution initialDistribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, expression);
         ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
         if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid)) {
           return initialDistribution;
         } else {
           String newExpression = initialDistribution.pretty + " + @" + localUser.getTag();
-          JSONObject newResult = CcsmApi.getDistribution(NewConversationActivity.this, newExpression);
-          return ForstaDistribution.fromJson(newResult);
+          return CcsmApi.getMessageDistribution(NewConversationActivity.this, newExpression);
         }
       }
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        if (distribution.hasWarnings()) {
+        if (distribution.hasWarnings() && !distribution.hasRecipients()) {
           Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
           return;
         }

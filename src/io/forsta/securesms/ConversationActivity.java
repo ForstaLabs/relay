@@ -1472,8 +1472,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }
 
-    JSONObject response = CcsmApi.getDistribution(ConversationActivity.this, distribution_expression);
-    ForstaDistribution distribution = ForstaDistribution.fromJson(response);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, distribution_expression);
     ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
     return db.allocateThread(recipients, distribution);
 }

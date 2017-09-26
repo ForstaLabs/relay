@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
@@ -305,6 +306,11 @@ public class CcsmApi {
       e.printStackTrace();
     }
     return groups;
+  }
+
+  public static ForstaDistribution getMessageDistribution(Context context, String expression) {
+    JSONObject response = CcsmApi.getDistribution(context, expression);
+    return ForstaDistribution.fromJson(response);
   }
 
   // This is out for now.
