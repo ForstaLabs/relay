@@ -72,7 +72,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     createConversationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        handleCreateConversation(recipientsInput.getText().toString());
+        handleCreateConversation(getConversationExpression());
       }
     });
 
