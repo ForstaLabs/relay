@@ -31,17 +31,12 @@
             android:background="@color/forsta_accent"
             android:padding="5dp"
             android:layout_margin="1dp">
-            <ImageButton android:id="@+id/forsta_start_recipient"
-                         android:layout_width="30dp"
-                         android:layout_height="30dp"
-                         android:background="@null"
-                         android:src="@drawable/ic_tag"
-                         android:layout_alignParentLeft="true"/>
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true">
                 <TextView android:id="@+id/forsta_input_type"
                           android:layout_width="wrap_content"
@@ -62,6 +57,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+            <ImageButton android:id="@+id/forsta_start_recipient"
+                         android:layout_width="30dp"
+                         android:layout_height="30dp"
+                         android:background="@null"
+                         android:src="@drawable/ic_tag"
+                         android:layout_marginRight="5dp"
+                         android:layout_gravity="center_vertical"/>
             <EditText android:id="@+id/contact_selection_input"
                       android:layout_width="match_parent"
                       android:layout_height="60dp"
@@ -81,6 +83,7 @@
                 />
 
         </LinearLayout>
+
     </LinearLayout>
 
 

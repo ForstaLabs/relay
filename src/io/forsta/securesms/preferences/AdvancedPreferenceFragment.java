@@ -106,19 +106,21 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   private void initializePushMessagingToggle() {
     CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(PUSH_MESSAGING_PREF);
 
-    if (TextSecurePreferences.isPushRegistered(getActivity())) {
-      preference.setChecked(true);
-      preference.setSummary(TextSecurePreferences.getLocalNumber(getActivity()));
-    } else {
-      preference.setChecked(false);
-      preference.setSummary(R.string.preferences__free_private_messages_and_calls);
-    }
+//    if (TextSecurePreferences.isPushRegistered(getActivity())) {
+//      preference.setChecked(true);
+//      preference.setSummary(TextSecurePreferences.getLocalNumber(getActivity()));
+//    } else {
+//      preference.setChecked(false);
+//      preference.setSummary(R.string.preferences__free_private_messages_and_calls);
+//    }
 
-    preference.setOnPreferenceChangeListener(new PushMessagingClickListener());
+//    preference.setOnPreferenceChangeListener(new PushMessagingClickListener());
 
     //XXX Remove this preference for now.
-    PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
-    preferenceScreen.removePreference(preference);
+    if (preference != null) {
+      PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
+      preferenceScreen.removePreference(preference);
+    }
   }
 
   private void initializeIdentitySelection() {
