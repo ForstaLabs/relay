@@ -64,12 +64,14 @@ public class ExpiringMessageManager {
                                                                    messageRecord.isMms(),
                                                                    messageRecord.getExpireStarted() + messageRecord.getExpiresIn()));
       }
+      smsReader.close();
 
       while ((messageRecord = mmsReader.getNext()) != null) {
         expiringMessageReferences.add(new ExpiringMessageReference(messageRecord.getId(),
                                                                    messageRecord.isMms(),
                                                                    messageRecord.getExpireStarted() + messageRecord.getExpiresIn()));
       }
+      mmsReader.close();
     }
   }
 
