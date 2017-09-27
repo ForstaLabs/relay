@@ -116,7 +116,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
       if (!selectedTags.contains(group.getFormattedTag(localUser.getOrgTag()))) {
-//        recipientsInput.append(group.getFormattedTag(localUser.getOrgTag()) + " ");
         selectedTags.add(group.getFormattedTag(localUser.getOrgTag()));
       } else {
         selectedTags.remove(group.getFormattedTag(localUser.getOrgTag()));
@@ -124,7 +123,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     } else {
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
       if (!selectedTags.contains(user.getFormattedTag(localUser.getOrgTag()))) {
-//        recipientsInput.append(user.getFormattedTag(localUser.getOrgTag()) + " ");
         selectedTags.add(user.getFormattedTag(localUser.getOrgTag()));
       } else {
         selectedTags.remove(user.getFormattedTag(localUser.getOrgTag()));
@@ -137,8 +135,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private String getConversationExpression() {
     String selectedExpression = TextUtils.join(" + ", selectedTags);
     String customExpression = TextUtils.join(" + ", customTags);
-    // Just allow the custom expression as it is.
-//    String customExpression = recipientsInput.getText().toString();
     return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
   }
 
@@ -252,13 +248,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       } else {
         contactsFragment.setQueryFilter(slugPart);
       }
-
-//      customTags.clear();
-//      while (m.find()) {
-//        String tag = m.group();
-//        customTags.add(tag);
-//      }
-//      recipientExpression.setText(getConversationExpression());
     }
 
     @Override
