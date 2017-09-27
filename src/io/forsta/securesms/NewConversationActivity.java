@@ -77,6 +77,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     });
 
     recipientsInput.addTextChangedListener(new TextChangedWatcher());
+    recipientsInput.requestFocus();
   }
 
   @Override
@@ -112,6 +113,8 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private String getConversationExpression() {
     String selectedExpression = TextUtils.join(" + ", selectedTags);
     String customExpression = TextUtils.join(" + ", customTags);
+    // Just allow the custom expression as it is.
+    customExpression = recipientsInput.getText().toString();
     return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
   }
 
@@ -133,7 +136,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        if (distribution.hasWarnings() && !distribution.hasRecipients()) {
+        if (distribution.hasWarnings()) {
           Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
           return;
         }
