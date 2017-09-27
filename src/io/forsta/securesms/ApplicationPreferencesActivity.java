@@ -130,8 +130,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
       addPreferencesFromResource(R.xml.preferences);
 
       MasterSecret masterSecret = getArguments().getParcelable("master_secret");
-      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
-        .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_SMS_MMS));
+//      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
+//        .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_SMS_MMS));
       this.findPreference(PREFERENCE_CATEGORY_NOTIFICATIONS)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_NOTIFICATIONS));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
@@ -156,8 +156,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
     }
 
     private void setCategorySummaries() {
-      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
-          .setSummary(SmsMmsPreferenceFragment.getSummary(getActivity()));
+//      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
+//          .setSummary(SmsMmsPreferenceFragment.getSummary(getActivity()));
       this.findPreference(PREFERENCE_CATEGORY_NOTIFICATIONS)
           .setSummary(NotificationsPreferenceFragment.getSummary(getActivity()));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
@@ -182,9 +182,9 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         Fragment fragment = null;
 
         switch (category) {
-        case PREFERENCE_CATEGORY_SMS_MMS:
-          fragment = new SmsMmsPreferenceFragment();
-          break;
+//        case PREFERENCE_CATEGORY_SMS_MMS:
+//          fragment = new SmsMmsPreferenceFragment();
+//          break;
         case PREFERENCE_CATEGORY_NOTIFICATIONS:
           fragment = new NotificationsPreferenceFragment();
           break;
