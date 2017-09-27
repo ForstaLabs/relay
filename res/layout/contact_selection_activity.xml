@@ -55,7 +55,7 @@
                           android:layout_height="wrap_content"
                           android:text="Select a recipient, or enter a tag expression."
                           android:textColor="@color/textsecure_primary"
-                          android:layout_marginLeft="3dp"/>
+                          android:layout_marginLeft="10dp"/>
                 <ImageButton
                     android:id="@+id/contact_selection_confirm_button"
                     android:layout_width="40dp"
