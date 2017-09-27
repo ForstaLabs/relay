@@ -126,7 +126,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         String expression = params[0];
         ForstaDistribution initialDistribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, expression);
         ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-        if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid)) {
+        if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid) || !initialDistribution.hasRecipients()) {
           return initialDistribution;
         } else {
           String newExpression = initialDistribution.pretty + " + @" + localUser.getTag();
