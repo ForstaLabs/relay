@@ -690,6 +690,7 @@ public class PushDecryptJob extends ContextJob {
     if (distribution.hasRecipients()) {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+      RecipientFactory.clearCache(context);
       return recipients;
     }
     return null;

@@ -92,6 +92,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
     } catch (UntrustedIdentityException uie) {
       Log.w(TAG, uie);
+      Log.w(TAG, "Auto handling untrusted identity");
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
       IdentityKey identityKey    = uie.getIdentityKey();
@@ -119,13 +120,14 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 //    database.markAsPush(messageId);
 
     } catch (EncapsulatedExceptions ee) {
-        List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
-        for (UntrustedIdentityException uie : untrustedIdentities) {
-          Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
-          long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
-          IdentityKey identityKey    = uie.getIdentityKey();
-          DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
-        }
+      Log.w(TAG, "Auto handling untrusted identity");
+      List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
+      for (UntrustedIdentityException uie : untrustedIdentities) {
+        Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
+        long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
+        IdentityKey identityKey    = uie.getIdentityKey();
+        DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
+      }
 
       try {
         deliver(masterSecret, message);
