@@ -15,6 +15,7 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
+import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
 
@@ -62,17 +63,7 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
 
     try {
       Log.w(TAG, "Sending message: " + messageId);
-
-      deliver(record);
-      database.markAsPush(messageId);
-      database.markAsSecure(messageId);
-      database.markAsSent(messageId);
-
-      if (record.getExpiresIn() > 0) {
-        database.markExpireStarted(messageId);
-        expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
-      }
-
+      processMessage(database, record, expirationManager);
     } catch (InsecureFallbackApprovalException e) {
       Log.w(TAG, e);
       database.markAsPendingInsecureSmsFallback(record.getId());
@@ -80,30 +71,18 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
-      Log.w(TAG, "Auto handling untrusted identity");
+      Log.w(TAG, "Text message. Auto handling untrusted identity");
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, e.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
       IdentityKey identityKey    = e.getIdentityKey();
       DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
       try {
-        deliver(record);
-        database.markAsPush(messageId);
-        database.markAsSecure(messageId);
-        database.markAsSent(messageId);
-
-        if (record.getExpiresIn() > 0) {
-          database.markExpireStarted(messageId);
-          expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
-        }
+        processMessage(database, record, expirationManager);
       } catch (UntrustedIdentityException e1) {
         e1.printStackTrace();
       } catch (InsecureFallbackApprovalException e1) {
         e1.printStackTrace();
       }
-
-//      database.addMismatchedIdentity(record.getId(), recipientId, e.getIdentityKey());
-//      database.markAsSentFailed(record.getId());
-//      database.markAsPush(record.getId());
     }
   }
 
@@ -151,6 +130,19 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
+    }
+  }
+
+  private void processMessage(SmsDatabase database, SmsMessageRecord record, ExpiringMessageManager expirationManager)
+      throws RetryLaterException, UntrustedIdentityException, InsecureFallbackApprovalException {
+    deliver(record);
+    database.markAsPush(messageId);
+    database.markAsSecure(messageId);
+    database.markAsSent(messageId);
+
+    if (record.getExpiresIn() > 0) {
+      database.markExpireStarted(messageId);
+      expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
     }
   }
 }

@@ -74,17 +74,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     OutgoingMediaMessage message           = database.getOutgoingMessage(masterSecret, messageId);
 
     try {
-      deliver(masterSecret, message);
-      database.markAsPush(messageId);
-      database.markAsSecure(messageId);
-      database.markAsSent(messageId);
-      markAttachmentsUploaded(messageId, message.getAttachments());
-
-      if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-        database.markExpireStarted(messageId);
-        expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
-      }
-
+      Log.w(TAG, "Sending message: " + messageId);
+      processMessage(masterSecret, database, message, expirationManager);
     } catch (InsecureFallbackApprovalException ifae) {
       Log.w(TAG, ifae);
       database.markAsPendingInsecureSmsFallback(messageId);
@@ -92,22 +83,13 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
     } catch (UntrustedIdentityException uie) {
       Log.w(TAG, uie);
-      Log.w(TAG, "Auto handling untrusted identity");
+      Log.w(TAG, "Media Message. Auto handling untrusted identity, Single recipient.");
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
       IdentityKey identityKey    = uie.getIdentityKey();
       DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
       try {
-        deliver(masterSecret, message);
-        database.markAsPush(messageId);
-        database.markAsSecure(messageId);
-        database.markAsSent(messageId);
-        markAttachmentsUploaded(messageId, message.getAttachments());
-
-        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-          database.markExpireStarted(messageId);
-          expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
-        }
+        processMessage(masterSecret, database, message, expirationManager);
       } catch (InsecureFallbackApprovalException e) {
         e.printStackTrace();
       } catch (EncapsulatedExceptions encapsulatedExceptions) {
@@ -115,12 +97,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       } catch (UntrustedIdentityException e) {
         e.printStackTrace();
       }
-//    database.addMismatchedIdentity(messageId, recipientId, uie.getIdentityKey());
-//    database.markAsSentFailed(messageId);
-//    database.markAsPush(messageId);
-
     } catch (EncapsulatedExceptions ee) {
-      Log.w(TAG, "Auto handling untrusted identity");
+      Log.w(TAG, "Media message. Auto handling untrusted identity. Multiple recipients.");
       List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
       for (UntrustedIdentityException uie : untrustedIdentities) {
         Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
@@ -130,16 +108,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       }
 
       try {
-        deliver(masterSecret, message);
-        database.markAsPush(messageId);
-        database.markAsSecure(messageId);
-        database.markAsSent(messageId);
-        markAttachmentsUploaded(messageId, message.getAttachments());
-
-        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-          database.markExpireStarted(messageId);
-          expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
-        }
+        processMessage(masterSecret, database, message, expirationManager);
       } catch (InsecureFallbackApprovalException e) {
         e.printStackTrace();
       } catch (UntrustedIdentityException e) {
@@ -203,6 +172,20 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
+    }
+  }
+
+  private void processMessage(MasterSecret masterSecret, MmsDatabase database, OutgoingMediaMessage message, ExpiringMessageManager expirationManager)
+      throws EncapsulatedExceptions, RetryLaterException, UndeliverableMessageException, UntrustedIdentityException, InsecureFallbackApprovalException {
+    deliver(masterSecret, message);
+    database.markAsPush(messageId);
+    database.markAsSecure(messageId);
+    database.markAsSent(messageId);
+    markAttachmentsUploaded(messageId, message.getAttachments());
+
+    if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+      database.markExpireStarted(messageId);
+      expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
     }
   }
 
