@@ -252,6 +252,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     Recipients           recipients   = getMessageDestination(envelope, message);
+    String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
                                                                  localNumber, message.getTimestamp(), -1,
                                                                  message.getExpiresInSeconds() * 1000, true,
@@ -259,7 +260,9 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getBody(), message.getGroupInfo(),
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
-
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+    getForstaMessageDistribution(forstaMessage);
+    mediaMessage.setForstaMessage(forstaMessage);
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
 
