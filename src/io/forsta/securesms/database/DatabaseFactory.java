@@ -76,7 +76,8 @@ public class DatabaseFactory {
   private static final int INTRODUCE_FORSTA_DISTRIBUTION = 29;
   private static final int INTRODUCE_FORSTA_THREADID = 30;
   private static final int INTRODUCE_FORSTA_ORGSLUG = 31;
-  private static final int DATABASE_VERSION                                = 31;
+  private static final int INTRODUCE_FORSTA_PREFERENCES_THREADID = 32;
+  private static final int DATABASE_VERSION                                = 32;
 
 
   private static final String DATABASE_NAME    = "messages.db";
@@ -845,6 +846,10 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCE_FORSTA_ORGSLUG) {
         db.execSQL("ALTER TABLE groups ADD COLUMN org_slug TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_PREFERENCES_THREADID) {
+        db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN thread_id INTEGER");
       }
 
       db.setTransactionSuccessful();
