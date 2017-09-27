@@ -30,6 +30,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -78,6 +79,29 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     recipientsInput.addTextChangedListener(new TextChangedWatcher());
     recipientsInput.requestFocus();
+
+    startRecipientButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        new AsyncTask<String, Void, ForstaDistribution>() {
+
+          @Override
+          protected ForstaDistribution doInBackground(String... strings) {
+            return CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+          }
+
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
+            if (distribution.hasWarnings()) {
+              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
+            }
+            customTags.add(distribution.pretty);
+            recipientExpression.setText(getConversationExpression());
+            recipientsInput.setText("");
+          }
+        }.execute(recipientsInput.getText().toString());
+      }
+    });
   }
 
   @Override
@@ -114,7 +138,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     String selectedExpression = TextUtils.join(" + ", selectedTags);
     String customExpression = TextUtils.join(" + ", customTags);
     // Just allow the custom expression as it is.
-    customExpression = recipientsInput.getText().toString();
+//    String customExpression = recipientsInput.getText().toString();
     return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
   }
 
@@ -216,6 +240,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
       Matcher m = p.matcher(charSequence);
       String input = charSequence.toString();
 
+      if (input.length() == 1 && !input.endsWith("@")) {
+        recipientsInput.setText("@" + input);
+        recipientsInput.setSelection(recipientsInput.length());
+      }
+
       int slugStart = input.lastIndexOf("@");
       String slugPart = input.substring(slugStart + 1);
       if (slugPart.contains(" ")) {
@@ -224,12 +253,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
         contactsFragment.setQueryFilter(slugPart);
       }
 
-      customTags.clear();
-      while (m.find()) {
-        String tag = m.group();
-        customTags.add(tag);
-      }
-      recipientExpression.setText(getConversationExpression());
+//      customTags.clear();
+//      while (m.find()) {
+//        String tag = m.group();
+//        customTags.add(tag);
+//      }
+//      recipientExpression.setText(getConversationExpression());
     }
 
     @Override

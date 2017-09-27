@@ -34,8 +34,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -105,13 +108,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     recipientCount = (TextView) findViewById(R.id.forsta_input_recipients);
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
     startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
-    startRecipientButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        recipientsInput.append("@");
-        recipientsInput.requestFocus();
-      }
-    });
+
 
     initializeToolbar();
     initializeResources();
