@@ -84,6 +84,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private TextView          title;
   private TextView          blockedIndicator;
   private TextView threadRecipients;
+  private TextView recipientExression;
   private EditText forstaTitle;
   private TextView forstaUid;
   private TextView forstaDistribution;
@@ -193,6 +194,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private void initThreadInfo(final long threadId, Recipients recipients) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this).getForstaThread(threadId);
     threadRecipients = (TextView) findViewById(R.id.forsta_thread_recipients);
+    recipientExression = (TextView) findViewById(R.id.forsta_thread_recipients_expression);
     threadRecipients.setText(recipients.toShortString());
     forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
     forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
@@ -214,7 +216,6 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     forstaDistribution.setText(thread.distribution);
 
     new AsyncTask<String, Void, ForstaDistribution>() {
-
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         return CcsmApi.getMessageDistribution(RecipientPreferenceActivity.this, params[0]);
@@ -222,7 +223,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        title.setText(distribution.pretty);
+        recipientExression.setText(distribution.pretty);
       }
     }.execute(thread.distribution);
 

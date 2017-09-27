@@ -86,6 +86,10 @@
         </LinearLayout>
         <TextView style="@style/TextAppearance.AppCompat.Subhead"
                   android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="Recipient Expression"/>
+        <TextView android:id="@+id/forsta_thread_recipients_expression" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
+        <TextView style="@style/TextAppearance.AppCompat.Subhead"
+                  android:layout_width="match_parent"
                   android:layout_height="wrap_content" android:text="Recipients"/>
         <TextView android:id="@+id/forsta_thread_recipients" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
         <LinearLayout
