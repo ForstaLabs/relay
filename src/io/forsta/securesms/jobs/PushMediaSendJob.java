@@ -20,6 +20,8 @@ import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
 import io.forsta.securesms.transport.UndeliverableMessageException;
+
+import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
@@ -92,10 +94,57 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       Log.w(TAG, uie);
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
+      IdentityKey identityKey    = uie.getIdentityKey();
+      DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+      try {
+        deliver(masterSecret, message);
+        database.markAsPush(messageId);
+        database.markAsSecure(messageId);
+        database.markAsSent(messageId);
+        markAttachmentsUploaded(messageId, message.getAttachments());
 
-      database.addMismatchedIdentity(messageId, recipientId, uie.getIdentityKey());
-      database.markAsSentFailed(messageId);
-      database.markAsPush(messageId);
+        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+          database.markExpireStarted(messageId);
+          expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
+        }
+      } catch (InsecureFallbackApprovalException e) {
+        e.printStackTrace();
+      } catch (EncapsulatedExceptions encapsulatedExceptions) {
+        encapsulatedExceptions.printStackTrace();
+      } catch (UntrustedIdentityException e) {
+        e.printStackTrace();
+      }
+//    database.addMismatchedIdentity(messageId, recipientId, uie.getIdentityKey());
+//    database.markAsSentFailed(messageId);
+//    database.markAsPush(messageId);
+
+    } catch (EncapsulatedExceptions ee) {
+        List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
+        for (UntrustedIdentityException uie : untrustedIdentities) {
+          Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
+          long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
+          IdentityKey identityKey    = uie.getIdentityKey();
+          DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
+        }
+
+      try {
+        deliver(masterSecret, message);
+        database.markAsPush(messageId);
+        database.markAsSecure(messageId);
+        database.markAsSent(messageId);
+        markAttachmentsUploaded(messageId, message.getAttachments());
+
+        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+          database.markExpireStarted(messageId);
+          expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
+        }
+      } catch (InsecureFallbackApprovalException e) {
+        e.printStackTrace();
+      } catch (UntrustedIdentityException e) {
+        e.printStackTrace();
+      } catch (EncapsulatedExceptions encapsulatedExceptions) {
+        encapsulatedExceptions.printStackTrace();
+      }
     }
   }
 
@@ -115,7 +164,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
   private void deliver(MasterSecret masterSecret, OutgoingMediaMessage message)
       throws RetryLaterException, InsecureFallbackApprovalException, UntrustedIdentityException,
-             UndeliverableMessageException
+             UndeliverableMessageException, EncapsulatedExceptions
   {
     if (message.getRecipients() == null                       ||
         message.getRecipients().getPrimaryRecipient() == null ||
@@ -152,8 +201,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
-    } catch (EncapsulatedExceptions encapsulatedExceptions) {
-      encapsulatedExceptions.printStackTrace();
     }
   }
 

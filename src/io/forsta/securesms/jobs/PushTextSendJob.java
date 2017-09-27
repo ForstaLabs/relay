@@ -17,6 +17,8 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
+
+import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
@@ -78,12 +80,30 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
+      Log.w(TAG, "Auto handling untrusted identity");
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, e.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
+      IdentityKey identityKey    = e.getIdentityKey();
+      DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+      try {
+        deliver(record);
+        database.markAsPush(messageId);
+        database.markAsSecure(messageId);
+        database.markAsSent(messageId);
 
-      database.addMismatchedIdentity(record.getId(), recipientId, e.getIdentityKey());
-      database.markAsSentFailed(record.getId());
-      database.markAsPush(record.getId());
+        if (record.getExpiresIn() > 0) {
+          database.markExpireStarted(messageId);
+          expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
+        }
+      } catch (UntrustedIdentityException e1) {
+        e1.printStackTrace();
+      } catch (InsecureFallbackApprovalException e1) {
+        e1.printStackTrace();
+      }
+
+//      database.addMismatchedIdentity(record.getId(), recipientId, e.getIdentityKey());
+//      database.markAsSentFailed(record.getId());
+//      database.markAsPush(record.getId());
     }
   }
 
