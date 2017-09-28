@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.TouchDelegate;
@@ -29,6 +30,7 @@ public class ContactFilterToolbar extends Toolbar {
   private ImageView       clearToggle;
   private LinearLayout    toggleContainer;
   private ImageView       searchIcon;
+  private ImageView       clearIcon;
 
   public ContactFilterToolbar(Context context) {
     this(context, null);
@@ -51,6 +53,14 @@ public class ContactFilterToolbar extends Toolbar {
     this.clearToggle     = ViewUtil.findById(this, R.id.search_clear);
     this.toggleContainer = ViewUtil.findById(this, R.id.toggle_container);
     this.searchIcon = ViewUtil.findById(this, R.id.toolbar_search_directory);
+    this.clearIcon = ViewUtil.findById(this, R.id.toolbar_search_clear);
+    this.clearIcon.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        searchText.setText("");
+      }
+    });
+
 
     this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -93,9 +103,12 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void afterTextChanged(Editable s) {
-        if (!SearchUtil.isEmpty(searchText)) displayTogglingView(clearToggle);
-        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
-        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);
+        if (!SearchUtil.isEmpty(searchText)) {
+          clearIcon.setVisibility(VISIBLE);
+        }
+//        if (!SearchUtil.isEmpty(searchText)) displayTogglingView(clearToggle);
+//        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
+//        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);
         notifyListener();
       }
     });
@@ -139,6 +152,11 @@ public class ContactFilterToolbar extends Toolbar {
   public void clear() {
     searchText.setText("");
     notifyListener();
+  }
+
+  public void setSearchText(String text) {
+    searchText.setText(text);
+    searchText.setSelection(searchText.length());
   }
 
   public void setOnFilterChangedListener(OnFilterChangedListener listener) {
@@ -189,10 +207,16 @@ public class ContactFilterToolbar extends Toolbar {
 
   public void displaySearch() {
     searchIcon.setVisibility(VISIBLE);
+    clearIcon.setVisibility(GONE);
   }
 
   public void hideSearch() {
     searchIcon.setVisibility(GONE);
+    if (!SearchUtil.isEmpty(searchText)) {
+      clearIcon.setVisibility(VISIBLE);
+    } else {
+      clearIcon.setVisibility(GONE);
+    }
   }
 
   public interface OnFilterChangedListener {

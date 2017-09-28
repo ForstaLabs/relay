@@ -26,6 +26,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +64,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ImageButton createConversationButton;
   protected TextView recipientExpression;
   protected ContactFilterToolbar toolbar;
+  protected ProgressBar searchProgress;
 
   @Override
   protected void onPreCreate() {
@@ -88,6 +90,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
+    searchProgress = (ProgressBar) findViewById(R.id.contact_search_progress);
 
     initializeToolbar();
     initializeResources();

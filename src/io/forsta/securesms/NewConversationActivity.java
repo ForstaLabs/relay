@@ -27,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -78,12 +79,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
         handleCreateConversation(getConversationExpression());
       }
     });
-
     getIntent().putExtra(ContactSelectionListFragment.MULTI_SELECT, true);
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
-
+        searchProgress.setVisibility(View.VISIBLE);
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -98,12 +98,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
           @Override
           protected void onPostExecute(ForstaDistribution distribution) {
+            searchProgress.setVisibility(View.GONE);
             if (distribution.hasWarnings()) {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
             if (distribution.hasRecipients()) {
-//              customTags.add(distribution.pretty);
-//              recipientExpression.setText(getConversationExpression());
+              String removeDomain = searchText.substring(0, searchText.indexOf(":"));;
+              toolbar.setSearchText(removeDomain);
             }
           }
         }.execute(searchText);
