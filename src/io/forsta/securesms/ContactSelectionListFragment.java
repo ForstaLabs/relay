@@ -69,6 +69,7 @@ public class ContactSelectionListFragment extends    Fragment
   public final static int DISPLAY_MODE_OTHER_ONLY = ContactsCursorLoader.MODE_OTHER_ONLY;
 
   private TextView emptyText;
+  private TextView noResultsText;
 
   private Map<Long, String>         selectedContacts;
   private Set<String> selectedTags;
@@ -100,6 +101,7 @@ public class ContactSelectionListFragment extends    Fragment
     View view = inflater.inflate(R.layout.contact_selection_list_fragment, container, false);
 
     emptyText    = ViewUtil.findById(view, android.R.id.empty);
+    noResultsText = ViewUtil.findById(view, R.id.contact_selection_empty);
     recyclerView = ViewUtil.findById(view, R.id.recycler_view);
     swipeRefresh = ViewUtil.findById(view, R.id.swipe_refresh);
     fastScroller = ViewUtil.findById(view, R.id.fast_scroller);
@@ -178,6 +180,11 @@ public class ContactSelectionListFragment extends    Fragment
     }
     if (searchResultsCountListener != null) {
       searchResultsCountListener.onSearchResultsCountChanged(recyclerView.getAdapter().getItemCount());
+    }
+    if (recyclerView.getAdapter().getItemCount() < 1) {
+      noResultsText.setVisibility(View.VISIBLE);
+    } else {
+      noResultsText.setVisibility(View.GONE);
     }
   }
 

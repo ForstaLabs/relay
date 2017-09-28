@@ -50,6 +50,7 @@ import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.GroupUtil;
 
 /**
@@ -66,7 +67,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private Recipients selectedRecipients;
 
   @Override
-  public void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
+  public void onCreate(Bundle bundle, @NonNull final MasterSecret masterSecret) {
     super.onCreate(bundle, masterSecret);
 
     getToolbar().setShowCustomNavigationButton(false);
@@ -87,7 +88,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
           @Override
           protected ForstaDistribution doInBackground(String... strings) {
-            return CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+            if (distribution.hasRecipients()) {
+              Recipients distributionRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
+              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distributionRecipients);
+            }
+            return distribution;
           }
 
           @Override
@@ -96,9 +102,8 @@ public class NewConversationActivity extends ContactSelectionActivity {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
             if (distribution.hasRecipients()) {
-              customTags.add(distribution.pretty);
-              recipientExpression.setText(getConversationExpression());
-              toolbar.clear();
+//              customTags.add(distribution.pretty);
+//              recipientExpression.setText(getConversationExpression());
             }
           }
         }.execute(searchText);
