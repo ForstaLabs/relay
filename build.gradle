@@ -155,8 +155,8 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 14
         targetSdkVersion 22
-        versionName "0.1.47"
-        versionCode 147
+        versionName "0.1.48"
+        versionCode 148
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
@@ -179,7 +179,7 @@ android {
         }
         prod {
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"+17017328733\"" // XXX put in new value (see jeff)
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\"" // XXX put in new value (see jeff)
         }
     }
     compileOptions {

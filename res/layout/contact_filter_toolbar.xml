@@ -7,7 +7,8 @@
         <TextView android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/contact_selection_activity__title"
-            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:visibility="gone">
         </TextView>
         <ImageView android:id="@+id/action_icon"
                    android:layout_width="wrap_content"
@@ -17,13 +18,13 @@
                    android:clickable="true"
                    android:background="@drawable/circle_touch_highlight_background"
                    android:src="@drawable/ic_search_white_24dp"
-            android:visibility="gone"/>
+            android:visibility="visible"/>
 
         <LinearLayout android:id="@+id/toggle_container"
                       android:layout_width="match_parent"
                       android:layout_height="match_parent"
                       android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <EditText android:id="@+id/search_view"
                       android:layout_height="wrap_content"
@@ -37,7 +38,15 @@
                       android:background="@android:color/transparent"
                       android:layout_gravity="center_vertical"
                       android:gravity="center_vertical"/>
-
+            <ImageView android:id="@+id/toolbar_search_directory"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_gravity="center_vertical"
+                       android:gravity="center_vertical"
+                       android:clickable="true"
+                       android:background="@drawable/circle_touch_highlight_background"
+                       android:src="@drawable/ic_search_white_24dp"
+                       android:visibility="visible"/>
             <io.forsta.securesms.components.AnimatingToggle
                 android:id="@+id/button_toggle"
                 android:layout_width="wrap_content"
@@ -45,7 +54,7 @@
                 android:layout_gravity="center"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:gravity="center">
+                android:gravity="center" android:visibility="gone">
 
                 <ImageView android:id="@+id/search_dialpad"
                            android:layout_width="wrap_content"

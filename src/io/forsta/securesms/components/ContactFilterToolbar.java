@@ -19,6 +19,7 @@ import io.forsta.securesms.util.ViewUtil;
 
 public class ContactFilterToolbar extends Toolbar {
   private   OnFilterChangedListener listener;
+  private OnSearchClickedListener searchListener;
 
   private EditText        searchText;
   private AnimatingToggle toggle;
@@ -27,6 +28,7 @@ public class ContactFilterToolbar extends Toolbar {
   private ImageView       dialpadToggle;
   private ImageView       clearToggle;
   private LinearLayout    toggleContainer;
+  private ImageView       searchIcon;
 
   public ContactFilterToolbar(Context context) {
     this(context, null);
@@ -48,6 +50,7 @@ public class ContactFilterToolbar extends Toolbar {
     this.dialpadToggle   = ViewUtil.findById(this, R.id.search_dialpad);
     this.clearToggle     = ViewUtil.findById(this, R.id.search_clear);
     this.toggleContainer = ViewUtil.findById(this, R.id.toggle_container);
+    this.searchIcon = ViewUtil.findById(this, R.id.toolbar_search_directory);
 
     this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -99,6 +102,15 @@ public class ContactFilterToolbar extends Toolbar {
 
     expandTapArea(this, action);
     expandTapArea(toggleContainer, dialpadToggle);
+
+    this.searchIcon.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (searchListener != null) {
+          searchListener.onSearchClicked(searchText.getText().toString());
+        }
+      }
+    });
   }
 
   @Override
@@ -112,6 +124,10 @@ public class ContactFilterToolbar extends Toolbar {
     action.setOnClickListener(listener);
   }
 
+  public void setSearchListener(OnSearchClickedListener listener) {
+    searchListener = listener;
+  }
+
   public void setShowCustomNavigationButton(boolean show) {
     action.setVisibility(show ? VISIBLE : GONE);
   }
@@ -119,6 +135,10 @@ public class ContactFilterToolbar extends Toolbar {
   public void clear() {
     searchText.setText("");
     notifyListener();
+  }
+
+  public String getSearchText() {
+    return searchText.getText().toString();
   }
 
   public void setOnFilterChangedListener(OnFilterChangedListener listener) {
@@ -167,7 +187,19 @@ public class ContactFilterToolbar extends Toolbar {
     }
   }
 
+  public void displaySearch() {
+    searchIcon.setVisibility(VISIBLE);
+  }
+
+  public void hideSearch() {
+    searchIcon.setVisibility(GONE);
+  }
+
   public interface OnFilterChangedListener {
     void onFilterChanged(String filter);
+  }
+
+  public interface OnSearchClickedListener {
+    void onSearchClicked(String searchText);
   }
 }

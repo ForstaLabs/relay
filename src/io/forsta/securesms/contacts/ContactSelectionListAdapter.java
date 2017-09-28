@@ -42,7 +42,9 @@ import io.forsta.securesms.database.CursorRecyclerViewAdapter;
 import io.forsta.securesms.util.Util;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * List adapter to display all contacts and their related information
@@ -64,6 +66,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
   private final ItemClickListener clickListener;
 
   private final HashMap<Long, String> selectedContacts = new HashMap<>();
+  private final Set<String> selectedTags = new HashSet();
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     public ViewHolder(@NonNull  final View              itemView,
@@ -126,7 +129,8 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
     viewHolder.getView().unbind();
     viewHolder.getView().set(id, contactType, name, number, label, color, multiSelect);
-    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
+//    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
+    viewHolder.getView().setChecked(selectedTags.contains(number));
   }
 
   @Override
@@ -146,6 +150,10 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   public Map<Long, String> getSelectedContacts() {
     return selectedContacts;
+  }
+
+  public Set<String> getSelectedTags() {
+    return selectedTags;
   }
 
   private CharSequence getSpannedHeaderString(int position) {

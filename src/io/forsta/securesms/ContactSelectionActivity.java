@@ -27,6 +27,7 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.components.ContactFilterToolbar;
@@ -56,16 +57,12 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   private final DynamicTheme    dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
+  private MasterSecret masterSecret;
 
   protected ContactSelectionListFragment contactsFragment;
-  protected EditText recipientsInput;
   protected ImageButton createConversationButton;
-  protected ImageButton startRecipientButton;
-  protected TextView recipientCount;
   protected TextView recipientExpression;
-
-  private MasterSecret masterSecret;
-  private   ContactFilterToolbar toolbar;
+  protected ContactFilterToolbar toolbar;
 
   @Override
   protected void onPreCreate() {
@@ -89,11 +86,8 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
       Log.d(TAG, "Show sync indicator");
     }
 
-    recipientsInput = (EditText) findViewById(R.id.contact_selection_input);
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
-    recipientCount = (TextView) findViewById(R.id.forsta_input_recipients);
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
-    startRecipientButton = (ImageButton) findViewById(R.id.forsta_search_recipient);
 
     initializeToolbar();
     initializeResources();
@@ -117,12 +111,23 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     getSupportActionBar().setDisplayShowTitleEnabled(false);
+    this.toolbar.hideSearch();
   }
 
   private void initializeResources() {
     contactsFragment = (ContactSelectionListFragment) getSupportFragmentManager().findFragmentById(R.id.contact_selection_list_fragment);
     contactsFragment.setOnContactSelectedListener(this);
     contactsFragment.setOnRefreshListener(this);
+    contactsFragment.setOnSearchResultsCountChangedListener(new ContactSelectionListFragment.OnSearchResultsCountChanged() {
+      @Override
+      public void onSearchResultsCountChanged(int count) {
+        if (count < 1) {
+          toolbar.displaySearch();
+        } else {
+          toolbar.hideSearch();
+        }
+      }
+    });
   }
 
   private void initializeSearch() {

@@ -43,6 +43,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -77,12 +78,10 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     });
 
-    recipientsInput.addTextChangedListener(new TextChangedWatcher());
-    recipientsInput.requestFocus();
-
-    startRecipientButton.setOnClickListener(new View.OnClickListener() {
+    getIntent().putExtra(ContactSelectionListFragment.MULTI_SELECT, true);
+    toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
-      public void onClick(View view) {
+      public void onSearchClicked(final String searchText) {
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -95,11 +94,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
             if (distribution.hasWarnings()) {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
-            customTags.add(distribution.pretty);
-            recipientExpression.setText(getConversationExpression());
-            recipientsInput.setText("");
+            if (distribution.hasRecipients()) {
+              customTags.add(distribution.pretty);
+              recipientExpression.setText(getConversationExpression());
+              toolbar.clear();
+            }
           }
-        }.execute(recipientsInput.getText().toString());
+        }.execute(toolbar.getSearchText());
       }
     });
   }
@@ -108,28 +109,35 @@ public class NewConversationActivity extends ContactSelectionActivity {
   public void onContactSelected(final String number) {
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
     ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-    String text = recipientsInput.getText().toString();
-    if (!text.endsWith(" ")) {
-      int recipientIndex = text.lastIndexOf("@") != -1 ? text.lastIndexOf("@") : 0;
-      recipientsInput.setText(text.substring(0, recipientIndex));
-    }
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
       if (!selectedTags.contains(group.getFormattedTag(localUser.getOrgTag()))) {
         selectedTags.add(group.getFormattedTag(localUser.getOrgTag()));
-      } else {
-        selectedTags.remove(group.getFormattedTag(localUser.getOrgTag()));
       }
     } else {
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
       if (!selectedTags.contains(user.getFormattedTag(localUser.getOrgTag()))) {
         selectedTags.add(user.getFormattedTag(localUser.getOrgTag()));
-      } else {
-        selectedTags.remove(user.getFormattedTag(localUser.getOrgTag()));
       }
     }
+
     recipientExpression.setText(getConversationExpression());
-    recipientsInput.setSelection(recipientsInput.length());
+    toolbar.clear();
+  }
+
+  @Override
+  public void onContactDeselected(String number) {
+    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+    if (GroupUtil.isEncodedGroup(number)) {
+      GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
+      selectedTags.remove(group.getFormattedTag(localUser.getOrgTag()));
+    } else {
+      ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
+      selectedTags.remove(user.getFormattedTag(localUser.getOrgTag()));
+    }
+
+    toolbar.clear();
+    recipientExpression.setText(getConversationExpression());
   }
 
   private String getConversationExpression() {
@@ -180,7 +188,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
           intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
           intent.putExtra(ConversationActivity.DISTRIBUTION_EXPRESSION_EXTRA, distribution.universal);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-          recipientsInput.setText("");
           startActivity(intent);
           finish();
         } else {
@@ -226,36 +233,4 @@ public class NewConversationActivity extends ContactSelectionActivity {
     return true;
   }
 
-  private class TextChangedWatcher implements TextWatcher {
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-      Pattern p = Pattern.compile("@[a-zA-Z0-9(-|.)]+");
-      Matcher m = p.matcher(charSequence);
-      String input = charSequence.toString();
-
-      if (input.length() == 1 && !input.endsWith("@")) {
-        recipientsInput.setText("@" + input);
-        recipientsInput.setSelection(recipientsInput.length());
-      }
-
-      int slugStart = input.lastIndexOf("@");
-      String slugPart = input.substring(slugStart + 1);
-      if (slugPart.contains(" ")) {
-        contactsFragment.resetQueryFilter();
-      } else {
-        contactsFragment.setQueryFilter(slugPart);
-      }
-    }
-
-    @Override
-    public void afterTextChanged(Editable editable) {
-      recipientCount.setText(selectedTags.size() + "");
-    }
-  }
 }
