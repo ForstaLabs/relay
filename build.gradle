@@ -178,7 +178,7 @@ android {
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         prod {
-            buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-api.forsta.io\""
+            buildConfigField "String", "FORSTA_API_URL", "\"https://api.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\"" // XXX put in new value (see jeff)
         }
     }
