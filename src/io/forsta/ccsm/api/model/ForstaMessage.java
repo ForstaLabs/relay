@@ -77,6 +77,8 @@ public class ForstaMessage {
               }
             }
           }
+        } else {
+          forstaMessage.textBody = "";
         }
         JSONObject sender = jsonBody.getJSONObject("sender");
         forstaMessage.senderId = sender.getString("userId");

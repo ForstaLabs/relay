@@ -93,7 +93,7 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
     }
 
     if (privacy.isDisplayMessage()) {
-      setContentText(stringBuilder.append(message));
+      setContentText(stringBuilder.append(message == null ? "" : message));
       this.slideDeck = slideDeck;
     } else {
       setContentText(stringBuilder.append(context.getString(R.string.SingleRecipientNotificationBuilder_new_message)));
