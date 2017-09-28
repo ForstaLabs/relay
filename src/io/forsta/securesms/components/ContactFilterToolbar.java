@@ -107,7 +107,11 @@ public class ContactFilterToolbar extends Toolbar {
       @Override
       public void onClick(View view) {
         if (searchListener != null) {
-          searchListener.onSearchClicked(searchText.getText().toString());
+          String normalized = searchText.getText().toString();
+          if (!normalized.startsWith("@")) {
+            normalized = "@" + normalized;
+          }
+          searchListener.onSearchClicked(normalized);
         }
       }
     });
@@ -135,10 +139,6 @@ public class ContactFilterToolbar extends Toolbar {
   public void clear() {
     searchText.setText("");
     notifyListener();
-  }
-
-  public String getSearchText() {
-    return searchText.getText().toString();
   }
 
   public void setOnFilterChangedListener(OnFilterChangedListener listener) {

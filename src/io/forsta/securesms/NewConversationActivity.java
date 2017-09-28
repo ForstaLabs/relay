@@ -82,6 +82,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
+
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -100,7 +101,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
               toolbar.clear();
             }
           }
-        }.execute(toolbar.getSearchText());
+        }.execute(searchText);
       }
     });
   }
