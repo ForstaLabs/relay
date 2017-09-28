@@ -135,6 +135,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private String getConversationExpression() {
     String selectedExpression = TextUtils.join(" + ", selectedTags);
     String customExpression = TextUtils.join(" + ", customTags);
+    if (selectedTags.size() > 0 || customTags.size() > 0) {
+      createConversationButton.setActivated(true);
+    }
     return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
   }
 

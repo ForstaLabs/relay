@@ -12,7 +12,31 @@
             android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
-
+    <RelativeLayout
+        android:id="@+id/forsta_expression_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="7dp">
+        <EditText android:id="@+id/contact_selection_input"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="top"
+                  android:hint="@string/contact_selection_activity__enter_custom_expression"
+                  android:textColorHint="@color/gray10"
+                  android:background="@color/white"
+                  android:textColor="@color/black"
+                  android:textSize="14sp"
+                  android:padding="5dp" android:layout_weight="1">
+        </EditText>
+        <ImageButton android:id="@+id/forsta_search_recipient"
+                     android:layout_width="30dp"
+                     android:layout_height="30dp"
+                     android:background="@null"
+                     android:src="@drawable/ic_search_holo_light"
+                     android:layout_marginLeft="5dp"
+                     android:layout_gravity="center_vertical"
+            android:layout_alignParentRight="true"/>
+    </RelativeLayout>
     <fragment android:id="@+id/contact_selection_list_fragment"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
@@ -21,10 +45,12 @@
 
 
     <LinearLayout
+        android:id="@+id/forsta_confirm_expression_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/white">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,7 +79,6 @@
                 <TextView android:id="@+id/forsta_input_recipient_expression"
                           android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
-                          android:text="Select a recipient, or enter a tag expression."
                           android:textColor="@color/textsecure_primary"
                           android:layout_marginLeft="10dp"/>
                 <ImageButton
@@ -67,37 +92,7 @@
                     android:layout_alignParentRight="true"
                     />
             </RelativeLayout>
-
         </RelativeLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="3dp">
-            <ImageButton android:id="@+id/forsta_start_recipient"
-                         android:layout_width="30dp"
-                         android:layout_height="30dp"
-                         android:background="@null"
-                         android:src="@drawable/ic_search_holo_light"
-                         android:layout_marginRight="5dp"
-                         android:layout_gravity="center_vertical"/>
-            <EditText android:id="@+id/contact_selection_input"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:gravity="top"
-                      android:hint="@string/contact_selection_activity__enter_custom_expression"
-                      android:textColorHint="@color/gray10"
-                      android:background="@color/white"
-                      android:textColor="@color/black"
-                      android:textSize="14sp"
-                      android:padding="5dp" android:layout_weight="1">
-            </EditText>
-
-
-        </LinearLayout>
-
     </LinearLayout>
-
-
 </LinearLayout>

@@ -21,24 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
-import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -51,10 +41,6 @@ import io.forsta.securesms.util.ViewUtil;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Base activity container for selecting a list of contacts.
@@ -107,8 +93,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     recipientCount = (TextView) findViewById(R.id.forsta_input_recipients);
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
-    startRecipientButton = (ImageButton) findViewById(R.id.forsta_start_recipient);
-
+    startRecipientButton = (ImageButton) findViewById(R.id.forsta_search_recipient);
 
     initializeToolbar();
     initializeResources();
