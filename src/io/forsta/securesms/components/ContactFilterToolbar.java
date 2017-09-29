@@ -103,9 +103,6 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void afterTextChanged(Editable s) {
-        if (!SearchUtil.isEmpty(searchText)) {
-          clearIcon.setVisibility(VISIBLE);
-        }
 //        if (!SearchUtil.isEmpty(searchText)) displayTogglingView(clearToggle);
 //        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
 //        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);

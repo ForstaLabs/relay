@@ -20,24 +20,15 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-import org.w3c.dom.Text;
-
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
@@ -83,7 +74,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
-        searchProgress.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -98,7 +89,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
           @Override
           protected void onPostExecute(ForstaDistribution distribution) {
-            searchProgress.setVisibility(View.GONE);
+            progressBar.setVisibility(View.GONE);
             if (distribution.hasWarnings()) {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
@@ -157,7 +148,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
   }
 
   private void handleCreateConversation(String inputText) {
-    searchProgress.setVisibility(View.VISIBLE);
+    if (TextUtils.isEmpty(inputText)) {
+      Toast.makeText(NewConversationActivity.this, "Please select a recipient", Toast.LENGTH_LONG).show();
+      return;
+    }
+    progressBar.setVisibility(View.VISIBLE);
     new AsyncTask<String, Void, ForstaDistribution>() {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
@@ -176,7 +171,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       protected void onPostExecute(ForstaDistribution distribution) {
 
         if (distribution.hasWarnings()) {
-          searchProgress.setVisibility(View.GONE);
+          progressBar.setVisibility(View.GONE);
           Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
           return;
         }
@@ -202,7 +197,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         } else {
           Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
         }
-        searchProgress.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
       }
     }.execute(inputText);
   }
