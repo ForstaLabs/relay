@@ -55,7 +55,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
   private Set<String> selectedTags = new HashSet<>();
-  private Set<String> customTags = new HashSet<>();
   private Recipients selectedRecipients;
 
   @Override
@@ -139,12 +138,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   }
 
   private String getConversationExpression() {
-    String selectedExpression = TextUtils.join(" + ", selectedTags);
-    String customExpression = TextUtils.join(" + ", customTags);
-    if (selectedTags.size() > 0 || customTags.size() > 0) {
-      createConversationButton.setActivated(true);
-    }
-    return selectedExpression + ((customExpression.length() > 0 && selectedExpression.length() > 0) ? " + (" + customExpression + ")" : customExpression);
+    return TextUtils.join(" + ", selectedTags);
   }
 
   private void handleCreateConversation(String inputText) {
