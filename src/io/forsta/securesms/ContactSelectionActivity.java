@@ -22,8 +22,10 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -156,6 +158,16 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onContactDeselected(String number) {}
+
+  protected void showProgressBar() {
+    progressBar.setVisibility(View.VISIBLE);
+    getSupportFragmentManager().beginTransaction().hide(contactsFragment).commit();
+  }
+
+  protected void hideProgressBar() {
+    progressBar.setVisibility(View.GONE);
+    getSupportFragmentManager().beginTransaction().show(contactsFragment).commit();
+  }
 
   private class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
 

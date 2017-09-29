@@ -73,7 +73,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
-        progressBar.setVisibility(View.VISIBLE);
+        showProgressBar();
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -88,7 +88,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
           @Override
           protected void onPostExecute(ForstaDistribution distribution) {
-            progressBar.setVisibility(View.GONE);
+            hideProgressBar();
             if (distribution.hasWarnings()) {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
@@ -146,7 +146,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       Toast.makeText(NewConversationActivity.this, "Please select a recipient", Toast.LENGTH_LONG).show();
       return;
     }
-    progressBar.setVisibility(View.VISIBLE);
+    showProgressBar();
     new AsyncTask<String, Void, ForstaDistribution>() {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
@@ -165,7 +165,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       protected void onPostExecute(ForstaDistribution distribution) {
 
         if (distribution.hasWarnings()) {
-          progressBar.setVisibility(View.GONE);
+          hideProgressBar();
           Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
           return;
         }
@@ -189,9 +189,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
           startActivity(intent);
           finish();
         } else {
+          hideProgressBar();
           Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
         }
-        progressBar.setVisibility(View.GONE);
       }
     }.execute(inputText);
   }
