@@ -22,11 +22,14 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
@@ -40,7 +43,6 @@ import io.forsta.securesms.util.ViewUtil;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Date;
 
 /**
  * Base activity container for selecting a list of contacts.
@@ -56,11 +58,14 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   private final DynamicTheme    dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
+  private MasterSecret masterSecret;
 
   protected ContactSelectionListFragment contactsFragment;
-
-  private MasterSecret masterSecret;
-  private   ContactFilterToolbar toolbar;
+  protected ImageButton createConversationButton;
+  protected TextView recipientExpression;
+  protected ContactFilterToolbar toolbar;
+  protected ProgressBar progressBar;
+  private int currentDisplayCount = 0;
 
   @Override
   protected void onPreCreate() {
@@ -84,6 +89,10 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
       Log.d(TAG, "Show sync indicator");
     }
 
+    createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
+    recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
+    progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
+
     initializeToolbar();
     initializeResources();
     initializeSearch();
@@ -106,17 +115,34 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     getSupportActionBar().setDisplayShowTitleEnabled(false);
+    this.toolbar.hideSearch();
   }
 
   private void initializeResources() {
     contactsFragment = (ContactSelectionListFragment) getSupportFragmentManager().findFragmentById(R.id.contact_selection_list_fragment);
     contactsFragment.setOnContactSelectedListener(this);
     contactsFragment.setOnRefreshListener(this);
+    contactsFragment.setOnSearchResultsCountChangedListener(new ContactSelectionListFragment.OnSearchResultsCountChanged() {
+      @Override
+      public void onSearchResultsCountChanged(int count) {
+        if (count != currentDisplayCount) {
+          currentDisplayCount = count;
+          if (count < 1) {
+            toolbar.displaySearch();
+          } else {
+            toolbar.hideSearch();
+          }
+        }
+      }
+    });
   }
 
   private void initializeSearch() {
     toolbar.setOnFilterChangedListener(new OnFilterChangedListener() {
       @Override public void onFilterChanged(String filter) {
+        if (filter.startsWith("@")) {
+          filter = filter.substring(1, filter.length());
+        }
         contactsFragment.setQueryFilter(filter);
       }
     });
@@ -132,6 +158,16 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onContactDeselected(String number) {}
+
+  protected void showProgressBar() {
+    progressBar.setVisibility(View.VISIBLE);
+    getSupportFragmentManager().beginTransaction().hide(contactsFragment).commit();
+  }
+
+  protected void hideProgressBar() {
+    progressBar.setVisibility(View.GONE);
+    getSupportFragmentManager().beginTransaction().show(contactsFragment).commit();
+  }
 
   private class RefreshDirectoryTask extends AsyncTask<Context, Void, Void> {
 

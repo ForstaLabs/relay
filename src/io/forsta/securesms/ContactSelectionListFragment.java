@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Fragment for selecting a one or more contacts from a list.
@@ -68,9 +69,12 @@ public class ContactSelectionListFragment extends    Fragment
   public final static int DISPLAY_MODE_OTHER_ONLY = ContactsCursorLoader.MODE_OTHER_ONLY;
 
   private TextView emptyText;
+  private TextView noResultsText;
 
   private Map<Long, String>         selectedContacts;
+  private Set<String> selectedTags;
   private OnContactSelectedListener onContactSelectedListener;
+  private OnSearchResultsCountChanged searchResultsCountListener;
   private SwipeRefreshLayout        swipeRefresh;
   private String                    cursorFilter;
   private RecyclerView              recyclerView;
@@ -97,6 +101,7 @@ public class ContactSelectionListFragment extends    Fragment
     View view = inflater.inflate(R.layout.contact_selection_list_fragment, container, false);
 
     emptyText    = ViewUtil.findById(view, android.R.id.empty);
+    noResultsText = ViewUtil.findById(view, R.id.contact_selection_empty);
     recyclerView = ViewUtil.findById(view, R.id.recycler_view);
     swipeRefresh = ViewUtil.findById(view, R.id.swipe_refresh);
     fastScroller = ViewUtil.findById(view, R.id.fast_scroller);
@@ -127,6 +132,7 @@ public class ContactSelectionListFragment extends    Fragment
                                                                           new ListClickListener(),
                                                                           isMulti());
     selectedContacts = adapter.getSelectedContacts();
+    selectedTags = adapter.getSelectedTags();
     recyclerView.setAdapter(adapter);
     recyclerView.addItemDecoration(new StickyHeaderDecoration(adapter, true));
     this.getLoaderManager().initLoader(0, null, this);
@@ -151,6 +157,10 @@ public class ContactSelectionListFragment extends    Fragment
     getLoaderManager().restartLoader(0, null, this);
   }
 
+  public int getSearchResultCount() {
+    return recyclerView.getAdapter().getItemCount();
+  }
+
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new ContactsCursorLoader(getActivity(),
@@ -168,6 +178,14 @@ public class ContactSelectionListFragment extends    Fragment
       fastScroller.setVisibility(View.VISIBLE);
       fastScroller.setRecyclerView(recyclerView);
     }
+    if (searchResultsCountListener != null) {
+      searchResultsCountListener.onSearchResultsCountChanged(recyclerView.getAdapter().getItemCount());
+    }
+    if (recyclerView.getAdapter().getItemCount() < 1) {
+      noResultsText.setVisibility(View.VISIBLE);
+    } else {
+      noResultsText.setVisibility(View.GONE);
+    }
   }
 
   @Override
@@ -180,12 +198,14 @@ public class ContactSelectionListFragment extends    Fragment
     @Override
     public void onItemClick(ContactSelectionListItem contact) {
 
-      if (!isMulti() || !selectedContacts.containsKey(contact.getContactId())) {
-        selectedContacts.put(contact.getContactId(), contact.getNumber());
+      if (!isMulti() || !selectedTags.contains(contact.getNumber())) {
+//        selectedContacts.put(contact.getContactId(), contact.getNumber());
+        selectedTags.add(contact.getNumber());
         contact.setChecked(true);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactSelected(contact.getNumber());
       } else {
-        selectedContacts.remove(contact.getContactId());
+//        selectedContacts.remove(contact.getContactId());
+        selectedTags.remove(contact.getNumber());
         contact.setChecked(false);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactDeselected(contact.getNumber());
       }
@@ -200,9 +220,17 @@ public class ContactSelectionListFragment extends    Fragment
     this.swipeRefresh.setOnRefreshListener(onRefreshListener);
   }
 
+  public void setOnSearchResultsCountChangedListener(OnSearchResultsCountChanged listener) {
+    this.searchResultsCountListener = listener;
+  }
+
   public interface OnContactSelectedListener {
     void onContactSelected(String number);
     void onContactDeselected(String number);
+  }
+
+  public interface OnSearchResultsCountChanged {
+    void onSearchResultsCountChanged(int count);
   }
 
   /**

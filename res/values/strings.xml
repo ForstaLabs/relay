@@ -10,7 +10,7 @@
     <string name="forsta_login_title">Join Forsta</string>
     <string name="forsta_login_username_label">Username</string>
     <string name="forsta_login_password_label">Password</string>
-    <string name="forsta_login_org_label">Domain</string>
+    <string name="forsta_login_org_label">Organization</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
     <string name="forsta_login_send_link_button">Login</string>
     <string name="forsta_login_create_domain_button">Create Domain</string>
@@ -130,6 +130,7 @@
     <string name="ConversationActivity_sorry_the_selected_video_exceeds_message_size_restrictions">Sorry, the selected video exceeds message size restrictions (%1$skB).</string>
     <string name="ConversationActivity_sorry_the_selected_audio_exceeds_message_size_restrictions">Sorry, the selected audio exceeds message size restrictions (%1$skB).</string>
     <string name="ConversationActivity_recipient_is_not_a_valid_sms_or_email_address_exclamation">Recipient is not a valid SMS or email address!</string>
+    <string name="ConversationActivity_recipient_is_not_valid">Recipient is not valid</string>
     <string name="ConversationActivity_message_is_empty_exclamation">Message is empty!</string>
     <string name="ConversationActivity_group_members">Group members</string>
     <string name="ConversationActivity_group_conversation">Group conversation</string>
@@ -625,7 +626,10 @@
     <string name="change_passphrase_activity__repeat_new_passphrase">Repeat new passphrase</string>
 
     <!-- contact_selection_activity -->
-    <string name="contact_selection_activity__enter_name_or_number">Enter name or number</string>
+    <string name="contact_selection_activity__enter_name_or_number">Enter name or tag</string>
+    <string name="contact_selection_activity__enter_custom_expression">Enter a tag or tag expression</string>
+    <string name="contact_selection_activity__title">Create Conversation</string>
+    <string name="contact_selection_activity__no_results">No results. Click the search icon above to search the entire directory.</string>
 
     <!-- contact_selection_group_activity -->
     <string name="contact_selection_group_activity__no_contacts">No contacts.</string>
@@ -1020,6 +1024,8 @@
     <string name="preferences__language">Language</string>
     <string name="preferences__linked_devices">Link to Web App</string>
     <string name="preferences__signal_messages_and_calls">Forsta messages</string>
+    <string name="preferences__forsta_off_the_record">Off The Record</string>
+    <string name="preferences__forsta_off_the_record_summary">Conversations off the record.</string>
     <string name="preferences__free_private_messages_and_calls">Free private messages to Forsta users</string>
     <string name="preferences__submit_debug_log">Submit debug log</string>
     <string name="preferences__support_wifi_calling">\'WiFi Calling\' compatibility mode</string>

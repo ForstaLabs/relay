@@ -13,10 +13,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -28,8 +27,6 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +86,19 @@ public class GroupDatabase extends Database {
 
   public GroupDatabase(Context context, SQLiteOpenHelper databaseHelper) {
     super(context, databaseHelper);
+  }
+
+  public @Nullable GroupRecord getGroup(String endcodedGroupId) {
+    @SuppressLint("Recycle")
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?",
+        new String[] {endcodedGroupId},
+        null, null, null);
+
+    Reader      reader = new Reader(cursor);
+    GroupRecord record = reader.getNext();
+
+    reader.close();
+    return record;
   }
 
   public @Nullable GroupRecord getGroup(byte[] groupId) {
@@ -186,7 +196,7 @@ public class GroupDatabase extends Database {
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
-        if (members.size() > 1 && members.contains(thisNumber)) {
+        if (!(members.size() == 1 && members.contains(thisNumber))) {
           ContentValues contentValues = new ContentValues();
           contentValues.put(TITLE, group.description);
           contentValues.put(SLUG, group.slug);
@@ -439,6 +449,11 @@ public class GroupDatabase extends Database {
     db.close();
   }
 
+  public void removeAllGroups() {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.delete(TABLE_NAME, null, null);
+    db.close();
+  }
   private List<String> getCurrentMembers(byte[] id) {
     Cursor cursor = null;
 
@@ -596,12 +611,30 @@ public class GroupDatabase extends Database {
       return active;
     }
 
-    public String getSlug() {
+    public String getTag() {
       return slug;
     }
 
-    public String getOrgSlug() {
+    public String getOrgTag() {
       return org_slug;
+    }
+
+    public String getFullTag() {
+      return new StringBuilder().append(slug).append(":").append(org_slug).toString();
+    }
+
+    public String getFormattedTag(String currentOrg) {
+      return "@" + (currentOrg.equals(org_slug) ? getTag() : getFullTag());
+    }
+
+    public String getExpression(ForstaUser localUser) {
+      StringBuilder sb = new StringBuilder();
+      List<String> members = getMembers();
+      if (!members.contains(localUser.uid)) {
+        sb.append(localUser.getFullTag()).append(" ");
+      }
+      sb.append(getFullTag());
+      return sb.toString();
     }
   }
 }

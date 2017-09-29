@@ -3,6 +3,7 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -19,6 +20,8 @@ import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
 import io.forsta.securesms.transport.UndeliverableMessageException;
+
+import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
@@ -36,6 +39,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
+import io.forsta.securesms.util.TextSecurePreferences;
 import ws.com.google.android.mms.MmsException;
 
 public class PushMediaSendJob extends PushSendJob implements InjectableType {
@@ -70,17 +74,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     OutgoingMediaMessage message           = database.getOutgoingMessage(masterSecret, messageId);
 
     try {
-      deliver(masterSecret, message);
-      database.markAsPush(messageId);
-      database.markAsSecure(messageId);
-      database.markAsSent(messageId);
-      markAttachmentsUploaded(messageId, message.getAttachments());
-
-      if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-        database.markExpireStarted(messageId);
-        expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
-      }
-
+      Log.w(TAG, "Sending message: " + messageId);
+      processMessage(masterSecret, database, message, expirationManager);
     } catch (InsecureFallbackApprovalException ifae) {
       Log.w(TAG, ifae);
       database.markAsPendingInsecureSmsFallback(messageId);
@@ -88,12 +83,39 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
     } catch (UntrustedIdentityException uie) {
       Log.w(TAG, uie);
+      Log.w(TAG, "Media Message. Auto handling untrusted identity, Single recipient.");
       Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
       long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
+      IdentityKey identityKey    = uie.getIdentityKey();
+      DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+      try {
+        processMessage(masterSecret, database, message, expirationManager);
+      } catch (InsecureFallbackApprovalException e) {
+        e.printStackTrace();
+      } catch (EncapsulatedExceptions encapsulatedExceptions) {
+        encapsulatedExceptions.printStackTrace();
+      } catch (UntrustedIdentityException e) {
+        e.printStackTrace();
+      }
+    } catch (EncapsulatedExceptions ee) {
+      Log.w(TAG, "Media message. Auto handling untrusted identity. Multiple recipients.");
+      List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
+      for (UntrustedIdentityException uie : untrustedIdentities) {
+        Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
+        long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
+        IdentityKey identityKey    = uie.getIdentityKey();
+        DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
+      }
 
-      database.addMismatchedIdentity(messageId, recipientId, uie.getIdentityKey());
-      database.markAsSentFailed(messageId);
-      database.markAsPush(messageId);
+      try {
+        processMessage(masterSecret, database, message, expirationManager);
+      } catch (InsecureFallbackApprovalException e) {
+        e.printStackTrace();
+      } catch (UntrustedIdentityException e) {
+        e.printStackTrace();
+      } catch (EncapsulatedExceptions encapsulatedExceptions) {
+        encapsulatedExceptions.printStackTrace();
+      }
     }
   }
 
@@ -113,7 +135,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
   private void deliver(MasterSecret masterSecret, OutgoingMediaMessage message)
       throws RetryLaterException, InsecureFallbackApprovalException, UntrustedIdentityException,
-             UndeliverableMessageException
+             UndeliverableMessageException, EncapsulatedExceptions
   {
     if (message.getRecipients() == null                       ||
         message.getRecipients().getPrimaryRecipient() == null ||
@@ -150,8 +172,20 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
-    } catch (EncapsulatedExceptions encapsulatedExceptions) {
-      encapsulatedExceptions.printStackTrace();
+    }
+  }
+
+  private void processMessage(MasterSecret masterSecret, MmsDatabase database, OutgoingMediaMessage message, ExpiringMessageManager expirationManager)
+      throws EncapsulatedExceptions, RetryLaterException, UndeliverableMessageException, UntrustedIdentityException, InsecureFallbackApprovalException {
+    deliver(masterSecret, message);
+    database.markAsPush(messageId);
+    database.markAsSecure(messageId);
+    database.markAsSent(messageId);
+    markAttachmentsUploaded(messageId, message.getAttachments());
+
+    if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+      database.markExpireStarted(messageId);
+      expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
     }
   }
 
@@ -159,7 +193,11 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = new LinkedList<>();
 
     for (Recipient recipient : recipients.getRecipientsList()) {
-      addresses.add(getPushAddress(recipient.getNumber()));
+      ForstaUser forstaUser = ForstaUser.getLocalForstaUser(getContext());
+      String localUid = TextSecurePreferences.getLocalNumber(context);
+      if (!localUid.equals(recipient.getNumber())) {
+        addresses.add(getPushAddress(recipient.getNumber()));
+      }
     }
 
     return addresses;

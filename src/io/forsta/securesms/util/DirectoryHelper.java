@@ -33,6 +33,7 @@ import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
@@ -170,19 +171,21 @@ public class DirectoryHelper {
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
 
     try {
+      if (recipients.isGroupRecipient()) {
+        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+      }
       List<String> addresses = recipients.toNumberStringList(false);
       String ids = TextUtils.join(",", addresses);
+      CcsmApi.syncForstaContacts(context, ids);
 
       List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
-      if (details.size() == 0) {
-        return new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
+      if (details.size() > 0) {
+        directory.setNumbers(details, new ArrayList<String>());
+        ContactDb contactsDb = DbFactory.getContactDb(context);
+        contactsDb.setActiveForstaAddresses(details);
+        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
       }
-      directory.setNumbers(details, new ArrayList<String>());
-      CcsmApi.syncForstaContacts(context, ids);
-      ContactDb contactsDb = DbFactory.getContactDb(context);
-      contactsDb.setActiveForstaAddresses(details);
-      RecipientFactory.clearCache(context);
-      return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+      return new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -202,7 +205,14 @@ public class DirectoryHelper {
       }
 
       if (!recipients.isSingleRecipient()) {
-        return UserCapabilities.UNSUPPORTED;
+        boolean isSecure = false;
+        for (Recipient recipient : recipients) {
+          isSecure  = TextSecureDirectory.getInstance(context).isSecureTextSupported(recipient.getNumber());
+        }
+        if (isSecure) {
+          return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+        }
+        return UserCapabilities.UNKNOWN;
       }
 
       if (recipients.isGroupRecipient()) {

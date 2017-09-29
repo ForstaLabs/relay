@@ -31,10 +31,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/forsta_login_org_label" />
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_username_label" />
 
         <EditText
-            android:id="@+id/forsta_login_org_get_token"
+            android:id="@+id/forsta_login_username_get_token"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -44,11 +45,10 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/forsta_login_username_label" />
+            android:text="@string/forsta_login_org_label" />
 
         <EditText
-            android:id="@+id/forsta_login_username_get_token"
+            android:id="@+id/forsta_login_org_get_token"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"

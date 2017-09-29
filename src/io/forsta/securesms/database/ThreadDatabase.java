@@ -334,33 +334,13 @@ public class ThreadDatabase extends Database {
     notifyConversationListListeners();
   }
 
-  public Cursor getFilteredConversationList(List<String> filter) {
-    if (filter == null || filter.size() == 0)
-      return null;
-
-    List<Long> rawRecipientIds = DatabaseFactory.getAddressDatabase(context).getCanonicalAddressIds(filter);
-
-    if (rawRecipientIds == null || rawRecipientIds.size() == 0)
-      return null;
-
+  public Cursor getFilteredConversationList(String filter) {
     SQLiteDatabase   db                      = databaseHelper.getReadableDatabase();
-    List<List<Long>> partitionedRecipientIds = Util.partition(rawRecipientIds, 900);
     List<Cursor>     cursors                 = new LinkedList<>();
+    String titleSelection = TITLE + " LIKE ? ";
+    String filterQuery = "%" + filter + "%";
 
-    for (List<Long> recipientIds : partitionedRecipientIds) {
-      String   selection      = RECIPIENT_IDS + " = ?";
-      String[] selectionArgs  = new String[recipientIds.size()];
-
-      for (int i=0;i<recipientIds.size()-1;i++)
-        selection += (" OR " + RECIPIENT_IDS + " = ?");
-
-      int i= 0;
-      for (long id : recipientIds) {
-        selectionArgs[i++] = String.valueOf(id);
-      }
-
-      cursors.add(db.query(TABLE_NAME, null, selection, selectionArgs, null, null, DATE + " DESC"));
-    }
+    cursors.add(db.query(TABLE_NAME, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -369,11 +349,8 @@ public class ThreadDatabase extends Database {
 
   public Cursor getConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-//    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
-    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + "");
-
+    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
     setNotifyConverationListListeners(cursor);
-
     return cursor;
   }
 

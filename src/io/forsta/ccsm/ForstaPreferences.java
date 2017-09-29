@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.Date;
@@ -18,10 +19,12 @@ public class ForstaPreferences {
   private static final String API_LAST_LOGIN = "last_login";
   private static final String FORSTA_LOGIN_PENDING = "forsta_login_pending";
   private static final String FORSTA_ORG_NAME = "forsta_org_name";
+  private static final String FORSTA_ORG = "forsta_org";
   private static final String FORSTA_USER_NAME = "forsta_user_name";
   private static final String FORSTA_CONTACT_SYNC = "forsta_contact_sync_time";
   private static final String FORSTA_USER = "forsta_user";
   private static final String CCSM_DEBUG = "ccsm_debug";
+  private static final String FORSTA_OTR = "forsta_otr";
 
   public static void clearPreferences(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -113,6 +116,14 @@ public class ForstaPreferences {
     return getStringPreference(context, FORSTA_ORG_NAME);
   }
 
+  public static void setForstaOrg(Context context, String json) {
+    setStringPreference(context, FORSTA_ORG, json);
+  }
+
+  public static String getForstaOrg(Context context) {
+    return getStringPreference(context, FORSTA_ORG);
+  }
+
   public static long getForstaContactSync(Context context) {
     return getLongPreference(context, FORSTA_CONTACT_SYNC);
   }
@@ -127,6 +138,14 @@ public class ForstaPreferences {
 
   public static void setForstaUser(Context context, String json) {
     setStringPreference(context, FORSTA_USER, json);
+  }
+
+  public static boolean getOffTheRecord(Context context) {
+    return getBooleanPreference(context, FORSTA_OTR);
+  }
+
+  public static void setOffTheRecord(Context context, boolean value) {
+    setBooleanPreference(context, FORSTA_OTR, value);
   }
 
   private static void setStringPreference(Context context, String key, String value) {

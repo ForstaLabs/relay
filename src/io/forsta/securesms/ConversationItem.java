@@ -285,7 +285,7 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      ForstaMessage forstaMessage = new ForstaMessage(messageRecord.getDisplayBody().toString());
+      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(messageRecord.getDisplayBody().toString());
       if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
         bodyText.setText(forstaMessage.htmlBody);
       } else {

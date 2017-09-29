@@ -110,7 +110,7 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
       while (c.moveToNext()) {
-        contacts.put(c.getString(c.getColumnIndex(USERNAME)), c.getString(c.getColumnIndex(NUMBER)));
+        contacts.put(c.getString(c.getColumnIndex(UID)), c.getString(c.getColumnIndex(SLUG)) + ":" + c.getString(c.getColumnIndex(ORGSLUG)));
       }
       c.close();
     } catch (Exception e) {

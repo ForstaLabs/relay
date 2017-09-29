@@ -66,7 +66,6 @@ public class ForstaJWT {
       byte[] payloadBytes = Base64.decodeWithoutPadding(payload);
       String payloadString = new String(payloadBytes, "UTF-8");
       JSONObject obj = new JSONObject(payloadString);
-      String orgId =
       user.org_id = obj.getString("org_id");
       user.uid = obj.getString("user_id");
       user.email = obj.getString("email");

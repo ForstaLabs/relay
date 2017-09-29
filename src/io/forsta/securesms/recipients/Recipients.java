@@ -236,7 +236,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   public String getRecipientExpression() {
     StringBuilder sb = new StringBuilder();
     for (Recipient recipient : recipients) {
-      sb.append("@").append(recipient.getSlug()).append(" ");
+      sb.append(recipient.getFullSlug()).append(" ");
     }
     return sb.toString();
   }

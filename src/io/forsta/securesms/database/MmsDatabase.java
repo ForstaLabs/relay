@@ -689,6 +689,18 @@ public class MmsDatabase extends MessagingDatabase {
     }
   }
 
+  private long getThreadIdOrThrow(IncomingMediaMessage retrieved) throws MmsException {
+    long threadId = -1L;
+    try {
+      threadId = getThreadIdFor(retrieved);
+    } catch (RecipientFormattingException e) {
+      Log.w("MmsDatabase", e);
+      if (threadId == -1)
+        throw new MmsException(e);
+    }
+    return threadId;
+  }
+
   private Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
                                               IncomingMediaMessage retrieved,
                                               String contentLocation,
@@ -698,23 +710,27 @@ public class MmsDatabase extends MessagingDatabase {
 
     ForstaMessage forstaMessage = retrieved.getForstaMessage();
 
-    if (threadId == -1 && (forstaMessage != null && !TextUtils.isEmpty(forstaMessage.threadId))) {
+    Recipients recipients;
+
+    if (threadId == -1 && (forstaMessage != null && forstaMessage.hasThreadUid())) {
       ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
       threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      if (threadId == -1) {
-        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+      if (forstaMessage.getForstaDistribution().hasRecipients()) {
+        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+        if (threadId == -1) {
+          threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+        } else {
+          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+        }
       } else {
-        threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+        Log.e(TAG, "Forsta message body returned no recipients. ThreadUid: " + forstaMessage.threadId + " Expression: " + forstaMessage.universalExpression);
+        threadId = getThreadIdOrThrow(retrieved);
       }
+
     } else if (threadId == -1 || retrieved.isGroupMessage()) {
-      try {
-        threadId = getThreadIdFor(retrieved);
-      } catch (RecipientFormattingException e) {
-        Log.w("MmsDatabase", e);
-        if (threadId == -1)
-          throw new MmsException(e);
-      }
+      Log.w(TAG, "Forsta message body null or no thread UID");
+      Log.w(TAG, retrieved.getBody());
+      threadId = getThreadIdOrThrow(retrieved);
     }
 
     ContentValues contentValues = new ContentValues();

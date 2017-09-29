@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
@@ -212,13 +213,24 @@ public class CcsmApi {
     JSONObject response = new JSONObject();
     try {
       jsonObject.put("expression", expression);
-      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + URLEncoder.encode(expression, "UTF-8"));
+      String urlEncoded = TextUtils.isEmpty(expression) ? "" : URLEncoder.encode(expression, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + urlEncoded);
     } catch (JSONException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
     return response;
+  }
+
+  public static JSONObject getOrg(Context context) {
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    return getOrg(context, localAccount.org_id);
+  }
+
+  public static JSONObject getOrg(Context context, String id) {
+    JSONObject response = new JSONObject();
+    return fetchResource(context, "GET", API_ORG + id + "/");
   }
 
   private static JSONObject fetchResource(Context context, String method, String urn) {
@@ -294,6 +306,11 @@ public class CcsmApi {
       e.printStackTrace();
     }
     return groups;
+  }
+
+  public static ForstaDistribution getMessageDistribution(Context context, String expression) {
+    JSONObject response = CcsmApi.getDistribution(context, expression);
+    return ForstaDistribution.fromJson(response);
   }
 
   // This is out for now.
