@@ -66,7 +66,7 @@ public class RecipientPreferenceDatabase extends Database {
           COLOR + " TEXT DEFAULT NULL, " +
           SEEN_INVITE_REMINDER + " INTEGER DEFAULT 0, " +
           DEFAULT_SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " +
-          EXPIRE_MESSAGES + " INTEGER DEFAULT 0" +
+          EXPIRE_MESSAGES + " INTEGER DEFAULT 0, " +
           THREAD_ID + " INTEGER);";
 
   public RecipientPreferenceDatabase(Context context, SQLiteOpenHelper databaseHelper) {
