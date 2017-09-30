@@ -93,7 +93,6 @@ public class DatabaseFactory {
   private final AttachmentDatabase attachments;
   private final ImageDatabase image;
   private final ThreadDatabase thread;
-  private final CanonicalAddressDatabase address;
   private final MmsAddressDatabase mmsAddress;
   private final MmsSmsDatabase mmsSmsDatabase;
   private final IdentityDatabase identityDatabase;
@@ -126,10 +125,6 @@ public class DatabaseFactory {
 
   public static MmsDatabase getMmsDatabase(Context context) {
     return getInstance(context).mms;
-  }
-
-  public static CanonicalAddressDatabase getAddressDatabase(Context context) {
-    return getInstance(context).address;
   }
 
   public static EncryptingSmsDatabase getEncryptingSmsDatabase(Context context) {
@@ -180,7 +175,6 @@ public class DatabaseFactory {
     this.attachments                 = new AttachmentDatabase(context, databaseHelper);
     this.image                       = new ImageDatabase(context, databaseHelper);
     this.thread                      = new ThreadDatabase(context, databaseHelper);
-    this.address                     = CanonicalAddressDatabase.getInstance(context);
     this.mmsAddress                  = new MmsAddressDatabase(context, databaseHelper);
     this.mmsSmsDatabase              = new MmsSmsDatabase(context, databaseHelper);
     this.identityDatabase            = new IdentityDatabase(context, databaseHelper);
@@ -208,8 +202,6 @@ public class DatabaseFactory {
     this.groupDatabase.reset(databaseHelper);
     this.recipientPreferenceDatabase.reset(databaseHelper);
     old.close();
-
-    this.address.reset(context);
   }
 
   public void onApplicationLevelUpgrade(Context context, MasterSecret masterSecret, int fromVersion,
