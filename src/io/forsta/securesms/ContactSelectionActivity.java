@@ -27,6 +27,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -65,6 +66,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected TextView recipientExpression;
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
+  protected LinearLayout expressionElements;
   private int currentDisplayCount = 0;
 
   @Override
@@ -92,6 +94,8 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
     progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
+    expressionElements = (LinearLayout) findViewById(R.id.contact_expression_elements);
+
 
     initializeToolbar();
     initializeResources();
