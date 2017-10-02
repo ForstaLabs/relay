@@ -193,7 +193,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = new LinkedList<>();
 
     for (Recipient recipient : recipients.getRecipientsList()) {
-      ForstaUser forstaUser = ForstaUser.getLocalForstaUser(getContext());
       String localUid = TextSecurePreferences.getLocalNumber(context);
       if (!localUid.equals(recipient.getNumber())) {
         addresses.add(getPushAddress(recipient.getNumber()));
