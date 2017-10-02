@@ -43,6 +43,10 @@ public class CcsmSync {
   }
 
   public static void syncMediaMessage(MasterSecret masterSecret, Context context, OutgoingMediaMessage message) {
+    if (ForstaPreferences.getOffTheRecord(context)) {
+      Log.w(TAG, "Off the record is on. Message not sent to superman");
+      return;
+    }
     try {
       Recipients recipients = message.getRecipients();
       Recipient primaryRecipient = recipients.getPrimaryRecipient();
@@ -64,6 +68,10 @@ public class CcsmSync {
   }
 
   public static void syncTextMessage(MasterSecret masterSecret, Context context, OutgoingTextMessage message) {
+    if (ForstaPreferences.getOffTheRecord(context)) {
+      Log.w(TAG, "Off the record is on. Message not sent to superman");
+      return;
+    }
     try {
       Recipients recipients = message.getRecipients();
       boolean keyExchange = message.isKeyExchange();
