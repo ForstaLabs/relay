@@ -32,6 +32,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import io.forsta.ccsm.api.ForstaSyncAdapter;
+import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -95,7 +96,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     recipientExpression = (TextView) findViewById(R.id.forsta_input_recipient_expression);
     progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
     expressionElements = (LinearLayout) findViewById(R.id.contact_expression_elements);
-
 
     initializeToolbar();
     initializeResources();

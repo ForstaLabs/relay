@@ -16,15 +16,19 @@
  */
 package io.forsta.securesms;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.HashSet;
@@ -32,6 +36,7 @@ import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -100,6 +105,15 @@ public class NewConversationActivity extends ContactSelectionActivity {
         }.execute(searchText);
       }
     });
+
+    LayoutInflater inflater = getLayoutInflater();
+    View custom = inflater.inflate(R.layout.new_conversation_selected_recipient, null);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT);
+    expressionElements.addView(custom, 1);
+//    ((ViewGroup) expressionElements).addView(custom, 1, params);
+//    expressionElements.addView(new SelectedRecipient(NewConversationActivity.this), 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
   }
 
   @Override

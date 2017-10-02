@@ -41,14 +41,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:background="@color/gray20">
-        <io.forsta.ccsm.components.SelectedRecipient
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_marginRight="5dp" />
-            <io.forsta.ccsm.components.SelectedRecipient
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:layout_marginRight="5dp" />
         </LinearLayout>
 
         <TextView android:id="@+id/forsta_input_recipient_expression"
