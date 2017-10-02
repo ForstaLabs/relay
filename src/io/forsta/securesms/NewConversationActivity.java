@@ -53,7 +53,6 @@ import io.forsta.securesms.util.DirectoryHelper;
 public class NewConversationActivity extends ContactSelectionActivity {
 
   private static final String TAG = NewConversationActivity.class.getSimpleName();
-  private Set<String> selectedTags = new HashSet<>();
   private Recipients selectedRecipients;
   private RemoveRecipientClickListener selectedRecipientRemoveListener;
 
@@ -79,8 +78,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
           protected ForstaDistribution doInBackground(String... strings) {
             ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
             if (distribution.hasRecipients()) {
-              Recipients distributionRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
-              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distributionRecipients);
+//              Recipients distributionRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
+              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
+
             }
             return distribution;
           }
@@ -92,6 +92,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
             if (distribution.hasRecipients()) {
+              Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
               String removeDomain = searchText.substring(0, searchText.indexOf(":"));;
               toolbar.setSearchText(removeDomain);
             }
@@ -108,9 +109,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     public void onClick(View view) {
       removeRecipient(view);
       selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-      Log.w(TAG, "Tags: " + selectedTags.toString());
-      Log.w(TAG, "Recipients: " + selectedRecipients.toNumberStringList(false));
-      Log.w(TAG, "Fragment Selected: " + contactsFragment.getSelectedAddresses());
     }
   }
 

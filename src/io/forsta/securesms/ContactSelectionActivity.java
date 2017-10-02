@@ -67,7 +67,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ImageButton createConversationButton;
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
-//  protected LinearLayout expressionElements;
   protected FlowLayout expressionElements;
   private int currentDisplayCount = 0;
 
