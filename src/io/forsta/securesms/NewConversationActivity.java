@@ -16,22 +16,19 @@
  */
 package io.forsta.securesms;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
@@ -61,6 +58,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private static final String TAG = NewConversationActivity.class.getSimpleName();
   private Set<String> selectedTags = new HashSet<>();
   private Recipients selectedRecipients;
+  private RemoveRecipientClickListener selectedRecipientRemoveListener;
 
   @Override
   public void onCreate(Bundle bundle, @NonNull final MasterSecret masterSecret) {
@@ -74,7 +72,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
         handleCreateConversation(getConversationExpression());
       }
     });
-    getIntent().putExtra(ContactSelectionListFragment.MULTI_SELECT, true);
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
@@ -106,14 +103,17 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     });
 
-    LayoutInflater inflater = getLayoutInflater();
-    View custom = inflater.inflate(R.layout.new_conversation_selected_recipient, null);
-    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT);
-    expressionElements.addView(custom, 1);
-//    ((ViewGroup) expressionElements).addView(custom, 1, params);
-//    expressionElements.addView(new SelectedRecipient(NewConversationActivity.this), 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    selectedRecipientRemoveListener = new RemoveRecipientClickListener();
+  }
+
+  private class RemoveRecipientClickListener implements View.OnClickListener {
+    @Override
+    public void onClick(View view) {
+      SelectedRecipient recipient = (SelectedRecipient) view;
+      String tag = recipient.getText();
+      selectedTags.remove(tag);
+      expressionElements.removeView(view);
+    }
   }
 
   @Override
@@ -122,17 +122,16 @@ public class NewConversationActivity extends ContactSelectionActivity {
     ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
     if (GroupUtil.isEncodedGroup(number)) {
       GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      if (!selectedTags.contains(group.getFormattedTag(localUser.getOrgTag()))) {
-        selectedTags.add(group.getFormattedTag(localUser.getOrgTag()));
-      }
+      String tag = group.getFormattedTag(localUser.getOrgTag());
+      addRecipient(tag);
     } else {
       ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      if (!selectedTags.contains(user.getFormattedTag(localUser.getOrgTag()))) {
-        selectedTags.add(user.getFormattedTag(localUser.getOrgTag()));
-      }
+      String tag = user.getFormattedTag(localUser.getOrgTag());
+      addRecipient(tag);
     }
 
-    recipientExpression.setText(getConversationExpression());
+
+    List<String> tags = contactsFragment.getSelectedTags();
     toolbar.clear();
   }
 
@@ -148,7 +147,20 @@ public class NewConversationActivity extends ContactSelectionActivity {
     }
 
     toolbar.clear();
-    recipientExpression.setText(getConversationExpression());
+  }
+
+  private void removeRecipient(String tag) {
+
+  }
+
+  private void addRecipient(String tag) {
+    if (!selectedTags.contains(tag)) {
+      selectedTags.add(tag);
+      SelectedRecipient recipient = new SelectedRecipient(this);
+      recipient.setText(tag);
+      recipient.setOnClickListener(selectedRecipientRemoveListener);
+      expressionElements.addView(recipient);
+    }
   }
 
   private String getConversationExpression() {

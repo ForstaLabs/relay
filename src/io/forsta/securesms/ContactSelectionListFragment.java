@@ -43,6 +43,7 @@ import io.forsta.securesms.contacts.ContactsCursorLoader;
 import io.forsta.securesms.database.CursorRecyclerViewAdapter;
 import io.forsta.securesms.util.ViewUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -120,6 +121,10 @@ public class ContactSelectionListFragment extends    Fragment
     }
 
     return selected;
+  }
+
+  public List<String> getSelectedTags() {
+    return new ArrayList<>(selectedTags);
   }
 
   private boolean isMulti() {

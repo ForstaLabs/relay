@@ -73,6 +73,11 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
 
     setText(type, name, number, label);
 
+    if (multiSelect) {
+      this.checkBox.setVisibility(View.VISIBLE);
+    } else {
+      this.checkBox.setVisibility(View.GONE);
+    }
 //    if (multiSelect && !GroupUtil.isEncodedGroup(number)) this.checkBox.setVisibility(View.VISIBLE);
 //    else             this.checkBox.setVisibility(View.GONE);
   }

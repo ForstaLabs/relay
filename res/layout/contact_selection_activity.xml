@@ -33,21 +33,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/forsta_accent"
+        android:background="@color/forsta_primary"
         android:padding="5dp">
-        <LinearLayout
+        <io.forsta.ccsm.components.FlowLayout
             android:id="@+id/contact_expression_elements"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@color/gray20">
-        </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_weight="1">
+        </io.forsta.ccsm.components.FlowLayout>
 
-        <TextView android:id="@+id/forsta_input_recipient_expression"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_weight="1"
-                  android:textColor="@color/textsecure_primary"/>
         <ImageButton
             android:id="@+id/contact_selection_confirm_button"
             android:layout_width="40dp"
