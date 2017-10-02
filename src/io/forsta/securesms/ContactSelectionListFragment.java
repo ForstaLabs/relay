@@ -73,7 +73,7 @@ public class ContactSelectionListFragment extends    Fragment
   private TextView noResultsText;
 
   private Map<Long, String>         selectedContacts;
-  private Set<String> selectedTags;
+  private Set<String> selectedAddresses;
   private OnContactSelectedListener onContactSelectedListener;
   private OnSearchResultsCountChanged searchResultsCountListener;
   private SwipeRefreshLayout        swipeRefresh;
@@ -123,8 +123,8 @@ public class ContactSelectionListFragment extends    Fragment
     return selected;
   }
 
-  public List<String> getSelectedTags() {
-    return new ArrayList<>(selectedTags);
+  public List<String> getSelectedAddresses() {
+    return new ArrayList<>(selectedAddresses);
   }
 
   private boolean isMulti() {
@@ -137,7 +137,7 @@ public class ContactSelectionListFragment extends    Fragment
                                                                           new ListClickListener(),
                                                                           isMulti());
     selectedContacts = adapter.getSelectedContacts();
-    selectedTags = adapter.getSelectedTags();
+    selectedAddresses = adapter.getSelectedAddresses();
     recyclerView.setAdapter(adapter);
     recyclerView.addItemDecoration(new StickyHeaderDecoration(adapter, true));
     this.getLoaderManager().initLoader(0, null, this);
@@ -203,18 +203,22 @@ public class ContactSelectionListFragment extends    Fragment
     @Override
     public void onItemClick(ContactSelectionListItem contact) {
 
-      if (!isMulti() || !selectedTags.contains(contact.getNumber())) {
-//        selectedContacts.put(contact.getContactId(), contact.getNumber());
-        selectedTags.add(contact.getNumber());
+      if (!selectedAddresses.contains(contact.getNumber())) {
+        selectedContacts.put(contact.getContactId(), contact.getNumber()); // Compatibility with other activites using this fragment.
+        selectedAddresses.add(contact.getNumber());
         contact.setChecked(true);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactSelected(contact.getNumber());
       } else {
-//        selectedContacts.remove(contact.getContactId());
-        selectedTags.remove(contact.getNumber());
+        selectedContacts.remove(contact.getContactId());
+        selectedAddresses.remove(contact.getNumber());
         contact.setChecked(false);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactDeselected(contact.getNumber());
       }
     }
+  }
+
+  public void removeAddress(String address) {
+    selectedAddresses.remove(address);
   }
 
   public void setOnContactSelectedListener(OnContactSelectedListener onContactSelectedListener) {

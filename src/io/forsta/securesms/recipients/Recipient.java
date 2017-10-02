@@ -144,8 +144,12 @@ public class Recipient {
     return number;
   }
 
-  public String getFullSlug() {
+  public String getFullTag() {
     return "@" + slug + ":" + orgSlug;
+  }
+
+  public String getLocalTag() {
+    return "@" + slug;
   }
 
   public long getRecipientId() {

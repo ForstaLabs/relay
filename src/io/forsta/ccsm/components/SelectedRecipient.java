@@ -18,6 +18,7 @@ import io.forsta.securesms.R;
 public class SelectedRecipient extends LinearLayout {
   private ImageButton removeButton;
   private TextView selectedTag;
+  private String address;
 
   public SelectedRecipient(Context context) {
     this(context, null);
@@ -40,6 +41,14 @@ public class SelectedRecipient extends LinearLayout {
       }
     });
     selectedTag = (TextView) findViewById(R.id.selected_recipient_tag);
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public String getAddress() {
+    return address;
   }
 
   public void setText(String text) {

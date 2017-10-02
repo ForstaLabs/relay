@@ -20,7 +20,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,24 +28,21 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
-import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.GroupUtil;
 
 /**
  * Activity container for starting a new conversation.
@@ -69,7 +66,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     createConversationButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        handleCreateConversation(getConversationExpression());
+        handleCreateConversation();
       }
     });
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
@@ -109,77 +106,67 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private class RemoveRecipientClickListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
-      SelectedRecipient recipient = (SelectedRecipient) view;
-      String tag = recipient.getText();
-      selectedTags.remove(tag);
-      expressionElements.removeView(view);
+      removeRecipient(view);
+      selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+      Log.w(TAG, "Tags: " + selectedTags.toString());
+      Log.w(TAG, "Recipients: " + selectedRecipients.toNumberStringList(false));
+      Log.w(TAG, "Fragment Selected: " + contactsFragment.getSelectedAddresses());
     }
   }
 
   @Override
   public void onContactSelected(final String number) {
     // XXXX Groups are currently used for non-user tags and have no device address associated with them.
-    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-    if (GroupUtil.isEncodedGroup(number)) {
-      GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      String tag = group.getFormattedTag(localUser.getOrgTag());
-      addRecipient(tag);
-    } else {
-      ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      String tag = user.getFormattedTag(localUser.getOrgTag());
-      addRecipient(tag);
-    }
-
-
-    List<String> tags = contactsFragment.getSelectedTags();
+    selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+    addRecipient(number);
     toolbar.clear();
   }
 
   @Override
   public void onContactDeselected(String number) {
-    ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-    if (GroupUtil.isEncodedGroup(number)) {
-      GroupDatabase.GroupRecord group = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(number);
-      selectedTags.remove(group.getFormattedTag(localUser.getOrgTag()));
-    } else {
-      ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(number);
-      selectedTags.remove(user.getFormattedTag(localUser.getOrgTag()));
-    }
 
+    selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
     toolbar.clear();
   }
 
-  private void removeRecipient(String tag) {
-
+  private void removeRecipient(View view) {
+    SelectedRecipient recipient = (SelectedRecipient) view;
+    String address = recipient.getAddress();
+    contactsFragment.removeAddress(address);
+    expressionElements.removeView(view);
   }
 
-  private void addRecipient(String tag) {
-    if (!selectedTags.contains(tag)) {
-      selectedTags.add(tag);
-      SelectedRecipient recipient = new SelectedRecipient(this);
-      recipient.setText(tag);
-      recipient.setOnClickListener(selectedRecipientRemoveListener);
-      expressionElements.addView(recipient);
+  private void addRecipient(String number) {
+    Recipient recipient = selectedRecipients.getRecipient(number);
+    if (recipient != null) {
+      SelectedRecipient recipientChip = new SelectedRecipient(this);
+      recipientChip.setAddress(recipient.getNumber());
+      recipientChip.setText(recipient.getName());
+      recipientChip.setOnClickListener(selectedRecipientRemoveListener);
+      expressionElements.addView(recipientChip);
+    } else {
+      Toast.makeText(NewConversationActivity.this, "Unknown recipient.", Toast.LENGTH_LONG).show();
     }
   }
 
-  private String getConversationExpression() {
-    return TextUtils.join(" + ", selectedTags);
-  }
-
-  private void handleCreateConversation(String inputText) {
-    if (TextUtils.isEmpty(inputText)) {
+  private void handleCreateConversation() {
+    final ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+    if (localUser == null) {
+      Toast.makeText(NewConversationActivity.this, "Unable to retrieve local user information.", Toast.LENGTH_LONG).show();
+      return;
+    }
+    if (selectedRecipients == null || selectedRecipients.isEmpty()) {
       Toast.makeText(NewConversationActivity.this, "Please select a recipient", Toast.LENGTH_LONG).show();
       return;
     }
     showProgressBar();
+
     new AsyncTask<String, Void, ForstaDistribution>() {
       @Override
       protected ForstaDistribution doInBackground(String... params) {
         String expression = params[0];
         ForstaDistribution initialDistribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, expression);
-        ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
-        if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.uid) || !initialDistribution.hasRecipients()) {
+        if (initialDistribution.hasWarnings() || initialDistribution.userIds.contains(localUser.getUid()) || !initialDistribution.hasRecipients()) {
           return initialDistribution;
         } else {
           String newExpression = initialDistribution.pretty + " + @" + localUser.getTag();
@@ -219,7 +206,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
         }
       }
-    }.execute(inputText);
+    }.execute(selectedRecipients.getLocalizedRecipientExpression(localUser.getOrgTag()));
   }
 
   @Override

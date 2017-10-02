@@ -106,6 +106,10 @@ public class ForstaUser {
     return name;
   }
 
+  public String getUid() {
+    return uid;
+  }
+
   private String getContactName(JSONObject userObject) throws JSONException {
     StringBuilder name = new StringBuilder();
     String firstName = userObject.getString("first_name");
