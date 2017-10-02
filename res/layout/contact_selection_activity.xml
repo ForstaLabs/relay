@@ -12,23 +12,6 @@
             android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
-
-
-    <fragment android:id="@+id/contact_selection_list_fragment"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:layout_weight="1"
-              android:name="io.forsta.securesms.ContactSelectionListFragment" />
-
-    <ProgressBar
-        android:id="@+id/contact_search_progress"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="50dp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="50dp"
-        android:visibility="gone"
-        android:background="@android:color/transparent"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,4 +36,21 @@
             android:layout_marginLeft="10dp"
             />
     </LinearLayout>
+
+    <fragment android:id="@+id/contact_selection_list_fragment"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:name="io.forsta.securesms.ContactSelectionListFragment" />
+
+    <ProgressBar
+        android:id="@+id/contact_search_progress"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="50dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="50dp"
+        android:visibility="gone"
+        android:background="@android:color/transparent"/>
+
 </LinearLayout>
