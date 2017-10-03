@@ -1206,6 +1206,7 @@
     <string name="transport_selection_list_item__transport_icon">Transport icon</string>
     <string name="title_activity_login">Login To Forsta</string>
     <string name="title_activity_directory">DirectoryActivity</string>
+    <string name="title_activity_thread_preference">ThreadPreferenceActivity</string>
 
 
     <!-- EOF -->

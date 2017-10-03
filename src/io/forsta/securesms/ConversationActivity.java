@@ -62,6 +62,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
@@ -994,11 +995,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void onClick(View v) {
         if (threadId != -1) {
-          Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
-          intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
-          intent.putExtra(RecipientPreferenceActivity.THREAD_ID_EXTRA, threadId);
+          Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
+          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_prferences");
         }
       }
     });
