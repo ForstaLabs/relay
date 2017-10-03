@@ -419,19 +419,6 @@ public class ConversationFragment extends Fragment
         list.getAdapter().notifyDataSetChanged();
 
         setCorrectMenuVisibility(actionMode.getMenu());
-      } else {
-        ForstaMessage message = ForstaMessage.fromJsonString(messageRecord.getBody().getBody());
-        StringBuilder sb = new StringBuilder();
-        sb.append("Message: ").append(message.messageId).append("\n");
-        sb.append("Sender: ").append(message.senderId).append("\n");
-        sb.append("Thread: ").append(message.threadId).append("\n");
-        sb.append("Thread Title: ").append(message.threadTitle).append("\n");
-        sb.append("Expression: ").append(message.universalExpression).append("\n");
-        new AlertDialog.Builder(getActivity())
-            .setTitle(message.threadTitle)
-            .setMessage(sb.toString())
-            .setPositiveButton("Close", null)
-            .show();
       }
     }
 

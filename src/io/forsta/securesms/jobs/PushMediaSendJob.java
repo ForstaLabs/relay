@@ -33,6 +33,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,6 +90,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       IdentityKey identityKey    = uie.getIdentityKey();
       DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
       try {
+        // Message was not sent to any recipients. Reprocess.
         processMessage(masterSecret, database, message, expirationManager);
       } catch (InsecureFallbackApprovalException e) {
         e.printStackTrace();
@@ -98,24 +100,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         e.printStackTrace();
       }
     } catch (EncapsulatedExceptions ee) {
-      Log.w(TAG, "Media message. Auto handling untrusted identity. Multiple recipients.");
-      List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
-      for (UntrustedIdentityException uie : untrustedIdentities) {
-        Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
-        long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
-        IdentityKey identityKey    = uie.getIdentityKey();
-        DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
-      }
-
-      try {
-        processMessage(masterSecret, database, message, expirationManager);
-      } catch (InsecureFallbackApprovalException e) {
-        e.printStackTrace();
-      } catch (UntrustedIdentityException e) {
-        e.printStackTrace();
-      } catch (EncapsulatedExceptions encapsulatedExceptions) {
-        encapsulatedExceptions.printStackTrace();
-      }
+      handleMultipleUntrustedIdentities(ee, masterSecret, message);
     }
   }
 
@@ -147,20 +132,13 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     SignalServiceMessageSender messageSender = messageSenderFactory.create();
 
     try {
-      SignalServiceAddress          address           = getPushAddress(message.getRecipients().getPrimaryRecipient().getNumber());
-      List<Attachment>              scaledAttachments = scaleAttachments(masterSecret, MediaConstraints.PUSH_CONSTRAINTS, message.getAttachments());
-      List<SignalServiceAttachment> attachmentStreams = getAttachmentsFor(masterSecret, scaledAttachments);
-      SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
-                                                                                .withBody(message.getBody())
-                                                                                .withAttachments(attachmentStreams)
-                                                                                .withTimestamp(message.getSentTimeMillis())
-                                                                                .withExpiration((int)(message.getExpiresIn() / 1000))
-                                                                                .asExpirationUpdate(message.isExpirationUpdate())
-                                                                                .build();
+      SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
+
       if (!message.getRecipients().isSingleRecipient()) {
         List<SignalServiceAddress> addresses = getPushAddresses(message.getRecipients());
         messageSender.sendMessage(addresses, mediaMessage);
       } else {
+        SignalServiceAddress address = getPushAddress(message.getRecipients().getPrimaryRecipient().getNumber());
         messageSender.sendMessage(address, mediaMessage);
       }
     } catch (InvalidNumberException | UnregisteredUserException e) {
@@ -186,6 +164,53 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
       database.markExpireStarted(messageId);
       expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
+    }
+  }
+
+  private SignalServiceDataMessage createSignalServiceDataMessage(MasterSecret masterSecret, OutgoingMediaMessage message) throws UndeliverableMessageException {
+    List<Attachment>              scaledAttachments = scaleAttachments(masterSecret, MediaConstraints.PUSH_CONSTRAINTS, message.getAttachments());
+    List<SignalServiceAttachment> attachmentStreams = getAttachmentsFor(masterSecret, scaledAttachments);
+    SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
+        .withBody(message.getBody())
+        .withAttachments(attachmentStreams)
+        .withTimestamp(message.getSentTimeMillis())
+        .withExpiration((int)(message.getExpiresIn() / 1000))
+        .asExpirationUpdate(message.isExpirationUpdate())
+        .build();
+    return mediaMessage;
+  }
+
+  private void handleMultipleUntrustedIdentities(EncapsulatedExceptions ee, MasterSecret masterSecret, OutgoingMediaMessage message) {
+    Log.w(TAG, "Media message. Auto handling untrusted identity. Multiple recipients.");
+    if (ee.getUntrustedIdentityExceptions().size() > 0) {
+      List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
+      List<String> untrustedRecipients = new ArrayList<>();
+      for (UntrustedIdentityException uie : untrustedIdentities) {
+        untrustedRecipients.add(uie.getE164Number());
+        Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
+        long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
+        IdentityKey identityKey    = uie.getIdentityKey();
+        DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
+      }
+
+      try {
+        // Resend message to each untrusted identity.
+        if (untrustedRecipients.size() > 0) {
+          Recipients resendRecipients = RecipientFactory.getRecipientsFromStrings(context, untrustedRecipients, false);
+          List<SignalServiceAddress> addresses = getPushAddresses(resendRecipients);
+          SignalServiceMessageSender messageSender = messageSenderFactory.create();
+          SignalServiceDataMessage dataMessage = createSignalServiceDataMessage(masterSecret, message);
+          messageSender.sendMessage(addresses, dataMessage);
+        }
+      } catch (EncapsulatedExceptions encapsulatedExceptions) {
+        encapsulatedExceptions.printStackTrace();
+      } catch (InvalidNumberException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (UndeliverableMessageException e) {
+        e.printStackTrace();
+      }
     }
   }
 

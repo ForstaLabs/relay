@@ -62,6 +62,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
+import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
@@ -404,63 +405,67 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-    if (isSecureText) {
-      if (recipients.getExpireMessages() > 0) {
-        inflater.inflate(R.menu.conversation_expiring_on, menu);
+//    if (isSecureText) {
+//      if (recipients.getExpireMessages() > 0) {
+//        inflater.inflate(R.menu.conversation_expiring_on, menu);
+//
+//        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
+//        final View     actionView = MenuItemCompat.getActionView(item);
+//        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+//
+//        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
+//        actionView.setOnClickListener(new OnClickListener() {
+//          @Override
+//          public void onClick(View v) {
+//            onOptionsItemSelected(item);
+//          }
+//        });
+//      } else {
+//        inflater.inflate(R.menu.conversation_expiring_off, menu);
+//      }
+//    }
 
-        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
-        final View     actionView = MenuItemCompat.getActionView(item);
-        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+//    if (isSingleConversation()) {
+//      if (isSecureVoice) inflater.inflate(R.menu.conversation_callable_secure, menu);
+//      else               inflater.inflate(R.menu.conversation_callable_insecure, menu);
+//    } else if (isGroupConversation()) {
+//      inflater.inflate(R.menu.conversation_group_options, menu);
+//
+//      if (!isPushGroupConversation()) {
+//        inflater.inflate(R.menu.conversation_mms_group_options, menu);
+//        if (distributionType == ThreadDatabase.DistributionTypes.BROADCAST) {
+//          menu.findItem(R.id.menu_distribution_broadcast).setChecked(true);
+//        } else {
+//          menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
+//        }
+//      } else if (isActiveGroup()) {
+//        inflater.inflate(R.menu.conversation_push_group_options, menu);
+//      }
+//    }
 
-        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
-        actionView.setOnClickListener(new OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            onOptionsItemSelected(item);
-          }
-        });
-      } else {
-        inflater.inflate(R.menu.conversation_expiring_off, menu);
-      }
-    }
-
-    if (isSingleConversation()) {
-      if (isSecureVoice) inflater.inflate(R.menu.conversation_callable_secure, menu);
-      else               inflater.inflate(R.menu.conversation_callable_insecure, menu);
-    } else if (isGroupConversation()) {
+    if (isGroupConversation()) {
       inflater.inflate(R.menu.conversation_group_options, menu);
-
-      if (!isPushGroupConversation()) {
-        inflater.inflate(R.menu.conversation_mms_group_options, menu);
-        if (distributionType == ThreadDatabase.DistributionTypes.BROADCAST) {
-          menu.findItem(R.id.menu_distribution_broadcast).setChecked(true);
-        } else {
-          menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
-        }
-      } else if (isActiveGroup()) {
-        inflater.inflate(R.menu.conversation_push_group_options, menu);
-      }
     }
 
     inflater.inflate(R.menu.conversation, menu);
 
-    if (isGroupConversation()) {
-      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
-      callItem.setVisible(false);
-    }
+//    if (isGroupConversation()) {
+//      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+//      callItem.setVisible(false);
+//    }
 
-    if (isSingleConversation() && isSecureText) {
-      inflater.inflate(R.menu.conversation_secure, menu);
-    } else if (isSingleConversation()) {
-      inflater.inflate(R.menu.conversation_insecure, menu);
-    }
+//    if (isSingleConversation() && isSecureText) {
+//      inflater.inflate(R.menu.conversation_secure, menu);
+//    } else if (isSingleConversation()) {
+//      inflater.inflate(R.menu.conversation_insecure, menu);
+//    }
 
-    if (recipients != null && recipients.isMuted()) inflater.inflate(R.menu.conversation_muted, menu);
-    else                                            inflater.inflate(R.menu.conversation_unmuted, menu);
-
-    if (isSingleConversation() && getRecipients().getPrimaryRecipient().getContactUri() == null) {
-      inflater.inflate(R.menu.conversation_add_to_contacts, menu);
-    }
+//    if (recipients != null && recipients.isMuted()) inflater.inflate(R.menu.conversation_muted, menu);
+//    else                                            inflater.inflate(R.menu.conversation_unmuted, menu);
+//
+//    if (isSingleConversation() && getRecipients().getPrimaryRecipient().getContactUri() == null) {
+//      inflater.inflate(R.menu.conversation_add_to_contacts, menu);
+//    }
 
     super.onPrepareOptionsMenu(menu);
     return true;
@@ -994,11 +999,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void onClick(View v) {
         if (threadId != -1) {
-          Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
-          intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
-          intent.putExtra(RecipientPreferenceActivity.THREAD_ID_EXTRA, threadId);
+          Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
+          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_prferences");
         }
       }
     });
