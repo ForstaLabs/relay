@@ -43,6 +43,7 @@ import io.forsta.securesms.contacts.ContactsCursorLoader;
 import io.forsta.securesms.database.CursorRecyclerViewAdapter;
 import io.forsta.securesms.util.ViewUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,7 +73,7 @@ public class ContactSelectionListFragment extends    Fragment
   private TextView noResultsText;
 
   private Map<Long, String>         selectedContacts;
-  private Set<String> selectedTags;
+  private Set<String> selectedAddresses;
   private OnContactSelectedListener onContactSelectedListener;
   private OnSearchResultsCountChanged searchResultsCountListener;
   private SwipeRefreshLayout        swipeRefresh;
@@ -122,6 +123,10 @@ public class ContactSelectionListFragment extends    Fragment
     return selected;
   }
 
+  public List<String> getSelectedAddresses() {
+    return new ArrayList<>(selectedAddresses);
+  }
+
   private boolean isMulti() {
     return getActivity().getIntent().getBooleanExtra(MULTI_SELECT, false);
   }
@@ -132,7 +137,7 @@ public class ContactSelectionListFragment extends    Fragment
                                                                           new ListClickListener(),
                                                                           isMulti());
     selectedContacts = adapter.getSelectedContacts();
-    selectedTags = adapter.getSelectedTags();
+    selectedAddresses = adapter.getSelectedAddresses();
     recyclerView.setAdapter(adapter);
     recyclerView.addItemDecoration(new StickyHeaderDecoration(adapter, true));
     this.getLoaderManager().initLoader(0, null, this);
@@ -197,19 +202,20 @@ public class ContactSelectionListFragment extends    Fragment
   private class ListClickListener implements ContactSelectionListAdapter.ItemClickListener {
     @Override
     public void onItemClick(ContactSelectionListItem contact) {
-
-      if (!isMulti() || !selectedTags.contains(contact.getNumber())) {
-//        selectedContacts.put(contact.getContactId(), contact.getNumber());
-        selectedTags.add(contact.getNumber());
+      if (!isMulti() || !selectedAddresses.contains(contact.getNumber())) {
+        selectedAddresses.add(contact.getNumber());
         contact.setChecked(true);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactSelected(contact.getNumber());
       } else {
-//        selectedContacts.remove(contact.getContactId());
-        selectedTags.remove(contact.getNumber());
+        selectedAddresses.remove(contact.getNumber());
         contact.setChecked(false);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactDeselected(contact.getNumber());
       }
     }
+  }
+
+  public void removeAddress(String address) {
+    selectedAddresses.remove(address);
   }
 
   public void setOnContactSelectedListener(OnContactSelectedListener onContactSelectedListener) {

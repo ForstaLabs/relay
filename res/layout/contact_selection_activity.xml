@@ -12,7 +12,30 @@
             android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/forsta_primary"
+        android:padding="5dp">
+        <io.forsta.ccsm.components.FlowLayout
+            android:id="@+id/contact_expression_elements"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1">
+        </io.forsta.ccsm.components.FlowLayout>
 
+        <ImageButton
+            android:id="@+id/contact_selection_confirm_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/check"
+            android:background="@drawable/rounded_button"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="10dp"
+            />
+    </LinearLayout>
 
     <fragment android:id="@+id/contact_selection_list_fragment"
               android:layout_width="match_parent"
@@ -29,27 +52,5 @@
         android:layout_marginBottom="50dp"
         android:visibility="gone"
         android:background="@android:color/transparent"/>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent"
-        android:padding="5dp">
 
-        <TextView android:id="@+id/forsta_input_recipient_expression"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_weight="1"
-                  android:textColor="@color/textsecure_primary"/>
-        <ImageButton
-            android:id="@+id/contact_selection_confirm_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:src="@drawable/check"
-            android:background="@drawable/rounded_button"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="10dp"
-            />
-    </LinearLayout>
 </LinearLayout>

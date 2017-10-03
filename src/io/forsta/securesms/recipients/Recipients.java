@@ -236,7 +236,19 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   public String getRecipientExpression() {
     StringBuilder sb = new StringBuilder();
     for (Recipient recipient : recipients) {
-      sb.append(recipient.getFullSlug()).append(" ");
+      sb.append(recipient.getFullTag()).append(" ");
+    }
+    return sb.toString();
+  }
+
+  public String getLocalizedRecipientExpression(String orgTag) {
+    StringBuilder sb = new StringBuilder();
+    for (Recipient recipient : recipients) {
+      if (recipient.getOrgSlug().equals(orgTag)) {
+        sb.append(recipient.getLocalTag()).append(" ");
+      } else {
+        sb.append(recipient.getFullTag()).append(" ");
+      }
     }
     return sb.toString();
   }
@@ -254,6 +266,15 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       return this.recipients.get(0);
     else
       return null;
+  }
+
+  public Recipient getRecipient(String address) {
+    for (Recipient recipient : recipients) {
+      if (recipient.getNumber().equals(address)) {
+        return recipient;
+      }
+    }
+    return null;
   }
 
   public List<Recipient> getRecipientsList() {

@@ -83,9 +83,7 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    if (!ForstaPreferences.getOffTheRecord(context)) {
-      CcsmSync.syncTextMessage(masterSecret, context, message);
-    }
+    CcsmSync.syncTextMessage(masterSecret, context, message);
 
     return allocatedThreadId;
   }
@@ -113,9 +111,7 @@ public class MessageSender {
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
-      if (!ForstaPreferences.getOffTheRecord(context)) {
-        CcsmSync.syncMediaMessage(masterSecret, context, message);
-      }
+      CcsmSync.syncMediaMessage(masterSecret, context, message);
 
       return allocatedThreadId;
     } catch (MmsException e) {

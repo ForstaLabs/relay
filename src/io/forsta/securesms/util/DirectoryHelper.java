@@ -38,6 +38,8 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
+
+import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -190,6 +192,24 @@ public class DirectoryHelper {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public static void refreshDirectoryFor(Context context, MasterSecret masterSecret, List<String> addresses) {
+    TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
+    ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+    String ids = TextUtils.join(",", addresses);
+    CcsmApi.syncForstaContacts(context, ids);
+
+    try {
+      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
+      if (details.size() > 0) {
+        directory.setNumbers(details, new ArrayList<String>());
+        ContactDb contactsDb = DbFactory.getContactDb(context);
+        contactsDb.setActiveForstaAddresses(details);
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context,

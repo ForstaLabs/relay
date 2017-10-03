@@ -19,7 +19,6 @@ package io.forsta.securesms.contacts;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.Cursor;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -66,7 +65,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
   private final ItemClickListener clickListener;
 
   private final HashMap<Long, String> selectedContacts = new HashMap<>();
-  private final Set<String> selectedTags = new HashSet();
+  private final Set<String> selectedAddresses = new HashSet();
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     public ViewHolder(@NonNull  final View              itemView,
@@ -130,7 +129,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     viewHolder.getView().unbind();
     viewHolder.getView().set(id, contactType, name, number, label, color, multiSelect);
 //    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
-    viewHolder.getView().setChecked(selectedTags.contains(number));
+    viewHolder.getView().setChecked(selectedAddresses.contains(number));
   }
 
   @Override
@@ -152,8 +151,8 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     return selectedContacts;
   }
 
-  public Set<String> getSelectedTags() {
-    return selectedTags;
+  public Set<String> getSelectedAddresses() {
+    return selectedAddresses;
   }
 
   private CharSequence getSpannedHeaderString(int position) {
