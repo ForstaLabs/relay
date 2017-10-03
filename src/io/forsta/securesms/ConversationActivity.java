@@ -443,6 +443,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 //      }
 //    }
 
+    if (isGroupConversation()) {
+      inflater.inflate(R.menu.conversation_group_options, menu);
+    }
+
     inflater.inflate(R.menu.conversation, menu);
 
 //    if (isGroupConversation()) {
