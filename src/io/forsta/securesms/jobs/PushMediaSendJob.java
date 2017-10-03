@@ -132,20 +132,13 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     SignalServiceMessageSender messageSender = messageSenderFactory.create();
 
     try {
-      SignalServiceAddress          address           = getPushAddress(message.getRecipients().getPrimaryRecipient().getNumber());
-      List<Attachment>              scaledAttachments = scaleAttachments(masterSecret, MediaConstraints.PUSH_CONSTRAINTS, message.getAttachments());
-      List<SignalServiceAttachment> attachmentStreams = getAttachmentsFor(masterSecret, scaledAttachments);
-      SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
-                                                                                .withBody(message.getBody())
-                                                                                .withAttachments(attachmentStreams)
-                                                                                .withTimestamp(message.getSentTimeMillis())
-                                                                                .withExpiration((int)(message.getExpiresIn() / 1000))
-                                                                                .asExpirationUpdate(message.isExpirationUpdate())
-                                                                                .build();
+      SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
+
       if (!message.getRecipients().isSingleRecipient()) {
         List<SignalServiceAddress> addresses = getPushAddresses(message.getRecipients());
         messageSender.sendMessage(addresses, mediaMessage);
       } else {
+        SignalServiceAddress address = getPushAddress(message.getRecipients().getPrimaryRecipient().getNumber());
         messageSender.sendMessage(address, mediaMessage);
       }
     } catch (InvalidNumberException | UnregisteredUserException e) {

@@ -67,9 +67,39 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_margin="20dp">
-    <TextView
+    <TextView style="@style/TextAppearance.AppCompat.Subhead"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content" android:text="Conversation Title"/>
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Preferences"/>
+        android:orientation="horizontal">
+        <EditText android:id="@+id/forsta_thread_title"
+                  android:layout_width="wrap_content"
+                  android:layout_weight="1"
+                  android:layout_height="wrap_content">
+        </EditText>
+        <ImageButton
+            android:id="@+id/forsta_title_save_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/check"
+            android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+    <TextView style="@style/TextAppearance.AppCompat.Subhead"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content" android:text="Recipients"/>
+    <TextView android:id="@+id/forsta_thread_recipients" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
+    <LinearLayout
+        android:id="@+id/forsta_thread_debug_details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:visibility="gone">
+        <TextView style="@style/TextAppearance.AppCompat.Subhead"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="UID"/>
+        <TextView android:id="@+id/forsta_thread_uid" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
+    </LinearLayout>
+
 </LinearLayout>
 </LinearLayout>

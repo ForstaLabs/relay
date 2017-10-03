@@ -350,8 +350,8 @@ public class ConversationItem extends LinearLayout
       alertView.setNone();
 
       if      (!messageRecord.isOutgoing()) deliveryStatusIndicator.setNone();
+      else if (messageRecord.isDelivered()) deliveryStatusIndicator.setDelivered(); //Hack. Swapped this and pending to stop pending forever on untrusted identity processing.
       else if (messageRecord.isPending())   deliveryStatusIndicator.setPending();
-      else if (messageRecord.isDelivered()) deliveryStatusIndicator.setDelivered();
       else                                  deliveryStatusIndicator.setSent();
     }
   }

@@ -46,6 +46,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
