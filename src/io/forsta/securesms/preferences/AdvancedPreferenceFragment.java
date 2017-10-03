@@ -94,6 +94,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
 
   private void initializeOffTheRecordToggle() {
     CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(FORSTA_OTR_PREF);
+    preference.setEnabled(false);
     if (ForstaPreferences.getOffTheRecord(getActivity())) {
       preference.setChecked(true);
     } else {
