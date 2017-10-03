@@ -105,7 +105,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
     title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
     forstaUid.setText(thread.uid);
-    if (!BuildConfig.FORSTA_API_URL.contains("dev")) {
+    if (BuildConfig.FORSTA_API_URL.contains("dev")) {
       LinearLayout debugLayout = (LinearLayout) findViewById(R.id.forsta_thread_debug_details);
       debugLayout.setVisibility(View.VISIBLE);
     }
