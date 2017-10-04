@@ -91,6 +91,8 @@ import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
+import io.forsta.securesms.database.NotInDirectoryException;
+import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -108,6 +110,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.providers.PersistentBlobProvider;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.RecipientFormattingException;
 import io.forsta.securesms.recipients.Recipients;
@@ -139,6 +142,7 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -300,7 +304,35 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+    checkInvalidRecipients();
+  }
 
+  private void checkInvalidRecipients() {
+    TextSecureDirectory directory = TextSecureDirectory.getInstance(ConversationActivity.this);
+    List<Recipient> invalidRecipients = new ArrayList<>();
+    for (Recipient recipient : recipients) {
+      try {
+        if (!directory.isSecureTextSupported(recipient.getNumber())) {
+          invalidRecipients.add(recipient);
+        }
+      } catch (NotInDirectoryException e) {
+        invalidRecipients.add(recipient);
+      }
+    }
+    if (invalidRecipients.size() > 0) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("This conversation contains ").append(invalidRecipients.size()).append(" invalid recipients.");
+      sb.append("\n").append("These recipients will not receive messages.").append("\n");
+      for (Recipient recipient : invalidRecipients) {
+        sb.append("\n");
+        sb.append(recipient.getName());
+      }
+      new AlertDialog.Builder(ConversationActivity.this)
+          .setTitle("WARNING")
+          .setMessage(sb.toString())
+          .setPositiveButton("OK", null)
+          .show();
+    }
   }
 
   private void setForstaTitle() {
