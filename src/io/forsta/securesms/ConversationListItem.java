@@ -223,9 +223,9 @@ public class ConversationListItem extends RelativeLayout
     } else {
       alertView.setNone();
 
-      if      (thread.isPending())   deliveryStatusIndicator.setPending();
-      else if (thread.isDelivered()) deliveryStatusIndicator.setDelivered();
-      else                           deliveryStatusIndicator.setSent();
+      if (thread.isDelivered()) deliveryStatusIndicator.setDelivered();
+      else if (thread.isPending()) deliveryStatusIndicator.setPending();
+      else deliveryStatusIndicator.setSent();
     }
   }
 
