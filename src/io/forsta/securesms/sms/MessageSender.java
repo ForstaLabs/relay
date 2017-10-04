@@ -155,10 +155,8 @@ public class MessageSender {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
     } else if (isGroupPushSend(recipients)) {
       sendGroupPush(context, recipients, messageId, -1);
-    } else if (!forceSms && isPushMediaSend(context, recipients)) {
-      sendMediaPush(context, recipients, messageId);
     } else {
-      sendMms(context, messageId);
+      sendMediaPush(context, recipients, messageId);
     }
   }
 
@@ -221,16 +219,19 @@ public class MessageSender {
     jobManager.add(new PushMediaSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber()));
   }
 
-  private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
-    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber(), filterRecipientId));
-  }
-
+  // Keep for sending invitations.
   private static void sendSms(Context context, Recipients recipients, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
     jobManager.add(new SmsSendJob(context, messageId, recipients.getPrimaryRecipient().getName()));
   }
 
+  // No longer valid.
+  private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
+    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
+    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber(), filterRecipientId));
+  }
+
+  // No longer valid
   private static void sendMms(Context context, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
     jobManager.add(new MmsSendJob(context, messageId));
