@@ -155,10 +155,8 @@ public class MessageSender {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
     } else if (isGroupPushSend(recipients)) {
       sendGroupPush(context, recipients, messageId, -1);
-    } else if (!forceSms && isPushMediaSend(context, recipients)) {
-      sendMediaPush(context, recipients, messageId);
     } else {
-      sendMms(context, messageId);
+      sendMediaPush(context, recipients, messageId);
     }
   }
 
