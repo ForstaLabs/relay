@@ -30,6 +30,8 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -628,7 +630,7 @@ public class MmsDatabase extends MessagingDatabase {
         if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
           return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
         } else if (Types.isExpirationTimerUpdate(outboxType)) {
-          return new OutgoingExpirationUpdateMessage(recipients, timestamp, expiresIn);
+          return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
         OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
@@ -687,20 +689,48 @@ public class MmsDatabase extends MessagingDatabase {
     }
   }
 
+  private long getThreadIdOrThrow(IncomingMediaMessage retrieved) throws MmsException {
+    long threadId = -1L;
+    try {
+      threadId = getThreadIdFor(retrieved);
+    } catch (RecipientFormattingException e) {
+      Log.w("MmsDatabase", e);
+      if (threadId == -1)
+        throw new MmsException(e);
+    }
+    return threadId;
+  }
+
   private Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
                                               IncomingMediaMessage retrieved,
                                               String contentLocation,
                                               long threadId, long mailbox)
       throws MmsException
   {
-    if (threadId == -1 || retrieved.isGroupMessage()) {
-      try {
-        threadId = getThreadIdFor(retrieved);
-      } catch (RecipientFormattingException e) {
-        Log.w("MmsDatabase", e);
-        if (threadId == -1)
-          throw new MmsException(e);
+
+    ForstaMessage forstaMessage = retrieved.getForstaMessage();
+
+    Recipients recipients;
+
+    if (threadId == -1 && (forstaMessage != null && forstaMessage.hasThreadUid())) {
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      if (forstaMessage.getForstaDistribution().hasRecipients()) {
+        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+        if (threadId == -1) {
+          threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+        } else {
+          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+        }
+      } else {
+        Log.e(TAG, "Forsta message body returned no recipients. ThreadUid: " + forstaMessage.threadId + " Expression: " + forstaMessage.universalExpression);
+        threadId = getThreadIdOrThrow(retrieved);
       }
+
+    } else if (threadId == -1 || retrieved.isGroupMessage()) {
+      Log.w(TAG, "Forsta message body null or no thread UID");
+      Log.w(TAG, retrieved.getBody());
+      threadId = getThreadIdOrThrow(retrieved);
     }
 
     ContentValues contentValues = new ContentValues();

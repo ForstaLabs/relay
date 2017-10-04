@@ -73,7 +73,12 @@ public class DatabaseFactory {
   private static final int MIGRATED_CONVERSATION_LIST_STATUS_VERSION       = 26;
   private static final int INTRODUCED_SUBSCRIPTION_ID_VERSION              = 27;
   private static final int INTRODUCED_EXPIRE_MESSAGES_VERSION              = 28;
-  private static final int DATABASE_VERSION                                = 28;
+  private static final int INTRODUCE_FORSTA_DISTRIBUTION = 29;
+  private static final int INTRODUCE_FORSTA_THREADID = 30;
+  private static final int INTRODUCE_FORSTA_ORGSLUG = 31;
+  private static final int INTRODUCE_FORSTA_PREFERENCES_THREADID = 32;
+  private static final int DATABASE_VERSION                                = 32;
+
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();
@@ -88,7 +93,6 @@ public class DatabaseFactory {
   private final AttachmentDatabase attachments;
   private final ImageDatabase image;
   private final ThreadDatabase thread;
-  private final CanonicalAddressDatabase address;
   private final MmsAddressDatabase mmsAddress;
   private final MmsSmsDatabase mmsSmsDatabase;
   private final IdentityDatabase identityDatabase;
@@ -121,10 +125,6 @@ public class DatabaseFactory {
 
   public static MmsDatabase getMmsDatabase(Context context) {
     return getInstance(context).mms;
-  }
-
-  public static CanonicalAddressDatabase getAddressDatabase(Context context) {
-    return getInstance(context).address;
   }
 
   public static EncryptingSmsDatabase getEncryptingSmsDatabase(Context context) {
@@ -175,7 +175,6 @@ public class DatabaseFactory {
     this.attachments                 = new AttachmentDatabase(context, databaseHelper);
     this.image                       = new ImageDatabase(context, databaseHelper);
     this.thread                      = new ThreadDatabase(context, databaseHelper);
-    this.address                     = CanonicalAddressDatabase.getInstance(context);
     this.mmsAddress                  = new MmsAddressDatabase(context, databaseHelper);
     this.mmsSmsDatabase              = new MmsSmsDatabase(context, databaseHelper);
     this.identityDatabase            = new IdentityDatabase(context, databaseHelper);
@@ -203,8 +202,6 @@ public class DatabaseFactory {
     this.groupDatabase.reset(databaseHelper);
     this.recipientPreferenceDatabase.reset(databaseHelper);
     old.close();
-
-    this.address.reset(context);
   }
 
   public void onApplicationLevelUpgrade(Context context, MasterSecret masterSecret, int fromVersion,
@@ -828,6 +825,23 @@ public class DatabaseFactory {
         db.execSQL("ALTER TABLE sms ADD COLUMN expire_started INTEGER DEFAULT 0");
         db.execSQL("ALTER TABLE mms ADD COLUMN expire_started INTEGER DEFAULT 0");
         db.execSQL("ALTER TABLE thread ADD COLUMN expires_in INTEGER DEFAULT 0");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_DISTRIBUTION) {
+        db.execSQL("ALTER TABLE thread ADD COLUMN distribution TEXT");
+        db.execSQL("ALTER TABLE thread ADD COLUMN title TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_THREADID) {
+        db.execSQL("ALTER TABLE thread ADD COLUMN uid TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_ORGSLUG) {
+        db.execSQL("ALTER TABLE groups ADD COLUMN org_slug TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_PREFERENCES_THREADID) {
+        db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN thread_id INTEGER");
       }
 
       db.setTransactionSuccessful();

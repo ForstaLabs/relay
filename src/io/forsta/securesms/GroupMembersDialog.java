@@ -56,7 +56,8 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
     builder.setTitle(R.string.ConversationActivity_group_members);
     builder.setIconAttribute(R.attr.group_members_dialog_icon);
     builder.setCancelable(true);
-    builder.setItems(groupMembers.getRecipientStrings(), new GroupMembersOnClickListener(context, groupMembers));
+//    builder.setItems(groupMembers.getRecipientStrings(), new GroupMembersOnClickListener(context, groupMembers));
+    builder.setItems(groupMembers.getRecipientStrings(), null);
     builder.setPositiveButton(android.R.string.ok, null);
     builder.show();
   }

@@ -25,3 +25,4 @@ obj/
 jni/libspeex/.deps/
 *.jks
 .env.sh
+*.swp

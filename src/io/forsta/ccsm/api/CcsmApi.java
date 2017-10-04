@@ -1,14 +1,12 @@
+// vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.api;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.Context;
-import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -17,14 +15,15 @@ import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import io.forsta.ccsm.LoginActivity;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -32,18 +31,11 @@ import java.util.List;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.securesms.R;
 import io.forsta.securesms.contacts.ContactsDatabase;
-import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.groups.GroupManager;
-import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.ccsm.util.NetworkUtils;
 
@@ -61,26 +53,28 @@ public class CcsmApi {
   private static final String API_TAG_PICK = "/v1/tag-pick/";
   private static final String API_USER_TAG = "/v1/usertag/";
   private static final String API_ORG = "/v1/org/";
+  private static final String API_DIRECTORY_USER = "/v1/directory/user/";
+  private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
-  private static final String API_DEBUG_LOGS = "/v1/log/";
+  private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
   }
 
   public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
-    String host = ForstaPreferences.getForstaApiHost(context);
+    String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
       if (!authToken.equals("")) {
         obj.put("authtoken", authToken);
-        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_AUTH_TOKEN, obj);
+        result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
       } else {
         obj.put("username", username);
         obj.put("password", password);
-        result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_LOGIN, obj);
+        result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, obj);
       }
 
       if (result.has("token")) {
@@ -120,14 +114,11 @@ public class CcsmApi {
   }
 
   public static JSONObject forstaRefreshToken(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
       obj.put("token", ForstaPreferences.getRegisteredKey(context));
-
-      result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, authKey, host + API_TOKEN_REFRESH, obj);
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
       if (result.has("token")) {
         Log.d(TAG, "Token refresh. New token issued.");
         String token = result.getString("token");
@@ -144,12 +135,12 @@ public class CcsmApi {
   }
 
   public static JSONObject forstaSendToken(Context context, String org, String username) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    JSONObject result = NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
+    String host = BuildConfig.FORSTA_API_URL;
+    JSONObject result = NetworkUtils.apiFetch("GET", null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
     return result;
   }
 
-  public static void syncForstaContacts(Context context, MasterSecret masterSecret) {
+  public static void syncForstaContacts(Context context) {
     // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
     // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
@@ -158,51 +149,104 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
-//    createSystemContacts(context, forstaContacts);
-    syncForstaContactsDb(context, forstaContacts);
-    try {
-      DirectoryHelper.refreshDirectory(context, masterSecret);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    CcsmApi.syncForstaGroups(context, masterSecret);
+    syncForstaContactsDb(context, forstaContacts, false);
+    CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 
-  public static boolean checkForstaAuth(Context context) {
-    JSONObject response = getForstaOrg(context);
-    return isErrorResponse(response);
+  public static void syncForstaContacts(Context context, String ids) {
+    JSONObject response = getUserDirectory(context, ids);
+    List<ForstaUser> forstaContacts = parseUsers(context, response);
+    syncForstaContactsDb(context, forstaContacts, false);
+  }
+
+  public static JSONObject getUserDirectory(Context context, String ids) {
+    String query = "";
+    if (!TextUtils.isEmpty(ids)) {
+      query = "?id_in=" + ids;
+    }
+    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
+  }
+
+  public static JSONObject getDomainDirectory(Context context) {
+    return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
+  }
+
+  public static JSONObject checkForstaAuth(Context context) {
+    return getForstaAuth(context);
+  }
+
+  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
+    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
   }
 
   // TODO These should all be private. They are exposed right now for the debug dashboard.
-  public static JSONObject getForstaOrg(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_ORG, null);
+  public static JSONObject getForstaAuth(Context context) {
+    String userId = "";
+    try {
+      JSONObject object = new JSONObject(ForstaPreferences.getForstaUser(context));
+      userId = object.getString("id") + "/";
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return fetchResource(context, "GET", API_USER + userId);
   }
 
-  public static JSONObject getUser(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_USER, null);
+  public static JSONObject getUserPick(Context context) {
+    return fetchResource(context, "GET", API_USER_PICK);
   }
 
   public static JSONObject getUsers(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_USER_PICK, null);
+    return fetchResource(context, "GET", API_USER);
   }
 
   public static JSONObject getTags(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG, null);
+    return fetchResource(context, "GET", API_TAG);
   }
 
-  public static JSONObject getTagPicks(Context context) {
-    String host = ForstaPreferences.getForstaApiHost(context);
+  public static JSONObject getTagPick(Context context) {
+    return fetchResource(context, "GET", API_TAG_PICK);
+  }
+
+  public static JSONObject getDistribution(Context context, String expression) {
+    JSONObject jsonObject = new JSONObject();
+    JSONObject response = new JSONObject();
+    try {
+      jsonObject.put("expression", expression);
+      String urlEncoded = TextUtils.isEmpty(expression) ? "" : URLEncoder.encode(expression, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + urlEncoded);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    return response;
+  }
+
+  public static JSONObject getOrg(Context context) {
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    return getOrg(context, localAccount.org_id);
+  }
+
+  public static JSONObject getOrg(Context context, String id) {
+    JSONObject response = new JSONObject();
+    return fetchResource(context, "GET", API_ORG + id + "/");
+  }
+
+  private static JSONObject fetchResource(Context context, String method, String urn) {
+    return fetchResource(context, method, urn, null);
+  }
+
+  private static JSONObject fetchResource(Context context, String method, String urn, JSONObject body) {
+    String baseUrl = BuildConfig.FORSTA_API_URL;
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.GET, authKey, host + API_TAG_PICK, null);
+    return NetworkUtils.apiFetch(method, authKey, baseUrl + urn, body);
+  }
+
+  private static JSONObject hardFetchResource(Context context, String method, String urn, JSONObject body) throws Exception {
+    String baseUrl = BuildConfig.FORSTA_API_URL;
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
   }
 
   public static String parseLoginToken(String authtoken) {
@@ -215,24 +259,12 @@ public class CcsmApi {
 
   public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
     List<ForstaUser> users = new ArrayList<>();
-    // TODO Temporary to remove duplicates returning from API
-    Set<String> forstaUids = new HashSet<>();
-
     try {
       JSONArray results = jsonObject.getJSONArray("results");
       for (int i = 0; i < results.length(); i++) {
         JSONObject user = results.getJSONObject(i);
-        if (user.getBoolean("is_active")) {
-
-          ForstaUser forstaUser = new ForstaUser(user);
-          // Temporary to remove duplicates returning from API
-          if (forstaUids.contains(forstaUser.uid)) {
-            Log.d(TAG, "Duplicate user entry");
-            continue;
-          }
-          forstaUids.add(forstaUser.uid);
-          users.add(forstaUser);
-        }
+        ForstaUser forstaUser = new ForstaUser(user);
+        users.add(forstaUser);
       }
     } catch (Exception e) {
       Log.e(TAG, "parseUsers exception: " + e.getMessage());
@@ -260,8 +292,7 @@ public class CcsmApi {
             isGroup = true;
             JSONObject user = userObj.getJSONObject("user");
             String userId = user.getString("id");
-            String primaryPhone = user.getString("phone");
-            members.add(primaryPhone);
+            members.add(userId);
           }
         }
         if (isGroup) {
@@ -275,6 +306,11 @@ public class CcsmApi {
       e.printStackTrace();
     }
     return groups;
+  }
+
+  public static ForstaDistribution getMessageDistribution(Context context, String expression) {
+    JSONObject response = CcsmApi.getDistribution(context, expression);
+    return ForstaDistribution.fromJson(response);
   }
 
   // This is out for now.
@@ -328,13 +364,13 @@ public class CcsmApi {
     }
   }
 
-  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts) {
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
     ContactDb forstaDb = DbFactory.getContactDb(context);
-    forstaDb.updateUsers(contacts);
+    forstaDb.updateUsers(contacts, removeExisting);
     forstaDb.close();
   }
 
-  private static void syncForstaGroups(Context context, MasterSecret masterSecret) {
+  private static void syncForstaGroups(Context context) {
     JSONObject response = getTags(context);
     List<ForstaGroup> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
@@ -343,13 +379,10 @@ public class CcsmApi {
     db.updateGroups(groups, activeNumbers);
   }
 
-  public static JSONObject sendDebugLog(Context context, JSONObject debugData) {
-    String host = ForstaPreferences.getForstaApiHost(context);
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(NetworkUtils.RequestMethod.POST, null, host + API_DEBUG_LOGS, debugData);
-  }
-
   private static boolean isErrorResponse(JSONObject response) {
+    if (response == null) {
+      return true;
+    }
     if (response.has("error")) {
       try {
         String error = response.getString("error");

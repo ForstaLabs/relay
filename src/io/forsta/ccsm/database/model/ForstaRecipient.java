@@ -29,6 +29,6 @@ public class ForstaRecipient {
     this.number = number;
     this.slug = slug;
     this.uuid = id;
-    this.org = orgId;
+    this.org = orgId; //TODO Change to org slug when endpoint is ready.
   }
 }

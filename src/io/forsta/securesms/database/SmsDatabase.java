@@ -28,6 +28,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.IdentityKeyMismatchList;
@@ -511,7 +513,7 @@ public class SmsDatabase extends MessagingDatabase {
 
     if (message.getSender() != null) {
       recipients = RecipientFactory.getRecipientsFromString(context, message.getSender(), true);
-    } else {
+    } else  {
       Log.w(TAG, "Sender is null, returning unknown recipient");
       recipients = RecipientFactory.getRecipientsFor(context, Recipient.getUnknownRecipient(), false);
     }
@@ -529,9 +531,30 @@ public class SmsDatabase extends MessagingDatabase {
                             !message.isIdentityUpdate();
 
     long       threadId;
+    ForstaMessage forstaMessage = message.getForstaMessage();
 
-    if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
+    if (forstaMessage != null && forstaMessage.hasThreadUid()) {
+      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
+      if (forstaMessage.getForstaDistribution().hasRecipients()) {
+        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+      } else {
+        Log.e(TAG, "Forsta message body returned no recipients. ThreadUid: " + forstaMessage.threadId + " Expression: " + forstaMessage.universalExpression);
+        recipients = RecipientFactory.getRecipientsFromString(context, message.getSender(), false);
+      }
+
+      if (threadId == -1) {
+        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
+      } else {
+        threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
+      }
+    } else {
+      Log.w(TAG, "No Forsta message body, or threadUid is empty");
+      Log.w(TAG, message.getMessageBody());
+      // Old message processing. Find thread based on the recipients or encoded group id.
+      if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+      else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
+    }
 
     ContentValues values = new ContentValues(6);
     values.put(ADDRESS, message.getSender());
@@ -581,10 +604,11 @@ public class SmsDatabase extends MessagingDatabase {
     else if (message.isEndSession())    type |= Types.END_SESSION_BIT;
     if      (forceSms)                  type |= Types.MESSAGE_FORCE_SMS_BIT;
 
-    String address = message.getRecipients().getPrimaryRecipient().getNumber();
+    // Only one on one messages go through this method, so only one recipient.
+    String address = PhoneNumberUtils.formatNumber(message.getRecipients().getPrimaryRecipient().getNumber());
 
     ContentValues contentValues = new ContentValues(6);
-    contentValues.put(ADDRESS, PhoneNumberUtils.formatNumber(address));
+    contentValues.put(ADDRESS, address);
     contentValues.put(THREAD_ID, threadId);
     contentValues.put(BODY, message.getMessageBody());
     contentValues.put(DATE_RECEIVED, System.currentTimeMillis());

@@ -24,8 +24,14 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
@@ -33,6 +39,7 @@ import io.forsta.securesms.crypto.IdentityKeyParcelable;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
@@ -43,11 +50,13 @@ import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
 import io.forsta.securesms.util.DynamicTheme;
+import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
@@ -57,6 +66,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private static final String TAG = RecipientPreferenceActivity.class.getSimpleName();
 
   public static final String RECIPIENTS_EXTRA = "recipient_ids";
+  public static final String THREAD_ID_EXTRA = "thread_id";
 
   private static final String PREFERENCE_MUTED    = "pref_key_recipient_mute";
   private static final String PREFERENCE_TONE     = "pref_key_recipient_ringtone";
@@ -68,10 +78,17 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
   private final DynamicTheme    dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
+  private long threadId;
   private AvatarImageView avatar;
   private Toolbar           toolbar;
   private TextView          title;
   private TextView          blockedIndicator;
+  private TextView threadRecipients;
+  private TextView recipientExression;
+  private EditText forstaTitle;
+  private TextView forstaUid;
+  private TextView forstaDistribution;
+  private ImageButton forstaSaveTitle;
   private BroadcastReceiver staleReceiver;
 
   @Override
@@ -85,15 +102,18 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     setContentView(R.layout.recipient_preference_activity);
 
     long[]     recipientIds = getIntent().getLongArrayExtra(RECIPIENTS_EXTRA);
+    threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     Recipients recipients   = RecipientFactory.getRecipientsForIds(this, recipientIds, true);
 
     initializeToolbar();
     initializeReceivers();
+    initThreadInfo(threadId, recipients);
     setHeader(recipients);
     recipients.addListener(this);
 
     Bundle bundle = new Bundle();
     bundle.putLongArray(RECIPIENTS_EXTRA, recipientIds);
+    bundle.putLong(THREAD_ID_EXTRA, threadId);
     initFragment(R.id.preference_fragment, new RecipientPreferenceFragment(), masterSecret, null, bundle);
   }
 
@@ -171,6 +191,45 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     else                        this.blockedIndicator.setVisibility(View.GONE);
   }
 
+  private void initThreadInfo(final long threadId, Recipients recipients) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this).getForstaThread(threadId);
+    threadRecipients = (TextView) findViewById(R.id.forsta_thread_recipients);
+    recipientExression = (TextView) findViewById(R.id.forsta_thread_recipients_expression);
+    threadRecipients.setText(recipients.toShortString());
+    forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
+    forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
+    forstaDistribution = (TextView) findViewById(R.id.forsta_thread_distribution);
+    forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
+    forstaSaveTitle.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DatabaseFactory.getThreadDatabase(RecipientPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
+        Toast.makeText(RecipientPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+      }
+    });
+
+    forstaTitle.setText(thread.title);
+//    if (!TextUtils.isEmpty(thread.title)) {
+//      title.setText(thread.title);
+//    }
+    forstaUid.setText(thread.uid);
+    forstaDistribution.setText(thread.distribution);
+
+    new AsyncTask<String, Void, ForstaDistribution>() {
+      @Override
+      protected ForstaDistribution doInBackground(String... params) {
+        return CcsmApi.getMessageDistribution(RecipientPreferenceActivity.this, params[0]);
+      }
+
+      @Override
+      protected void onPostExecute(ForstaDistribution distribution) {
+        recipientExression.setText(distribution.pretty);
+      }
+    }.execute(thread.distribution);
+
+
+  }
+
   @Override
   public void onModified(final Recipients recipients) {
     title.post(new Runnable() {
@@ -191,12 +250,14 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
     private Recipients        recipients;
     private BroadcastReceiver staleReceiver;
     private MasterSecret      masterSecret;
+    private long threadId;
 
     @Override
     public void onCreate(Bundle icicle) {
       super.onCreate(icicle);
 
       addPreferencesFromResource(R.xml.recipient_preferences);
+      initializeThread();
       initializeRecipients();
 
       this.masterSecret = getArguments().getParcelable("master_secret");
@@ -224,6 +285,10 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
       super.onDestroy();
       this.recipients.removeListener(this);
       getActivity().unregisterReceiver(staleReceiver);
+    }
+
+    private void initializeThread() {
+      this.threadId = getArguments().getLong(THREAD_ID_EXTRA);
     }
 
     private void initializeRecipients() {

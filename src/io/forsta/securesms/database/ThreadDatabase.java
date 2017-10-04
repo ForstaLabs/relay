@@ -27,6 +27,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
@@ -44,11 +47,11 @@ import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class ThreadDatabase extends Database {
 
@@ -70,6 +73,9 @@ public class ThreadDatabase extends Database {
   public  static final String STATUS          = "status";
   public  static final String RECEIPT_COUNT   = "delivery_receipt_count";
   public  static final String EXPIRES_IN      = "expires_in";
+  public static final String DISTRIBUTION = "distribution";
+  public static final String TITLE = "title";
+  public static final String UID = "uid";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -78,7 +84,10 @@ public class ThreadDatabase extends Database {
     TYPE + " INTEGER DEFAULT 0, " + ERROR + " INTEGER DEFAULT 0, "                                 +
     SNIPPET_TYPE + " INTEGER DEFAULT 0, " + SNIPPET_URI + " TEXT DEFAULT NULL, "                   +
     ARCHIVED + " INTEGER DEFAULT 0, " + STATUS + " INTEGER DEFAULT 0, "                            +
-    RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0);";
+    RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
+      DISTRIBUTION + " TEXT, " +
+      TITLE + " TEXT, " +
+      UID + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -120,7 +129,11 @@ public class ThreadDatabase extends Database {
   }
 
   private long createThreadForRecipients(String recipients, int recipientCount, int distributionType) {
-    ContentValues contentValues = new ContentValues(4);
+    return createThreadForRecipients(recipients, recipientCount, distributionType, null);
+  }
+
+  private long createThreadForRecipients(String recipients, int recipientCount, int distributionType, String threadUid) {
+    ContentValues contentValues = new ContentValues(5);
     long date                   = System.currentTimeMillis();
 
     contentValues.put(DATE, date - date % 1000);
@@ -129,7 +142,12 @@ public class ThreadDatabase extends Database {
     if (recipientCount > 1)
       contentValues.put(TYPE, distributionType);
 
+    if (threadUid != null) {
+      contentValues.put(UID, threadUid);
+    }
+
     contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(UID, UUID.randomUUID().toString());
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
@@ -316,33 +334,13 @@ public class ThreadDatabase extends Database {
     notifyConversationListListeners();
   }
 
-  public Cursor getFilteredConversationList(List<String> filter) {
-    if (filter == null || filter.size() == 0)
-      return null;
-
-    List<Long> rawRecipientIds = DatabaseFactory.getAddressDatabase(context).getCanonicalAddressIds(filter);
-
-    if (rawRecipientIds == null || rawRecipientIds.size() == 0)
-      return null;
-
+  public Cursor getFilteredConversationList(String filter) {
     SQLiteDatabase   db                      = databaseHelper.getReadableDatabase();
-    List<List<Long>> partitionedRecipientIds = Util.partition(rawRecipientIds, 900);
     List<Cursor>     cursors                 = new LinkedList<>();
+    String titleSelection = TITLE + " LIKE ? ";
+    String filterQuery = "%" + filter + "%";
 
-    for (List<Long> recipientIds : partitionedRecipientIds) {
-      String   selection      = RECIPIENT_IDS + " = ?";
-      String[] selectionArgs  = new String[recipientIds.size()];
-
-      for (int i=0;i<recipientIds.size()-1;i++)
-        selection += (" OR " + RECIPIENT_IDS + " = ?");
-
-      int i= 0;
-      for (long id : recipientIds) {
-        selectionArgs[i++] = String.valueOf(id);
-      }
-
-      cursors.add(db.query(TABLE_NAME, null, selection, selectionArgs, null, null, DATE + " DESC"));
-    }
+    cursors.add(db.query(TABLE_NAME, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -351,11 +349,8 @@ public class ThreadDatabase extends Database {
 
   public Cursor getConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-//    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
-    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + "");
-
+    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
     setNotifyConverationListListeners(cursor);
-
     return cursor;
   }
 
@@ -476,6 +471,74 @@ public class ThreadDatabase extends Database {
     }
   }
 
+  public ForstaThread getThreadForDistribution(String distribution) {
+    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
+    Cursor cursor          = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, DISTRIBUTION + " = ? ", new String[]{distribution + ""}, null, null, null);
+
+      if (cursor != null && cursor.moveToFirst()) {
+        return new ForstaThread(cursor);
+      }
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
+    return null;
+  }
+
+  public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ContentValues contentValues = new ContentValues(5);
+    long date                   = System.currentTimeMillis();
+
+    contentValues.put(DATE, date - date % 1000);
+    contentValues.put(RECIPIENT_IDS, recipientsList);
+    contentValues.put(TYPE, DistributionTypes.DEFAULT);
+    contentValues.put(UID, UUID.randomUUID().toString());
+    contentValues.put(DISTRIBUTION, distribution.universal);
+    contentValues.put(MESSAGE_COUNT, 0);
+
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    long threadId = db.insert(TABLE_NAME, null, contentValues);
+    return getForstaThread(threadId);
+  }
+
+  public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ContentValues contentValues = new ContentValues(5);
+    long date                   = System.currentTimeMillis();
+
+    contentValues.put(DATE, date - date % 1000);
+    contentValues.put(RECIPIENT_IDS, recipientsList);
+    contentValues.put(TYPE, DistributionTypes.DEFAULT);
+    contentValues.put(UID, forstaMessage.threadId);
+    contentValues.put(DISTRIBUTION, forstaMessage.universalExpression);
+    contentValues.put(TITLE, forstaMessage.threadTitle);
+    contentValues.put(MESSAGE_COUNT, 0);
+
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    return db.insert(TABLE_NAME, null, contentValues);
+  }
+
+  public long getThreadIdForUid(String threadUid) {
+    SQLiteDatabase db      = databaseHelper.getReadableDatabase();
+    Cursor cursor          = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, UID + " = ? ", new String[]{threadUid + ""}, null, null, null);
+
+      if (cursor != null && cursor.moveToFirst()) {
+        return cursor.getLong(cursor.getColumnIndexOrThrow(ID));
+      }
+    } finally {
+      if (cursor != null)
+        cursor.close();
+    }
+    return -1;
+  }
+
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;
@@ -540,6 +603,46 @@ public class ThreadDatabase extends Database {
     }
   }
 
+  public void updateForstaThread(long threadId, Recipients recipients, String distribution, String title) {
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ForstaThread forstaThread = getForstaThread(threadId);
+    ContentValues values = new ContentValues();
+    if (!TextUtils.equals(forstaThread.title, title)) {
+      values.put(TITLE, title);
+    }
+    if (!forstaThread.distribution.equals(distribution) && !TextUtils.isEmpty(distribution)) {
+      values.put(RECIPIENT_IDS, recipientsList);
+      values.put(DISTRIBUTION, distribution);
+    }
+    if (values.size() > 0) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+      notifyConversationListListeners();
+    }
+  }
+
+  public ForstaThread getForstaThread(long threadId) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = db.query(TABLE_NAME, null, ID + " = ? ", new String[]{threadId + ""}, null, null, null);
+      if (cursor != null && cursor.moveToFirst()) {
+        return new ForstaThread(cursor);
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
+  }
+
+  public void updateThreadTitle(long threadId, String title) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    ContentValues values = new ContentValues(1);
+    values.put(TITLE, title);
+    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+  }
+
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {
     if (!record.isMms() || record.isMmsNotification() || record.isGroupAction()) return null;
 
@@ -596,11 +699,14 @@ public class ThreadDatabase extends Database {
       int status              = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.STATUS));
       int receiptCount        = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.RECEIPT_COUNT));
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(ThreadDatabase.EXPIRES_IN));
+      String distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
+      String title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
+      String threadUid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
       Uri snippetUri          = getSnippetUri(cursor);
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn);
+                              expiresIn, distribution, title, threadUid);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {

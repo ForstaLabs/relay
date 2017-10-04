@@ -2,7 +2,7 @@ package io.forsta.securesms.dependencies;
 
 import android.content.Context;
 
-import io.forsta.securesms.BuildConfig;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.DeviceListFragment;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
 import io.forsta.securesms.jobs.AttachmentDownloadJob;
@@ -25,7 +25,6 @@ import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.service.MessageRetrievalService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.util.CredentialsProvider;
@@ -58,34 +57,34 @@ public class TextSecureCommunicationModule {
     this.context = context;
   }
 
-  @Provides SignalServiceAccountManager provideTextSecureAccountManager() {
-    return new SignalServiceAccountManager(BuildConfig.TEXTSECURE_URL,
+  @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {
+    return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
                                            new TextSecurePushTrustStore(context),
                                            TextSecurePreferences.getLocalNumber(context),
                                            TextSecurePreferences.getPushServerPassword(context),
-                                           BuildConfig.USER_AGENT);
+                                           TextSecurePreferences.getUserAgent(context));
   }
 
   @Provides TextSecureMessageSenderFactory provideTextSecureMessageSenderFactory() {
     return new TextSecureMessageSenderFactory() {
       @Override
       public SignalServiceMessageSender create() {
-        return new SignalServiceMessageSender(BuildConfig.TEXTSECURE_URL,
+        return new SignalServiceMessageSender(TextSecurePreferences.getServer(context),
                                               new TextSecurePushTrustStore(context),
                                               TextSecurePreferences.getLocalNumber(context),
                                               TextSecurePreferences.getPushServerPassword(context),
                                               new SignalProtocolStoreImpl(context),
-                                              BuildConfig.USER_AGENT,
+                                              TextSecurePreferences.getUserAgent(context),
                                               Optional.<SignalServiceMessageSender.EventListener>of(new SecurityEventListener(context)));
       }
     };
   }
 
   @Provides SignalServiceMessageReceiver provideTextSecureMessageReceiver() {
-    return new SignalServiceMessageReceiver(BuildConfig.TEXTSECURE_URL,
+    return new SignalServiceMessageReceiver(TextSecurePreferences.getServer(context),
                                          new TextSecurePushTrustStore(context),
                                          new DynamicCredentialsProvider(context),
-                                         BuildConfig.USER_AGENT);
+                                         TextSecurePreferences.getUserAgent(context));
   }
 
   public static interface TextSecureMessageSenderFactory {

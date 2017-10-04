@@ -20,6 +20,8 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -45,11 +47,11 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.List;
 
 import io.forsta.ccsm.api.CcsmSync;
 import ws.com.google.android.mms.MmsException;
@@ -153,10 +155,8 @@ public class MessageSender {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
     } else if (isGroupPushSend(recipients)) {
       sendGroupPush(context, recipients, messageId, -1);
-    } else if (!forceSms && isPushMediaSend(context, recipients)) {
-      sendMediaPush(context, recipients, messageId);
     } else {
-      sendMms(context, messageId);
+      sendMediaPush(context, recipients, messageId);
     }
   }
 
@@ -219,16 +219,19 @@ public class MessageSender {
     jobManager.add(new PushMediaSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber()));
   }
 
-  private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
-    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber(), filterRecipientId));
-  }
-
+  // Keep for sending invitations.
   private static void sendSms(Context context, Recipients recipients, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
     jobManager.add(new SmsSendJob(context, messageId, recipients.getPrimaryRecipient().getName()));
   }
 
+  // No longer valid.
+  private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
+    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
+    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber(), filterRecipientId));
+  }
+
+  // No longer valid
   private static void sendMms(Context context, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
     jobManager.add(new MmsSendJob(context, messageId));
@@ -261,7 +264,7 @@ public class MessageSender {
       }
 
       if (recipients.getRecipientsList().size() > 1) {
-        return false;
+        return isForstaGroupDestination(context, recipients.toNumberStringList(false));
       }
 
       Recipient recipient   = recipients.getPrimaryRecipient();
@@ -301,7 +304,7 @@ public class MessageSender {
       return directory.isSecureTextSupported(destination);
     } catch (NotInDirectoryException e) {
       try {
-        SignalServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+        ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
         Optional<ContactTokenDetails> registeredUser = accountManager.getContact(destination);
 
         if (!registeredUser.isPresent()) {
@@ -319,6 +322,14 @@ public class MessageSender {
         return false;
       }
     }
+  }
+
+  private static boolean isForstaGroupDestination(Context context, List<String> destinations) {
+    boolean result = false;
+    for (String address : destinations) {
+      result = isPushDestination(context, address);
+    }
+    return result;
   }
 
 }

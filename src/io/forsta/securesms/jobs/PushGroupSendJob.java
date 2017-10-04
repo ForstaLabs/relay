@@ -108,6 +108,7 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
       }
 
       for (UntrustedIdentityException uie : e.getUntrustedIdentityExceptions()) {
+        //XXX Handle auto accept identity here if using groups.
         Recipient recipient = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false).getPrimaryRecipient();
         database.addMismatchedIdentity(messageId, recipient.getRecipientId(), uie.getIdentityKey());
       }

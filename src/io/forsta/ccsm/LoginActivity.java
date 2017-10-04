@@ -29,6 +29,7 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.BaseActionBarActivity;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.RegistrationActivity;
@@ -87,7 +88,7 @@ public class LoginActivity extends BaseActionBarActivity {
 
   private void initializeView() {
     mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
-    String serverUrl = ForstaPreferences.getForstaBuild(LoginActivity.this).first;
+    String serverUrl = BuildConfig.FORSTA_API_URL;
     if (serverUrl.contains("dev")) {
       createDomainUrl = "https://ccsm-dev.forsta.io/create";
       mLoginTitle.setText(mLoginTitle.getText().toString() + "-Development Server");

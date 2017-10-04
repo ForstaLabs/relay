@@ -18,7 +18,8 @@
                   android:layout_height="wrap_content"
                   android:background="?import_export_item_card_background"
                   android:focusable="true"
-                  android:orientation="vertical">
+                  android:orientation="vertical"
+                  android:visibility="gone">
 
         <LinearLayout android:orientation="horizontal"
                       android:layout_width="wrap_content"
@@ -27,7 +28,8 @@
                       android:paddingTop="8dip"
                       android:paddingBottom="8dip"
                       android:layout_marginLeft="16dip"
-                      android:layout_marginRight="16dip">
+                      android:layout_marginRight="16dip"
+                      >
 
             <ImageView android:layout_width="wrap_content"
                        android:layout_height="wrap_content"
@@ -37,7 +39,8 @@
 
             <LinearLayout android:orientation="vertical"
                           android:layout_width="wrap_content"
-                          android:layout_height="wrap_content">
+                          android:layout_height="wrap_content"
+                >
 
                 <TextView android:layout_width="match_parent"
                           android:layout_height="wrap_content"
@@ -62,7 +65,8 @@
                   android:layout_marginTop="10dip"
                   android:background="?import_export_item_card_background"
                   android:focusable="true"
-                  android:orientation="vertical">
+                  android:orientation="vertical"
+        android:visibility="gone">
 
         <LinearLayout android:orientation="horizontal"
                       android:layout_width="wrap_content"

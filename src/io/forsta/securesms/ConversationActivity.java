@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
@@ -41,6 +40,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
@@ -48,7 +48,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -63,7 +62,11 @@ import android.widget.Toast;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
 
-import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.ThreadPreferenceActivity;
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -88,6 +91,8 @@ import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
+import io.forsta.securesms.database.NotInDirectoryException;
+import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -105,6 +110,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.providers.PersistentBlobProvider;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.RecipientFormattingException;
 import io.forsta.securesms.recipients.Recipients;
@@ -128,12 +134,15 @@ import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
+
+import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -168,6 +177,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public static final String IS_ARCHIVED_EXTRA       = "is_archived";
   public static final String TEXT_EXTRA              = "draft_text";
   public static final String DISTRIBUTION_TYPE_EXTRA = "distribution_type";
+  public static final String DISTRIBUTION_EXPRESSION_EXTRA = "distribution_expression";
 
   private static final int PICK_IMAGE        = 1;
   private static final int PICK_VIDEO        = 2;
@@ -204,9 +214,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private Recipients recipients;
   private long       threadId;
   private int        distributionType;
+  private String distribution_expression;
   private boolean    archived;
-  private boolean    isSecureText;
-  private boolean    isSecureVoice;
+  private boolean    isSecureText = true;
+  private boolean    isSecureVoice = false;
   private boolean    isMmsEnabled = true;
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
@@ -219,7 +230,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   @Override
-  protected void onCreate(Bundle state, @NonNull MasterSecret masterSecret) {
+  protected void onCreate(Bundle state, @NonNull final MasterSecret masterSecret) {
     Log.w(TAG, "onCreate()");
     this.masterSecret = masterSecret;
 
@@ -233,12 +244,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeActionBar();
     initializeViews();
     initializeResources();
-    initializeSecurity(false, false).addListener(new AssertedSuccessListener<Boolean>() {
+    initializeSecurity(true, false).addListener(new AssertedSuccessListener<Boolean>() {
       @Override
       public void onSuccess(Boolean result) {
         initializeDraft();
       }
     });
+
+
   }
 
   @Override
@@ -258,7 +271,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     setIntent(intent);
     initializeResources();
-    initializeSecurity(false, false).addListener(new AssertedSuccessListener<Boolean>() {
+    initializeSecurity(true, false).addListener(new AssertedSuccessListener<Boolean>() {
       @Override
       public void onSuccess(Boolean result) {
         initializeDraft();
@@ -277,17 +290,58 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     dynamicLanguage.onResume(this);
     quickAttachmentDrawer.onResume();
 
+
     initializeEnabledCheck();
     initializeMmsEnabledCheck();
     composeText.setTransport(sendButton.getSelectedTransport());
 
     titleView.setTitle(recipients);
-//    setActionBarColor(recipients.getColor());
+    setForstaTitle();
+
+    setActionBarColor(recipients.getColor());
     setBlockedUserState(recipients);
     calculateCharactersRemaining();
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+    checkInvalidRecipients();
+  }
+
+  private void checkInvalidRecipients() {
+    TextSecureDirectory directory = TextSecureDirectory.getInstance(ConversationActivity.this);
+    List<Recipient> invalidRecipients = new ArrayList<>();
+    for (Recipient recipient : recipients) {
+      try {
+        if (!directory.isSecureTextSupported(recipient.getNumber())) {
+          invalidRecipients.add(recipient);
+        }
+      } catch (NotInDirectoryException e) {
+        invalidRecipients.add(recipient);
+      }
+    }
+    if (invalidRecipients.size() > 0) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("This conversation contains ").append(invalidRecipients.size()).append(" invalid recipients.");
+      sb.append("\n").append("These recipients will not receive messages.").append("\n");
+      for (Recipient recipient : invalidRecipients) {
+        sb.append("\n");
+        sb.append(recipient.getName());
+      }
+      new AlertDialog.Builder(ConversationActivity.this)
+          .setTitle("WARNING")
+          .setMessage(sb.toString())
+          .setPositiveButton("OK", null)
+          .show();
+    }
+  }
+
+  private void setForstaTitle() {
+    if (threadId != -1) {
+      ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+      if (!TextUtils.isEmpty(forstaThread.title)) {
+        titleView.setForstaTitle(forstaThread.title);
+      }
+    }
   }
 
   @Override
@@ -383,63 +437,67 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-    if (isSecureText) {
-      if (recipients.getExpireMessages() > 0) {
-        inflater.inflate(R.menu.conversation_expiring_on, menu);
+//    if (isSecureText) {
+//      if (recipients.getExpireMessages() > 0) {
+//        inflater.inflate(R.menu.conversation_expiring_on, menu);
+//
+//        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
+//        final View     actionView = MenuItemCompat.getActionView(item);
+//        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+//
+//        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
+//        actionView.setOnClickListener(new OnClickListener() {
+//          @Override
+//          public void onClick(View v) {
+//            onOptionsItemSelected(item);
+//          }
+//        });
+//      } else {
+//        inflater.inflate(R.menu.conversation_expiring_off, menu);
+//      }
+//    }
 
-        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
-        final View     actionView = MenuItemCompat.getActionView(item);
-        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+//    if (isSingleConversation()) {
+//      if (isSecureVoice) inflater.inflate(R.menu.conversation_callable_secure, menu);
+//      else               inflater.inflate(R.menu.conversation_callable_insecure, menu);
+//    } else if (isGroupConversation()) {
+//      inflater.inflate(R.menu.conversation_group_options, menu);
+//
+//      if (!isPushGroupConversation()) {
+//        inflater.inflate(R.menu.conversation_mms_group_options, menu);
+//        if (distributionType == ThreadDatabase.DistributionTypes.BROADCAST) {
+//          menu.findItem(R.id.menu_distribution_broadcast).setChecked(true);
+//        } else {
+//          menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
+//        }
+//      } else if (isActiveGroup()) {
+//        inflater.inflate(R.menu.conversation_push_group_options, menu);
+//      }
+//    }
 
-        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
-        actionView.setOnClickListener(new OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            onOptionsItemSelected(item);
-          }
-        });
-      } else {
-        inflater.inflate(R.menu.conversation_expiring_off, menu);
-      }
-    }
-
-    if (isSingleConversation()) {
-      if (isSecureVoice) inflater.inflate(R.menu.conversation_callable_secure, menu);
-      else               inflater.inflate(R.menu.conversation_callable_insecure, menu);
-    } else if (isGroupConversation()) {
+    if (isGroupConversation()) {
       inflater.inflate(R.menu.conversation_group_options, menu);
-
-      if (!isPushGroupConversation()) {
-        inflater.inflate(R.menu.conversation_mms_group_options, menu);
-        if (distributionType == ThreadDatabase.DistributionTypes.BROADCAST) {
-          menu.findItem(R.id.menu_distribution_broadcast).setChecked(true);
-        } else {
-          menu.findItem(R.id.menu_distribution_conversation).setChecked(true);
-        }
-      } else if (isActiveGroup() && !isForstaGroup()) {
-        inflater.inflate(R.menu.conversation_push_group_options, menu);
-      }
     }
 
     inflater.inflate(R.menu.conversation, menu);
 
-    if (isGroupConversation()) {
-      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
-      callItem.setVisible(false);
-    }
+//    if (isGroupConversation()) {
+//      MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+//      callItem.setVisible(false);
+//    }
 
-    if (isSingleConversation() && isSecureText) {
-      inflater.inflate(R.menu.conversation_secure, menu);
-    } else if (isSingleConversation()) {
-      inflater.inflate(R.menu.conversation_insecure, menu);
-    }
+//    if (isSingleConversation() && isSecureText) {
+//      inflater.inflate(R.menu.conversation_secure, menu);
+//    } else if (isSingleConversation()) {
+//      inflater.inflate(R.menu.conversation_insecure, menu);
+//    }
 
-    if (recipients != null && recipients.isMuted()) inflater.inflate(R.menu.conversation_muted, menu);
-    else                                            inflater.inflate(R.menu.conversation_unmuted, menu);
-
-    if (isSingleConversation() && getRecipients().getPrimaryRecipient().getContactUri() == null) {
-      inflater.inflate(R.menu.conversation_add_to_contacts, menu);
-    }
+//    if (recipients != null && recipients.isMuted()) inflater.inflate(R.menu.conversation_muted, menu);
+//    else                                            inflater.inflate(R.menu.conversation_unmuted, menu);
+//
+//    if (isSingleConversation() && getRecipients().getPrimaryRecipient().getContactUri() == null) {
+//      inflater.inflate(R.menu.conversation_add_to_contacts, menu);
+//    }
 
     super.onPrepareOptionsMenu(menu);
     return true;
@@ -511,7 +569,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                            .setExpireMessages(recipients, expirationTime);
             recipients.setExpireMessages(expirationTime);
 
+
             OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
+            ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+            outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
             MessageSender.send(ConversationActivity.this, masterSecret, outgoingMessage, threadId, false);
 
             invalidateOptionsMenu();
@@ -782,6 +843,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeEnabledCheck() {
     boolean enabled = !(isPushGroupConversation() && !isActiveGroup());
+    enabled = true;
     inputPanel.setEnabled(enabled);
     sendButton.setEnabled(enabled);
     attachButton.setEnabled(enabled);
@@ -839,19 +901,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         try {
           Context           context      = ConversationActivity.this;
           Recipients        recipients   = params[0];
-          UserCapabilities  capabilities = DirectoryHelper.getUserCapabilities(context, recipients);
 
-          if (capabilities.getTextCapability() == Capability.UNKNOWN ||
-              capabilities.getVoiceCapability() == Capability.UNKNOWN)
-          {
-            capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients,
-                                                               TextSecurePreferences.getLocalNumber(context));
-          }
-
+          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
           return new Pair<>(capabilities.getTextCapability() == Capability.SUPPORTED,
                             capabilities.getVoiceCapability() == Capability.SUPPORTED &&
                             !isSelfConversation());
-        } catch (IOException e) {
+        } catch (Exception e) {
           Log.w(TAG, e);
           return new Pair<>(false, false);
         }
@@ -975,10 +1030,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     titleView.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        Intent intent = new Intent(ConversationActivity.this, RecipientPreferenceActivity.class);
-        intent.putExtra(RecipientPreferenceActivity.RECIPIENTS_EXTRA, recipients.getIds());
+        if (threadId != -1) {
+          Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
+          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-        startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "recipient_name");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_prferences");
+        }
       }
     });
 
@@ -1018,6 +1075,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     threadId         = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     archived         = getIntent().getBooleanExtra(IS_ARCHIVED_EXTRA, false);
     distributionType = getIntent().getIntExtra(DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+    distribution_expression = getIntent().getStringExtra(DISTRIBUTION_EXPRESSION_EXTRA);
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       LinearLayout conversationContainer = ViewUtil.findById(this, R.id.conversation_container);
@@ -1034,6 +1092,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void run() {
         titleView.setTitle(recipients);
+        setForstaTitle();
         setBlockedUserState(recipients);
         setActionBarColor(recipients.getColor());
         invalidateOptionsMenu();
@@ -1222,33 +1281,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private boolean isForstaGroup() {
-    boolean result = false;
-    try {
-      byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
-      Cursor cursor = DatabaseFactory.getGroupDatabase(this).getForstaGroup(groupId);
-      if (cursor.moveToFirst()) {
-        String slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
-        // Do not allow modification of tags.
-        // Add check for groupDistribution once group info can be passed to other clients via JSON blob in title field of Group update messages.
-        // int groupDistribution = cursor.getInt(cursor.getColumnIndex(GroupDatabase.GROUP_DISTRIBUTION));
-        if (slug != null) {
-          result = true;
-        }
-      }
-      cursor.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return result;
-  }
-
   private boolean isSingleConversation() {
     return getRecipients() != null && getRecipients().isSingleRecipient() && !getRecipients().isGroupRecipient();
   }
 
   private boolean isActiveGroup() {
     if (!isGroupConversation()) return false;
+
+    if (!GroupUtil.isEncodedGroup(getRecipients().getPrimaryRecipient().getNumber())) return false;
 
     try {
       byte[]      groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
@@ -1275,7 +1315,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private boolean isPushGroupConversation() {
-    return getRecipients() != null && getRecipients().isGroupRecipient();
+//    return getRecipients() != null && getRecipients().isGroupRecipient();
+    return isGroupConversation();
   }
 
   protected Recipients getRecipients() {
@@ -1345,9 +1386,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       if (recipients == null) {
         throw new RecipientFormattingException("Badly formatted");
-      }
-
-      if ((!recipients.isSingleRecipient() || recipients.isEmailRecipient()) && !isMmsEnabled) {
+      }if ((!recipients.isSingleRecipient() || recipients.isEmailRecipient()) && !isMmsEnabled) {
         handleManualMmsRequired();
       } else if (attachmentManager.isAttachmentPresent() || !recipients.isSingleRecipient() || recipients.isGroupRecipient() || recipients.isEmailRecipient()) {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
@@ -1384,7 +1423,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     subscriptionId,
                                                                     expiresIn,
                                                                     distributionType);
-    outgoingMessage.setForstaJsonBody(context, recipients);
     if (isSecureText && !forceSms) {
       outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
     }
@@ -1395,7 +1433,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+        OutgoingMediaMessage message = messages[0];
+
+        ForstaThread threadData = null;
+        if (message.isSecure()) {
+          if (threadId == -1) {
+            threadData = createForstaThread();
+          } else {
+            threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+          }
+          message.setForstaJsonBody(context, threadData);
+        }
+        return MessageSender.send(context, masterSecret, message, (threadData != null && threadData.threadid > 0) ? threadData.threadid : threadId, forceSms);
       }
 
       @Override
@@ -1413,12 +1462,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final Context context = getApplicationContext();
     OutgoingTextMessage message;
+    String messageText = getMessage();
 
     if (isSecureText && !forceSms) {
-      String forstaBody = ForstaUtils.createForstaMessageBody(ConversationActivity.this, getMessage(), this.recipients);
-      message = new OutgoingEncryptedMessage(recipients, forstaBody, expiresIn);
+      message = new OutgoingEncryptedMessage(recipients, messageText, expiresIn);
     } else {
-      message = new OutgoingTextMessage(recipients, getMessage(), expiresIn, subscriptionId);
+      message = new OutgoingTextMessage(recipients, messageText, expiresIn, subscriptionId);
     }
 
     this.composeText.setText("");
@@ -1426,7 +1475,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<OutgoingTextMessage, Void, Long>() {
       @Override
       protected Long doInBackground(OutgoingTextMessage... messages) {
-        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms);
+
+        OutgoingTextMessage message = messages[0];
+        ForstaThread threadData = null;
+        if (message.isSecureMessage()) {
+          if (threadId == -1) {
+            threadData = createForstaThread();
+          } else {
+            threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+          }
+          message.setForstaJsonBody(ConversationActivity.this, threadData);
+        }
+        return MessageSender.send(context, masterSecret, message, (threadData != null && threadData.threadid > 0) ? threadData.threadid : threadId, forceSms);
       }
 
       @Override
@@ -1435,6 +1495,21 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }.execute(message);
   }
+
+  private ForstaThread createForstaThread() {
+
+    if (TextUtils.isEmpty(distribution_expression)) {
+      distribution_expression = recipients.getRecipientExpression();
+      ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
+      if (!recipients.isGroupRecipient()) {
+        distribution_expression += user.getFullTag();
+      }
+    }
+
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, distribution_expression);
+    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
+    return db.allocateThread(recipients, distribution);
+}
 
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {

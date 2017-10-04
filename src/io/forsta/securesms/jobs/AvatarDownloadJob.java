@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -81,12 +80,12 @@ public class AvatarDownloadJob extends MasterSecretJob {
   }
 
   private File downloadAttachment(String relay, long contentLocation) throws IOException {
-    PushServiceSocket socket = new PushServiceSocket(BuildConfig.TEXTSECURE_URL,
+    PushServiceSocket socket = new PushServiceSocket(TextSecurePreferences.getServer(context),
                                                      new TextSecurePushTrustStore(context),
                                                      new StaticCredentialsProvider(TextSecurePreferences.getLocalNumber(context),
                                                                                    TextSecurePreferences.getPushServerPassword(context),
                                                                                    null),
-                                                     BuildConfig.USER_AGENT);
+                                                     TextSecurePreferences.getUserAgent(context));
 
     File destination = File.createTempFile("avatar", "tmp");
 

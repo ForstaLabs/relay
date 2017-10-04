@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Show Sync Messages"
-            android:id="@+id/dashboard_toggle_sync_messages"/>
+            android:id="@+id/dashboard_toggle_sync_messages" android:visibility="gone"/>
         <TextView android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/dashboard_login_info"
@@ -23,18 +23,13 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="10dp"
-            android:id="@+id/dashboard_change_number_container">
-            <TextView
-                android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button
+                android:id="@+id/socket_tester"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Forsta Configuration (Changing this will log you out):"/>
-            <Spinner android:id="@+id/dashboard_change_configuration"
-                     android:layout_height="wrap_content"
-                     android:layout_width="match_parent"
-                     ></Spinner>
+                android:text="Open Socket"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <TextView

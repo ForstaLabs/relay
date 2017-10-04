@@ -229,6 +229,30 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getNumber());
   }
 
+  public boolean isForstaGroup() {
+    return this.recipients.size() > 1;
+  }
+
+  public String getRecipientExpression() {
+    StringBuilder sb = new StringBuilder();
+    for (Recipient recipient : recipients) {
+      sb.append(recipient.getFullTag()).append(" ");
+    }
+    return sb.toString();
+  }
+
+  public String getLocalizedRecipientExpression(String orgTag) {
+    StringBuilder sb = new StringBuilder();
+    for (Recipient recipient : recipients) {
+      if (recipient.getOrgSlug().equals(orgTag)) {
+        sb.append(recipient.getLocalTag()).append(" ");
+      } else {
+        sb.append(recipient.getFullTag()).append(" ");
+      }
+    }
+    return sb.toString();
+  }
+
   public boolean isEmpty() {
     return this.recipients.isEmpty();
   }
@@ -242,6 +266,15 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       return this.recipients.get(0);
     else
       return null;
+  }
+
+  public Recipient getRecipient(String address) {
+    for (Recipient recipient : recipients) {
+      if (recipient.getNumber().equals(address)) {
+        return recipient;
+      }
+    }
+    return null;
   }
 
   public List<Recipient> getRecipientsList() {
@@ -285,7 +318,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
 
       if (scrub && number != null &&
           !Patterns.EMAIL_ADDRESS.matcher(number).matches() &&
-          !GroupUtil.isEncodedGroup(number))
+          !GroupUtil.isEncodedGroup(number) && !Util.isForstaUid(number))
       {
         number = number.replaceAll("[^0-9+]", "");
       }

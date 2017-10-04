@@ -19,7 +19,6 @@ package io.forsta.securesms.contacts;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.Cursor;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -42,7 +41,9 @@ import io.forsta.securesms.database.CursorRecyclerViewAdapter;
 import io.forsta.securesms.util.Util;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * List adapter to display all contacts and their related information
@@ -64,6 +65,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
   private final ItemClickListener clickListener;
 
   private final HashMap<Long, String> selectedContacts = new HashMap<>();
+  private final Set<String> selectedAddresses = new HashSet();
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     public ViewHolder(@NonNull  final View              itemView,
@@ -113,21 +115,21 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   @Override
   public void onBindItemViewHolder(ViewHolder viewHolder, @NonNull Cursor cursor) {
-    long   id          = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsDatabase.ID_COLUMN));
-    int    contactType = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.CONTACT_TYPE_COLUMN));
-    String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN));
-    String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN));
-    int    numberType  = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_TYPE_COLUMN));
-    String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN));
-    String labelText   = ContactsContract.CommonDataKinds.Phone.getTypeLabel(getContext().getResources(),
-                                                                             numberType, label).toString();
+    long   id          = cursor.getLong(cursor.getColumnIndexOrThrow(ContactsDatabase.ID_COLUMN)); //ContactsDb.ID
+    int    contactType = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.CONTACT_TYPE_COLUMN)); //ContactsDatabase.PUSH_TYPE
+    String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN)); //ContactsDb.NAME
+    String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN)); //ContactsDb.UID
+    String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.SLUG
+    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.ORGSLUG
+    label = labelText + ":" + label;
 
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);
 
     viewHolder.getView().unbind();
-    viewHolder.getView().set(id, contactType, name, number, labelText, color, multiSelect);
-    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
+    viewHolder.getView().set(id, contactType, name, number, label, color, multiSelect);
+//    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
+    viewHolder.getView().setChecked(selectedAddresses.contains(number));
   }
 
   @Override
@@ -147,6 +149,10 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   public Map<Long, String> getSelectedContacts() {
     return selectedContacts;
+  }
+
+  public Set<String> getSelectedAddresses() {
+    return selectedAddresses;
   }
 
   private CharSequence getSpannedHeaderString(int position) {

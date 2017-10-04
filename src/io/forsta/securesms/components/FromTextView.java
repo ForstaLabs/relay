@@ -47,14 +47,6 @@ public class FromTextView extends EmojiTextView {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
     } else {
       fromString = recipients.toShortString();
-      // Could use the group name field to store extended information
-//      String forstaTitle = ForstaUtils.getForstaGroupTitle(recipients.toShortString());
-//      if (forstaTitle != null) {
-//        // Forsta group JSON blob is stored in the protocol SignalServiceGroup message "name" field
-//        fromString = forstaTitle;
-//      } else {
-//        fromString = recipients.toShortString();
-//      }
     }
 
     int typeface;
@@ -81,5 +73,18 @@ public class FromTextView extends EmojiTextView {
     else                             setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
   }
 
+  public void setForstaTitle(String title, boolean read) {
+    int typeface;
+    if (!read) {
+      typeface = Typeface.BOLD;
+    } else {
+      typeface = Typeface.NORMAL;
+    }
+
+    SpannableStringBuilder builder = new SpannableStringBuilder(title);
+    builder.setSpan(new StyleSpan(typeface), 0, builder.length(),
+        Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    setText(builder);
+  }
 
 }

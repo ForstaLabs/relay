@@ -140,7 +140,7 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
     MimeTypeMap       mimeTypeMap   = MimeTypeMap.getSingleton();
     String            extension     = mimeTypeMap.getExtensionFromMimeType(contentType);
     SimpleDateFormat  dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
-    String            base          = "signal-" + dateFormatter.format(timestamp);
+    String            base          = "forsta-" + dateFormatter.format(timestamp);
 
     if (extension == null) extension = "attach";
 

@@ -34,7 +34,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemAnimator.ItemAnimatorFinishedListener;
 import android.text.ClipboardManager;
-import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,6 +47,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -328,14 +328,11 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(String body) {
-    Spanned forstaBody = ForstaUtils.getForstaJsonBody(body);
-    if (forstaBody == null) {
-      String plainBody = ForstaUtils.getForstaPlainTextBody(body);
-      if (plainBody == null) {
-        return body;
-      }
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+    if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
+      return forstaMessage.htmlBody.toString();
     }
-    return forstaBody.toString();
+    return forstaMessage.textBody;
   }
 
   private void handleForwardMessage(MessageRecord message) {

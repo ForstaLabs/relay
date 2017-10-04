@@ -114,8 +114,6 @@ public class ConversationListFragment extends Fragment
     if (archive) fab.setVisibility(View.GONE);
     else         fab.setVisibility(View.VISIBLE);
 
-    fab.setVisibility(View.GONE);
-
     reminderView.setOnDismissListener(new ReminderView.OnDismissListener() {
       @Override
       public void onDismiss() {
@@ -125,9 +123,7 @@ public class ConversationListFragment extends Fragment
 
     list.setHasFixedSize(true);
     LinearLayoutManager lm = new LinearLayoutManager(getActivity());
-    lm.setStackFromEnd(true);
     list.setLayoutManager(lm);
-//    list.setLayoutManager(new LinearLayoutManager(getActivity()));
 
     new ItemTouchHelper(new ArchiveListenerCallback()).attachToRecyclerView(list);
 
@@ -353,7 +349,6 @@ public class ConversationListFragment extends Fragment
     actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(ConversationListFragment.this);
 
     getListAdapter().initializeBatchMode(true);
-    ((BatchModeChangeListener)getActivity()).onBatchModeChange(true);
     getListAdapter().toggleThreadInBatchSet(item.getThreadId());
     getListAdapter().notifyDataSetChanged();
   }
@@ -406,8 +401,6 @@ public class ConversationListFragment extends Fragment
   @Override
   public void onDestroyActionMode(ActionMode mode) {
     getListAdapter().initializeBatchMode(false);
-    ((BatchModeChangeListener)getActivity()).onBatchModeChange(false);
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       TypedArray color = getActivity().getTheme().obtainStyledAttributes(new int[] {android.R.attr.statusBarColor});
       getActivity().getWindow().setStatusBarColor(color.getColor(0, Color.BLACK));
@@ -415,10 +408,6 @@ public class ConversationListFragment extends Fragment
     }
 
     actionMode = null;
-  }
-
-  public interface BatchModeChangeListener {
-    void onBatchModeChange(boolean batchMode);
   }
 
   private class ArchiveListenerCallback extends ItemTouchHelper.SimpleCallback {

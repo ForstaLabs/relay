@@ -11,10 +11,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaRecipient;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -26,8 +27,6 @@ import io.forsta.securesms.util.Util;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ public class GroupDatabase extends Database {
   public static final String ID                  = "_id";
   public static final String GROUP_ID            = "group_id";
   public static final String TITLE               = "title";
-  private static final String MEMBERS             = "members";
+  public static final String MEMBERS             = "members";
   private static final String AVATAR              = "avatar";
   private static final String AVATAR_ID           = "avatar_id";
   private static final String AVATAR_KEY          = "avatar_key";
@@ -56,6 +55,7 @@ public class GroupDatabase extends Database {
   private static final String AVATAR_RELAY        = "avatar_relay";
   public static final String TIMESTAMP           = "timestamp";
   public static final String ORG_ID              = "org_id";
+  public static final String ORG_SLUG = "org_slug";
   public static final String SLUG                = "slug";
   private static final String SLUG_IDS            = "slug_ids";
   public static final String GROUP_DISTRIBUTION  = "group_distribution";
@@ -74,6 +74,7 @@ public class GroupDatabase extends Database {
           AVATAR_RELAY + " TEXT, " +
           TIMESTAMP + " INTEGER, " +
           ORG_ID + " TEXT, " +
+          ORG_SLUG + " TEXT, " +
           SLUG + " TEXT, " +
           SLUG_IDS + " TEXT, " +
           GROUP_DISTRIBUTION + " INTEGER DEFAULT 0, " +
@@ -85,6 +86,19 @@ public class GroupDatabase extends Database {
 
   public GroupDatabase(Context context, SQLiteOpenHelper databaseHelper) {
     super(context, databaseHelper);
+  }
+
+  public @Nullable GroupRecord getGroup(String endcodedGroupId) {
+    @SuppressLint("Recycle")
+    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?",
+        new String[] {endcodedGroupId},
+        null, null, null);
+
+    Reader      reader = new Reader(cursor);
+    GroupRecord record = reader.getNext();
+
+    reader.close();
+    return record;
   }
 
   public @Nullable GroupRecord getGroup(byte[] groupId) {
@@ -114,20 +128,20 @@ public class GroupDatabase extends Database {
   }
 
   public Cursor getForstaGroups(String slugPart) {
-    String selection = null;
+    String selection = GROUP_DISTRIBUTION + " = 0";
     String[] selectionValues = null;
     if (slugPart != null && slugPart.length() > 0) {
-      selection = GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " LIKE ?";
+      selection += " AND " + SLUG + " LIKE ?";
       selectionValues = new String[] { "%" + slugPart + "%"};
     }
     return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, selectionValues, null, null, null);
   }
 
   public Cursor getForstaGroupsByTitle(String nameFilter) {
-    String selection = null;
+    String selection = GROUP_DISTRIBUTION + " = 0";
     String[] selectionValues = null;
     if (nameFilter != null && nameFilter.length() > 0) {
-      selection = TITLE + " LIKE ?";
+      selection += " AND " + TITLE + " LIKE ?";
       selectionValues = new String[] { "%" + nameFilter + "%" };
     }
     return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, selection, selectionValues, null, null, null);
@@ -178,15 +192,16 @@ public class GroupDatabase extends Database {
             members.remove(i);
           }
         }
-        members.remove(ForstaPreferences.getForstaSyncNumber(context));
+        members.remove(BuildConfig.FORSTA_SYNC_NUMBER);
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
-        if (members.size() > 1 && members.contains(thisNumber)) {
+        if (!(members.size() == 1 && members.contains(thisNumber))) {
           ContentValues contentValues = new ContentValues();
           contentValues.put(TITLE, group.description);
-          contentValues.put(ORG_ID, group.org);
           contentValues.put(SLUG, group.slug);
+          contentValues.put(ORG_ID, group.org_id);
+          contentValues.put(ORG_SLUG, group.org_slug);
           contentValues.put(MEMBERS, Util.join(members, ","));
           contentValues.put(TIMESTAMP, System.currentTimeMillis());
           contentValues.put(ACTIVE, 1);
@@ -272,13 +287,13 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
+      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
     }
     cursor.close();
     return recipients;
   }
 
-  public Map<String, ForstaRecipient> getForstaRecipients() {
+  public Map<String, ForstaRecipient> getForstaRecipients(String localOrgSlug) {
     Map<String, ForstaRecipient> recipients = new HashMap<>();
     Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
     while (cursor != null && cursor.moveToNext()) {
@@ -290,7 +305,13 @@ public class GroupDatabase extends Database {
         e.printStackTrace();
       }
 
-      recipients.put(cursor.getString(cursor.getColumnIndex(SLUG)), new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_ID))));
+      String slug = cursor.getString(cursor.getColumnIndex(SLUG));
+      String orgSlug = cursor.getString(cursor.getColumnIndex(ORG_SLUG));
+      if (!TextUtils.equals(orgSlug, localOrgSlug)) {
+        slug += ":" + orgSlug;
+      }
+
+      recipients.put(slug, new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
     }
     cursor.close();
     return recipients;
@@ -428,6 +449,11 @@ public class GroupDatabase extends Database {
     db.close();
   }
 
+  public void removeAllGroups() {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.delete(TABLE_NAME, null, null);
+    db.close();
+  }
   private List<String> getCurrentMembers(byte[] id) {
     Cursor cursor = null;
 
@@ -499,7 +525,8 @@ public class GroupDatabase extends Database {
                              cursor.getString(cursor.getColumnIndexOrThrow(AVATAR_CONTENT_TYPE)),
                              cursor.getString(cursor.getColumnIndexOrThrow(AVATAR_RELAY)),
                              cursor.getInt(cursor.getColumnIndexOrThrow(ACTIVE)) == 1,
-                             cursor.getString(cursor.getColumnIndexOrThrow(SLUG))
+                             cursor.getString(cursor.getColumnIndexOrThrow(SLUG)),
+                             cursor.getString(cursor.getColumnIndexOrThrow(ORG_SLUG))
       );
     }
 
@@ -521,10 +548,11 @@ public class GroupDatabase extends Database {
     private final String       relay;
     private final boolean      active;
     private final String slug;
+    private final String org_slug;
 
     public GroupRecord(String id, String title, String members, byte[] avatar,
                        long avatarId, byte[] avatarKey, String avatarContentType,
-                       String relay, boolean active, String slug)
+                       String relay, boolean active, String slug, String org_slug)
     {
       this.id                = id;
       this.title             = title;
@@ -536,6 +564,7 @@ public class GroupDatabase extends Database {
       this.relay             = relay;
       this.active            = active;
       this.slug = slug;
+      this.org_slug = org_slug;
     }
 
     public byte[] getId() {
@@ -582,8 +611,30 @@ public class GroupDatabase extends Database {
       return active;
     }
 
-    public String getSlug() {
+    public String getTag() {
       return slug;
+    }
+
+    public String getOrgTag() {
+      return org_slug;
+    }
+
+    public String getFullTag() {
+      return new StringBuilder().append(slug).append(":").append(org_slug).toString();
+    }
+
+    public String getFormattedTag(String currentOrg) {
+      return "@" + (currentOrg.equals(org_slug) ? getTag() : getFullTag());
+    }
+
+    public String getExpression(ForstaUser localUser) {
+      StringBuilder sb = new StringBuilder();
+      List<String> members = getMembers();
+      if (!members.contains(localUser.uid)) {
+        sb.append(localUser.getFullTag()).append(" ");
+      }
+      sb.append(getFullTag());
+      return sb.toString();
     }
   }
 }

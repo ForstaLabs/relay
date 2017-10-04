@@ -43,10 +43,12 @@ import io.forsta.securesms.contacts.ContactsCursorLoader;
 import io.forsta.securesms.database.CursorRecyclerViewAdapter;
 import io.forsta.securesms.util.ViewUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Fragment for selecting a one or more contacts from a list.
@@ -68,9 +70,12 @@ public class ContactSelectionListFragment extends    Fragment
   public final static int DISPLAY_MODE_OTHER_ONLY = ContactsCursorLoader.MODE_OTHER_ONLY;
 
   private TextView emptyText;
+  private TextView noResultsText;
 
   private Map<Long, String>         selectedContacts;
+  private Set<String> selectedAddresses;
   private OnContactSelectedListener onContactSelectedListener;
+  private OnSearchResultsCountChanged searchResultsCountListener;
   private SwipeRefreshLayout        swipeRefresh;
   private String                    cursorFilter;
   private RecyclerView              recyclerView;
@@ -97,6 +102,7 @@ public class ContactSelectionListFragment extends    Fragment
     View view = inflater.inflate(R.layout.contact_selection_list_fragment, container, false);
 
     emptyText    = ViewUtil.findById(view, android.R.id.empty);
+    noResultsText = ViewUtil.findById(view, R.id.contact_selection_empty);
     recyclerView = ViewUtil.findById(view, R.id.recycler_view);
     swipeRefresh = ViewUtil.findById(view, R.id.swipe_refresh);
     fastScroller = ViewUtil.findById(view, R.id.fast_scroller);
@@ -117,6 +123,10 @@ public class ContactSelectionListFragment extends    Fragment
     return selected;
   }
 
+  public List<String> getSelectedAddresses() {
+    return new ArrayList<>(selectedAddresses);
+  }
+
   private boolean isMulti() {
     return getActivity().getIntent().getBooleanExtra(MULTI_SELECT, false);
   }
@@ -127,6 +137,7 @@ public class ContactSelectionListFragment extends    Fragment
                                                                           new ListClickListener(),
                                                                           isMulti());
     selectedContacts = adapter.getSelectedContacts();
+    selectedAddresses = adapter.getSelectedAddresses();
     recyclerView.setAdapter(adapter);
     recyclerView.addItemDecoration(new StickyHeaderDecoration(adapter, true));
     this.getLoaderManager().initLoader(0, null, this);
@@ -151,10 +162,14 @@ public class ContactSelectionListFragment extends    Fragment
     getLoaderManager().restartLoader(0, null, this);
   }
 
+  public int getSearchResultCount() {
+    return recyclerView.getAdapter().getItemCount();
+  }
+
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new ContactsCursorLoader(getActivity(),
-                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_ALL),
+                                    getActivity().getIntent().getIntExtra(DISPLAY_MODE, DISPLAY_MODE_PUSH_ONLY),
                                     cursorFilter);
   }
 
@@ -168,6 +183,14 @@ public class ContactSelectionListFragment extends    Fragment
       fastScroller.setVisibility(View.VISIBLE);
       fastScroller.setRecyclerView(recyclerView);
     }
+    if (searchResultsCountListener != null) {
+      searchResultsCountListener.onSearchResultsCountChanged(recyclerView.getAdapter().getItemCount());
+    }
+    if (recyclerView.getAdapter().getItemCount() < 1) {
+      noResultsText.setVisibility(View.VISIBLE);
+    } else {
+      noResultsText.setVisibility(View.GONE);
+    }
   }
 
   @Override
@@ -179,17 +202,20 @@ public class ContactSelectionListFragment extends    Fragment
   private class ListClickListener implements ContactSelectionListAdapter.ItemClickListener {
     @Override
     public void onItemClick(ContactSelectionListItem contact) {
-
-      if (!isMulti() || !selectedContacts.containsKey(contact.getContactId())) {
-        selectedContacts.put(contact.getContactId(), contact.getNumber());
+      if (!isMulti() || !selectedAddresses.contains(contact.getNumber())) {
+        selectedAddresses.add(contact.getNumber());
         contact.setChecked(true);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactSelected(contact.getNumber());
       } else {
-        selectedContacts.remove(contact.getContactId());
+        selectedAddresses.remove(contact.getNumber());
         contact.setChecked(false);
         if (onContactSelectedListener != null) onContactSelectedListener.onContactDeselected(contact.getNumber());
       }
     }
+  }
+
+  public void removeAddress(String address) {
+    selectedAddresses.remove(address);
   }
 
   public void setOnContactSelectedListener(OnContactSelectedListener onContactSelectedListener) {
@@ -200,9 +226,17 @@ public class ContactSelectionListFragment extends    Fragment
     this.swipeRefresh.setOnRefreshListener(onRefreshListener);
   }
 
+  public void setOnSearchResultsCountChangedListener(OnSearchResultsCountChanged listener) {
+    this.searchResultsCountListener = listener;
+  }
+
   public interface OnContactSelectedListener {
     void onContactSelected(String number);
     void onContactDeselected(String number);
+  }
+
+  public interface OnSearchResultsCountChanged {
+    void onSearchResultsCountChanged(int count);
   }
 
   /**

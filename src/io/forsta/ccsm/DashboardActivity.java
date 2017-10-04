@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -7,9 +8,8 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.text.Spanned;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,8 +18,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -29,12 +27,12 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.forsta.ccsm.api.ForstaJWT;
+import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -48,6 +46,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
@@ -71,7 +70,7 @@ import io.forsta.securesms.util.GroupUtil;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
-public class DashboardActivity extends PassphraseRequiredActionBarActivity {
+public class DashboardActivity extends PassphraseRequiredActionBarActivity implements WebSocketUtils.MessageCallback{
   private static final String TAG = DashboardActivity.class.getSimpleName();
   private TextView mDebugText;
   private TextView mLoginInfo;
@@ -80,9 +79,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private MasterCipher mMasterCipher;
   private Spinner mSpinner;
   private Spinner mConfigSpinner;
-  private LinearLayout mChangeNumberContainer;
   private ScrollView mScrollView;
   private ProgressBar mProgressBar;
+  private WebSocketUtils socketUtils;
+  private Button socketTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -91,6 +91,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
+    initSocket();
   }
 
   @Override
@@ -109,92 +110,78 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         startLoginIntent();
         break;
       }
+      case R.id.menu_dashboard_clear_directory: {
+        handleClearDirectory();
+        break;
+      }
+      case R.id.menu_dashboard_clear_threads: {
+        handleClearThreads();
+        break;
+      }
     }
     return super.onOptionsItemSelected(item);
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (socketUtils.socketOpen) {
+      socketTester.setText("Close socket");
+    } else {
+      socketTester.setText("Open socket");
+    }
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    if (socketUtils.socketOpen) {
+      socketUtils.disconnect();
+    }
+  }
+
+  private void initSocket() {
+    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, this);
+  }
+
   private void initView() {
+    socketTester = (Button) findViewById(R.id.socket_tester);
+    socketTester.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (!socketUtils.socketOpen) {
+          socketUtils.connect();
+          socketTester.setText("Close Socket");
+        } else {
+          socketUtils.disconnect();
+          socketTester.setText("Open Socket");
+        }
+      }
+    });
     mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
-    mChangeNumberContainer = (LinearLayout) findViewById(R.id.dashboard_change_number_container);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
     mDebugText = (TextView) findViewById(R.id.debug_text);
-    mConfigSpinner = (Spinner) findViewById(R.id.dashboard_change_configuration);
-    List<String> configOptions = new ArrayList<>();
-    configOptions.add("Production");
-    configOptions.add("Stage");
-    configOptions.add("Development");
-    ArrayAdapter<String> configAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, configOptions);
-    mConfigSpinner.setAdapter(configAdapter);
-    String apiUrl = ForstaPreferences.getForstaApiHost(DashboardActivity.this);
-    if (apiUrl.contains("dev")) {
-      mConfigSpinner.setSelection(2);
-    } else if (apiUrl.contains("stage")) {
-      mConfigSpinner.setSelection(1);
-    } else {
-      mConfigSpinner.setSelection(0);
-    }
-    mConfigSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        Pair<String, String> build = ForstaPreferences.getForstaBuild(DashboardActivity.this);
-        switch (i) {
-          case 0:
-            if (!build.equals(ForstaPreferences.CONFIG_PROD)) {
-              ForstaPreferences.setForstaBuild(DashboardActivity.this, "prod");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-          case 1:
-            if (!build.equals(ForstaPreferences.CONFIG_STAGE)) {
-              ForstaPreferences.setForstaBuild(DashboardActivity.this, "stage");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-          case 2:
-            if (!build.equals(ForstaPreferences.CONFIG_DEV)) {
-              ForstaPreferences.setForstaBuild(getApplicationContext(), "dev");
-              ForstaPreferences.clearLogin(DashboardActivity.this);
-              startLoginIntent();
-            }
-            break;
-        }
-
-        printLoginInformation();
-      }
-
-      @Override
-      public void onNothingSelected(AdapterView<?> adapterView) {
-
-      }
-    });
-
     mSpinner = (Spinner) findViewById(R.id.dashboard_selector);
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
     options.add("Canonical Address Db");
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
-    options.add("TextSecure Contacts");
-    options.add("System Contact RawContacts");
-    options.add("System Contact Data");
     options.add("SMS and MMS Message Threads");
     options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
     options.add("Get API Users");
     options.add("Get API Groups");
+    options.add("Get Directory");
 
     ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
     mSpinner.setAdapter(adapter);
     mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
       @Override
       public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (position == 0) {
-          showChangeNumber();
-        } else {
+        if (position != 0) {
           showScrollView();
         }
         switch (position) {
@@ -213,39 +200,34 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printDirectory());
             break;
           case 4:
-            mDebugText.setText(printTextSecureContacts());
-            break;
-          case 5:
-            mDebugText.setText(printAllRawContacts());
-            break;
-          case 6:
-            mDebugText.setText(printAllContactData());
-            break;
-          case 7:
             GetMessages getMessages = new GetMessages();
             getMessages.execute();
             break;
-          case 8:
+          case 5:
             mDebugText.setText(printThreads());
             break;
-          case 9:
+          case 6:
             mDebugText.setText(printForstaContacts());
             break;
-          case 10:
+          case 7:
             mDebugText.setText(printGroups());
             break;
-          case 11:
+          case 8:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 12:
+          case 9:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
+          case 10:
+            mDebugText.setText("");
+            GetDirectory directory = new GetDirectory();
+            directory.execute();
         }
       }
 
@@ -268,18 +250,46 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private void showScrollView() {
     mScrollView.setVisibility(View.VISIBLE);
-    mChangeNumberContainer.setVisibility(View.GONE);
   }
 
-  private void showChangeNumber() {
-    mScrollView.setVisibility(View.GONE);
-    mChangeNumberContainer.setVisibility(View.VISIBLE);
+  private void handleClearThreads() {
+    new AlertDialog.Builder(DashboardActivity.this)
+        .setTitle("Confirm")
+        .setMessage("Are you sure?")
+        .setNegativeButton("Cancel", null)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            ThreadDatabase db = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+            db.deleteAllConversations();
+            Toast.makeText(DashboardActivity.this, "All threads deleted", Toast.LENGTH_LONG).show();
+          }
+        }).show();
+
+
   }
+
+  private void handleClearDirectory() {
+    new AlertDialog.Builder(DashboardActivity.this)
+        .setTitle("Confirm")
+        .setMessage("Are you sure?")
+        .setNegativeButton("Cancel", null)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            ContactDb db = DbFactory.getContactDb(DashboardActivity.this);
+            db.removeAll();
+            GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(DashboardActivity.this);
+            groupDb.removeAllGroups();
+            Toast.makeText(DashboardActivity.this, "All contacts and groups deleted", Toast.LENGTH_LONG).show();
+          }
+        }).show();
+  }
+
+
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
-//    Intent nextIntent = new Intent(DashboardActivity.this, DashboardActivity.class);
-//    intent.putExtra("next_intent", nextIntent);
     startActivity(intent);
     finish();
   }
@@ -291,13 +301,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     ForstaJWT jwt = new ForstaJWT(token);
 
     sb.append("API Host:");
-    sb.append(ForstaPreferences.getForstaApiHost(DashboardActivity.this));
+    sb.append(BuildConfig.FORSTA_API_URL);
     sb.append("\n");
     sb.append("Sync Number:");
-    sb.append(ForstaPreferences.getForstaSyncNumber(DashboardActivity.this));
-    sb.append("\n");
-    sb.append("Last Login: ");
-    sb.append(lastLogin);
+    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
     Date tokenExpire = jwt.getExpireDate();
     sb.append("\n");
     sb.append("Token Expires: ");
@@ -317,6 +324,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       sb.append("Tag Id: ");
       sb.append(user.tag_id);
       sb.append("\n");
+      sb.append("Slug: ");
+      sb.append(user.slug);
+      sb.append("\n");
       sb.append("Phone: ");
       sb.append(user.phone);
       sb.append("\n");
@@ -325,97 +335,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     }
 
     mLoginInfo.setText(sb.toString());
-  }
-
-  private String printSystemContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.querySystemContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("System Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllRawContacts() {
-    Cursor c = getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printAllContactData() {
-    String qs = ContactsContract.Data.MIMETYPE + " = ?";
-    String[] q = new String[] {"vnd.android.cursor.item/name"};
-    String notDeleted = ContactsContract.RawContacts.DELETED + "<>1";
-
-    Cursor c = getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, null, null, null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("Records: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-      sb.append("\n");
-    }
-    c.close();
-
-    return sb.toString();
-  }
-
-  private String printTextSecureContacts() {
-    ContactsDatabase db = DatabaseFactory.getContactsDatabase(this);
-    Cursor c = db.queryTextSecureContacts(null);
-    StringBuilder sb = new StringBuilder();
-    sb.append("TextSecure Contacts: ").append(c.getCount()).append("\n");
-    while (c.moveToNext()) {
-      String[] cols = c.getColumnNames();
-      for (int i = 0; i < c.getColumnCount(); i++) {
-        sb.append(c.getColumnName(i)).append(": ");
-        try {
-          sb.append(c.getString(i)).append(" ");
-        } catch (Exception e) {
-          sb.append(c.getInt(i)).append(" ");
-        }
-        sb.append("\n");
-      }
-    }
-    c.close();
-    return sb.toString();
   }
 
   private String printGroups() {
@@ -537,16 +456,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       sb.append("Thread: ");
       sb.append(tId);
       sb.append("\n");
-      sb.append("Thread Message: ").append("\n");
-      sb.append(trecord.getDisplayBody().toString());
-      sb.append("\n");
       Recipients trecipients = trecord.getRecipients();
 
       if (trecipients.isGroupRecipient()) {
         String groupId = trecipients.getPrimaryRecipient().getNumber();
         sb.append("Group Recipients").append("\n");
         sb.append("Group ID: ").append(groupId).append("\n");
-        Log.d(TAG, "TextSecure Group: " + groupId);
         try {
           byte[] id = GroupUtil.getDecodedId(groupId);
           Log.d(TAG, "Decoded Group: " + id);
@@ -585,15 +500,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         Recipients recipients = record.getRecipients();
         long threadId = record.getThreadId();
         CharSequence body = record.getDisplayBody();
+        String rawBody = record.getBody().getBody();
         long timestamp = record.getTimestamp();
         Date dt = new Date(timestamp);
         List<Recipient> recipList = recipients.getRecipientsList();
         List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
-        sb.append("Group Update: ").append(record.isGroupUpdate());
+        sb.append("Expiration Timer: ").append(record.isExpirationTimerUpdate());
         sb.append("\n");
-        sb.append("Group Action: ").append(record.isGroupAction());
-        sb.append("\n");
-        sb.append("Group Quit: ").append(record.isGroupQuit());
+        sb.append("Key Exchange: ").append(record.isBundleKeyExchange());
         sb.append("\n");
         sb.append("Message Recipients: ").append("\n");
         for (Recipient r : recipList) {
@@ -607,7 +521,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append(dt.toString());
         sb.append("\n");
         sb.append("Message: ");
-        sb.append(body.toString());
+        sb.append(rawBody);
         sb.append("\n");
         sb.append("Attachments:");
         for (DatabaseAttachment item : attachments) {
@@ -665,6 +579,21 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return "MasterSecret NULL";
   }
 
+  @Override
+  public void onMessage(String message) {
+    showScrollView();
+    mDebugText.setText(message);
+  }
+
+  @Override
+  public void onStatusChanged(boolean connected) {
+    if (!connected) {
+      socketTester.setText("Open socket");
+    } else {
+      socketTester.setText("Close socket");
+    }
+  }
+
   private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
 
     @Override
@@ -685,20 +614,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
       sb.append(printIdentities());
       mDebugText.setText(sb.toString());
-    }
-  }
-
-  private class RefreshApiToken extends AsyncTask<Void, Void, JSONObject> {
-
-    @Override
-    protected JSONObject doInBackground(Void... params) {
-      return CcsmApi.forstaRefreshToken(DashboardActivity.this);
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject jsonObject) {
-      Log.d(TAG, jsonObject.toString());
-      printLoginInformation();
     }
   }
 
@@ -790,6 +705,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       }
       mDebugText.setText(sb.toString());
       mProgressBar.setVisibility(View.GONE);
+    }
+  }
+
+  private class GetDirectory extends AsyncTask<Void, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(Void... voids) {
+      return CcsmApi.getUserDirectory(DashboardActivity.this, null);
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      mDebugText.setText(jsonObject.toString());
     }
   }
 }

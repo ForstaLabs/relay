@@ -21,14 +21,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.util.Linkify;
@@ -42,6 +40,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
@@ -52,20 +51,15 @@ import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.IdentityDatabase;
-import io.forsta.securesms.database.MmsAddressDatabase;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
-import io.forsta.securesms.jobs.IdentityUpdateJob;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
-import io.forsta.securesms.jobs.PushDecryptJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
@@ -73,8 +67,6 @@ import io.forsta.securesms.mms.SlideClickListener;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -82,14 +74,8 @@ import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
-import org.whispersystems.signalservice.internal.push.SignalServiceProtos;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -299,16 +285,11 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      Spanned forstaBody = ForstaUtils.getForstaJsonBody(messageRecord.getDisplayBody().toString());
-      if (forstaBody != null) {
-        bodyText.setText(forstaBody);
+      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(messageRecord.getDisplayBody().toString());
+      if (!TextUtils.isEmpty(forstaMessage.htmlBody)) {
+        bodyText.setText(forstaMessage.htmlBody);
       } else {
-        String forstaPlainBody = ForstaUtils.getForstaPlainTextBody(messageRecord.getDisplayBody().toString());
-        if (forstaPlainBody != null) {
-          bodyText.setText(forstaPlainBody);
-        } else {
-          bodyText.setText(messageRecord.getDisplayBody());
-        }
+        bodyText.setText(forstaMessage.textBody);
       }
       bodyText.setVisibility(View.VISIBLE);
     }
@@ -369,8 +350,8 @@ public class ConversationItem extends LinearLayout
       alertView.setNone();
 
       if      (!messageRecord.isOutgoing()) deliveryStatusIndicator.setNone();
+      else if (messageRecord.isDelivered()) deliveryStatusIndicator.setDelivered(); //Hack. Swapped this and pending to stop pending forever on untrusted identity processing.
       else if (messageRecord.isPending())   deliveryStatusIndicator.setPending();
-      else if (messageRecord.isDelivered()) deliveryStatusIndicator.setDelivered();
       else                                  deliveryStatusIndicator.setSent();
     }
   }
@@ -512,114 +493,7 @@ public class ConversationItem extends LinearLayout
     }
 
     new AcceptIdentityMismatch(getContext(), masterSecret, messageRecord, mismatches.get(0)).execute();
-//    new ConfirmIdentityDialog(context, masterSecret, messageRecord, mismatches.get(0)).show();
   }
-
-//  private class AcceptIdentityMismatch extends AsyncTask<Void, Void, Void> {
-//    private final Context context;
-//    private final MasterSecret        masterSecret;
-//    private final MessageRecord       messageRecord;
-//    private final IdentityKeyMismatch mismatch;
-//
-//    public AcceptIdentityMismatch(Context context, MasterSecret masterSecret, MessageRecord messageRecord, IdentityKeyMismatch mismatch) {
-//      this.context = context;
-//      this.masterSecret  = masterSecret;
-//      this.messageRecord = messageRecord;
-//      this.mismatch      = mismatch;
-//    }
-//
-//    @Override
-//    protected Void doInBackground(Void... voids) {
-//      IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(context);
-//
-//      identityDatabase.saveIdentity(mismatch.getRecipientId(),
-//          mismatch.getIdentityKey());
-//
-//      processMessageRecord(messageRecord);
-//      processPendingMessageRecords(messageRecord.getThreadId(), mismatch);
-//
-//      ApplicationContext.getInstance(context)
-//          .getJobManager()
-//          .add(new IdentityUpdateJob(context, mismatch.getRecipientId()));
-//
-//      return null;
-//    }
-//
-//    private void processMessageRecord(MessageRecord messageRecord) {
-//      if (messageRecord.isOutgoing()) processOutgoingMessageRecord(messageRecord);
-//      else                            processIncomingMessageRecord(messageRecord);
-//    }
-//
-//    private void processPendingMessageRecords(long threadId, IdentityKeyMismatch mismatch) {
-//      MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(getContext());
-//      Cursor cursor         = mmsSmsDatabase.getIdentityConflictMessagesForThread(threadId);
-//      MmsSmsDatabase.Reader reader         = mmsSmsDatabase.readerFor(cursor, masterSecret);
-//      MessageRecord         record;
-//
-//      try {
-//        while ((record = reader.getNext()) != null) {
-//          for (IdentityKeyMismatch recordMismatch : record.getIdentityKeyMismatches()) {
-//            if (mismatch.equals(recordMismatch)) {
-//              processMessageRecord(record);
-//            }
-//          }
-//        }
-//      } finally {
-//        if (reader != null)
-//          reader.close();
-//      }
-//    }
-//
-//    private void processOutgoingMessageRecord(MessageRecord messageRecord) {
-//      SmsDatabase smsDatabase        = DatabaseFactory.getSmsDatabase(getContext());
-//      MmsDatabase        mmsDatabase        = DatabaseFactory.getMmsDatabase(getContext());
-//      MmsAddressDatabase mmsAddressDatabase = DatabaseFactory.getMmsAddressDatabase(getContext());
-//
-//      if (messageRecord.isMms()) {
-//        mmsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-//            mismatch.getRecipientId(),
-//            mismatch.getIdentityKey());
-//
-//        Recipients recipients = mmsAddressDatabase.getRecipientsForId(messageRecord.getId());
-//
-//        if (recipients.isGroupRecipient()) MessageSender.resendGroupMessage(getContext(), masterSecret, messageRecord, mismatch.getRecipientId());
-//        else                               MessageSender.resend(getContext(), masterSecret, messageRecord);
-//      } else {
-//        smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-//            mismatch.getRecipientId(),
-//            mismatch.getIdentityKey());
-//
-//        MessageSender.resend(getContext(), masterSecret, messageRecord);
-//      }
-//    }
-//
-//    private void processIncomingMessageRecord(MessageRecord messageRecord) {
-//      try {
-//        PushDatabase pushDatabase = DatabaseFactory.getPushDatabase(getContext());
-//        SmsDatabase  smsDatabase  = DatabaseFactory.getSmsDatabase(getContext());
-//
-//        smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-//            mismatch.getRecipientId(),
-//            mismatch.getIdentityKey());
-//
-//        SignalServiceEnvelope envelope = new SignalServiceEnvelope(SignalServiceProtos.Envelope.Type.PREKEY_BUNDLE_VALUE,
-//            messageRecord.getIndividualRecipient().getNumber(),
-//            messageRecord.getRecipientDeviceId(), "",
-//            messageRecord.getDateSent(),
-//            Base64.decode(messageRecord.getBody().getBody()),
-//            null);
-//
-//        long pushId = pushDatabase.insert(envelope);
-//
-//        ApplicationContext.getInstance(getContext())
-//            .getJobManager()
-//            .add(new PushDecryptJob(getContext(), pushId, messageRecord.getId(),
-//                messageRecord.getIndividualRecipient().getNumber()));
-//      } catch (IOException e) {
-//        throw new AssertionError(e);
-//      }
-//    }
-//  }
 
   @Override
   public void onModified(final Recipient recipient) {

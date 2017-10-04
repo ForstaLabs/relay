@@ -3,6 +3,7 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
@@ -10,7 +11,6 @@ import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyStore;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.SignedPreKeyEntity;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
@@ -32,7 +32,7 @@ public class CleanPreKeysJob extends MasterSecretJob implements InjectableType {
 
   private static final int ARCHIVE_AGE_DAYS = 15;
 
-  @Inject transient SignalServiceAccountManager accountManager;
+  @Inject transient ForstaServiceAccountManager accountManager;
   @Inject transient AxolotlStorageModule.SignedPreKeyStoreFactory signedPreKeyStoreFactory;
 
   public CleanPreKeysJob(Context context) {

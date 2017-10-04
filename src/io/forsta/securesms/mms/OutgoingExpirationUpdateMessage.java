@@ -13,6 +13,11 @@ public class OutgoingExpirationUpdateMessage extends OutgoingSecureMediaMessage 
           ThreadDatabase.DistributionTypes.CONVERSATION, expiresIn);
   }
 
+  public OutgoingExpirationUpdateMessage(Recipients recipients, String body, long sentTimeMillis, long expiresIn) {
+    super(recipients, body, new LinkedList<Attachment>(), sentTimeMillis,
+        ThreadDatabase.DistributionTypes.CONVERSATION, expiresIn);
+  }
+
   @Override
   public boolean isExpirationUpdate() {
     return true;

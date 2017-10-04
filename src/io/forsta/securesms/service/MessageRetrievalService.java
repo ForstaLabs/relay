@@ -56,6 +56,7 @@ public class MessageRetrievalService extends Service implements Runnable, Inject
     new Thread(this, "MessageRetrievalService").start();
   }
 
+  @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     if (intent == null) return START_STICKY;
 

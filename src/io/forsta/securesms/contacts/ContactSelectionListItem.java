@@ -73,8 +73,13 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
 
     setText(type, name, number, label);
 
-    if (multiSelect && !GroupUtil.isEncodedGroup(number)) this.checkBox.setVisibility(View.VISIBLE);
-    else             this.checkBox.setVisibility(View.GONE);
+    if (multiSelect) {
+      this.checkBox.setVisibility(View.VISIBLE);
+    } else {
+      this.checkBox.setVisibility(View.GONE);
+    }
+//    if (multiSelect && !GroupUtil.isEncodedGroup(number)) this.checkBox.setVisibility(View.VISIBLE);
+//    else             this.checkBox.setVisibility(View.GONE);
   }
 
   public void setChecked(boolean selected) {
@@ -96,11 +101,13 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
     } else if (type == ContactsDatabase.PUSH_TYPE) {
       this.numberView.setText(number);
       this.nameView.setEnabled(true);
-      this.labelView.setVisibility(View.GONE);
+      this.labelView.setText(label);
+      this.labelView.setVisibility(View.VISIBLE);
     } else if(GroupUtil.isEncodedGroup(number)) {
       this.numberView.setText("Group");
       this.nameView.setEnabled(true);
-      this.labelView.setVisibility(View.GONE);
+      this.labelView.setText(label);
+      this.labelView.setVisibility(View.VISIBLE);
     } else {
       this.numberView.setText(number);
       this.nameView.setEnabled(true);

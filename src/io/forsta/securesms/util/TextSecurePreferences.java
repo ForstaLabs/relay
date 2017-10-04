@@ -67,6 +67,8 @@ public class TextSecurePreferences {
   private static final String VERIFYING_STATE_PREF             = "pref_verifying";
   public  static final String REGISTERED_GCM_PREF              = "pref_gcm_registered";
   private static final String GCM_PASSWORD_PREF                = "pref_gcm_password";
+  private static final String SERVER_PREF                      = "pref_server";
+  private static final String USER_AGENT_PREF                  = "pref_user_agent";
   private static final String PROMPTED_PUSH_REGISTRATION_PREF  = "pref_prompted_push_registration";
   private static final String PROMPTED_DEFAULT_SMS_PREF        = "pref_prompted_default_sms";
   private static final String PROMPTED_SHARE_PREF              = "pref_prompted_share";
@@ -229,6 +231,22 @@ public class TextSecurePreferences {
 
   public static void setLocalNumber(Context context, String localNumber) {
     setStringPreference(context, LOCAL_NUMBER_PREF, localNumber);
+  }
+
+  public static String getServer(Context context) {
+    return getStringPreference(context, SERVER_PREF, null);
+  }
+
+  public static void setServer(Context context, String url) {
+    setStringPreference(context, SERVER_PREF, url);
+  }
+
+  public static String getUserAgent(Context context) {
+    return getStringPreference(context, USER_AGENT_PREF, null);
+  }
+
+  public static void setUserAgent(Context context, String value) {
+    setStringPreference(context, USER_AGENT_PREF, value);
   }
 
   public static String getPushServerPassword(Context context) {

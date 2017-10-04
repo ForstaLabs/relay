@@ -41,7 +41,7 @@ public class AvatarImageView extends ImageView {
     if (recipients != null) {
       MaterialColor backgroundColor = recipients.getColor();
       setImageDrawable(recipients.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-      setAvatarClickHandler(recipients, quickContactEnabled);
+      setAvatarClickHandler(recipients, false);
     } else {
       setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
       setOnClickListener(null);

@@ -4,10 +4,10 @@ import org.junit.Test;
 import io.forsta.securesms.BaseUnitTest;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.AxolotlStorageModule;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyStore;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.SignedPreKeyEntity;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
 
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class CleanPreKeysJobTest extends BaseUnitTest {
   @Test
   public void testSignedPreKeyRotationNotRegistered() throws IOException, MasterSecretJob.RequirementNotMetException {
-    SignalServiceAccountManager accountManager    = mock(SignalServiceAccountManager.class);
+    ForstaServiceAccountManager accountManager    = mock(ForstaServiceAccountManager.class);
     SignedPreKeyStore           signedPreKeyStore = mock(SignedPreKeyStore.class);
     MasterSecret masterSecret      = mock(MasterSecret.class);
     when(accountManager.getSignedPreKey()).thenReturn(null);
@@ -51,7 +51,7 @@ public class CleanPreKeysJobTest extends BaseUnitTest {
   @Test
   public void testSignedPreKeyEviction() throws Exception {
     SignedPreKeyStore           signedPreKeyStore         = mock(SignedPreKeyStore.class);
-    SignalServiceAccountManager accountManager            = mock(SignalServiceAccountManager.class);
+    ForstaServiceAccountManager accountManager            = mock(ForstaServiceAccountManager.class);
     SignedPreKeyEntity          currentSignedPreKeyEntity = mock(SignedPreKeyEntity.class);
     MasterSecret                masterSecret              = mock(MasterSecret.class);
 
@@ -85,7 +85,7 @@ public class CleanPreKeysJobTest extends BaseUnitTest {
   @Test
   public void testSignedPreKeyNoEviction() throws Exception {
     SignedPreKeyStore           signedPreKeyStore         = mock(SignedPreKeyStore.class);
-    SignalServiceAccountManager accountManager            = mock(SignalServiceAccountManager.class);
+    ForstaServiceAccountManager accountManager            = mock(ForstaServiceAccountManager.class);
     SignedPreKeyEntity          currentSignedPreKeyEntity = mock(SignedPreKeyEntity.class);
 
     when(currentSignedPreKeyEntity.getKeyId()).thenReturn(3133);
@@ -111,7 +111,7 @@ public class CleanPreKeysJobTest extends BaseUnitTest {
   @Test
   public void testConnectionError() throws Exception {
     SignedPreKeyStore        signedPreKeyStore = mock(SignedPreKeyStore.class);
-    SignalServiceAccountManager accountManager    = mock(SignalServiceAccountManager.class);
+    ForstaServiceAccountManager accountManager    = mock(ForstaServiceAccountManager.class);
     MasterSecret             masterSecret      = mock(MasterSecret.class);
 
     when(accountManager.getSignedPreKey()).thenThrow(new PushNetworkException("Connectivity error!"));
@@ -131,15 +131,15 @@ public class CleanPreKeysJobTest extends BaseUnitTest {
 
   @Module(injects = {CleanPreKeysJob.class})
   public static class TestModule {
-    private final SignalServiceAccountManager accountManager;
+    private final ForstaServiceAccountManager accountManager;
     private final SignedPreKeyStore        signedPreKeyStore;
 
-    private TestModule(SignalServiceAccountManager accountManager, SignedPreKeyStore signedPreKeyStore) {
+    private TestModule(ForstaServiceAccountManager accountManager, SignedPreKeyStore signedPreKeyStore) {
       this.accountManager    = accountManager;
       this.signedPreKeyStore = signedPreKeyStore;
     }
 
-    @Provides SignalServiceAccountManager provideTextSecureAccountManager() {
+    @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {
       return accountManager;
     }
 
