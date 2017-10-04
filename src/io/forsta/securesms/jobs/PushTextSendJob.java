@@ -66,9 +66,7 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       processMessage(database, record, expirationManager);
     } catch (InsecureFallbackApprovalException e) {
       Log.w(TAG, e);
-      database.markAsPendingInsecureSmsFallback(record.getId());
-      MessageNotifier.notifyMessageDeliveryFailed(context, record.getRecipients(), record.getThreadId());
-      ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
+      // XXX For now, there should be no insecure messages. Notify user by checking Recipients cache before submitting.
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
       Log.w(TAG, "Text message. Auto handling untrusted identity");

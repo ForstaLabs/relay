@@ -79,9 +79,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       processMessage(masterSecret, database, message, expirationManager);
     } catch (InsecureFallbackApprovalException ifae) {
       Log.w(TAG, ifae);
-      database.markAsPendingInsecureSmsFallback(messageId);
-      notifyMediaMessageDeliveryFailed(context, messageId);
-      ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context));
+      // XXX For now, there should be no insecure messages. Notify user by checking Recipients cache before submitting.
     } catch (UntrustedIdentityException uie) {
       Log.w(TAG, uie);
       Log.w(TAG, "Media Message. Auto handling untrusted identity, Single recipient.");
