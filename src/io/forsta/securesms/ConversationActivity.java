@@ -304,6 +304,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+    checkInvalidRecipients();
+  }
+
+  private void checkInvalidRecipients() {
     TextSecureDirectory directory = TextSecureDirectory.getInstance(ConversationActivity.this);
     List<Recipient> invalidRecipients = new ArrayList<>();
     for (Recipient recipient : recipients) {
@@ -317,13 +321,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
     if (invalidRecipients.size() > 0) {
       StringBuilder sb = new StringBuilder();
-      sb.append("This thread contains ").append(invalidRecipients.size()).append(" invalid recipients.");
+      sb.append("This conversation contains ").append(invalidRecipients.size()).append(" invalid recipients.");
       sb.append("\n").append("These recipients will not receive messages.").append("\n");
       for (Recipient recipient : invalidRecipients) {
         sb.append("\n");
         sb.append(recipient.getName());
       }
       new AlertDialog.Builder(ConversationActivity.this)
+          .setTitle("WARNING")
           .setMessage(sb.toString())
           .setPositiveButton("OK", null)
           .show();
