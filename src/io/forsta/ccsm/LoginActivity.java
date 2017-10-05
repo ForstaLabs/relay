@@ -5,6 +5,7 @@ import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -14,13 +15,18 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
+import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
 import io.forsta.securesms.BaseActionBarActivity;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.Util;
 
 public class LoginActivity extends BaseActionBarActivity {
   private static final String TAG = LoginActivity.class.getSimpleName();
@@ -135,11 +141,28 @@ public class LoginActivity extends BaseActionBarActivity {
       @Override
       public void onClick(View view) {
         // Need validation checking on form values.
-        showProgressBar();
         String first = mAccountFirstName.getText().toString().trim();
         String last = mAccountLastName.getText().toString().trim();
         String phone = mAccountPhone.getText().toString().trim();
         String email = mAccountEmail.getText().toString().trim();
+        if (first.length() < 1) {
+          Toast.makeText(LoginActivity.this, "Please enter a first name", Toast.LENGTH_LONG).show();
+          return;
+        }
+        if (last.length() < 1) {
+          Toast.makeText(LoginActivity.this, "Please enter a last name", Toast.LENGTH_LONG).show();
+          return;
+        }
+
+        try {
+          if (phone.length() < 10) {
+            throw new InvalidNumberException("Too short");
+          }
+          phone = Util.canonicalizeNumberE164(phone);
+        } catch (InvalidNumberException e) {
+          Toast.makeText(LoginActivity.this, "Invalid phone number", Toast.LENGTH_LONG).show();
+        }
+        showProgressBar();
         CCSMCreateAccount createAccountTask = new CCSMCreateAccount();
         createAccountTask.execute(first, last, phone, email);
       }
