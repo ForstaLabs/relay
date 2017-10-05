@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.BaseActionBarActivity;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
@@ -160,7 +161,8 @@ public class LoginActivity extends BaseActionBarActivity {
           }
           phone = Util.canonicalizeNumberE164(phone);
         } catch (InvalidNumberException e) {
-          Toast.makeText(LoginActivity.this, "Invalid phone number", Toast.LENGTH_LONG).show();
+          Toast.makeText(LoginActivity.this, "Invalid phone number. Please enter full number, including area code.", Toast.LENGTH_LONG).show();
+          return;
         }
         showProgressBar();
         CCSMCreateAccount createAccountTask = new CCSMCreateAccount();
@@ -301,9 +303,16 @@ public class LoginActivity extends BaseActionBarActivity {
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
       if (jsonObject.has("id")) {
-        showVerifyForm();
-      } else if (jsonObject.has("error")) {
-        hideProgressBar();
+        try {
+          String username = jsonObject.getString("username");
+          ForstaPreferences.setForstaUsername(LoginActivity.this, username);
+          ForstaPreferences.setForstaOrgName(LoginActivity.this, "public");
+          showVerifyForm();
+        } catch (JSONException e) {
+          hideProgressBar();
+          Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
+        }
+      } else {
         Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
       }
     }
