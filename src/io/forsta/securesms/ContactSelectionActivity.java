@@ -68,7 +68,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
   protected FlowLayout expressionElements;
-  private int currentDisplayCount = 0;
+  private int currentDisplayCount = -1;
 
   @Override
   protected void onPreCreate() {

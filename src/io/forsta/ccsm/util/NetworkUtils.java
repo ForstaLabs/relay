@@ -1,6 +1,7 @@
 // vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.util;
 
+import android.text.TextUtils;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +14,8 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jlewis on 12/13/16.
@@ -24,21 +27,35 @@ public class NetworkUtils {
   private NetworkUtils() {
   }
 
-  private static void setConnHeader(HttpURLConnection conn, String authKey) {
-    if (isAuthKey(authKey)) {
-      conn.setRequestProperty("Authorization", "JWT " + authKey);
+  private enum AuthType {
+    JWT,
+    ServiceToken
+  }
+
+  private static void setConnHeader(HttpURLConnection conn, String authKey, AuthType type) {
+    if (!TextUtils.isEmpty(authKey)) {
+      if (type == AuthType.ServiceToken) {
+        conn.setRequestProperty("Authorization", "ServiceToken " + authKey);
+      } else {
+        conn.setRequestProperty("Authorization", "JWT " + authKey);
+      }
     }
+
     conn.setRequestProperty("Content-Type", "application/json");
     conn.setRequestProperty("Accept", "application/json");
   }
 
-  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body) {
-    return apiFetch(method, authKey, path, body, 0);
+  public static JSONObject apiFetchWithServiceToken(String method, String authKey, String path, JSONObject body) {
+    return apiFetch(method, authKey, path, body, 0, AuthType.ServiceToken);
   }
 
-  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body, float timeout) {
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body) {
+    return apiFetch(method, authKey, path, body, 0, AuthType.JWT);
+  }
+
+  public static JSONObject apiFetch(String method, String authKey, String path, JSONObject body, float timeout, AuthType type) {
     try {
-      return apiHardFetch(method, authKey, path, body, timeout);
+      return apiHardFetch(method, authKey, path, body, timeout, type);
     } catch (Exception e) {
       Log.e(TAG, e.toString());
       e.printStackTrace();
@@ -54,15 +71,16 @@ public class NetworkUtils {
   }
 
   public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body) throws Exception {
-    return apiHardFetch(method, authKey, path, body, 0);
+    return apiHardFetch(method, authKey, path, body, 0, AuthType.JWT);
   }
 
-  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body, float timeout) throws Exception {
+  public static JSONObject apiHardFetch(String method, String authKey, String path, JSONObject body, float timeout, AuthType type) throws Exception {
     URL url = new URL(path);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     try {
       conn.setRequestMethod(method);
-      setConnHeader(conn, authKey);
+      setConnHeader(conn, authKey, type);
+      Map<String, List<String>> requestHeaders = conn.getRequestProperties();
       if (timeout != 0) {
         conn.setConnectTimeout((int)(timeout * 1000));
         conn.setReadTimeout((int)(timeout * 1000));
@@ -84,14 +102,6 @@ public class NetworkUtils {
     } finally {
       conn.disconnect();
     }
-  }
-
-  private static boolean isAuthKey(String authKey) {
-    return authKey != null && authKey.length() > 0;
-  }
-
-  private static String fixApiPath(String path) {
-    return !path.endsWith("/") ? path + "/" : path;
   }
 
   private static String readResult(InputStream input) throws IOException {

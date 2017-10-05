@@ -92,7 +92,7 @@ public class CcsmApi {
     return result;
   }
 
-  // TODO Is there a reas on to ever refresh the token.
+  // TODO Is there a reason to ever refresh the token.
   public static boolean tokenNeedsRefresh(Context context) {
     Date expireDate = ForstaPreferences.getTokenExpireDate(context);
     if (expireDate == null) {
@@ -174,11 +174,11 @@ public class CcsmApi {
     return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
   }
 
-  public static JSONObject createAccount(Context context, JSONObject jsonObject) {
+  public static JSONObject createAccount(JSONObject jsonObject) {
     String host = BuildConfig.FORSTA_API_URL;
     // Need to get service token from build environment variable...dev, stage, prod.
-//    return NetworkUtils.apiFetch("GET", "ServiceToken", host + API_USER + "/?login=true", jsonObject);
-    return new JSONObject();
+    String serviceToken =  "cb1ee0e18718ebaf03a62e5ab22dbd4e05f3683a";
+    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
   // TODO These should all be private. They are exposed right now for the debug dashboard.

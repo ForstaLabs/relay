@@ -228,7 +228,7 @@ public class LoginActivity extends BaseActionBarActivity {
           Log.d(TAG, e.getMessage());
         }
       } else {
-        showVerifyForm();
+        hideProgressBar();
         Toast.makeText(LoginActivity.this, "Sorry an error has occurred.", Toast.LENGTH_LONG).show();
       }
     }
@@ -263,17 +263,25 @@ public class LoginActivity extends BaseActionBarActivity {
 
     @Override
     protected JSONObject doInBackground(String... strings) {
-      String first = strings[0];
-      String last = strings[1];
-      String phone = strings[2];
-      String email = strings[3];
-      return CcsmApi.createAccount(LoginActivity.this, first, last, phone, email);
+      JSONObject jsonObject = new JSONObject();
+      try {
+        jsonObject.put("first_name", strings[0]);
+        jsonObject.put("last_name", strings[1]);
+        jsonObject.put("phone", strings[2]);
+        jsonObject.put("email", strings[3]);
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+      return CcsmApi.createAccount(jsonObject);
     }
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      if (jsonObject.has("msg")) {
+      if (jsonObject.has("id")) {
         showVerifyForm();
+      } else if (jsonObject.has("error")) {
+        hideProgressBar();
+        Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
       }
     }
   }
