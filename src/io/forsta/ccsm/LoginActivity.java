@@ -1,17 +1,9 @@
 package io.forsta.ccsm;
 
-import android.accounts.Account;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Paint;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
@@ -24,38 +16,30 @@ import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.libsignal.util.guava.Optional;
 
-import io.forsta.ccsm.api.ForstaContactsSyncIntentService;
-import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.securesms.BaseActionBarActivity;
-import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
-import io.forsta.securesms.RegistrationActivity;
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.securesms.util.DirectoryHelper;
 
 public class LoginActivity extends BaseActionBarActivity {
   private static final String TAG = LoginActivity.class.getSimpleName();
-  private Button mSubmitButton;
-  private Button mSendTokenButton;
-  private Button mCreateDomain;
-  private TextView mLoginTitle;
-  private TextView mTryAgainButton;
-  private EditText mSendTokenUsername;
-  private EditText mSendTokenOrg;
-  private EditText mLoginUsernameText;
-  private EditText mLoginPasswordText;
-  private EditText mLoginSecurityCode;
-  private ProgressBar mLoginProgressBar;
   private LinearLayout mLoginFormContainer;
   private LinearLayout mSendLinkFormContainer;
-  private LinearLayout mLoginSubmitFormContainer;
   private LinearLayout mVerifyFormContainer;
-  private LinearLayout mPasswordFormContainer;
-  private TextView mStandardLogin;
-  private String createDomainUrl = "https://console.forsta.io/create";
+  private LinearLayout mAccountFormContainer;
+
+  private TextView mLoginTitle;
+
+  private EditText mSendTokenUsername;
+  private EditText mSendTokenOrg;
+  private EditText mLoginSecurityCode;
+  private EditText mAccountFirstName;
+  private EditText mAccountLastName;
+  private EditText mAccountPhone;
+  private EditText mAccountEmail;
+
+  private ProgressBar mLoginProgressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +47,7 @@ public class LoginActivity extends BaseActionBarActivity {
     setContentView(R.layout.activity_login);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
     initializeView();
+    initializeButtonListeners();
   }
 
   @Override
@@ -88,33 +73,25 @@ public class LoginActivity extends BaseActionBarActivity {
 
   private void initializeView() {
     mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
-    String serverUrl = BuildConfig.FORSTA_API_URL;
-    if (serverUrl.contains("dev")) {
-      createDomainUrl = "https://ccsm-dev.forsta.io/create";
-      mLoginTitle.setText(mLoginTitle.getText().toString() + "-Development Server");
-    } else if (serverUrl.contains("stage")) {
-      createDomainUrl = "https://ccsm-stage.forsta.io/create";
-      mLoginTitle.setText(mLoginTitle.getText().toString() + "-Stage Server");
-    }
+    mLoginProgressBar = (ProgressBar) findViewById(R.id.login_progress_bar);
+
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
     mSendLinkFormContainer = (LinearLayout) findViewById(R.id.forsta_login_send_link_container);
-    mLoginSubmitFormContainer = (LinearLayout) findViewById(R.id.forsta_login_submit_container);
     mVerifyFormContainer = (LinearLayout) findViewById(R.id.forsta_login_verify_token_container);
-    mPasswordFormContainer = (LinearLayout) findViewById(R.id.forsta_login_password_container);
+    mAccountFormContainer = (LinearLayout) findViewById(R.id.forsta_login_create_account_container);
 
-    mLoginProgressBar = (ProgressBar) findViewById(R.id.login_progress_bar);
     mSendTokenOrg = (EditText) findViewById(R.id.forsta_login_org_get_token);
     mSendTokenUsername = (EditText) findViewById(R.id.forsta_login_username_get_token);
-    mSendTokenButton = (Button) findViewById(R.id.forsta_get_token_button);
-
     mLoginSecurityCode = (EditText) findViewById(R.id.forsta_login_security_code);
+    mAccountFirstName = (EditText) findViewById(R.id.forsta_login_account_firstname);
+    mAccountLastName = (EditText) findViewById(R.id.forsta_login_account_lastname);
+    mAccountPhone = (EditText) findViewById(R.id.forsta_login_account_phone);
+    mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
+  }
 
-    mLoginUsernameText = (EditText) findViewById(R.id.forsta_login_username);
-    mLoginPasswordText = (EditText) findViewById(R.id.forsta_login_password);
-    mSubmitButton = (Button) findViewById(R.id.forsta_login_submit_button);
-    mCreateDomain = (Button) findViewById(R.id.forsta_create_domain);
-
-    mSendTokenButton.setOnClickListener(new View.OnClickListener() {
+  private void initializeButtonListeners() {
+    Button getTokenButton = (Button) findViewById(R.id.forsta_get_token_button);
+    getTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         String org = mSendTokenOrg.getText().toString().trim();
@@ -130,7 +107,9 @@ public class LoginActivity extends BaseActionBarActivity {
         }
       }
     });
-    mSubmitButton.setOnClickListener(new View.OnClickListener() {
+
+    Button submitTokenButton = (Button) findViewById(R.id.forsta_login_submit_button);
+    submitTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         String code = mLoginSecurityCode.getText().toString().trim();
@@ -138,34 +117,45 @@ public class LoginActivity extends BaseActionBarActivity {
           Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-
-          String token = code;
           CCSMLogin task = new CCSMLogin();
-
-          task.execute(mLoginUsernameText.getText().toString().trim(), mLoginPasswordText.getText().toString().trim(), token);
+          task.execute(code);
         }
       }
     });
-    mCreateDomain.setOnClickListener(new View.OnClickListener() {
+    Button createAccountButton = (Button) findViewById(R.id.forsta_create_account_button);
+    createAccountButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(createDomainUrl));
-        startActivity(intent);
+        showAccountForm();
       }
     });
 
-    // TODO Remove this option?
-    mStandardLogin = (TextView) findViewById(R.id.forsta_login_standard_login);
-    mStandardLogin.setOnClickListener(new View.OnClickListener() {
+    Button submitAccountButton = (Button) findViewById(R.id.forsta_login_account_submit_button);
+    submitAccountButton.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onClick(View v) {
-        showPasswordForm();
+      public void onClick(View view) {
+        // Need validation checking on form values.
+        showProgressBar();
+        String first = mAccountFirstName.getText().toString().trim();
+        String last = mAccountLastName.getText().toString().trim();
+        String phone = mAccountPhone.getText().toString().trim();
+        String email = mAccountEmail.getText().toString().trim();
+        CCSMCreateAccount createAccountTask = new CCSMCreateAccount();
+        createAccountTask.execute(first, last, phone, email);
       }
     });
 
-    mTryAgainButton = (TextView) findViewById(R.id.forsta_login_tryagain);
-    mTryAgainButton.setPaintFlags(mTryAgainButton.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
-    mTryAgainButton.setOnClickListener(new View.OnClickListener() {
+    Button cancelAccountButton = (Button) findViewById(R.id.forsta_login_account_cancel_button);
+    cancelAccountButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        showSendLinkForm();
+      }
+    });
+
+    TextView tryAgainText = (TextView) findViewById(R.id.forsta_login_tryagain);
+    tryAgainText.setPaintFlags(tryAgainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+    tryAgainText.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         ForstaPreferences.clearLogin(LoginActivity.this);
@@ -176,27 +166,24 @@ public class LoginActivity extends BaseActionBarActivity {
 
   private void showSendLinkForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    mVerifyFormContainer.setVisibility(View.GONE);
+    mAccountFormContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.VISIBLE);
-    mLoginSubmitFormContainer.setVisibility(View.GONE);
-    mVerifyFormContainer.setVisibility(View.VISIBLE);
-    mPasswordFormContainer.setVisibility(View.GONE);
     hideProgressBar();
   }
 
   private void showVerifyForm() {
     mSendLinkFormContainer.setVisibility(View.GONE);
+    mAccountFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.VISIBLE);
-    mPasswordFormContainer.setVisibility(View.GONE);
-    mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
 
-  private void showPasswordForm() {
+  private void showAccountForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
     mSendLinkFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.GONE);
-    mPasswordFormContainer.setVisibility(View.VISIBLE);
-    mLoginSubmitFormContainer.setVisibility(View.VISIBLE);
+    mAccountFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
 
@@ -232,12 +219,8 @@ public class LoginActivity extends BaseActionBarActivity {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      // TODO this always returns "Sending authorization link" message, even if it is an invalid user or domain.
-      // Should return error so user knows that something was invalid.
       if (jsonObject.has("msg")) {
         try {
-          // If we've requested a new login, we need to logout.
-          // We want to clear login on
           ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
           showVerifyForm();
           Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();
@@ -255,15 +238,13 @@ public class LoginActivity extends BaseActionBarActivity {
 
     @Override
     protected JSONObject doInBackground(String... params) {
-      String uname = params[0];
-      String pass = params[1];
-      String authtoken = params[2];
+      String authtoken = params[0];
       String username = ForstaPreferences.getForstaUsername(getApplicationContext());
       String org = ForstaPreferences.getForstaOrgName(getApplicationContext());
       authtoken = CcsmApi.parseLoginToken(authtoken);
       authtoken = org + ":" + username + ":" + authtoken;
 
-      JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, uname, pass, authtoken);
+      JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, authtoken);
       return token;
     }
 
@@ -274,6 +255,25 @@ public class LoginActivity extends BaseActionBarActivity {
       } else {
         hideProgressBar();
         Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
+      }
+    }
+  }
+
+  private class CCSMCreateAccount extends AsyncTask<String, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(String... strings) {
+      String first = strings[0];
+      String last = strings[1];
+      String phone = strings[2];
+      String email = strings[3];
+      return CcsmApi.createAccount(LoginActivity.this, first, last, phone, email);
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      if (jsonObject.has("msg")) {
+        showVerifyForm();
       }
     }
   }
