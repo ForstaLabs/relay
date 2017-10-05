@@ -177,7 +177,7 @@ public class CcsmApi {
   public static JSONObject createAccount(JSONObject jsonObject) {
     String host = BuildConfig.FORSTA_API_URL;
     // Need to get service token from build environment variable...dev, stage, prod.
-    String serviceToken =  "cb1ee0e18718ebaf03a62e5ab22dbd4e05f3683a";
+    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
     return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
