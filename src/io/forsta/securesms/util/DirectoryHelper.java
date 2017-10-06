@@ -173,9 +173,6 @@ public class DirectoryHelper {
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
 
     try {
-      if (recipients.isGroupRecipient()) {
-        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
-      }
       List<String> addresses = recipients.toNumberStringList(false);
       String ids = TextUtils.join(",", addresses);
       CcsmApi.syncForstaContacts(context, ids);
@@ -191,7 +188,7 @@ public class DirectoryHelper {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return null;
+    return new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
   }
 
   public static void refreshDirectoryFor(Context context, MasterSecret masterSecret, List<String> addresses) {

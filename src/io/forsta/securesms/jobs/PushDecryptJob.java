@@ -166,8 +166,7 @@ public class PushDecryptJob extends ContextJob {
         if      (message.isEndSession())               handleEndSessionMessage(masterSecret, envelope, message, smsMessageId);
         else if (message.isGroupUpdate())              handleGroupMessage(masterSecret, envelope, message, smsMessageId);
         else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
-        else if (message.getAttachments().isPresent()) handleMediaMessage(masterSecret, envelope, message, smsMessageId);
-        else                                           handleTextMessage(masterSecret, envelope, message, smsMessageId);
+        else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
       } else if (content.getSyncMessage().isPresent()) {
         SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
 
@@ -285,10 +284,8 @@ public class PushDecryptJob extends ContextJob {
       threadId = GroupMessageProcessor.process(context, masterSecret, envelope, message.getMessage(), true);
     } else if (message.getMessage().isExpirationUpdate()) {
       threadId = handleSynchronizeSentExpirationUpdate(masterSecret, message, smsMessageId);
-    } else if (message.getMessage().getAttachments().isPresent()) {
-      threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
     } else {
-      threadId = handleSynchronizeSentTextMessage(masterSecret, message, smsMessageId);
+      threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
     }
 
     if (threadId != null) {
