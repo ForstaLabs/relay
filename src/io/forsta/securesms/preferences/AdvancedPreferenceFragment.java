@@ -45,10 +45,8 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   private static final String TAG = AdvancedPreferenceFragment.class.getSimpleName();
 
   private static final String PUSH_MESSAGING_PREF   = "pref_toggle_push_messaging";
-    private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
+  private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
   private static final String FORSTA_DASHBOARD_PREFERENCE = "preference_forsta_dashboard";
-  private static final String FORSTA_OTR_PREF   = "pref_forsta_otr";
-
   private static final int PICK_IDENTITY_CONTACT = 1;
 
   private MasterSecret masterSecret;
@@ -71,15 +69,12 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
-    initializeOffTheRecordToggle();
   }
 
   @Override
   public void onResume() {
     super.onResume();
     ((ApplicationPreferencesActivity) getActivity()).getSupportActionBar().setTitle(R.string.preferences__advanced);
-
-    initializePushMessagingToggle();
   }
 
   @Override
@@ -89,38 +84,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     Log.w(TAG, "Got result: " + resultCode + " for req: " + reqCode);
     if (resultCode == Activity.RESULT_OK && reqCode == PICK_IDENTITY_CONTACT) {
       handleIdentitySelection(data);
-    }
-  }
-
-  private void initializeOffTheRecordToggle() {
-    CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(FORSTA_OTR_PREF);
-    preference.setEnabled(false);
-    if (ForstaPreferences.getOffTheRecord(getActivity())) {
-      preference.setChecked(true);
-    } else {
-      preference.setChecked(false);
-    }
-
-    preference.setOnPreferenceChangeListener(new OffTheRecordClickListener());
-  }
-
-  private void initializePushMessagingToggle() {
-    CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(PUSH_MESSAGING_PREF);
-
-//    if (TextSecurePreferences.isPushRegistered(getActivity())) {
-//      preference.setChecked(true);
-//      preference.setSummary(TextSecurePreferences.getLocalNumber(getActivity()));
-//    } else {
-//      preference.setChecked(false);
-//      preference.setSummary(R.string.preferences__free_private_messages_and_calls);
-//    }
-
-//    preference.setOnPreferenceChangeListener(new PushMessagingClickListener());
-
-    //XXX Remove this preference for now.
-    if (preference != null) {
-      PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
-      preferenceScreen.removePreference(preference);
     }
   }
 
@@ -186,85 +149,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
   }
 
-  private class PushMessagingClickListener implements Preference.OnPreferenceChangeListener {
-    private static final int SUCCESS       = 0;
-    private static final int NETWORK_ERROR = 1;
-
-    private class DisablePushMessagesTask extends ProgressDialogAsyncTask<Void, Void, Integer> {
-      private final CheckBoxPreference checkBoxPreference;
-
-      public DisablePushMessagesTask(final CheckBoxPreference checkBoxPreference) {
-        super(getActivity(), R.string.ApplicationPreferencesActivity_unregistering, R.string.ApplicationPreferencesActivity_unregistering_from_signal_messages_and_calls);
-        this.checkBoxPreference = checkBoxPreference;
-      }
-
-      @Override
-      protected void onPostExecute(Integer result) {
-        super.onPostExecute(result);
-        switch (result) {
-        case NETWORK_ERROR:
-          Toast.makeText(getActivity(),
-                         R.string.ApplicationPreferencesActivity_error_connecting_to_server,
-                         Toast.LENGTH_LONG).show();
-          break;
-        case SUCCESS:
-          TextSecurePreferences.setPushRegistered(getActivity(), false);
-          initializePushMessagingToggle();
-          break;
-        }
-      }
-
-      @Override
-      protected Integer doInBackground(Void... params) {
-        try {
-          Context                     context                = getActivity();
-          ForstaServiceAccountManager accountManager         = TextSecureCommunicationFactory.createManager(context);
-
-          try {
-            accountManager.setGcmId(Optional.<String>absent());
-          } catch (AuthorizationFailedException e) {
-            Log.w(TAG, e);
-          }
-
-          GoogleCloudMessaging.getInstance(context).unregister();
-
-          return SUCCESS;
-        } catch (IOException ioe) {
-          Log.w(TAG, ioe);
-          return NETWORK_ERROR;
-        }
-      }
-    }
-
-    @Override
-    public boolean onPreferenceChange(final Preference preference, Object newValue) {
-      if (((CheckBoxPreference)preference).isChecked()) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setIconAttribute(R.attr.dialog_info_icon);
-        builder.setTitle(R.string.ApplicationPreferencesActivity_disable_signal_messages_and_calls);
-        builder.setMessage(R.string.ApplicationPreferencesActivity_disable_signal_messages_and_calls_by_unregistering);
-        builder.setNegativeButton(android.R.string.cancel, null);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            new DisablePushMessagesTask((CheckBoxPreference)preference).execute();
-          }
-        });
-        builder.show();
-      } else {
-        Intent nextIntent = new Intent(getActivity(), ApplicationPreferencesActivity.class);
-
-        Intent intent = new Intent(getActivity(), RegistrationActivity.class);
-        intent.putExtra("cancel_button", true);
-        intent.putExtra("next_intent", nextIntent);
-        intent.putExtra("master_secret", masterSecret);
-        startActivity(intent);
-      }
-
-      return false;
-    }
-  }
-
   private class DashboardClickListener implements Preference.OnPreferenceClickListener {
 
     @Override
@@ -272,17 +156,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
       Intent intent = new Intent(getActivity(), DashboardActivity.class);
       startActivity(intent);
       return true;
-    }
-  }
-
-  private class OffTheRecordClickListener implements Preference.OnPreferenceChangeListener {
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object o) {
-      boolean value = (boolean) o;
-      ForstaPreferences.setOffTheRecord(getActivity(), value);
-      initializeOffTheRecordToggle();
-      return value;
     }
   }
 }
