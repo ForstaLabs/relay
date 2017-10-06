@@ -86,8 +86,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
             if (distribution.hasRecipients()) {
-              String removeDomain = searchText.substring(0, searchText.indexOf(":"));
-              toolbar.setSearchText(removeDomain);
+              if (searchText.contains(":")) {
+                String removeDomain = searchText.substring(0, searchText.indexOf(":"));
+                toolbar.setSearchText(removeDomain);
+              } else {
+                toolbar.setSearchText(searchText);
+              }
             }
           }
         }.execute(searchText);

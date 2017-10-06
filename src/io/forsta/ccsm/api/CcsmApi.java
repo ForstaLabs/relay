@@ -63,19 +63,13 @@ public class CcsmApi {
   private CcsmApi() {
   }
 
-  public static JSONObject forstaLogin(Context context, String username, String password, String authToken) {
+  public static JSONObject forstaLogin(Context context, String authToken) {
     String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = new JSONObject();
     try {
       JSONObject obj = new JSONObject();
-      if (!authToken.equals("")) {
-        obj.put("authtoken", authToken);
-        result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
-      } else {
-        obj.put("username", username);
-        obj.put("password", password);
-        result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, obj);
-      }
+      obj.put("authtoken", authToken);
+      result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
 
       if (result.has("token")) {
         Log.w(TAG, "Login Success. Token Received.");
@@ -98,7 +92,7 @@ public class CcsmApi {
     return result;
   }
 
-  // TODO Is there a reas on to ever refresh the token.
+  // TODO Is there a reason to ever refresh the token.
   public static boolean tokenNeedsRefresh(Context context) {
     Date expireDate = ForstaPreferences.getTokenExpireDate(context);
     if (expireDate == null) {
@@ -178,6 +172,13 @@ public class CcsmApi {
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
     return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+  }
+
+  public static JSONObject createAccount(JSONObject jsonObject) {
+    String host = BuildConfig.FORSTA_API_URL;
+    // Need to get service token from build environment variable...dev, stage, prod.
+    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
+    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
   // TODO These should all be private. They are exposed right now for the debug dashboard.

@@ -151,7 +151,7 @@ public class MessageSender {
                                        long messageId, long expiresIn)
       throws MmsException
   {
-    if (!forceSms && isSelfSend(context, recipients)) {
+    if (isSelfSend(context, recipients)) {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
     } else if (isGroupPushSend(recipients)) {
       sendGroupPush(context, recipients, messageId, -1);
@@ -164,12 +164,10 @@ public class MessageSender {
                                       boolean forceSms, boolean keyExchange,
                                       long messageId, long expiresIn)
   {
-    if (!forceSms && isSelfSend(context, recipients)) {
+    if (isSelfSend(context, recipients)) {
       sendTextSelf(context, messageId, expiresIn);
-    } else if (!forceSms && isPushTextSend(context, recipients, keyExchange)) {
-      sendTextPush(context, recipients, messageId);
     } else {
-      sendSms(context, recipients, messageId);
+      sendTextPush(context, recipients, messageId);
     }
   }
 

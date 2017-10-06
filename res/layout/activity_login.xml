@@ -75,63 +75,110 @@
             android:text="- OR -" />
 
         <Button
-            android:id="@+id/forsta_create_domain"
+            android:id="@+id/forsta_create_account_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginLeft="50dp"
             android:layout_marginRight="50dp"
             android:background="@drawable/forsta_button_pop4"
-            android:text="@string/forsta_login_create_domain_button"
+            android:text="@string/forsta_login_create_account_button"
             android:textColor="@color/white" />
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/forsta_login_submit_container"
+        android:id="@+id/forsta_login_create_account_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_firstname_label" />
+
+        <EditText
+            android:id="@+id/forsta_login_account_firstname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_lastname_label" />
+
+        <EditText
+            android:id="@+id/forsta_login_account_lastname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textPersonName" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_phone_label" />
+
+        <EditText
+            android:id="@+id/forsta_login_account_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="phone" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_email_label" />
+
+        <EditText
+            android:id="@+id/forsta_login_account_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textEmailAddress" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/forsta_login_account_cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/forsta_button_pop4"
+                android:text="@string/forsta_login_account_cancel_button"
+                android:textColor="@color/white"
+                android:visibility="visible" />
+            <Button
+                android:id="@+id/forsta_login_account_submit_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/forsta_button_pop4"
+                android:text="@string/forsta_login_account_submit_button"
+                android:textColor="@color/white"
+                android:visibility="visible"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/forsta_login_verify_token_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone">
 
         <LinearLayout
-            android:id="@+id/forsta_login_password_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/forsta_login_username_label" />
-
-            <EditText
-                android:id="@+id/forsta_login_username"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:ems="10"
-                android:inputType="textPersonName" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/forsta_login_password_label" />
-
-            <EditText
-                android:id="@+id/forsta_login_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:ems="10"
-                android:inputType="textPassword" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/forsta_login_verify_token_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -206,24 +253,5 @@
         android:layout_marginTop="20dp"
         android:id="@+id/login_progress_bar"
         android:visibility="gone"/>
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_alignParentBottom="true"
-    android:visibility="gone">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Having trouble with the login?"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Click to try Username and Password."
-        android:id="@+id/forsta_login_standard_login"
-        android:textColor="@color/blue_100"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"/>
-</LinearLayout>
 
 </RelativeLayout>

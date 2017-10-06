@@ -2,17 +2,6 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="advanced_preferences_screen">
-    <io.forsta.securesms.components.SwitchPreferenceCompat
-        android:defaultValue="false"
-        android:key="pref_forsta_otr"
-        android:title="@string/preferences__forsta_off_the_record"
-        android:summary="@string/preferences__forsta_off_the_record_summary"/>
-
-    <io.forsta.securesms.components.SwitchPreferenceCompat
-                        android:defaultValue="false"
-                        android:key="pref_toggle_push_messaging"
-                        android:title="@string/preferences__signal_messages_and_calls"
-                        android:summary="@string/preferences__free_private_messages_and_calls"/>
 
     <io.forsta.securesms.components.SwitchPreferenceCompat
                         android:defaultValue="false"

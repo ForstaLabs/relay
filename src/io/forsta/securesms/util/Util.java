@@ -175,6 +175,10 @@ public class Util {
     return Pattern.matches("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", address);
   }
 
+  public static String canonicalizeNumberE164(String number) throws InvalidNumberException {
+    return PhoneNumberFormatter.formatNumber(number, "+12081234567");
+  }
+
   public static String canonicalizeNumber(Context context, String number)
       throws InvalidNumberException
   {
