@@ -386,10 +386,10 @@ public class MessageNotifier {
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
-      } else if (record.isMms() && TextUtils.isEmpty(body)) {
+      } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_media_message));
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
-      } else if (record.isMms() && !record.isMmsNotification()) {
+      } else if (record.isMediaPending() && !record.isMmsNotification()) {
         String message = context.getString(R.string.MessageNotifier_media_message_with_text, body);
         int    italicLength = message.length() - body.length();
         body = SpanUtil.italic(message, italicLength);
