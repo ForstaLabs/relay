@@ -525,6 +525,10 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
     getForstaMessageDistribution(forstaMessage);
+    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
+    if (forstaMessage.getForstaDistribution().hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+    }
 
     long threadId = getOrAllocateThreadId(forstaMessage, recipients);
 
