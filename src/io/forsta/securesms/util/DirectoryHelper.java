@@ -174,6 +174,11 @@ public class DirectoryHelper {
 
     try {
       List<String> addresses = recipients.toNumberStringList(false);
+      for (Recipient recipient : recipients) {
+        if (TextUtils.isEmpty(recipient.getSlug())) {
+          addresses.add(recipient.getNumber());
+        }
+      }
       String ids = TextUtils.join(",", addresses);
       CcsmApi.syncForstaContacts(context, ids);
 
