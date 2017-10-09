@@ -210,6 +210,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         e.printStackTrace();
       } catch (UndeliverableMessageException e) {
         e.printStackTrace();
+      } catch (Exception e) {
+        Log.e(TAG, "Fatal message send exception." + e.getMessage());
       }
     }
   }
