@@ -1315,7 +1315,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private ForstaThread createForstaThread() {
-
     if (TextUtils.isEmpty(distribution_expression)) {
       distribution_expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
@@ -1325,8 +1324,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, distribution_expression);
-    ThreadDatabase db = DatabaseFactory.getThreadDatabase(ConversationActivity.this);
-    return db.allocateThread(recipients, distribution);
+    return DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
 }
 
   private void updateToggleButtonState() {
