@@ -9,6 +9,7 @@ import android.util.Pair;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
@@ -32,6 +33,7 @@ import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -149,14 +151,14 @@ public class PushDecryptJob extends ContextJob {
         content = cipher.decrypt(envelope);
       } catch (UntrustedIdentityException e) {
         Log.w(TAG, "Auto handling untrusted identity");
-        Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
-        long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
+        Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
+        long recipientId = recipients.getPrimaryRecipient().getRecipientId();
         Log.w(TAG, "From recipient: " + recipients.getPrimaryRecipient().getNumber() + " " + recipients.getPrimaryRecipient().getName());
         byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
         PreKeySignalMessage whisperMessage = new PreKeySignalMessage(encryptedContent);
-        IdentityKey           identityKey    = whisperMessage.getIdentityKey();
+        IdentityKey identityKey = whisperMessage.getIdentityKey();
         DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
-        SignalServiceCipher  updatedCipher       = new SignalServiceCipher(localAddress, axolotlStore);
+        SignalServiceCipher updatedCipher = new SignalServiceCipher(localAddress, axolotlStore);
         content = updatedCipher.decrypt(envelope);
       }
 
@@ -197,6 +199,10 @@ public class PushDecryptJob extends ContextJob {
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
       handleUntrustedIdentityMessage(masterSecret, envelope, smsMessageId);
+    } catch (InvalidMessagePayloadException e) {
+      Log.e(TAG, "Invalid Forsta message body");
+      Log.e(TAG, e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -230,17 +236,6 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), threadId);
   }
 
-  private void handleGroupMessage(@NonNull MasterSecretUnion masterSecret,
-                                  @NonNull SignalServiceEnvelope envelope,
-                                  @NonNull SignalServiceDataMessage message,
-                                  @NonNull Optional<Long> smsMessageId)
-  {
-    GroupMessageProcessor.process(context, masterSecret, envelope, message, false);
-
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
-  }
 
   private void handleExpirationUpdate(@NonNull MasterSecretUnion masterSecret,
                                       @NonNull SignalServiceEnvelope envelope,
@@ -276,8 +271,7 @@ public class PushDecryptJob extends ContextJob {
                                             @NonNull SignalServiceEnvelope envelope,
                                             @NonNull SentTranscriptMessage message,
                                             @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     Long threadId;
 
     if (message.getMessage().isGroupUpdate()) {
@@ -344,11 +338,10 @@ public class PushDecryptJob extends ContextJob {
                                   @NonNull SignalServiceEnvelope envelope,
                                   @NonNull SignalServiceDataMessage message,
                                   @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-    Recipients           recipients   = getMessageDestination(envelope, message);
+    Recipients           recipients   = getMessageDestination(envelope, message); // If something is wrong retrieving message distribution, use the sender's address
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
@@ -359,16 +352,22 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getGroupInfo(),
                                                                  message.getAttachments());
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
-    getForstaMessageDistribution(forstaMessage);
-    mediaMessage.setForstaMessage(forstaMessage);
-    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    if (distribution.hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    }
+
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    if (threadId == -1) {
+      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
+    }
 
     if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
 
-    Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
+    Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
 
     List<DatabaseAttachment> attachments        = DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageAndThreadId.first);
 
@@ -398,7 +397,11 @@ public class PushDecryptJob extends ContextJob {
                                                                                                   message.getTimestamp(),
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
-    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    if (distribution.hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    }
+    long threadId = getOrAllocateThreadId(forstaMessage, distribution, recipients);
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -416,8 +419,7 @@ public class PushDecryptJob extends ContextJob {
   private long handleSynchronizeSentMediaMessage(@NonNull MasterSecretUnion masterSecret,
                                                  @NonNull SentTranscriptMessage message,
                                                  @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
     Recipients            recipients   = getSyncMessageDestination(message);
 
@@ -425,14 +427,12 @@ public class PushDecryptJob extends ContextJob {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
-    getForstaMessageDistribution(forstaMessage);
-    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
-    if (forstaMessage.getForstaDistribution().hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    if (distribution.hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
     }
-
-    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
+    long threadId = getOrAllocateThreadId(forstaMessage, distribution, recipients);
 
     OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
         PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
@@ -468,92 +468,7 @@ public class PushDecryptJob extends ContextJob {
     return threadId;
   }
 
-  private void handleTextMessage(@NonNull MasterSecretUnion masterSecret,
-                                 @NonNull SignalServiceEnvelope envelope,
-                                 @NonNull SignalServiceDataMessage message,
-                                 @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
-    EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
-    String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
-
-    // This is the sender
-    Recipients            recipients = getMessageDestination(envelope, message);
-
-    if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
-      handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
-    }
-
-    Pair<Long, Long> messageAndThreadId;
-
-    if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
-      messageAndThreadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body);
-    } else {
-      IncomingTextMessage textMessage = new IncomingTextMessage(envelope.getSource(),
-                                                                envelope.getSourceDevice(),
-                                                                message.getTimestamp(), body,
-                                                                message.getGroupInfo(),
-                                                                message.getExpiresInSeconds() * 1000);
-      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
-      getForstaMessageDistribution(forstaMessage);
-      textMessage.setForstaMessage(forstaMessage);
-      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
-
-      textMessage = new IncomingEncryptedMessage(textMessage, body);
-      //XXX Thread processing happens in the database
-      messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
-
-      if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
-    }
-
-    MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
-  }
-
-  private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
-                                                @NonNull SentTranscriptMessage message,
-                                                @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
-    EncryptingSmsDatabase database            = DatabaseFactory.getEncryptingSmsDatabase(context);
-    Recipients            recipients          = getSyncMessageDestination(message);
-    String                body                = message.getMessage().getBody().or("");
-    long                  expiresInMillis     = message.getMessage().getExpiresInSeconds() * 1000;
-
-    if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
-      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
-    }
-
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
-    getForstaMessageDistribution(forstaMessage);
-    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
-    if (forstaMessage.getForstaDistribution().hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-    }
-
-    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
-
-    OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
-
-    long messageId = database.insertMessageOutbox(masterSecret, threadId, outgoingTextMessage, false, message.getTimestamp());
-
-    database.markAsSent(messageId);
-    database.markAsPush(messageId);
-    database.markAsSecure(messageId);
-
-    if (smsMessageId.isPresent()) {
-      database.deleteMessage(smsMessageId.get());
-    }
-
-    if (expiresInMillis > 0) {
-      database.markExpireStarted(messageId, message.getExpirationStartTimestamp());
-      ApplicationContext.getInstance(context)
-                        .getExpiringMessageManager()
-                        .scheduleDeletion(messageId, false, message.getExpirationStartTimestamp(), expiresInMillis);
-    }
-
-    return threadId;
-  }
 
   private void handleInvalidVersionMessage(@NonNull MasterSecretUnion masterSecret,
                                            @NonNull SignalServiceEnvelope envelope,
@@ -600,73 +515,6 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
-  private void handleLegacyMessage(@NonNull MasterSecretUnion masterSecret,
-                                   @NonNull SignalServiceEnvelope envelope,
-                                   @NonNull Optional<Long> smsMessageId)
-  {
-    EncryptingSmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
-
-    if (!smsMessageId.isPresent()) {
-      Pair<Long, Long> messageAndThreadId = insertPlaceholder(envelope);
-      smsDatabase.markAsLegacyVersion(messageAndThreadId.first);
-      MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
-    } else {
-      smsDatabase.markAsLegacyVersion(smsMessageId.get());
-    }
-  }
-
-  private void handleDuplicateMessage(@NonNull MasterSecretUnion masterSecret,
-                                      @NonNull SignalServiceEnvelope envelope,
-                                      @NonNull Optional<Long> smsMessageId)
-  {
-    // Let's start ignoring these now
-//    SmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
-//
-//    if (smsMessageId <= 0) {
-//      Pair<Long, Long> messageAndThreadId = insertPlaceholder(masterSecret, envelope);
-//      smsDatabase.markAsDecryptDuplicate(messageAndThreadId.first);
-//      MessageNotifier.updateNotification(context, masterSecret, messageAndThreadId.second);
-//    } else {
-//      smsDatabase.markAsDecryptDuplicate(smsMessageId);
-//    }
-  }
-
-  private void handleUntrustedIdentityMessage(@NonNull MasterSecretUnion masterSecret,
-                                              @NonNull SignalServiceEnvelope envelope,
-                                              @NonNull Optional<Long> smsMessageId)
-  {
-    try {
-      EncryptingSmsDatabase database       = DatabaseFactory.getEncryptingSmsDatabase(context);
-      Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
-      long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
-      byte[] content = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
-      PreKeySignalMessage whisperMessage = new PreKeySignalMessage(content);
-      // Web client is no longer sending legacy messages for identity changes.
-      // PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
-      IdentityKey           identityKey    = whisperMessage.getIdentityKey();
-      String                encoded        = Base64.encodeBytes(envelope.getLegacyMessage());
-      IncomingTextMessage   textMessage    = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
-                                                                     envelope.getTimestamp(), encoded,
-                                                                     Optional.<SignalServiceGroup>absent(), 0);
-
-      if (!smsMessageId.isPresent()) {
-        IncomingPreKeyBundleMessage bundleMessage      = new IncomingPreKeyBundleMessage(textMessage, encoded);
-        Pair<Long, Long>            messageAndThreadId = database.insertMessageInbox(masterSecret, bundleMessage);
-
-        database.setMismatchedIdentity(messageAndThreadId.first, recipientId, identityKey);
-        MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
-      } else {
-        database.updateMessageBody(masterSecret, smsMessageId.get(), encoded);
-        database.markAsPreKeyBundle(smsMessageId.get());
-        database.setMismatchedIdentity(smsMessageId.get(), recipientId, identityKey);
-      }
-    } catch (InvalidMessageException | InvalidVersionException e) {
-      throw new AssertionError(e);
-    } catch (Exception e) {
-      e.printStackTrace();
-      Log.e(TAG, "handleUntrustedIdentityMessage failed " + e.getMessage());
-    }
-  }
 
   private Pair<Long, Long> insertPlaceholder(@NonNull SignalServiceEnvelope envelope) {
     EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
@@ -704,17 +552,17 @@ public class PushDecryptJob extends ContextJob {
     return null;
   }
 
-  private long getOrAllocateThreadId(ForstaMessage forstaMessage, Recipients threadUid) {
+  private long getOrAllocateThreadId(ForstaMessage forstaMessage, ForstaDistribution distribution, Recipients sender) {
     long threadId;
-    if (forstaMessage.hasThreadUid()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+    if (distribution.hasRecipients()) {
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
       }
     } else {
-      //XXX Fallback to finding a thread based on the destination if not in ForstaMessage
-      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(threadUid, forstaMessage);
+      // Invalid distribution. Throw exception here or keep messages?
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(sender);
     }
     return threadId;
   }
@@ -726,4 +574,190 @@ public class PushDecryptJob extends ContextJob {
 //    }
     forstaMessage.setForstaDistribution(distribution);
   }
+
+  // XXX unused or obsolete methods and empty handlers.
+
+  private void handleUntrustedIdentityMessage(@NonNull MasterSecretUnion masterSecret,
+                                              @NonNull SignalServiceEnvelope envelope,
+                                              @NonNull Optional<Long> smsMessageId)
+  {
+    try {
+      EncryptingSmsDatabase database       = DatabaseFactory.getEncryptingSmsDatabase(context);
+      Recipients            recipients     = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
+      long                  recipientId    = recipients.getPrimaryRecipient().getRecipientId();
+      byte[] content = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
+      PreKeySignalMessage whisperMessage = new PreKeySignalMessage(content);
+      // Web client is no longer sending legacy messages for identity changes.
+      // PreKeySignalMessage   whisperMessage = new PreKeySignalMessage(envelope.getLegacyMessage());
+      IdentityKey           identityKey    = whisperMessage.getIdentityKey();
+      String                encoded        = Base64.encodeBytes(envelope.getLegacyMessage());
+      IncomingTextMessage   textMessage    = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
+          envelope.getTimestamp(), encoded,
+          Optional.<SignalServiceGroup>absent(), 0);
+
+      if (!smsMessageId.isPresent()) {
+        IncomingPreKeyBundleMessage bundleMessage      = new IncomingPreKeyBundleMessage(textMessage, encoded);
+        Pair<Long, Long>            messageAndThreadId = database.insertMessageInbox(masterSecret, bundleMessage);
+
+        database.setMismatchedIdentity(messageAndThreadId.first, recipientId, identityKey);
+        MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
+      } else {
+        database.updateMessageBody(masterSecret, smsMessageId.get(), encoded);
+        database.markAsPreKeyBundle(smsMessageId.get());
+        database.setMismatchedIdentity(smsMessageId.get(), recipientId, identityKey);
+      }
+    } catch (InvalidMessageException | InvalidVersionException e) {
+      throw new AssertionError(e);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "handleUntrustedIdentityMessage failed " + e.getMessage());
+    }
+  }
+
+  private void handleGroupMessage(@NonNull MasterSecretUnion masterSecret,
+                                  @NonNull SignalServiceEnvelope envelope,
+                                  @NonNull SignalServiceDataMessage message,
+                                  @NonNull Optional<Long> smsMessageId)
+  {
+    GroupMessageProcessor.process(context, masterSecret, envelope, message, false);
+
+    if (smsMessageId.isPresent()) {
+      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
+    }
+  }
+
+  private void handleLegacyMessage(@NonNull MasterSecretUnion masterSecret,
+                                   @NonNull SignalServiceEnvelope envelope,
+                                   @NonNull Optional<Long> smsMessageId)
+  {
+//    EncryptingSmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
+//
+//    if (!smsMessageId.isPresent()) {
+//      Pair<Long, Long> messageAndThreadId = insertPlaceholder(envelope);
+//      smsDatabase.markAsLegacyVersion(messageAndThreadId.first);
+//      MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
+//    } else {
+//      smsDatabase.markAsLegacyVersion(smsMessageId.get());
+//    }
+  }
+
+  private void handleDuplicateMessage(@NonNull MasterSecretUnion masterSecret,
+                                      @NonNull SignalServiceEnvelope envelope,
+                                      @NonNull Optional<Long> smsMessageId)
+  {
+    // Let's start ignoring these now
+//    SmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
+//
+//    if (smsMessageId <= 0) {
+//      Pair<Long, Long> messageAndThreadId = insertPlaceholder(masterSecret, envelope);
+//      smsDatabase.markAsDecryptDuplicate(messageAndThreadId.first);
+//      MessageNotifier.updateNotification(context, masterSecret, messageAndThreadId.second);
+//    } else {
+//      smsDatabase.markAsDecryptDuplicate(smsMessageId);
+//    }
+  }
+
+  // XXX SMS text only message handling and single recipient sync for web client. No longer used.
+  private void handleTextMessage(@NonNull MasterSecretUnion masterSecret,
+                                 @NonNull SignalServiceEnvelope envelope,
+                                 @NonNull SignalServiceDataMessage message,
+                                 @NonNull Optional<Long> smsMessageId)
+      throws MmsException
+  {
+    EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
+    String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
+
+
+    // This is the sender
+    Recipients            recipients = getMessageDestination(envelope, message);
+
+    if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
+      handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
+    }
+
+    Pair<Long, Long> messageAndThreadId;
+
+    if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
+      messageAndThreadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body);
+    } else {
+      IncomingTextMessage textMessage = new IncomingTextMessage(envelope.getSource(),
+          envelope.getSourceDevice(),
+          message.getTimestamp(), body,
+          message.getGroupInfo(),
+          message.getExpiresInSeconds() * 1000);
+      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+      getForstaMessageDistribution(forstaMessage);
+      textMessage.setForstaMessage(forstaMessage);
+      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
+
+      textMessage = new IncomingEncryptedMessage(textMessage, body);
+      //XXX Thread processing happens in the database
+      messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
+
+      if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
+    }
+
+    MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
+  }
+
+  private long getOrAllocateThreadId(ForstaMessage forstaMessage, Recipients sender) {
+    long threadId;
+    if (forstaMessage.hasThreadUid()) {
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
+      }
+    } else {
+      //XXX Fallback to finding a thread based on the destination if not in ForstaMessage
+      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(sender, forstaMessage);
+    }
+    return threadId;
+  }
+
+  private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
+                                                @NonNull SentTranscriptMessage message,
+                                                @NonNull Optional<Long> smsMessageId)
+      throws MmsException
+  {
+    EncryptingSmsDatabase database            = DatabaseFactory.getEncryptingSmsDatabase(context);
+    Recipients            recipients          = getSyncMessageDestination(message);
+    String                body                = message.getMessage().getBody().or("");
+    long                  expiresInMillis     = message.getMessage().getExpiresInSeconds() * 1000;
+
+    if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
+      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
+    }
+
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+    getForstaMessageDistribution(forstaMessage);
+    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
+    if (forstaMessage.getForstaDistribution().hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
+    }
+
+    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
+
+    OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
+
+    long messageId = database.insertMessageOutbox(masterSecret, threadId, outgoingTextMessage, false, message.getTimestamp());
+
+    database.markAsSent(messageId);
+    database.markAsPush(messageId);
+    database.markAsSecure(messageId);
+
+    if (smsMessageId.isPresent()) {
+      database.deleteMessage(smsMessageId.get());
+    }
+
+    if (expiresInMillis > 0) {
+      database.markExpireStarted(messageId, message.getExpirationStartTimestamp());
+      ApplicationContext.getInstance(context)
+          .getExpiringMessageManager()
+          .scheduleDeletion(messageId, false, message.getExpirationStartTimestamp(), expiresInMillis);
+    }
+
+    return threadId;
+  }
+
 }

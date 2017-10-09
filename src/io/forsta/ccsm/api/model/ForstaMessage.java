@@ -26,6 +26,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.recipients.Recipients;
@@ -57,7 +58,7 @@ public class ForstaMessage {
       JSONObject jsonBody = getVersion(1, messageBody);
       if (jsonBody == null) {
         forstaMessage.textBody = messageBody;
-      } else {
+      } else if (forstaMessage.isContentType(jsonBody)) {
         forstaMessage.threadId = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
@@ -95,6 +96,52 @@ public class ForstaMessage {
     return forstaMessage;
   }
 
+  public static ForstaMessage fromJsonStringOrThrows(String messageBody) throws InvalidMessagePayloadException {
+    ForstaMessage forstaMessage = new ForstaMessage();
+    try {
+      JSONObject jsonBody = getVersion(1, messageBody);
+      if (jsonBody == null) {
+        forstaMessage.textBody = messageBody;
+      } else if (forstaMessage.isContentType(jsonBody)) {
+        forstaMessage.threadId = jsonBody.getString("threadId");
+        forstaMessage.messageId = jsonBody.getString("messageId");
+        if (jsonBody.has("threadTitle")) {
+          forstaMessage.threadTitle = jsonBody.getString("threadTitle");
+        }
+        if (jsonBody.has("data")) {
+          JSONObject data = jsonBody.getJSONObject("data");
+          if (data.has("body")) {
+            JSONArray body =  data.getJSONArray("body");
+            for (int j=0; j<body.length(); j++) {
+              JSONObject object = body.getJSONObject(j);
+              if (object.getString("type").equals("text/html")) {
+                forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
+              }
+              if (object.getString("type").equals("text/plain")) {
+                forstaMessage.textBody = object.getString("value");
+              }
+            }
+          }
+        } else {
+          forstaMessage.textBody = "";
+        }
+        JSONObject sender = jsonBody.getJSONObject("sender");
+        forstaMessage.senderId = sender.getString("userId");
+        JSONObject distribution = jsonBody.getJSONObject("distribution");
+        forstaMessage.universalExpression = distribution.getString("expression");
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "Invalid JSON message body");
+      Log.e(TAG, messageBody);
+      throw new InvalidMessagePayloadException(e.getMessage());
+    } catch (Exception e) {
+      Log.w(TAG, "Exception occurred");
+      e.printStackTrace();
+      throw new InvalidMessagePayloadException(e.getMessage());
+    }
+    return forstaMessage;
+  }
+
   public void setForstaDistribution(ForstaDistribution forstaDistribution) {
     this.distribution = forstaDistribution;
   }
@@ -104,6 +151,24 @@ public class ForstaMessage {
       return new ForstaDistribution();
     }
     return distribution;
+  }
+
+  private boolean isContentType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("messageType")) {
+      if (jsonBody.getString("messageType").equals("content")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isConversationType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("threadType")) {
+      if (jsonBody.getString("threadType").equals("conversation")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static boolean isJsonBody(String body) {
@@ -233,5 +298,13 @@ public class ForstaMessage {
       return richTextMessage;
     }
     return versions.toString();
+  }
+
+  public String getThreadUId() {
+    return threadId;
+  }
+
+  public String getThreadTitle() {
+    return threadTitle;
   }
 }
