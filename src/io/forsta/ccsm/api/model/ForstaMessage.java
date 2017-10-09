@@ -165,7 +165,7 @@ public class ForstaMessage {
       JSONArray userIds = new JSONArray();
       String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
 
-      ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
       sender.put("tagId", user.tag_id);
       sender.put("tagPresentation", user.slug);
       sender.put("userId", user.uid);

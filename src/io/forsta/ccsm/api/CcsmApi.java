@@ -230,7 +230,6 @@ public class CcsmApi {
   }
 
   public static JSONObject getOrg(Context context, String id) {
-    JSONObject response = new JSONObject();
     return fetchResource(context, "GET", API_ORG + id + "/");
   }
 

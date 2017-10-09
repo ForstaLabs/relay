@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
@@ -19,13 +20,16 @@ import java.util.Set;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaUser;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Created by jlewis on 3/23/17.
  */
 
 public class ContactDb extends DbBase {
-  public static final String TABLE_NAME = "contacts";
+  public static final String TAG = ContactDb.class.getSimpleName();
 
+  public static final String TABLE_NAME = "contacts";
   public static final String ID = "_id";
   public static final String NAME = "name";
   public static final String EMAIL = "email";
@@ -159,6 +163,9 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
+        String address = c.getString(c.getColumnIndex(UID));
+        String name = c.getString(c.getColumnIndex(NAME));
+        String number = c.getString(c.getColumnIndex(NUMBER));
         addresses.add(c.getString(c.getColumnIndex(UID)));
       }
       c.close();
