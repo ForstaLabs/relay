@@ -255,10 +255,9 @@ public class PushDecryptJob extends ContextJob {
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
-    getForstaMessageDistribution(forstaMessage);
-    mediaMessage.setForstaMessage(forstaMessage);
+    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
 
-    database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, -1);
+    database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
 
     DatabaseFactory.getRecipientPreferenceDatabase(context).setExpireMessages(recipients, message.getExpiresInSeconds());
 
@@ -341,7 +340,7 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-    Recipients           recipients   = getMessageDestination(envelope, message); // If something is wrong retrieving message distribution, use the sender's address
+    Recipients           sender   = getMessageDestination(envelope, message); // If something is wrong retrieving message distribution, use the sender's address
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
@@ -353,17 +352,9 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getAttachments());
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    if (distribution.hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-    }
+    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, sender, true);
 
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    if (threadId == -1) {
-      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-    }
-
-    if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
+    if (message.getExpiresInSeconds() != sender.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
 
@@ -397,11 +388,7 @@ public class PushDecryptJob extends ContextJob {
                                                                                                   message.getTimestamp(),
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    if (distribution.hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-    }
-    long threadId = getOrAllocateThreadId(forstaMessage, distribution, recipients);
+    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -428,11 +415,7 @@ public class PushDecryptJob extends ContextJob {
     }
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    if (distribution.hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-    }
-    long threadId = getOrAllocateThreadId(forstaMessage, distribution, recipients);
+    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, true);
 
     OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
         PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
@@ -552,17 +535,22 @@ public class PushDecryptJob extends ContextJob {
     return null;
   }
 
-  private long getOrAllocateThreadId(ForstaMessage forstaMessage, ForstaDistribution distribution, Recipients sender) {
+  private long getOrAllocateThreadId(MasterSecret masterSecret, ForstaMessage forstaMessage, Recipients recipients, boolean refreshDirectory) {
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     long threadId;
     if (distribution.hasRecipients()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+      if (refreshDirectory) {
+        DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+      }
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
       if (threadId == -1) {
         threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
       }
     } else {
       // Invalid distribution. Throw exception here or keep messages?
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(sender);
+      Log.e(TAG, "Invalid message distribution. No recipients." + recipients.getPrimaryRecipient().getNumber());
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
     }
     return threadId;
   }
@@ -700,21 +688,6 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private long getOrAllocateThreadId(ForstaMessage forstaMessage, Recipients sender) {
-    long threadId;
-    if (forstaMessage.hasThreadUid()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.threadId);
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-    } else {
-      //XXX Fallback to finding a thread based on the destination if not in ForstaMessage
-      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(sender, forstaMessage);
-    }
-    return threadId;
-  }
-
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
                                                 @NonNull SentTranscriptMessage message,
                                                 @NonNull Optional<Long> smsMessageId)
@@ -730,13 +703,7 @@ public class PushDecryptJob extends ContextJob {
     }
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
-    getForstaMessageDistribution(forstaMessage);
-    refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
-    if (forstaMessage.getForstaDistribution().hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-    }
-
-    long threadId = getOrAllocateThreadId(forstaMessage, recipients);
+    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
 
     OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
 
