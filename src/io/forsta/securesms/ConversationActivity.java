@@ -245,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeSecurity();
     initializeDraft();
     initializeDirectory();
+    checkInvalidRecipients();
   }
 
   @Override
@@ -291,7 +292,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
-    checkInvalidRecipients();
   }
 
   private void checkInvalidRecipients() {
