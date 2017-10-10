@@ -241,8 +241,7 @@ public class PushDecryptJob extends ContextJob {
                                       @NonNull SignalServiceEnvelope envelope,
                                       @NonNull SignalServiceDataMessage message,
                                       @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     Recipients           recipients   = getMessageDestination(envelope, message);
@@ -379,8 +378,7 @@ public class PushDecryptJob extends ContextJob {
   private long handleSynchronizeSentExpirationUpdate(@NonNull MasterSecretUnion masterSecret,
                                                      @NonNull SentTranscriptMessage message,
                                                      @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     MmsDatabase database   = DatabaseFactory.getMmsDatabase(context);
     Recipients  recipients = getSyncMessageDestination(message);
 
@@ -535,7 +533,7 @@ public class PushDecryptJob extends ContextJob {
     return null;
   }
 
-  private long getOrAllocateThreadId(MasterSecret masterSecret, ForstaMessage forstaMessage, Recipients recipients, boolean refreshDirectory) {
+  private long getOrAllocateThreadId(MasterSecret masterSecret, ForstaMessage forstaMessage, Recipients recipients, boolean refreshDirectory) throws InvalidMessagePayloadException {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     long threadId;
     if (distribution.hasRecipients()) {
@@ -549,8 +547,8 @@ public class PushDecryptJob extends ContextJob {
       }
     } else {
       // Invalid distribution. Throw exception here or keep messages?
-      Log.e(TAG, "Invalid message distribution. No recipients." + recipients.getPrimaryRecipient().getNumber());
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+      Log.e(TAG, "Invalid message distribution. No recipients. " + recipients.getPrimaryRecipient().getNumber());
+      throw new InvalidMessagePayloadException("No valid recipients");
     }
     return threadId;
   }
@@ -650,8 +648,7 @@ public class PushDecryptJob extends ContextJob {
                                  @NonNull SignalServiceEnvelope envelope,
                                  @NonNull SignalServiceDataMessage message,
                                  @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
@@ -691,8 +688,7 @@ public class PushDecryptJob extends ContextJob {
   private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
                                                 @NonNull SentTranscriptMessage message,
                                                 @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
+      throws MmsException, InvalidMessagePayloadException {
     EncryptingSmsDatabase database            = DatabaseFactory.getEncryptingSmsDatabase(context);
     Recipients            recipients          = getSyncMessageDestination(message);
     String                body                = message.getMessage().getBody().or("");

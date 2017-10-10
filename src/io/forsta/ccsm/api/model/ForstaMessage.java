@@ -129,6 +129,9 @@ public class ForstaMessage {
         forstaMessage.senderId = sender.getString("userId");
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
+      } else {
+        Log.e(TAG, messageBody);
+        throw new InvalidMessagePayloadException("Control message type");
       }
     } catch (JSONException e) {
       Log.e(TAG, "Invalid JSON message body");
@@ -136,7 +139,7 @@ public class ForstaMessage {
       throw new InvalidMessagePayloadException(e.getMessage());
     } catch (Exception e) {
       Log.w(TAG, "Exception occurred");
-      e.printStackTrace();
+      Log.e(TAG, messageBody);
       throw new InvalidMessagePayloadException(e.getMessage());
     }
     return forstaMessage;
