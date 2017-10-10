@@ -48,6 +48,14 @@ public class ThreadPreferenceDatabase extends Database {
     return threadPreference;
   }
 
+  public int getExpireMessages(long threadId) {
+    ThreadPreference preference = getThreadPreferences(threadId);
+    if (preference != null) {
+      return preference.getExpireMessages();
+    }
+    return 0;
+  }
+
   public class ThreadPreference {
     private int id;
     private long threadId;
@@ -67,6 +75,10 @@ public class ThreadPreferenceDatabase extends Database {
       this.mute = cursor.getInt(cursor.getColumnIndex(MUTE_UNTIL));
       this.color = cursor.getString(cursor.getColumnIndex(COLOR));
       this.expire = cursor.getInt(cursor.getColumnIndex(EXPIRE_MESSAGES));
+    }
+
+    public int getExpireMessages() {
+      return expire;
     }
   }
 }

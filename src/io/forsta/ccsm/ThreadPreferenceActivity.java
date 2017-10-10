@@ -1,8 +1,15 @@
 package io.forsta.ccsm;
 
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.preference.PreferenceFragment;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -21,6 +28,9 @@ import io.forsta.securesms.RecipientPreferenceActivity;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
+import io.forsta.securesms.preferences.AdvancedRingtonePreference;
+import io.forsta.securesms.preferences.ColorPreference;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
@@ -29,6 +39,13 @@ import io.forsta.securesms.util.DynamicTheme;
 public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivity {
   public static final String TAG = ThreadPreferenceActivity.class.getSimpleName();
   public static final String THREAD_ID_EXTRA = "thread_id";
+
+  private static final String PREFERENCE_MUTED    = "pref_key_thread_mute";
+  private static final String PREFERENCE_TONE     = "pref_key_thread_ringtone";
+  private static final String PREFERENCE_VIBRATE  = "pref_key_thread_vibrate";
+  private static final String PREFERENCE_BLOCK    = "pref_key_thread_block";
+  private static final String PREFERENCE_COLOR    = "pref_key_thread_color";
+  private static final String PREFERENCE_IDENTITY = "pref_key_thread_identity";
 
   private final DynamicTheme dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -55,6 +72,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     initializeToolbar();
     initializeThread();
+
+    Bundle bundle = new Bundle();
+    bundle.putLong(THREAD_ID_EXTRA, threadId);
+    initFragment(R.id.thread_preference_fragment, new ThreadPreferenceFragment(), masterSecret, null, bundle);
   }
 
   @Override
@@ -108,6 +129,72 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     if (BuildConfig.FORSTA_API_URL.contains("dev")) {
       LinearLayout debugLayout = (LinearLayout) findViewById(R.id.forsta_thread_debug_details);
       debugLayout.setVisibility(View.VISIBLE);
+    }
+  }
+
+  public static class ThreadPreferenceFragment extends PreferenceFragment {
+    private MasterSecret masterSecret;
+    private long threadId;
+    @Override
+    public void onCreate(Bundle icicle) {
+      super.onCreate(icicle);
+
+      this.masterSecret = getArguments().getParcelable("master_secret");
+      this.threadId = getArguments().getLong(THREAD_ID_EXTRA);
+
+      addPreferencesFromResource(R.xml.thread_preferences);
+      initializeThread();
+
+      this.findPreference(PREFERENCE_TONE)
+          .setOnPreferenceChangeListener(new RingtoneChangeListener());
+      this.findPreference(PREFERENCE_VIBRATE)
+          .setOnPreferenceChangeListener(null);
+      this.findPreference(PREFERENCE_MUTED)
+          .setOnPreferenceClickListener(null);
+      this.findPreference(PREFERENCE_BLOCK)
+          .setOnPreferenceClickListener(null);
+      this.findPreference(PREFERENCE_COLOR)
+          .setOnPreferenceChangeListener(null);
+    }
+
+    private void initializeThread() {
+      ThreadPreferenceDatabase db = DatabaseFactory.getThreadPreferenceDatabase(getActivity());
+      ThreadPreferenceDatabase.ThreadPreference threadPreference = db.getThreadPreferences(threadId);
+
+      CheckBoxPreference mutePreference     = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
+      AdvancedRingtonePreference ringtonePreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
+      ListPreference vibratePreference  = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
+      ColorPreference colorPreference    = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+      Preference                 blockPreference    = this.findPreference(PREFERENCE_BLOCK);
+      ringtonePreference.setSummary(R.string.preferences__default);
+    }
+
+    private class RingtoneChangeListener implements Preference.OnPreferenceChangeListener {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue) {
+        String value = (String)newValue;
+
+        final Uri uri = null;
+//
+//        if (TextUtils.isEmpty(value) || Settings.System.DEFAULT_NOTIFICATION_URI.toString().equals(value)) {
+//          uri = null;
+//        } else {
+//          uri = Uri.parse(value);
+//        }
+//
+//        recipients.setRingtone(uri);
+
+        new AsyncTask<Uri, Void, Void>() {
+          @Override
+          protected Void doInBackground(Uri... params) {
+//            DatabaseFactory.getRecipientPreferenceDatabase(getActivity())
+//                .setRingtone(recipients, params[0]);
+            return null;
+          }
+        }.execute(uri);
+
+        return false;
+      }
     }
   }
 }

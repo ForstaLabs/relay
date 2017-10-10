@@ -11,6 +11,7 @@ public class ForstaOrg {
   private String uid;
   private String name;
   private String slug;
+  private boolean offTheRecord = false;
 
   public ForstaOrg() {
 
@@ -28,6 +29,10 @@ public class ForstaOrg {
     return uid;
   }
 
+  public boolean getOffTheRecord() {
+    return offTheRecord;
+  }
+
   public static ForstaOrg fromJsonString(String jsonString) {
     try {
       JSONObject json = new JSONObject(jsonString);
@@ -35,6 +40,12 @@ public class ForstaOrg {
       org.uid = json.getString("id");
       org.name = json.getString("name");
       org.slug = json.getString("slug");
+      if (json.has("preferences")) {
+        JSONObject preferences = json.getJSONObject("preferences");
+        if (preferences.has("messaging.off_the_record")) {
+          org.offTheRecord = preferences.getBoolean("messaging.off_the_record");
+        }
+      }
       return org;
     } catch (JSONException e) {
       e.printStackTrace();

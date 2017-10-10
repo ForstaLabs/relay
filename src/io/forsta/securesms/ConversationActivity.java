@@ -424,25 +424,26 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-//    if (isSecureText) {
-//      if (recipients.getExpireMessages() > 0) {
-//        inflater.inflate(R.menu.conversation_expiring_on, menu);
-//
-//        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
-//        final View     actionView = MenuItemCompat.getActionView(item);
-//        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
-//
-//        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
-//        actionView.setOnClickListener(new OnClickListener() {
-//          @Override
-//          public void onClick(View v) {
-//            onOptionsItemSelected(item);
-//          }
-//        });
-//      } else {
-//        inflater.inflate(R.menu.conversation_expiring_off, menu);
-//      }
-//    }
+    if (isSecureText) {
+      int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
+      if (expireMessages > 0) {
+        inflater.inflate(R.menu.conversation_expiring_on, menu);
+
+        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
+        final View     actionView = MenuItemCompat.getActionView(item);
+        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+
+        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
+        actionView.setOnClickListener(new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            onOptionsItemSelected(item);
+          }
+        });
+      } else {
+        inflater.inflate(R.menu.conversation_expiring_off, menu);
+      }
+    }
 
     if (isGroupConversation()) {
       inflater.inflate(R.menu.conversation_group_options, menu);
@@ -899,7 +900,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
           intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
-          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_prferences");
+          startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_preferences");
         }
       }
     });

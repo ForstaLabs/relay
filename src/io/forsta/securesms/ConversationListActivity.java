@@ -100,9 +100,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 //    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
-    // Combine these.
-    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
-    tokenCheck.execute();
     RefreshOrg task = new RefreshOrg();
     task.execute();
 
@@ -302,7 +299,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  private void showVagueError() {
+  private void showValidationError() {
     Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
@@ -316,50 +313,39 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class VerifyCcsmToken extends AsyncTask<Void, Void, JSONObject> {
+  public class RefreshOrg extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.checkForstaAuth(getApplicationContext());
+      return CcsmApi.getOrg(ConversationListActivity.this);
     }
 
     @Override
     protected void onPostExecute(JSONObject response) {
       if (response == null) {
-        showVagueError();
+        showValidationError();
       }
-      if (response.has("error")) {
+      if (response.has("id")) {
+        ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
+        ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
+        if (forstaOrg != null) {
+          getSupportActionBar().setDisplayShowTitleEnabled(true);
+          getSupportActionBar().setTitle("    " + forstaOrg.getName());
+          if (forstaOrg.getOffTheRecord()) {
+            ForstaPreferences.setOffTheRecord(ConversationListActivity.this, true);
+          }
+        }
+      } else if (response.has("error")) {
         try {
           String error = response.getString("error");
           if (error.equals("401")) {
-            Log.d(TAG, "Not Authorized");
+            Log.e(TAG, "Not Authorized");
             handleLogout();
           }
         } catch (JSONException e) {
           e.printStackTrace();
-          showVagueError();
+          showValidationError();
         }
-      }
-    }
-  }
-
-  public class RefreshOrg extends AsyncTask<Void, Void, Void> {
-
-    @Override
-    protected Void doInBackground(Void... voids) {
-      JSONObject response = CcsmApi.getOrg(ConversationListActivity.this);
-      if (response.has("id")) {
-        ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-      ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
-      if (forstaOrg != null) {
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setTitle("    " + forstaOrg.getName());
       }
     }
   }
