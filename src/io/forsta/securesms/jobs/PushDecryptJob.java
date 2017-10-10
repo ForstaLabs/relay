@@ -253,7 +253,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getBody(), message.getGroupInfo(),
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
     long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
@@ -385,7 +385,7 @@ public class PushDecryptJob extends ContextJob {
     OutgoingExpirationUpdateMessage expirationUpdateMessage = new OutgoingExpirationUpdateMessage(recipients,
                                                                                                   message.getTimestamp(),
                                                                                                   message.getMessage().getExpiresInSeconds() * 1000);
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(message.getMessage().getBody().get());
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
     long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
@@ -670,7 +670,7 @@ public class PushDecryptJob extends ContextJob {
           message.getTimestamp(), body,
           message.getGroupInfo(),
           message.getExpiresInSeconds() * 1000);
-      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+      ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
       getForstaMessageDistribution(forstaMessage);
       textMessage.setForstaMessage(forstaMessage);
       refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
@@ -698,7 +698,7 @@ public class PushDecryptJob extends ContextJob {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
     }
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body);
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
     long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
 
     OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
