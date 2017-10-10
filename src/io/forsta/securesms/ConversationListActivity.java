@@ -94,16 +94,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     setContentView(R.layout.conversation_list_activity);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
 
+    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
     syncReceiver = new ContactsSyncReceiver();
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 //    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
     // Combine these.
     VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
     tokenCheck.execute();
-
     RefreshOrg task = new RefreshOrg();
     task.execute();
 
@@ -112,11 +111,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       TextSecurePreferences.setThreadTrimEnabled(getApplicationContext(), true);
     }
 
-//    if (ForstaPreferences.getForstaContactSync(this) == -1) {
-//      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
-//      syncIndicator.setVisibility(View.VISIBLE);
-//      ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
-//    }
+    if (ForstaPreferences.getForstaContactSync(this) == -1) {
+      syncIndicator.setVisibility(View.VISIBLE);
+      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+      ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
+    }
   }
 
   @Override
