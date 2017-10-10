@@ -77,7 +77,8 @@ public class DatabaseFactory {
   private static final int INTRODUCE_FORSTA_THREADID = 30;
   private static final int INTRODUCE_FORSTA_ORGSLUG = 31;
   private static final int INTRODUCE_FORSTA_PREFERENCES_THREADID = 32;
-  private static final int DATABASE_VERSION                                = 32;
+  private static final int INTRODUCE_FORSTA_THEAD_PREFERENCES = 33;
+  private static final int DATABASE_VERSION                                = 33;
 
 
   private static final String DATABASE_NAME    = "messages.db";
@@ -101,6 +102,7 @@ public class DatabaseFactory {
   private final GroupDatabase groupDatabase;
   private final RecipientPreferenceDatabase recipientPreferenceDatabase;
   private final ContactsDatabase contactsDatabase;
+  private final ThreadPreferenceDatabase threadPreferenceDatabase;
 
   public static DatabaseFactory getInstance(Context context) {
     synchronized (lock) {
@@ -167,6 +169,10 @@ public class DatabaseFactory {
     return getInstance(context).contactsDatabase;
   }
 
+  public static ThreadPreferenceDatabase getThreadPreferenceDatabase(Context context) {
+    return getInstance(context).threadPreferenceDatabase;
+  }
+
   private DatabaseFactory(Context context) {
     this.databaseHelper              = new DatabaseHelper(context, DATABASE_NAME, null, DATABASE_VERSION);
     this.sms                         = new SmsDatabase(context, databaseHelper);
@@ -182,6 +188,7 @@ public class DatabaseFactory {
     this.pushDatabase                = new PushDatabase(context, databaseHelper);
     this.groupDatabase               = new GroupDatabase(context, databaseHelper);
     this.recipientPreferenceDatabase = new RecipientPreferenceDatabase(context, databaseHelper);
+    this.threadPreferenceDatabase = new ThreadPreferenceDatabase(context, databaseHelper);
     this.contactsDatabase            = new ContactsDatabase(context);
   }
 
@@ -201,6 +208,7 @@ public class DatabaseFactory {
     this.pushDatabase.reset(databaseHelper);
     this.groupDatabase.reset(databaseHelper);
     this.recipientPreferenceDatabase.reset(databaseHelper);
+    this.threadPreferenceDatabase.reset(databaseHelper);
     old.close();
   }
 
@@ -510,6 +518,7 @@ public class DatabaseFactory {
       db.execSQL(PushDatabase.CREATE_TABLE);
       db.execSQL(GroupDatabase.CREATE_TABLE);
       db.execSQL(RecipientPreferenceDatabase.CREATE_TABLE);
+      db.execSQL(ThreadPreferenceDatabase.CREATE_TABLE);
 
       executeStatements(db, SmsDatabase.CREATE_INDEXS);
       executeStatements(db, MmsDatabase.CREATE_INDEXS);
@@ -842,6 +851,10 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCE_FORSTA_PREFERENCES_THREADID) {
         db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN thread_id INTEGER");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_THEAD_PREFERENCES) {
+        db.execSQL("CREATE TABLE thread_preferences (_id INTEGER PRIMARY KEY, thread_id INTEGER DEFAULT -1, block INTEGER DEFAULT 0, notification TEXT DEFAULT NULL, vibrate INTEGER DEFAULT 0, mute_until INTEGER DEFAULT 0, color TEXT DEFAULT NULL, expire_messages INTEGER DEFAULT 0);");
       }
 
       db.setTransactionSuccessful();

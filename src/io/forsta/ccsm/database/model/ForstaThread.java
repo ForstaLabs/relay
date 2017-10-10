@@ -27,4 +27,8 @@ public class ForstaThread {
     distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
     title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
   }
+
+  public long getThreadid() {
+    return threadid;
+  }
 }
