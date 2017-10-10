@@ -55,43 +55,11 @@ public class ForstaMessage {
   public static ForstaMessage fromJsonString(String messageBody) {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
-      JSONObject jsonBody = getVersion(1, messageBody);
-      if (jsonBody == null) {
-        forstaMessage.textBody = messageBody;
-      } else if (forstaMessage.isContentType(jsonBody)) {
-        forstaMessage.threadId = jsonBody.getString("threadId");
-        forstaMessage.messageId = jsonBody.getString("messageId");
-        if (jsonBody.has("threadTitle")) {
-          forstaMessage.threadTitle = jsonBody.getString("threadTitle");
-        }
-        if (jsonBody.has("data")) {
-          JSONObject data = jsonBody.getJSONObject("data");
-          if (data.has("body")) {
-            JSONArray body =  data.getJSONArray("body");
-            for (int j=0; j<body.length(); j++) {
-              JSONObject object = body.getJSONObject(j);
-              if (object.getString("type").equals("text/html")) {
-                forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
-              }
-              if (object.getString("type").equals("text/plain")) {
-                forstaMessage.textBody = object.getString("value");
-              }
-            }
-          }
-        } else {
-          forstaMessage.textBody = "";
-        }
-        JSONObject sender = jsonBody.getJSONObject("sender");
-        forstaMessage.senderId = sender.getString("userId");
-        JSONObject distribution = jsonBody.getJSONObject("distribution");
-        forstaMessage.universalExpression = distribution.getString("expression");
-      }
-    } catch (JSONException e) {
-      Log.e(TAG, "Invalid JSON message body");
+      forstaMessage = fromJsonStringOrThrows(messageBody);
+    } catch (InvalidMessagePayloadException e) {
+      Log.e(TAG, e.getMessage());
       Log.e(TAG, messageBody);
-    } catch (Exception e) {
-      Log.w(TAG, "Exception occurred");
-      e.printStackTrace();
+      forstaMessage.textBody = messageBody;
     }
     return forstaMessage;
   }
@@ -100,9 +68,7 @@ public class ForstaMessage {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
       JSONObject jsonBody = getVersion(1, messageBody);
-      if (jsonBody == null) {
-        forstaMessage.textBody = messageBody;
-      } else if (forstaMessage.isContentType(jsonBody)) {
+      if (forstaMessage.isContentType(jsonBody)) {
         forstaMessage.threadId = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
@@ -130,7 +96,7 @@ public class ForstaMessage {
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
       } else {
-        Log.e(TAG, messageBody);
+        Log.w(TAG, messageBody);
         throw new InvalidMessagePayloadException("Control message type");
       }
     } catch (JSONException e) {
