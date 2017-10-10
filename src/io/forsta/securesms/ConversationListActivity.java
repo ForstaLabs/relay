@@ -112,11 +112,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       TextSecurePreferences.setThreadTrimEnabled(getApplicationContext(), true);
     }
 
-    if (ForstaPreferences.getForstaContactSync(this) == -1) {
-      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
-      syncIndicator.setVisibility(View.VISIBLE);
-      ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
-    }
+//    if (ForstaPreferences.getForstaContactSync(this) == -1) {
+//      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
+//      syncIndicator.setVisibility(View.VISIBLE);
+//      ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
+//    }
   }
 
   @Override

@@ -129,45 +129,6 @@ public class DirectoryHelper {
     return new LinkedList<>();
   }
 
-  // Obsolete
-  public static UserCapabilities refreshDirectoryFor(@NonNull  Context context,
-                                                     @Nullable MasterSecret masterSecret,
-                                                     @NonNull  Recipients recipients,
-                                                     @NonNull  String localNumber)
-      throws IOException
-  {
-    try {
-      TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
-      ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
-      String                        number         = Util.canonicalizeNumber(context, recipients.getPrimaryRecipient().getNumber());
-      Optional<ContactTokenDetails> details        = accountManager.getContact(number);
-
-      if (details.isPresent()) {
-        directory.setNumber(details.get(), true);
-
-        List<ContactTokenDetails> activeTokens = new ArrayList<>();
-        activeTokens.add(details.get());
-        ContactDb contactsDb = DbFactory.getContactDb(context);
-        ForstaUser user = contactsDb.getUserByAddress(number);
-        if (user == null) {
-          // We do not recognize this user. Try to refresh from CCSM.
-          CcsmApi.syncForstaContacts(context);
-        }
-        contactsDb.setActiveForstaAddresses(activeTokens);
-
-        return new UserCapabilities(Capability.SUPPORTED, details.get().isVoice() ? Capability.SUPPORTED : Capability.UNSUPPORTED);
-      } else {
-        ContactTokenDetails absent = new ContactTokenDetails();
-        absent.setNumber(number);
-        directory.setNumber(absent, false);
-        return UserCapabilities.UNSUPPORTED;
-      }
-    } catch (InvalidNumberException e) {
-      Log.w(TAG, e);
-      return UserCapabilities.UNSUPPORTED;
-    }
-  }
-
   public static UserCapabilities refreshDirectoryFor(@NonNull Context context, @Nullable MasterSecret masterSecret, @NonNull Recipients recipients) {
     TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
