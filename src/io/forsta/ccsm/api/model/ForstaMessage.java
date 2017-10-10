@@ -139,7 +139,6 @@ public class ForstaMessage {
       throw new InvalidMessagePayloadException(e.getMessage());
     } catch (Exception e) {
       Log.w(TAG, "Exception occurred");
-      Log.e(TAG, messageBody);
       throw new InvalidMessagePayloadException(e.getMessage());
     }
     return forstaMessage;
