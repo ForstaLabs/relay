@@ -18,6 +18,7 @@ import io.forsta.securesms.color.MaterialColor;
 
 public class ThreadPreferenceDatabase extends Database {
   private static final String TAG = ThreadPreferenceDatabase.class.getSimpleName();
+  public static final String THREAD_PREFERENCES_URI = "content://textsecure/conversations/";
 
   private static final String TABLE_NAME = "thread_preferences";
   private static final String ID = "_id";
@@ -88,15 +89,21 @@ public class ThreadPreferenceDatabase extends Database {
   }
 
   public void setMuteUntil(long threadId, int muteUntil) {
-
+    ContentValues values = new ContentValues();
+    values.put(MUTE_UNTIL, muteUntil);
+    updateOrInsert(threadId, values);
   }
 
   public void setVibrate(long threadId, boolean enabled) {
-
+    ContentValues values = new ContentValues();
+    values.put(VIBRATE, enabled ? 1 : 0);
+    updateOrInsert(threadId, values);
   }
 
   public void setColor(long threadId, MaterialColor color) {
-
+    ContentValues values = new ContentValues();
+    values.put(COLOR, color.serialize());
+    updateOrInsert(threadId, values);
   }
 
   private void updateOrInsert(long threadId, ContentValues contentValues) {
@@ -115,7 +122,7 @@ public class ThreadPreferenceDatabase extends Database {
     database.setTransactionSuccessful();
     database.endTransaction();
 
-//    context.getContentResolver().notifyChange(Uri.parse(RECIPIENT_PREFERENCES_URI), null);
+    context.getContentResolver().notifyChange(Uri.parse(THREAD_PREFERENCES_URI), null);
   }
 
   public class ThreadPreference {

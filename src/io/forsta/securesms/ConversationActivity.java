@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
@@ -32,6 +33,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.Browser;
 import android.provider.ContactsContract;
@@ -94,6 +96,7 @@ import io.forsta.securesms.database.MmsSmsColumns.Types;
 import io.forsta.securesms.database.NotInDirectoryException;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentManager.MediaType;
@@ -215,6 +218,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private String distribution_expression;
   private boolean    archived;
   private boolean    isSecureText = true;
+  private Handler handler = new Handler();
+  private ContentObserver threadPreferenceObserver;
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -290,6 +295,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+    threadPreferenceObserver = new ContentObserver(handler) {
+      @Override
+      public void onChange(boolean selfChange) {
+        invalidateOptionsMenu();
+      }
+    };
+
+    getContentResolver().registerContentObserver(Uri.parse(ThreadPreferenceDatabase.THREAD_PREFERENCES_URI), true, threadPreferenceObserver);
   }
 
   private void checkInvalidRecipients() {
@@ -338,6 +351,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     inputPanel.onPause();
 
     AudioSlidePlayer.stopAll();
+    getContentResolver().unregisterContentObserver(threadPreferenceObserver);
   }
 
   @Override
@@ -953,14 +967,16 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       public void run() {
         titleView.setTitle(recipients);
         setForstaTitle();
-        setBlockedUserState(recipients);
-        setActionBarColor(recipients.getColor());
+
+//        setBlockedUserState(recipients);
+//        setActionBarColor(recipients.getColor());
         invalidateOptionsMenu();
       }
     });
   }
 
   private void initializeReceivers() {
+
     securityUpdateReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
