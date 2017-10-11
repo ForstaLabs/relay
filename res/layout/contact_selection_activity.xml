@@ -18,7 +18,10 @@
         android:orientation="horizontal"
         android:background="@drawable/forsta_chip_layout_background"
         android:padding="5dp"
-        android:layout_marginBottom="0dp" android:layout_marginRight="10dp" android:layout_marginLeft="10dp">
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginLeft="3dp">
         <io.forsta.ccsm.components.FlowLayout
             android:id="@+id/contact_expression_elements"
             android:layout_height="wrap_content"
@@ -35,6 +38,8 @@
             android:background="@drawable/rounded_button"
             android:layout_marginRight="5dp"
             android:layout_marginLeft="10dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="5dp"
             />
     </LinearLayout>
 
