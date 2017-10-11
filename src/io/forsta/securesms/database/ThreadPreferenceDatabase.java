@@ -1,9 +1,16 @@
 package io.forsta.securesms.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import java.util.Set;
+
+import io.forsta.securesms.color.MaterialColor;
 
 /**
  * Created by jlewis on 10/3/17.
@@ -41,11 +48,23 @@ public class ThreadPreferenceDatabase extends Database {
     SQLiteDatabase database = databaseHelper.getReadableDatabase();
     Cursor cursor = database.query(TABLE_NAME, null, THREAD_ID + " = ? ", new String[] { threadId + "" }, null, null, null);
     ThreadPreference threadPreference = null;
-    while (cursor != null && cursor.moveToFirst()) {
+    if (cursor != null && cursor.moveToFirst()) {
       threadPreference = new ThreadPreference(cursor);
     }
     cursor.close();
     return threadPreference;
+  }
+
+  public void deleteThreadPreferences(Set<Long> selectedConversations) {
+    SQLiteDatabase database = databaseHelper.getWritableDatabase();
+    database.beginTransaction();
+
+    for (long threadId : selectedConversations) {
+      database.delete(TABLE_NAME, THREAD_ID + " = ? ", new String[] { threadId + ""});
+    }
+
+    database.setTransactionSuccessful();
+    database.endTransaction();
   }
 
   public int getExpireMessages(long threadId) {
@@ -56,13 +75,56 @@ public class ThreadPreferenceDatabase extends Database {
     return 0;
   }
 
+  public void setExpireMessages(long threadId, int expireTime) {
+    ContentValues values = new ContentValues();
+    values.put(EXPIRE_MESSAGES, expireTime);
+    updateOrInsert(threadId, values);
+  }
+
+  public void setNotification(long threadId, Uri uri) {
+    ContentValues values = new ContentValues();
+    values.put(NOTIFICATION, uri == null ? null : uri.toString());
+    updateOrInsert(threadId, values);
+  }
+
+  public void setMuteUntil(long threadId, int muteUntil) {
+
+  }
+
+  public void setVibrate(long threadId, boolean enabled) {
+
+  }
+
+  public void setColor(long threadId, MaterialColor color) {
+
+  }
+
+  private void updateOrInsert(long threadId, ContentValues contentValues) {
+    SQLiteDatabase database = databaseHelper.getWritableDatabase();
+
+    database.beginTransaction();
+
+    int updated = database.update(TABLE_NAME, contentValues, THREAD_ID + " = ?",
+        new String[] {threadId + ""});
+
+    if (updated < 1) {
+      contentValues.put(THREAD_ID, threadId);
+      database.insert(TABLE_NAME, null, contentValues);
+    }
+
+    database.setTransactionSuccessful();
+    database.endTransaction();
+
+//    context.getContentResolver().notifyChange(Uri.parse(RECIPIENT_PREFERENCES_URI), null);
+  }
+
   public class ThreadPreference {
     private int id;
     private long threadId;
     private int block;
     private String notification;
     private int vibrate;
-    private int mute;
+    private int muteUntil;
     private String color;
     private int expire;
 
@@ -72,13 +134,24 @@ public class ThreadPreferenceDatabase extends Database {
       this.block = cursor.getInt(cursor.getColumnIndex(BLOCK));
       this.notification = cursor.getString(cursor.getColumnIndex(NOTIFICATION));
       this.vibrate = cursor.getInt(cursor.getColumnIndex(VIBRATE));
-      this.mute = cursor.getInt(cursor.getColumnIndex(MUTE_UNTIL));
+      this.muteUntil = cursor.getInt(cursor.getColumnIndex(MUTE_UNTIL));
       this.color = cursor.getString(cursor.getColumnIndex(COLOR));
       this.expire = cursor.getInt(cursor.getColumnIndex(EXPIRE_MESSAGES));
     }
 
     public int getExpireMessages() {
       return expire;
+    }
+
+    public Uri getNotification() {
+      if (!TextUtils.isEmpty(notification)) {
+        return Uri.parse(notification);
+      }
+      return null;
+    }
+
+    public int getMuteUntil() {
+      return muteUntil;
     }
   }
 }

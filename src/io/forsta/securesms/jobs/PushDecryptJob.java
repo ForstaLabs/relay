@@ -258,7 +258,7 @@ public class PushDecryptJob extends ContextJob {
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
 
-    DatabaseFactory.getRecipientPreferenceDatabase(context).setExpireMessages(recipients, message.getExpiresInSeconds());
+    DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
 
     if (smsMessageId.isPresent()) {
       DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
@@ -353,7 +353,7 @@ public class PushDecryptJob extends ContextJob {
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
     long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, sender, true);
 
-    if (message.getExpiresInSeconds() != sender.getExpireMessages()) {
+    if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
     }
 
@@ -392,7 +392,7 @@ public class PushDecryptJob extends ContextJob {
     database.markAsSent(messageId);
     database.markAsPush(messageId);
 
-    DatabaseFactory.getRecipientPreferenceDatabase(context).setExpireMessages(recipients, message.getMessage().getExpiresInSeconds());
+    DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getMessage().getExpiresInSeconds());
 
     if (smsMessageId.isPresent()) {
       DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
@@ -408,12 +408,12 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
     Recipients            recipients   = getSyncMessageDestination(message);
 
-    if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
-      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
-    }
-
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
     long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, true);
+
+    if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
+      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
+    }
 
     OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
         PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),

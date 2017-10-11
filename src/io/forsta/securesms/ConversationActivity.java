@@ -135,7 +135,6 @@ import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 import io.forsta.securesms.util.concurrent.SettableFuture;
 
-import org.json.JSONObject;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -147,7 +146,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
-import io.forsta.securesms.database.RecipientPreferenceDatabase;
 import io.forsta.securesms.util.CharacterCalculator;
 import ws.com.google.android.mms.ContentType;
 
@@ -433,7 +431,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         final View     actionView = MenuItemCompat.getActionView(item);
         final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
 
-        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, recipients.getExpireMessages()));
+        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, expireMessages));
         actionView.setOnClickListener(new OnClickListener() {
           @Override
           public void onClick(View v) {
@@ -509,17 +507,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleSelectMessageExpiration() {
-    ExpirationDialog.show(this, recipients.getExpireMessages(), new ExpirationDialog.OnClickListener() {
+    ExpirationDialog.show(this, DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId), new ExpirationDialog.OnClickListener() {
       @Override
       public void onClick(final int expirationTime) {
         new AsyncTask<Void, Void, Void>() {
           @Override
           protected Void doInBackground(Void... params) {
-            DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
-                           .setExpireMessages(recipients, expirationTime);
-            recipients.setExpireMessages(expirationTime);
-
-
+            DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
             OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
             ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
             outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
@@ -1243,7 +1237,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       Recipients recipients     = getRecipients();
       boolean    forceSms       = sendButton.isManualSelection() && sendButton.getSelectedTransport().isSms();
       int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
-      long       expiresIn      = recipients.getExpireMessages() * 1000;
+      long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
 
       Log.w(TAG, "isManual Selection: " + sendButton.isManualSelection());
       Log.w(TAG, "forceSms: " + forceSms);
@@ -1403,7 +1397,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         try {
           boolean    forceSms       = sendButton.isManualSelection() && sendButton.getSelectedTransport().isSms();
           int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
-          long       expiresIn      = recipients.getExpireMessages() * 1000;
+          long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
           AudioSlide audioSlide     = new AudioSlide(ConversationActivity.this, result.first, result.second, ContentType.AUDIO_AAC);
           SlideDeck  slideDeck      = new SlideDeck();
           slideDeck.addSlide(audioSlide);
