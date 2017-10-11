@@ -37,6 +37,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,7 +93,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
-    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
+    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+    getSupportActionBar().setCustomView(R.layout.conversation_list_title_view);
 
     syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
     syncReceiver = new ContactsSyncReceiver();
@@ -329,8 +331,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
         ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
         if (forstaOrg != null) {
-          getSupportActionBar().setDisplayShowTitleEnabled(true);
-          getSupportActionBar().setTitle("    " + forstaOrg.getName());
+          TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
+          title.setText(forstaOrg.getName().toLowerCase());
           if (forstaOrg.getOffTheRecord()) {
             ForstaPreferences.setOffTheRecord(ConversationListActivity.this, true);
           }
