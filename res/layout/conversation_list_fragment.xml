@@ -38,6 +38,7 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/conversation_list_fragment__fab_content_description"
         android:focusable="true"
+        android:backgroundTint="@color/forsta_pop4"
         android:src="@drawable/ic_create_white_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>
