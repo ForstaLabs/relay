@@ -409,7 +409,18 @@ public class PushDecryptJob extends ContextJob {
     Recipients            recipients   = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
-    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, true);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    long threadId = -1L;
+    if (distribution.hasRecipients()) {
+      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+      if (threadId == -1) {
+        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
+      }
+    } else {
+      // Bad message.
+      throw new InvalidMessagePayloadException("Missing recipients in message");
+    }
 
     if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
