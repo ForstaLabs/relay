@@ -550,8 +550,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         new AsyncTask<Void, Void, Void>() {
           @Override
           protected Void doInBackground(Void... params) {
-            DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
-                           .setMuted(recipients, until);
+            DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setMuteUntil(threadId, until);
 
             return null;
           }
@@ -570,8 +569,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
-                       .setMuted(recipients, 0);
+        DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setMuteUntil(threadId, 0);
 
         return null;
       }
@@ -591,12 +589,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
             new AsyncTask<Void, Void, Void>() {
               @Override
               protected Void doInBackground(Void... params) {
-                DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
-                               .setBlocked(recipients, false);
+                DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setBlocked(threadId, false);
 
-                ApplicationContext.getInstance(ConversationActivity.this)
-                                  .getJobManager()
-                                  .add(new MultiDeviceBlockedUpdateJob(ConversationActivity.this));
+//                ApplicationContext.getInstance(ConversationActivity.this)
+//                                  .getJobManager()
+//                                  .add(new MultiDeviceBlockedUpdateJob(ConversationActivity.this));
 
                 return null;
               }
@@ -1352,8 +1349,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
-                       .setDefaultSubscriptionId(recipients, subscriptionId.or(-1));
+//        DatabaseFactory.getRecipientPreferenceDatabase(ConversationActivity.this)
+//                       .setDefaultSubscriptionId(recipients, subscriptionId.or(-1));
         return null;
       }
     }.execute();

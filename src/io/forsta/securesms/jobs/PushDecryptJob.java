@@ -523,16 +523,6 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
-  private Recipients refreshDirectoryForRecipients(MasterSecret masterSecret, ForstaDistribution distribution) {
-    if (distribution.hasRecipients()) {
-      Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-      DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-      RecipientFactory.clearCache(context);
-      return recipients;
-    }
-    return null;
-  }
-
   private long getOrAllocateThreadId(MasterSecret masterSecret, ForstaMessage forstaMessage, Recipients recipients, boolean refreshDirectory) throws InvalidMessagePayloadException {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     long threadId;
@@ -553,16 +543,7 @@ public class PushDecryptJob extends ContextJob {
     return threadId;
   }
 
-  private void getForstaMessageDistribution(ForstaMessage forstaMessage) {
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-//    if (TextUtils.isEmpty(distribution.universal)) {
-//      throw new InvalidDistributionException("Invalid or missing universal expression found in message body");
-//    }
-    forstaMessage.setForstaDistribution(distribution);
-  }
-
   // XXX unused or obsolete methods and empty handlers.
-
   private void handleUntrustedIdentityMessage(@NonNull MasterSecretUnion masterSecret,
                                               @NonNull SignalServiceEnvelope envelope,
                                               @NonNull Optional<Long> smsMessageId)
@@ -641,86 +622,6 @@ public class PushDecryptJob extends ContextJob {
 //    } else {
 //      smsDatabase.markAsDecryptDuplicate(smsMessageId);
 //    }
-  }
-
-  // XXX SMS text only message handling and single recipient sync for web client. No longer used.
-  private void handleTextMessage(@NonNull MasterSecretUnion masterSecret,
-                                 @NonNull SignalServiceEnvelope envelope,
-                                 @NonNull SignalServiceDataMessage message,
-                                 @NonNull Optional<Long> smsMessageId)
-      throws MmsException, InvalidMessagePayloadException {
-    EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
-    String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-
-
-    // This is the sender
-    Recipients            recipients = getMessageDestination(envelope, message);
-
-    if (message.getExpiresInSeconds() != recipients.getExpireMessages()) {
-      handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
-    }
-
-    Pair<Long, Long> messageAndThreadId;
-
-    if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
-      messageAndThreadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body);
-    } else {
-      IncomingTextMessage textMessage = new IncomingTextMessage(envelope.getSource(),
-          envelope.getSourceDevice(),
-          message.getTimestamp(), body,
-          message.getGroupInfo(),
-          message.getExpiresInSeconds() * 1000);
-      ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-      getForstaMessageDistribution(forstaMessage);
-      textMessage.setForstaMessage(forstaMessage);
-      refreshDirectoryForRecipients(masterSecret.getMasterSecret().get(), forstaMessage.getForstaDistribution());
-
-      textMessage = new IncomingEncryptedMessage(textMessage, body);
-      //XXX Thread processing happens in the database
-      messageAndThreadId = database.insertMessageInbox(masterSecret, textMessage);
-
-      if (smsMessageId.isPresent()) database.deleteMessage(smsMessageId.get());
-    }
-
-    MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
-  }
-
-  private long handleSynchronizeSentTextMessage(@NonNull MasterSecretUnion masterSecret,
-                                                @NonNull SentTranscriptMessage message,
-                                                @NonNull Optional<Long> smsMessageId)
-      throws MmsException, InvalidMessagePayloadException {
-    EncryptingSmsDatabase database            = DatabaseFactory.getEncryptingSmsDatabase(context);
-    Recipients            recipients          = getSyncMessageDestination(message);
-    String                body                = message.getMessage().getBody().or("");
-    long                  expiresInMillis     = message.getMessage().getExpiresInSeconds() * 1000;
-
-    if (recipients.getExpireMessages() != message.getMessage().getExpiresInSeconds()) {
-      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
-    }
-
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
-
-    OutgoingTextMessage   outgoingTextMessage = new OutgoingTextMessage(recipients, body, expiresInMillis, -1);
-
-    long messageId = database.insertMessageOutbox(masterSecret, threadId, outgoingTextMessage, false, message.getTimestamp());
-
-    database.markAsSent(messageId);
-    database.markAsPush(messageId);
-    database.markAsSecure(messageId);
-
-    if (smsMessageId.isPresent()) {
-      database.deleteMessage(smsMessageId.get());
-    }
-
-    if (expiresInMillis > 0) {
-      database.markExpireStarted(messageId, message.getExpirationStartTimestamp());
-      ApplicationContext.getInstance(context)
-          .getExpiringMessageManager()
-          .scheduleDeletion(messageId, false, message.getExpirationStartTimestamp(), expiresInMillis);
-    }
-
-    return threadId;
   }
 
 }

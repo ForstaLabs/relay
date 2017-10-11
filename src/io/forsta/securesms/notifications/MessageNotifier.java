@@ -49,6 +49,7 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.mms.SlideDeck;
@@ -138,6 +139,7 @@ public class MessageNotifier {
     ThreadDatabase threads    = DatabaseFactory.getThreadDatabase(context);
     Recipients     recipients = DatabaseFactory.getThreadDatabase(context)
                                                .getRecipientsForThreadId(threadId);
+    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
     if (isVisible) {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
@@ -145,7 +147,7 @@ public class MessageNotifier {
     }
 
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
-        (recipients != null && recipients.isMuted()))
+        (threadPreference != null && threadPreference.isMuted()))
     {
       return;
     }

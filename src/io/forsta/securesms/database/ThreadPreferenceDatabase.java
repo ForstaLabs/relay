@@ -88,7 +88,13 @@ public class ThreadPreferenceDatabase extends Database {
     updateOrInsert(threadId, values);
   }
 
-  public void setMuteUntil(long threadId, int muteUntil) {
+  public void setBlocked(long threadId, boolean blocked) {
+    ContentValues values = new ContentValues();
+    values.put(BLOCK, blocked ? 1 : 0);
+    updateOrInsert(threadId, values);
+  }
+
+  public void setMuteUntil(long threadId, long muteUntil) {
     ContentValues values = new ContentValues();
     values.put(MUTE_UNTIL, muteUntil);
     updateOrInsert(threadId, values);
@@ -131,7 +137,7 @@ public class ThreadPreferenceDatabase extends Database {
     private int block;
     private String notification;
     private int vibrate;
-    private int muteUntil;
+    private long muteUntil;
     private String color;
     private int expire;
 
@@ -141,7 +147,7 @@ public class ThreadPreferenceDatabase extends Database {
       this.block = cursor.getInt(cursor.getColumnIndex(BLOCK));
       this.notification = cursor.getString(cursor.getColumnIndex(NOTIFICATION));
       this.vibrate = cursor.getInt(cursor.getColumnIndex(VIBRATE));
-      this.muteUntil = cursor.getInt(cursor.getColumnIndex(MUTE_UNTIL));
+      this.muteUntil = cursor.getLong(cursor.getColumnIndex(MUTE_UNTIL));
       this.color = cursor.getString(cursor.getColumnIndex(COLOR));
       this.expire = cursor.getInt(cursor.getColumnIndex(EXPIRE_MESSAGES));
     }
@@ -157,8 +163,12 @@ public class ThreadPreferenceDatabase extends Database {
       return null;
     }
 
-    public int getMuteUntil() {
+    public long getMuteUntil() {
       return muteUntil;
+    }
+
+    public boolean isMuted() {
+      return System.currentTimeMillis() <= muteUntil;
     }
   }
 }

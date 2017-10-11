@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AvatarImageView;
@@ -162,16 +163,16 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       addPreferencesFromResource(R.xml.thread_preferences);
       initializePreferences();
 
+      this.findPreference(PREFERENCE_MUTED)
+          .setOnPreferenceClickListener(new MuteClickListener());
       this.findPreference(PREFERENCE_TONE)
           .setOnPreferenceChangeListener(new RingtoneChangeListener());
-      this.findPreference(PREFERENCE_VIBRATE)
-          .setOnPreferenceChangeListener(null);
-      this.findPreference(PREFERENCE_MUTED)
-          .setOnPreferenceClickListener(null);
-      this.findPreference(PREFERENCE_BLOCK)
-          .setOnPreferenceClickListener(null);
-      this.findPreference(PREFERENCE_COLOR)
-          .setOnPreferenceChangeListener(null);
+//      this.findPreference(PREFERENCE_VIBRATE)
+//          .setOnPreferenceChangeListener(null);
+//      this.findPreference(PREFERENCE_BLOCK)
+//          .setOnPreferenceClickListener(null);
+//      this.findPreference(PREFERENCE_COLOR)
+//          .setOnPreferenceChangeListener(null);
     }
 
     private void initializePreferences() {
@@ -180,10 +181,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       mutePreference = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
       notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
-      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
-      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
-      blockPreference = this.findPreference(PREFERENCE_BLOCK);
       notificationPreference.setSummary(R.string.preferences__default);
+//      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
+//      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+//      blockPreference = this.findPreference(PREFERENCE_BLOCK);
 
       if (threadPreference != null) {
         if (threadPreference.getNotification() != null) {
@@ -193,6 +194,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
             notificationPreference.setCurrentRingtone(threadPreference.getNotification());
           }
         }
+        mutePreference.setChecked(threadPreference.isMuted());
       }
     }
 
@@ -242,10 +244,40 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       }
     }
 
-    private class MuteChangeListener implements Preference.OnPreferenceChangeListener {
+    private class MuteClickListener implements Preference.OnPreferenceClickListener {
 
       @Override
-      public boolean onPreferenceChange(Preference preference, Object o) {
+      public boolean onPreferenceClick(Preference preference) {
+
+        ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(getActivity()).getThreadPreferences(threadId);
+        if (threadPreference.isMuted()) {
+          new AsyncTask<Long, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Long... params) {
+              DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
+              return null;
+            }
+          }.execute(0L);
+        } else {
+          MuteDialog.show(getActivity(), new MuteDialog.MuteSelectionListener() {
+            @Override
+            public void onMuted(long until) {
+              new AsyncTask<Long, Void, Void>() {
+
+                @Override
+                protected Void doInBackground(Long... params) {
+                  DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
+                  return null;
+                }
+              }.execute(until);
+            }
+          });
+        }
+
+
+
+
         return false;
       }
     }
