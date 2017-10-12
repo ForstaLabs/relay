@@ -515,7 +515,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(RECIPIENT_IDS, recipientsList);
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, forstaMessage.threadId);
-    contentValues.put(DISTRIBUTION, forstaMessage.universalExpression);
+    contentValues.put(DISTRIBUTION, forstaMessage.getUniversalExpression());
     contentValues.put(TITLE, forstaMessage.threadTitle);
     contentValues.put(MESSAGE_COUNT, 0);
 

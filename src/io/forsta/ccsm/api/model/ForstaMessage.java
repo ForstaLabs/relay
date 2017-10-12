@@ -43,10 +43,9 @@ public class ForstaMessage {
   public Spanned htmlBody;
   public String messageId;
   public String senderId;
-  public String universalExpression;
+  private String universalExpression;
   public String threadId;
   public String threadTitle;
-  private ForstaDistribution distribution;
 
   private ForstaMessage() {
 
@@ -108,17 +107,6 @@ public class ForstaMessage {
       throw new InvalidMessagePayloadException(e.getMessage());
     }
     return forstaMessage;
-  }
-
-  public void setForstaDistribution(ForstaDistribution forstaDistribution) {
-    this.distribution = forstaDistribution;
-  }
-
-  public ForstaDistribution getForstaDistribution() {
-    if (distribution == null) {
-      return new ForstaDistribution();
-    }
-    return distribution;
   }
 
   private boolean isContentType(JSONObject jsonBody) throws JSONException {

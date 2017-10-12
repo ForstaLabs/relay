@@ -2,7 +2,6 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -33,7 +32,6 @@ import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -41,14 +39,11 @@ import io.forsta.securesms.sms.IncomingEncryptedMessage;
 import io.forsta.securesms.sms.IncomingEndSessionMessage;
 import io.forsta.securesms.sms.IncomingPreKeyBundleMessage;
 import io.forsta.securesms.sms.IncomingTextMessage;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
-import org.json.JSONObject;
-import org.w3c.dom.Text;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -244,7 +239,7 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-    Recipients           recipients   = getMessageDestination(envelope, message);
+    Recipients           sender   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
                                                                  localNumber, message.getTimestamp(), -1,
@@ -254,10 +249,10 @@ public class PushDecryptJob extends ContextJob {
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
+    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
-
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
 
     if (smsMessageId.isPresent()) {
@@ -351,7 +346,8 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getAttachments());
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, sender, true);
+    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -380,13 +376,16 @@ public class PushDecryptJob extends ContextJob {
                                                      @NonNull Optional<Long> smsMessageId)
       throws MmsException, InvalidMessagePayloadException {
     MmsDatabase database   = DatabaseFactory.getMmsDatabase(context);
-    Recipients  recipients = getSyncMessageDestination(message);
+    Recipients  sender = getSyncMessageDestination(message);
+
+    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
+    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
 
     OutgoingExpirationUpdateMessage expirationUpdateMessage = new OutgoingExpirationUpdateMessage(recipients,
-                                                                                                  message.getTimestamp(),
-                                                                                                  message.getMessage().getExpiresInSeconds() * 1000);
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
-    long threadId = getOrAllocateThreadId(masterSecret.getMasterSecret().get(), forstaMessage, recipients, false);
+        message.getTimestamp(),
+        message.getMessage().getExpiresInSeconds() * 1000);
+
     long messageId = database.insertMessageOutbox(masterSecret, expirationUpdateMessage, threadId, false);
 
     database.markAsSent(messageId);
@@ -406,21 +405,11 @@ public class PushDecryptJob extends ContextJob {
                                                  @NonNull Optional<Long> smsMessageId)
       throws MmsException, InvalidMessagePayloadException {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
-    Recipients            recipients   = getSyncMessageDestination(message);
+    Recipients            sender   = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    long threadId = -1L;
-    if (distribution.hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-    } else {
-      // Bad message.
-      throw new InvalidMessagePayloadException("Missing recipients in message");
-    }
+    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
 
     if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
@@ -518,6 +507,25 @@ public class PushDecryptJob extends ContextJob {
     return database.insertMessageInbox(textMessage);
   }
 
+  private Recipients getDistributionRecipients(String expression) throws InvalidMessagePayloadException {
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, expression);
+    if (distribution.hasRecipients()) {
+      return RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    }
+    throw new InvalidMessagePayloadException("No recipients found in message.");
+  }
+
+  private long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    if (threadId == -1) {
+      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
+    } else {
+      DatabaseFactory.getThreadDatabase(context).updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.threadTitle);
+    }
+    return threadId;
+  }
+
+  // XXX unused or obsolete methods and empty handlers.
   private Recipients getSyncMessageDestination(SentTranscriptMessage message) {
     if (message.getMessage().getGroupInfo().isPresent()) {
       return RecipientFactory.getRecipientsFromString(context, GroupUtil.getEncodedId(message.getMessage().getGroupInfo().get().getGroupId()), false);
@@ -534,27 +542,6 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
-  private long getOrAllocateThreadId(MasterSecret masterSecret, ForstaMessage forstaMessage, Recipients recipients, boolean refreshDirectory) throws InvalidMessagePayloadException {
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    long threadId;
-    if (distribution.hasRecipients()) {
-      recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-      if (refreshDirectory) {
-        DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-      }
-      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-      if (threadId == -1) {
-        threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-      }
-    } else {
-      // Invalid distribution. Throw exception here or keep messages?
-      Log.e(TAG, "Invalid message distribution. No recipients. " + recipients.getPrimaryRecipient().getNumber());
-      throw new InvalidMessagePayloadException("No valid recipients");
-    }
-    return threadId;
-  }
-
-  // XXX unused or obsolete methods and empty handlers.
   private void handleUntrustedIdentityMessage(@NonNull MasterSecretUnion masterSecret,
                                               @NonNull SignalServiceEnvelope envelope,
                                               @NonNull Optional<Long> smsMessageId)
