@@ -23,6 +23,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
@@ -34,6 +37,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
 import io.forsta.securesms.preferences.ColorPreference;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
@@ -62,6 +66,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private TextView threadRecipients;
   private EditText forstaTitle;
   private TextView forstaUid;
+  private TextView forstaExpression;
   private ImageButton forstaSaveTitle;
 
   @Override
@@ -121,6 +126,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     threadRecipients = (TextView) findViewById(R.id.forsta_thread_recipients);
     forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
     forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
+    forstaExpression = (TextView) findViewById(R.id.forsta_thread_expression);
     forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
     forstaSaveTitle.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -133,14 +139,26 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
   private void initializeThread() {
     Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
-    threadRecipients.setText(recipients.toShortString());
+    threadRecipients.setText(getRecipientData(recipients));
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
     title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
-    forstaUid.setText(thread.uid);
+
     if (BuildConfig.FORSTA_API_URL.contains("dev")) {
+      forstaUid.setText(thread.uid);
+      forstaExpression.setText(thread.distribution);
       LinearLayout debugLayout = (LinearLayout) findViewById(R.id.forsta_thread_debug_details);
       debugLayout.setVisibility(View.VISIBLE);
     }
+  }
+
+  private String getRecipientData(Recipients recipients) {
+    List<String> contacts = new ArrayList();
+    for (Recipient recipient : recipients) {
+      StringBuilder sb = new StringBuilder();
+      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")");
+      contacts.add(sb.toString());
+    }
+    return TextUtils.join(", ", contacts);
   }
 
   public static class ThreadPreferenceFragment extends PreferenceFragment {

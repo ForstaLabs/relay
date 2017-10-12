@@ -98,7 +98,11 @@
         <TextView style="@style/TextAppearance.AppCompat.Subhead"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content" android:text="UID"/>
-        <TextView android:id="@+id/forsta_thread_uid" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
+        <TextView android:id="@+id/forsta_thread_uid" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10sp"></TextView>
+        <TextView style="@style/TextAppearance.AppCompat.Subhead"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:text="Expression"/>
+        <TextView android:id="@+id/forsta_thread_expression" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10sp"></TextView>
     </LinearLayout>
 
 </LinearLayout>
