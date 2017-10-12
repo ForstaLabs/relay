@@ -339,7 +339,7 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-    Recipients           sender   = getMessageDestination(envelope, message); // If something is wrong retrieving message distribution, use the sender's address
+    Recipients           sender   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),

@@ -97,7 +97,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         }.execute(searchText);
       }
     });
-
+    createConversationButton.setEnabled(false);
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
   }
 
@@ -106,6 +106,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
     public void onClick(View view) {
       removeRecipientChip(view);
       selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+      if (contactsFragment.getSelectedAddresses().size() < 1) {
+        createConversationButton.setEnabled(false);
+      }
     }
   }
 
@@ -135,6 +138,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);
+      createConversationButton.setEnabled(true);
     }
   }
 

@@ -6,9 +6,15 @@
             <padding android:bottom="7dp" android:left="7dp" android:right="7dp" android:top="7dp"/>
         </shape>
     </item>
-    <item android:state_pressed="false">
+    <item android:state_enabled="true">
         <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval" >
-            <solid android:color="@color/forsta_primary_dark"/>
+            <solid android:color="@color/forsta_pop"/>
+            <padding android:bottom="7dp" android:left="7dp" android:right="7dp" android:top="7dp"/>
+        </shape>
+    </item>
+    <item android:state_enabled="false">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval" >
+            <solid android:color="@color/forsta_accent"/>
             <padding android:bottom="7dp" android:left="7dp" android:right="7dp" android:top="7dp"/>
         </shape>
     </item>
