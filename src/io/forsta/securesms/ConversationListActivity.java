@@ -45,6 +45,7 @@ import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaOrg;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -102,7 +103,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 //    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
-    RefreshOrg task = new RefreshOrg();
+    RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
 
     // Force set enable thread trimming to 30 days.
@@ -315,20 +316,37 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class RefreshOrg extends AsyncTask<Void, Void, JSONObject> {
+  public class RefreshUserOrg extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getOrg(ConversationListActivity.this);
+      JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
+      if (userResponse.has("id")) {
+        ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
+        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
+        if (orgResponse.has("id")) {
+          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
+        } else {
+          return orgResponse;
+        }
+      } else {
+        return userResponse;
+      }
+      return null;
     }
 
     @Override
-    protected void onPostExecute(JSONObject response) {
-      if (response == null) {
-        showValidationError();
-      }
-      if (response.has("id")) {
-        ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
+    protected void onPostExecute(JSONObject errorResponse) {
+      if (errorResponse != null) {
+        try {
+          if (errorResponse.getString("error").equals("401")) {
+            Log.e(TAG, "Not Authorized");
+            handleLogout();
+          }
+        } catch (JSONException e) {
+          showValidationError();
+        }
+      } else {
         ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
         if (forstaOrg != null) {
           TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
@@ -336,17 +354,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           if (forstaOrg.getOffTheRecord()) {
             ForstaPreferences.setOffTheRecord(ConversationListActivity.this, true);
           }
-        }
-      } else if (response.has("error")) {
-        try {
-          String error = response.getString("error");
-          if (error.equals("401")) {
-            Log.e(TAG, "Not Authorized");
-            handleLogout();
-          }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          showValidationError();
         }
       }
     }

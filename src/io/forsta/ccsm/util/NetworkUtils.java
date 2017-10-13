@@ -57,14 +57,12 @@ public class NetworkUtils {
     try {
       return apiHardFetch(method, authKey, path, body, timeout, type);
     } catch (Exception e) {
-      Log.e(TAG, e.toString());
-      e.printStackTrace();
+      Log.e(TAG, e.getMessage());
       JSONObject error = new JSONObject();
       try {
-        error.put("error", e);
+        error.put("error", e.getMessage());
       } catch (JSONException je) {
         Log.e(TAG, "Internal ERROR: " + je);
-        return null;
       }
       return error;
     }
@@ -80,7 +78,6 @@ public class NetworkUtils {
     try {
       conn.setRequestMethod(method);
       setConnHeader(conn, authKey, type);
-      Map<String, List<String>> requestHeaders = conn.getRequestProperties();
       if (timeout != 0) {
         conn.setConnectTimeout((int)(timeout * 1000));
         conn.setReadTimeout((int)(timeout * 1000));
@@ -92,12 +89,13 @@ public class NetworkUtils {
         out.close();
       }
       int status = conn.getResponseCode();
-      String result = readResult(conn.getInputStream());
-      JSONObject jsonResult = new JSONObject(result);
       if (status >= 200 && status < 300) {
+        String result = readResult(conn.getInputStream());
+        JSONObject jsonResult = new JSONObject(result);
         return jsonResult;
       } else {
-        throw new IOException(result);
+        Log.e(TAG, path);
+        throw new IOException(status + "");
       }
     } finally {
       conn.disconnect();

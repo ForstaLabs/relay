@@ -44,6 +44,7 @@ public class ForstaPreferences {
     prefs.edit().putString(API_KEY, "")
         .putString(API_LAST_LOGIN, "")
         .putString(FORSTA_USER, "")
+        .putString(FORSTA_ORG, "")
         .putBoolean(FORSTA_LOGIN_PENDING, false)
         .apply();
   }
