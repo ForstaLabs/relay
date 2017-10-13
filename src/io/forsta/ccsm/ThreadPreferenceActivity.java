@@ -183,8 +183,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       this.findPreference(PREFERENCE_MUTED)
           .setOnPreferenceClickListener(new MuteClickListener());
-      this.findPreference(PREFERENCE_TONE)
-          .setOnPreferenceChangeListener(new RingtoneChangeListener());
+//      this.findPreference(PREFERENCE_TONE)
+//          .setOnPreferenceChangeListener(new RingtoneChangeListener());
 //      this.findPreference(PREFERENCE_VIBRATE)
 //          .setOnPreferenceChangeListener(null);
 //      this.findPreference(PREFERENCE_BLOCK)
@@ -198,20 +198,20 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       ThreadPreferenceDatabase.ThreadPreference threadPreference = db.getThreadPreferences(threadId);
 
       mutePreference = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
-      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
-      notificationPreference.setSummary(R.string.preferences__default);
+//      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
+//      notificationPreference.setSummary(R.string.preferences__default);
 //      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
 //      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
 //      blockPreference = this.findPreference(PREFERENCE_BLOCK);
 
       if (threadPreference != null) {
-        if (threadPreference.getNotification() != null) {
-          Ringtone tone = RingtoneManager.getRingtone(getActivity(), threadPreference.getNotification());
-          if (tone != null) {
-            notificationPreference.setSummary(tone.getTitle(getActivity()));
-            notificationPreference.setCurrentRingtone(threadPreference.getNotification());
-          }
-        }
+//        if (threadPreference.getNotification() != null) {
+//          Ringtone tone = RingtoneManager.getRingtone(getActivity(), threadPreference.getNotification());
+//          if (tone != null) {
+//            notificationPreference.setSummary(tone.getTitle(getActivity()));
+//            notificationPreference.setCurrentRingtone(threadPreference.getNotification());
+//          }
+//        }
         mutePreference.setChecked(threadPreference.isMuted());
       }
     }
@@ -268,7 +268,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       public boolean onPreferenceClick(Preference preference) {
 
         ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(getActivity()).getThreadPreferences(threadId);
-        if (threadPreference.isMuted()) {
+        if (threadPreference != null && threadPreference.isMuted()) {
           new AsyncTask<Long, Void, Void>() {
 
             @Override

@@ -9,14 +9,14 @@
         android:disableDependentsState="true"
         android:persistent="false" />
 
-    <io.forsta.securesms.preferences.AdvancedRingtonePreference
-        android:dependency="pref_key_thread_mute"
-        android:key="pref_key_thread_ringtone"
-        android:title="@string/thread_preferences__notification_sound"
-        android:ringtoneType="notification"
-        android:showSilent="false"
-        android:showDefault="true"
-        android:persistent="false"/>
+    <!--<io.forsta.securesms.preferences.AdvancedRingtonePreference-->
+        <!--android:dependency="pref_key_thread_mute"-->
+        <!--android:key="pref_key_thread_ringtone"-->
+        <!--android:title="@string/thread_preferences__notification_sound"-->
+        <!--android:ringtoneType="notification"-->
+        <!--android:showSilent="false"-->
+        <!--android:showDefault="true"-->
+        <!--android:persistent="false"/>-->
 
     <!--<ListPreference android:dependency="pref_key_thread_mute"-->
                     <!--android:key="pref_key_thread_vibrate"-->
