@@ -31,6 +31,8 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
+import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
@@ -504,7 +506,7 @@ public class ThreadDatabase extends Database {
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
-
+//    DatabaseFactory.getThreadPreferenceDatabase(context).setDefaultColor(threadId);
     return getForstaThread(threadId);
   }
 
@@ -523,7 +525,9 @@ public class ThreadDatabase extends Database {
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    return db.insert(TABLE_NAME, null, contentValues);
+    long threadId = db.insert(TABLE_NAME, null, contentValues);
+//    DatabaseFactory.getThreadPreferenceDatabase(context).setDefaultColor(threadId);
+    return threadId;
   }
 
   public long getThreadIdForUid(String threadUid) {

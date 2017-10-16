@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.BuildConfig;
@@ -210,6 +211,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
 //      blockPreference = this.findPreference(PREFERENCE_BLOCK);
 
+      int size = MaterialColors.CONVERSATION_PALETTE.size();
+      int randColor = new Random().nextInt(MaterialColors.CONVERSATION_PALETTE.size());
+      MaterialColor color = MaterialColors.CONVERSATION_PALETTE.get(randColor);
+
       if (threadPreference != null) {
 //        if (threadPreference.getNotification() != null) {
 //          Ringtone tone = RingtoneManager.getRingtone(getActivity(), threadPreference.getNotification());
@@ -220,6 +225,9 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //        }
 
         mutePreference.setChecked(threadPreference.isMuted());
+        if (threadPreference.getColor() != null) {
+          colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
+        }
       }
     }
 
