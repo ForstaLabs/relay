@@ -220,7 +220,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //        }
 
         mutePreference.setChecked(threadPreference.isMuted());
-        colorPreference.setValue(threadPreference.getColor());
       }
     }
 
