@@ -68,6 +68,11 @@ public class ThreadPreferenceDatabase extends Database {
     database.endTransaction();
   }
 
+  public void deleteThreadPreference(long threadId) {
+    SQLiteDatabase database = databaseHelper.getWritableDatabase();
+    database.delete(TABLE_NAME, THREAD_ID + " = ? ", new String[] { threadId + ""});
+  }
+
   public int getExpireMessages(long threadId) {
     ThreadPreference preference = getThreadPreferences(threadId);
     if (preference != null) {

@@ -279,7 +279,6 @@ public class ConversationListFragment extends Fragment
             @Override
             protected Void doInBackground(Void... params) {
               DatabaseFactory.getThreadDatabase(getActivity()).deleteConversations(selectedConversations);
-              DatabaseFactory.getThreadPreferenceDatabase(getActivity()).deleteThreadPreferences(selectedConversations);
               MessageNotifier.updateNotification(getActivity(), masterSecret);
               return null;
             }
