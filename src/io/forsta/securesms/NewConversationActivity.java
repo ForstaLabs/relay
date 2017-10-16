@@ -31,6 +31,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;

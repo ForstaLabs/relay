@@ -504,6 +504,7 @@ public class ThreadDatabase extends Database {
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
+
     return getForstaThread(threadId);
   }
 

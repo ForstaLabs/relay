@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import java.util.Set;
 
 import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 
 /**
  * Created by jlewis on 10/3/17.
@@ -174,6 +175,10 @@ public class ThreadPreferenceDatabase extends Database {
 
     public boolean isMuted() {
       return System.currentTimeMillis() <= muteUntil;
+    }
+
+    public String getColor() {
+      return color;
     }
   }
 }

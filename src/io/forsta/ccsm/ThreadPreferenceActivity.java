@@ -31,6 +31,8 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -191,8 +193,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //          .setOnPreferenceChangeListener(null);
 //      this.findPreference(PREFERENCE_BLOCK)
 //          .setOnPreferenceClickListener(null);
-//      this.findPreference(PREFERENCE_COLOR)
-//          .setOnPreferenceChangeListener(null);
+      this.findPreference(PREFERENCE_COLOR)
+          .setOnPreferenceChangeListener(new ColorChangeListener());
     }
 
     private void initializePreferences() {
@@ -203,7 +205,9 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
 //      notificationPreference.setSummary(R.string.preferences__default);
 //      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
-//      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+      colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
+
 //      blockPreference = this.findPreference(PREFERENCE_BLOCK);
 
       if (threadPreference != null) {
@@ -214,7 +218,9 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //            notificationPreference.setCurrentRingtone(threadPreference.getNotification());
 //          }
 //        }
+
         mutePreference.setChecked(threadPreference.isMuted());
+        colorPreference.setValue(threadPreference.getColor());
       }
     }
 
@@ -314,9 +320,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public boolean onPreferenceChange(Preference preference, Object o) {
-        return false;
+        final int           value         = (Integer) o;
+        final MaterialColor selectedColor = MaterialColors.CONVERSATION_PALETTE.getByColor(getActivity(), value);
+        DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setColor(threadId, selectedColor);
+        return true;
       }
     }
-
   }
 }

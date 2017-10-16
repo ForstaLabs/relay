@@ -26,15 +26,15 @@
                     <!--android:defaultValue="0"-->
                     <!--android:persistent="false"/>-->
 
-    <!--<io.forsta.securesms.preferences.ColorPreference-->
-        <!--android:key="pref_key_thread_color"-->
-        <!--android:title="@string/thread_preferences__color"-->
-        <!--android:summary="@string/recipient_preferences__color_for_this_contact"-->
-        <!--android:defaultValue="@android:color/black"-->
-        <!--android:negativeButtonText="@null"-->
-        <!--android:positiveButtonText="@null"-->
-        <!--android:persistent="false"-->
-        <!--app:numColumns="5" />-->
+    <io.forsta.securesms.preferences.ColorPreference
+        android:key="pref_key_thread_color"
+        android:title="@string/thread_preferences__color"
+        android:summary="@string/thread_preferences__color_for_this_conversation"
+        android:defaultValue="@android:color/black"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:persistent="false"
+        app:numColumns="5" />
 
     <!--<Preference android:key="pref_key_thread_block"-->
                 <!--android:title="@string/thread_preferences__block"-->
