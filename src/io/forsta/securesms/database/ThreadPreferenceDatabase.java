@@ -53,10 +53,12 @@ public class ThreadPreferenceDatabase extends Database {
     ThreadPreference threadPreference = null;
     if (cursor != null && cursor.moveToFirst()) {
       threadPreference = new ThreadPreference(cursor);
-      return threadPreference;
     }
     cursor.close();
-    return createThreadPreference(threadId);
+    if (threadPreference == null) {
+      return createThreadPreference(threadId);
+    }
+    return threadPreference;
   }
 
   private ThreadPreference createThreadPreference(long threadId) {

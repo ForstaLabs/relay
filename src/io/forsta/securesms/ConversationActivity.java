@@ -726,7 +726,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     } else {
       titleView.setTitle(recipients);
     }
-    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getThreadPreferences(threadId);
+    ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
+    ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
+    // May have preferences prior to color preference addition
+    if (threadPreference.getColor() == null) {
+      threadDb.setColor(threadId, MaterialColors.getRandomConversationColor());
+      threadPreference = threadDb.getThreadPreferences(threadId);
+    }
     setActionBarColor(threadPreference.getColor());
   }
 
