@@ -514,9 +514,9 @@ public class ThreadDatabase extends Database {
     contentValues.put(DATE, date - date % 1000);
     contentValues.put(RECIPIENT_IDS, recipientsList);
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
-    contentValues.put(UID, forstaMessage.threadId);
+    contentValues.put(UID, forstaMessage.getThreadUId());
     contentValues.put(DISTRIBUTION, forstaMessage.getUniversalExpression());
-    contentValues.put(TITLE, forstaMessage.threadTitle);
+    contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();

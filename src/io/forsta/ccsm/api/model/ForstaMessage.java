@@ -39,13 +39,13 @@ import io.forsta.securesms.util.Util;
 
 public class ForstaMessage {
   private static final String TAG = ForstaMessage.class.getSimpleName();
-  public String textBody;
-  public Spanned htmlBody;
-  public String messageId;
-  public String senderId;
+  private String textBody;
+  private Spanned htmlBody;
+  private String messageId;
+  private String senderId;
   private String universalExpression;
-  public String threadId;
-  public String threadTitle;
+  private String threadUid;
+  private String threadTitle;
 
   private ForstaMessage() {
 
@@ -68,7 +68,7 @@ public class ForstaMessage {
     try {
       JSONObject jsonBody = getVersion(1, messageBody);
       if (forstaMessage.isContentType(jsonBody)) {
-        forstaMessage.threadId = jsonBody.getString("threadId");
+        forstaMessage.threadUid = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
           forstaMessage.threadTitle = jsonBody.getString("threadTitle");
@@ -132,7 +132,7 @@ public class ForstaMessage {
   }
 
   public boolean hasThreadUid() {
-    return !TextUtils.isEmpty(threadId);
+    return !TextUtils.isEmpty(threadUid);
   }
 
   public boolean hasDistributionExpression() {
@@ -257,10 +257,18 @@ public class ForstaMessage {
   }
 
   public String getThreadUId() {
-    return threadId;
+    return threadUid;
   }
 
   public String getThreadTitle() {
     return threadTitle;
+  }
+
+  public String getTextBody() {
+    return textBody;
+  }
+
+  public Spanned getHtmlBody() {
+    return htmlBody;
   }
 }

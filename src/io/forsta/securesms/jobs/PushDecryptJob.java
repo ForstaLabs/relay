@@ -520,7 +520,7 @@ public class PushDecryptJob extends ContextJob {
     if (threadId == -1) {
       threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
     } else {
-      DatabaseFactory.getThreadDatabase(context).updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.threadTitle);
+      DatabaseFactory.getThreadDatabase(context).updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.getThreadTitle());
     }
     return threadId;
   }

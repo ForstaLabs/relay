@@ -384,7 +384,7 @@ public class MessageNotifier {
       }
 
       ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body.toString());
-      body = forstaMessage.textBody;
+      body = forstaMessage.getTextBody();
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
