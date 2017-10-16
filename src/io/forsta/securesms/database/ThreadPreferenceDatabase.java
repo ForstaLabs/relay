@@ -53,9 +53,15 @@ public class ThreadPreferenceDatabase extends Database {
     ThreadPreference threadPreference = null;
     if (cursor != null && cursor.moveToFirst()) {
       threadPreference = new ThreadPreference(cursor);
+      return threadPreference;
     }
     cursor.close();
-    return threadPreference;
+    return createThreadPreference(threadId);
+  }
+
+  private ThreadPreference createThreadPreference(long threadId) {
+    setColor(threadId, MaterialColors.getRandomConversationColor());
+    return getThreadPreferences(threadId);
   }
 
   public void deleteThreadPreferences(Set<Long> selectedConversations) {

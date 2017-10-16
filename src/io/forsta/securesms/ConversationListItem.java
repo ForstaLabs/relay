@@ -38,15 +38,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
@@ -157,8 +161,10 @@ public class ConversationListItem extends RelativeLayout
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
-    setRippleColor(recipients);
-    this.contactPhotoImage.setAvatar(recipients, true);
+    ThreadPreferenceDatabase.ThreadPreference preferences = DatabaseFactory.getThreadPreferenceDatabase(getContext()).getThreadPreferences(threadId);
+    setRippleColor(preferences.getColor());
+//    setRippleColor(recipients);
+    this.contactPhotoImage.setAvatar(recipients, preferences.getColor());
   }
 
   @Override
@@ -239,6 +245,14 @@ public class ConversationListItem extends RelativeLayout
     if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
       ((RippleDrawable)(getBackground()).mutate())
           .setColor(ColorStateList.valueOf(recipients.getColor().toConversationColor(getContext())));
+    }
+  }
+
+  @TargetApi(VERSION_CODES.LOLLIPOP)
+  private void setRippleColor(MaterialColor color) {
+    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      ((RippleDrawable)(getBackground()).mutate())
+          .setColor(ColorStateList.valueOf(color.toConversationColor(getContext())));
     }
   }
 
