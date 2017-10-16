@@ -37,6 +37,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,6 +45,7 @@ import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaOrg;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -92,19 +94,16 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
-    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
+    getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+    getSupportActionBar().setCustomView(R.layout.conversation_list_title_view);
 
+    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
     syncReceiver = new ContactsSyncReceiver();
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 //    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    syncIndicator = (LinearLayout) findViewById(R.id.forsta_sync_indicator);
 
-    // Combine these.
-    VerifyCcsmToken tokenCheck = new VerifyCcsmToken();
-    tokenCheck.execute();
-
-    RefreshOrg task = new RefreshOrg();
+    RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
 
     // Force set enable thread trimming to 30 days.
@@ -113,8 +112,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
-      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       syncIndicator.setVisibility(View.VISIBLE);
+      Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
   }
@@ -303,7 +302,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  private void showVagueError() {
+  private void showValidationError() {
     Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
@@ -317,50 +316,45 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class VerifyCcsmToken extends AsyncTask<Void, Void, JSONObject> {
+  public class RefreshUserOrg extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.checkForstaAuth(getApplicationContext());
-    }
-
-    @Override
-    protected void onPostExecute(JSONObject response) {
-      if (response == null) {
-        showVagueError();
-      }
-      if (response.has("error")) {
-        try {
-          String error = response.getString("error");
-          if (error.equals("401")) {
-            Log.d(TAG, "Not Authorized");
-            handleLogout();
-          }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          showVagueError();
+      JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
+      if (userResponse.has("id")) {
+        ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
+        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
+        if (orgResponse.has("id")) {
+          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
+        } else {
+          return orgResponse;
         }
-      }
-    }
-  }
-
-  public class RefreshOrg extends AsyncTask<Void, Void, Void> {
-
-    @Override
-    protected Void doInBackground(Void... voids) {
-      JSONObject response = CcsmApi.getOrg(ConversationListActivity.this);
-      if (response.has("id")) {
-        ForstaPreferences.setForstaOrg(ConversationListActivity.this, response.toString());
+      } else {
+        return userResponse;
       }
       return null;
     }
 
     @Override
-    protected void onPostExecute(Void aVoid) {
-      ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
-      if (forstaOrg != null) {
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setTitle("    " + forstaOrg.getName());
+    protected void onPostExecute(JSONObject errorResponse) {
+      if (errorResponse != null) {
+        try {
+          if (errorResponse.getString("error").equals("401")) {
+            Log.e(TAG, "Not Authorized");
+            handleLogout();
+          }
+        } catch (JSONException e) {
+          showValidationError();
+        }
+      } else {
+        ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
+        if (forstaOrg != null) {
+          TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
+          title.setText(forstaOrg.getName().toLowerCase());
+          if (forstaOrg.getOffTheRecord()) {
+            ForstaPreferences.setOffTheRecord(ConversationListActivity.this, true);
+          }
+        }
       }
     }
   }

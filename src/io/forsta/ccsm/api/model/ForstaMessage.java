@@ -26,6 +26,7 @@ import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.recipients.Recipients;
@@ -38,14 +39,13 @@ import io.forsta.securesms.util.Util;
 
 public class ForstaMessage {
   private static final String TAG = ForstaMessage.class.getSimpleName();
-  public String textBody;
-  public Spanned htmlBody;
-  public String messageId;
-  public String senderId;
-  public String universalExpression;
-  public String threadId;
-  public String threadTitle;
-  private ForstaDistribution distribution;
+  private String textBody;
+  private Spanned htmlBody;
+  private String messageId;
+  private String senderId;
+  private String universalExpression;
+  private String threadUid;
+  private String threadTitle;
 
   private ForstaMessage() {
 
@@ -54,11 +54,21 @@ public class ForstaMessage {
   public static ForstaMessage fromJsonString(String messageBody) {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
+      forstaMessage = fromJsonStringOrThrows(messageBody);
+    } catch (InvalidMessagePayloadException e) {
+      Log.e(TAG, e.getMessage());
+      Log.e(TAG, messageBody);
+      forstaMessage.textBody = messageBody;
+    }
+    return forstaMessage;
+  }
+
+  public static ForstaMessage fromJsonStringOrThrows(String messageBody) throws InvalidMessagePayloadException {
+    ForstaMessage forstaMessage = new ForstaMessage();
+    try {
       JSONObject jsonBody = getVersion(1, messageBody);
-      if (jsonBody == null) {
-        forstaMessage.textBody = messageBody;
-      } else {
-        forstaMessage.threadId = jsonBody.getString("threadId");
+      if (forstaMessage.isContentType(jsonBody)) {
+        forstaMessage.threadUid = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
           forstaMessage.threadTitle = jsonBody.getString("threadTitle");
@@ -84,26 +94,37 @@ public class ForstaMessage {
         forstaMessage.senderId = sender.getString("userId");
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
+      } else {
+        Log.w(TAG, messageBody);
+        throw new InvalidMessagePayloadException("Control message type");
       }
     } catch (JSONException e) {
       Log.e(TAG, "Invalid JSON message body");
       Log.e(TAG, messageBody);
+      throw new InvalidMessagePayloadException(e.getMessage());
     } catch (Exception e) {
       Log.w(TAG, "Exception occurred");
-      e.printStackTrace();
+      throw new InvalidMessagePayloadException(e.getMessage());
     }
     return forstaMessage;
   }
 
-  public void setForstaDistribution(ForstaDistribution forstaDistribution) {
-    this.distribution = forstaDistribution;
+  private boolean isContentType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("messageType")) {
+      if (jsonBody.getString("messageType").equals("content")) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  public ForstaDistribution getForstaDistribution() {
-    if (distribution == null) {
-      return new ForstaDistribution();
+  private boolean isConversationType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("threadType")) {
+      if (jsonBody.getString("threadType").equals("conversation")) {
+        return true;
+      }
     }
-    return distribution;
+    return false;
   }
 
   public static boolean isJsonBody(String body) {
@@ -111,7 +132,7 @@ public class ForstaMessage {
   }
 
   public boolean hasThreadUid() {
-    return !TextUtils.isEmpty(threadId);
+    return !TextUtils.isEmpty(threadUid);
   }
 
   public boolean hasDistributionExpression() {
@@ -165,7 +186,7 @@ public class ForstaMessage {
       JSONArray userIds = new JSONArray();
       String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
 
-      ForstaUser user = new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
       sender.put("tagId", user.tag_id);
       sender.put("tagPresentation", user.slug);
       sender.put("userId", user.uid);
@@ -233,5 +254,21 @@ public class ForstaMessage {
       return richTextMessage;
     }
     return versions.toString();
+  }
+
+  public String getThreadUId() {
+    return threadUid;
+  }
+
+  public String getThreadTitle() {
+    return threadTitle;
+  }
+
+  public String getTextBody() {
+    return textBody;
+  }
+
+  public Spanned getHtmlBody() {
+    return htmlBody;
   }
 }

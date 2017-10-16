@@ -49,6 +49,7 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.mms.SlideDeck;
@@ -138,6 +139,7 @@ public class MessageNotifier {
     ThreadDatabase threads    = DatabaseFactory.getThreadDatabase(context);
     Recipients     recipients = DatabaseFactory.getThreadDatabase(context)
                                                .getRecipientsForThreadId(threadId);
+    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
     if (isVisible) {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
@@ -145,7 +147,7 @@ public class MessageNotifier {
     }
 
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
-        (recipients != null && recipients.isMuted()))
+        (threadPreference != null && threadPreference.isMuted()))
     {
       return;
     }
@@ -382,14 +384,14 @@ public class MessageNotifier {
       }
 
       ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body.toString());
-      body = forstaMessage.textBody;
+      body = forstaMessage.getTextBody();
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
-      } else if (record.isMms() && TextUtils.isEmpty(body)) {
+      } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_media_message));
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
-      } else if (record.isMms() && !record.isMmsNotification()) {
+      } else if (record.isMediaPending() && !record.isMmsNotification()) {
         String message = context.getString(R.string.MessageNotifier_media_message_with_text, body);
         int    italicLength = message.length() - body.length();
         body = SpanUtil.italic(message, italicLength);

@@ -77,7 +77,7 @@ public class ForstaDistribution {
   public List<String> getRecipients(Context context) {
     List<String> users = new ArrayList<>();
     boolean excludeSelf = true;
-    if (userIds.size() > 2) {
+    if (userIds.size() > 2 || userIds.size() == 1) {
       excludeSelf = false;
     }
     for (String id : userIds) {

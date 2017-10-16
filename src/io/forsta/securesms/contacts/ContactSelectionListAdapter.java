@@ -32,6 +32,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.RecyclerViewFastScroller.FastScrollAdapter;
 import io.forsta.securesms.ContactSelectionListFragment.StickyHeaderAdapter;
@@ -119,15 +121,17 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     int    contactType = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsDatabase.CONTACT_TYPE_COLUMN)); //ContactsDatabase.PUSH_TYPE
     String name        = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NAME_COLUMN)); //ContactsDb.NAME
     String number      = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.NUMBER_COLUMN)); //ContactsDb.UID
-    String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.SLUG
-    String labelText = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.ORGSLUG
-    label = labelText + ":" + label;
-
+    String orgSlug       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.ORGSLUG
+    String slug = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.SLUG
+    ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
+    if (!localUser.org_slug.equals(orgSlug)) {
+      slug += ":" + orgSlug;
+    }
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);
 
     viewHolder.getView().unbind();
-    viewHolder.getView().set(id, contactType, name, number, label, color, multiSelect);
+    viewHolder.getView().set(id, contactType, name, number, slug, color, multiSelect);
 //    viewHolder.getView().setChecked(selectedContacts.containsKey(id));
     viewHolder.getView().setChecked(selectedAddresses.contains(number));
   }

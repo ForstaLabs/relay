@@ -97,7 +97,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         }.execute(searchText);
       }
     });
-
+    createConversationButton.setEnabled(false);
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
   }
 
@@ -106,6 +106,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
     public void onClick(View view) {
       removeRecipientChip(view);
       selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+      if (contactsFragment.getSelectedAddresses().size() < 1) {
+        createConversationButton.setEnabled(false);
+      }
     }
   }
 
@@ -135,6 +138,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);
+      createConversationButton.setEnabled(true);
     }
   }
 
@@ -175,12 +179,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
         if (distribution.hasRecipients()) {
           Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
-          long threadId = -1L;
-          if (forstaThread != null) {
-            // Show dialog asking to select this thread or create a new thread.
-            threadId = forstaThread.threadid;
+          if (forstaThread == null) {
+            forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
           }
 
+          long threadId = forstaThread.getThreadid();
           Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
           intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
           intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));

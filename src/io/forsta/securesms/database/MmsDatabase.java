@@ -708,31 +708,6 @@ public class MmsDatabase extends MessagingDatabase {
       throws MmsException
   {
 
-    ForstaMessage forstaMessage = retrieved.getForstaMessage();
-
-    Recipients recipients;
-
-    if (threadId == -1 && (forstaMessage != null && forstaMessage.hasThreadUid())) {
-      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
-      if (forstaMessage.getForstaDistribution().hasRecipients()) {
-        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-        if (threadId == -1) {
-          threadId = threadDb.allocateThreadId(recipients, forstaMessage);
-        } else {
-          threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
-        }
-      } else {
-        Log.e(TAG, "Forsta message body returned no recipients. ThreadUid: " + forstaMessage.threadId + " Expression: " + forstaMessage.universalExpression);
-        threadId = getThreadIdOrThrow(retrieved);
-      }
-
-    } else if (threadId == -1 || retrieved.isGroupMessage()) {
-      Log.w(TAG, "Forsta message body null or no thread UID");
-      Log.w(TAG, retrieved.getBody());
-      threadId = getThreadIdOrThrow(retrieved);
-    }
-
     ContentValues contentValues = new ContentValues();
 
     contentValues.put(DATE_SENT, retrieved.getSentTimeMillis());

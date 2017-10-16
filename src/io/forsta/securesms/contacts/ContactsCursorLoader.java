@@ -100,7 +100,7 @@ public class ContactsCursorLoader extends CursorLoader {
 
     ContactDb contactDb = DbFactory.getContactDb(getContext());
     Cursor contactsCursor = contactDb.getActiveRecipients(filter);
-    ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
+    // XXX Remove self from list of recipients?
     String localUid = TextSecurePreferences.getLocalNumber(getContext());
     try {
       while (contactsCursor != null && contactsCursor.moveToNext()) {

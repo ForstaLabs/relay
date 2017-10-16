@@ -1,6 +1,7 @@
 package io.forsta.ccsm.database.model;
 
 import android.database.Cursor;
+import android.text.TextUtils;
 
 import io.forsta.securesms.database.ThreadDatabase;
 
@@ -26,5 +27,21 @@ public class ForstaThread {
     uid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
     distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
     title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
+  }
+
+  public long getThreadid() {
+    return threadid;
+  }
+
+  public String getUid() {
+    return !TextUtils.isEmpty(uid) ? uid : "";
+  }
+
+  public String getDistribution() {
+    return !TextUtils.isEmpty(distribution) ? distribution : "";
+  }
+
+  public String getTitle() {
+    return !TextUtils.isEmpty(title) ? title : "";
   }
 }

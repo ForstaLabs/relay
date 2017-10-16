@@ -311,28 +311,22 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append(tokenExpire);
     sb.append("\n");
 
-    String forstaUser = ForstaPreferences.getForstaUser(DashboardActivity.this);
-    try {
-      JSONObject data = new JSONObject(forstaUser);
-      ForstaUser user = new ForstaUser(data);
-      sb.append("Org Id: ");
-      sb.append(user.org_id);
-      sb.append("\n");
-      sb.append("User Id: ");
-      sb.append(user.uid);
-      sb.append("\n");
-      sb.append("Tag Id: ");
-      sb.append(user.tag_id);
-      sb.append("\n");
-      sb.append("Slug: ");
-      sb.append(user.slug);
-      sb.append("\n");
-      sb.append("Phone: ");
-      sb.append(user.phone);
-      sb.append("\n");
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
+    ForstaUser user = ForstaUser.getLocalForstaUser(DashboardActivity.this);
+    sb.append("Org Id: ");
+    sb.append(user.org_id);
+    sb.append("\n");
+    sb.append("User Id: ");
+    sb.append(user.uid);
+    sb.append("\n");
+    sb.append("Tag Id: ");
+    sb.append(user.tag_id);
+    sb.append("\n");
+    sb.append("Slug: ");
+    sb.append(user.slug);
+    sb.append("\n");
+    sb.append("Phone: ");
+    sb.append(user.phone);
+    sb.append("\n");
 
     mLoginInfo.setText(sb.toString());
   }

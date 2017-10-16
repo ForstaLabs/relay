@@ -531,30 +531,8 @@ public class SmsDatabase extends MessagingDatabase {
                             !message.isIdentityUpdate();
 
     long       threadId;
-    ForstaMessage forstaMessage = message.getForstaMessage();
-
-    if (forstaMessage != null && forstaMessage.hasThreadUid()) {
-      ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-      threadId = threadDb.getThreadIdForUid(forstaMessage.threadId);
-      if (forstaMessage.getForstaDistribution().hasRecipients()) {
-        recipients = RecipientFactory.getRecipientsFromStrings(context, forstaMessage.getForstaDistribution().getRecipients(context), false);
-      } else {
-        Log.e(TAG, "Forsta message body returned no recipients. ThreadUid: " + forstaMessage.threadId + " Expression: " + forstaMessage.universalExpression);
-        recipients = RecipientFactory.getRecipientsFromString(context, message.getSender(), false);
-      }
-
-      if (threadId == -1) {
-        threadId = threadDb.allocateThreadId(recipients, forstaMessage);
-      } else {
-        threadDb.updateForstaThread(threadId, recipients, forstaMessage.universalExpression, forstaMessage.threadTitle);
-      }
-    } else {
-      Log.w(TAG, "No Forsta message body, or threadUid is empty");
-      Log.w(TAG, message.getMessageBody());
-      // Old message processing. Find thread based on the recipients or encoded group id.
-      if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-      else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
-    }
+    if (groupRecipients == null) threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
+    else                         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
 
     ContentValues values = new ContentValues(6);
     values.put(ADDRESS, message.getSender());

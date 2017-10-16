@@ -404,6 +404,7 @@ public class ThreadDatabase extends Database {
     DatabaseFactory.getSmsDatabase(context).deleteThread(threadId);
     DatabaseFactory.getMmsDatabase(context).deleteThread(threadId);
     DatabaseFactory.getDraftDatabase(context).clearDrafts(threadId);
+    DatabaseFactory.getThreadPreferenceDatabase(context).deleteThreadPreference(threadId);
     deleteThread(threadId);
     notifyConversationListeners(threadId);
     notifyConversationListListeners();
@@ -413,6 +414,7 @@ public class ThreadDatabase extends Database {
     DatabaseFactory.getSmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getMmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getDraftDatabase(context).clearDrafts(selectedConversations);
+    DatabaseFactory.getThreadPreferenceDatabase(context).deleteThreadPreferences(selectedConversations);
     deleteThreads(selectedConversations);
     notifyConversationListeners(selectedConversations);
     notifyConversationListListeners();
@@ -514,9 +516,9 @@ public class ThreadDatabase extends Database {
     contentValues.put(DATE, date - date % 1000);
     contentValues.put(RECIPIENT_IDS, recipientsList);
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
-    contentValues.put(UID, forstaMessage.threadId);
-    contentValues.put(DISTRIBUTION, forstaMessage.universalExpression);
-    contentValues.put(TITLE, forstaMessage.threadTitle);
+    contentValues.put(UID, forstaMessage.getThreadUId());
+    contentValues.put(DISTRIBUTION, forstaMessage.getUniversalExpression());
+    contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
@@ -611,7 +613,7 @@ public class ThreadDatabase extends Database {
     if (!TextUtils.equals(forstaThread.title, title)) {
       values.put(TITLE, title);
     }
-    if (!forstaThread.distribution.equals(distribution) && !TextUtils.isEmpty(distribution)) {
+    if (!TextUtils.isEmpty(distribution) && !distribution.equals(forstaThread.distribution)) {
       values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution);
     }

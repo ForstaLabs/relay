@@ -12,6 +12,8 @@ import android.util.AttributeSet;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiTextView;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;

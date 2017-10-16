@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.util.InvalidUserException;
 
 /**
  * Created by jlewis on 3/2/17.
@@ -35,8 +36,13 @@ public class ForstaUser {
 
   }
 
-  public ForstaUser(JSONObject userObj) {
+  public ForstaUser(JSONObject userObj) throws InvalidUserException {
     try {
+      this.uid = userObj.getString("id");
+      if (TextUtils.isEmpty(this.uid)) {
+        throw new InvalidUserException("UID is empty of null");
+      }
+      this.username = userObj.getString("username");
       String name = getContactName(userObj);
       this.name = name;
       if (userObj.has("tag")) {
@@ -48,8 +54,6 @@ public class ForstaUser {
           this.slug = tag.getString("slug");
         }
       }
-      this.uid = userObj.getString("id");
-      this.username = userObj.getString("username");
       JSONObject org = userObj.getJSONObject("org");
       if (org.has("id")) {
         this.org_id = org.getString("id");
@@ -73,7 +77,7 @@ public class ForstaUser {
       this.tsRegistered = false;
 
     } catch (JSONException e) {
-      e.printStackTrace();
+      throw new InvalidUserException("An error occured parsing user JSON");
     }
   }
 
@@ -82,6 +86,9 @@ public class ForstaUser {
       return new ForstaUser(new JSONObject(ForstaPreferences.getForstaUser(context)));
     } catch (JSONException e) {
       Log.e(TAG, "Exception parsing user object from preferences");
+    } catch (InvalidUserException e) {
+      Log.e(TAG, e.getMessage());
+      e.printStackTrace();
     }
     return null;
   }

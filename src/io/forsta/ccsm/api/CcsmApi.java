@@ -36,6 +36,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.ccsm.util.NetworkUtils;
 
@@ -82,48 +83,11 @@ public class CcsmApi {
         // These can be eliminated. getForstaUser will give us everything we need.
         ForstaPreferences.setRegisteredForsta(context, token);
         ForstaPreferences.setRegisteredDateTime(context, lastLogin);
-
         ForstaPreferences.setForstaLoginPending(context, false);
       }
     } catch (JSONException e) {
       Log.e(TAG, "JSON Exception in forstaLogin.");
       e.printStackTrace();
-    }
-    return result;
-  }
-
-  // TODO Is there a reason to ever refresh the token.
-  public static boolean tokenNeedsRefresh(Context context) {
-    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
-    if (expireDate == null) {
-      return false;
-    }
-    Date current = new Date();
-    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
-    long expireDelta = EXPIRE_REFRESH_DELTA;
-    boolean expired = expiresIn < expireDelta;
-
-    Log.d(TAG, "Token expires in: " + expiresIn);
-    return expired;
-  }
-
-  public static JSONObject forstaRefreshToken(Context context) {
-    JSONObject result = new JSONObject();
-    try {
-      JSONObject obj = new JSONObject();
-      obj.put("token", ForstaPreferences.getRegisteredKey(context));
-      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
-      if (result.has("token")) {
-        Log.d(TAG, "Token refresh. New token issued.");
-        String token = result.getString("token");
-        ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.d(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      Log.e(TAG, "forstaRefreshToken failed");
     }
     return result;
   }
@@ -135,11 +99,8 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    // TODO handle error response here. On 401 do we do nothing, or redirect to LoginActivity?
-    // There is currently a check in the entry point for auth to the api endpoint.
     JSONObject response = getUsers(context);
-    if (isErrorResponse(response)) {
-      Log.e(TAG, "Bad response from API");
+    if (isUnauthorizedResponse(response)) {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
@@ -150,6 +111,9 @@ public class CcsmApi {
 
   public static void syncForstaContacts(Context context, String ids) {
     JSONObject response = getUserDirectory(context, ids);
+    if (isUnauthorizedResponse(response)) {
+      return;
+    }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
     syncForstaContactsDb(context, forstaContacts, false);
   }
@@ -166,31 +130,18 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
   }
 
-  public static JSONObject checkForstaAuth(Context context) {
-    return getForstaAuth(context);
-  }
-
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
     return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
   }
 
   public static JSONObject createAccount(JSONObject jsonObject) {
     String host = BuildConfig.FORSTA_API_URL;
-    // Need to get service token from build environment variable...dev, stage, prod.
     String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
     return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
-  // TODO These should all be private. They are exposed right now for the debug dashboard.
-  public static JSONObject getForstaAuth(Context context) {
-    String userId = "";
-    try {
-      JSONObject object = new JSONObject(ForstaPreferences.getForstaUser(context));
-      userId = object.getString("id") + "/";
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-    return fetchResource(context, "GET", API_USER + userId);
+  public static JSONObject getForstaUser(Context context) {
+    return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
   }
 
   public static JSONObject getUserPick(Context context) {
@@ -230,7 +181,6 @@ public class CcsmApi {
   }
 
   public static JSONObject getOrg(Context context, String id) {
-    JSONObject response = new JSONObject();
     return fetchResource(context, "GET", API_ORG + id + "/");
   }
 
@@ -282,7 +232,7 @@ public class CcsmApi {
       for (int i = 0; i < results.length(); i++) {
         JSONObject result = results.getJSONObject(i);
         JSONArray users = result.getJSONArray("users");
-        // TODO Right now, not getting groups with no members. Leaves only.
+        // TODO Right now, not getting tags with no members. Leaves only.
         Set<String> members = new HashSet<>();
         boolean isGroup = false;
         for (int j = 0; j < users.length(); j++) {
@@ -314,7 +264,41 @@ public class CcsmApi {
     return ForstaDistribution.fromJson(response);
   }
 
-  // This is out for now.
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
+    ContactDb forstaDb = DbFactory.getContactDb(context);
+    forstaDb.updateUsers(contacts, removeExisting);
+    forstaDb.close();
+  }
+
+  private static void syncForstaGroups(Context context) {
+    JSONObject response = getTags(context);
+    List<ForstaGroup> groups = parseTagGroups(response);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+    db.updateGroups(groups, activeNumbers);
+  }
+
+  private static boolean isUnauthorizedResponse(JSONObject response) {
+    if (response == null) {
+      return true;
+    }
+    if (response.has("error")) {
+      try {
+        String error = response.getString("error");
+        Log.e(TAG, error);
+        if (error.equals("401")) {
+          Log.e(TAG, "CCSM API Unauthorized.");
+          return true;
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+    return false;
+  }
+
+  // XXX obsolete XXX
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();
     String[] projection = new String[]{
@@ -353,7 +337,7 @@ public class CcsmApi {
           if (!systemContacts.contains(e164number)) {
             ContactsDatabase.createForstaPhoneContact(context, ops, account.get(), e164number, user.name);
           } // TODO Update system contacts?
-            // else ContactsDatabase.updateContact(context, ops, account.get(), e164number, user.name)
+          // else ContactsDatabase.updateContact(context, ops, account.get(), e164number, user.name)
         } catch (InvalidNumberException e) {
           e.printStackTrace();
         }
@@ -365,35 +349,39 @@ public class CcsmApi {
     }
   }
 
-  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
-    ContactDb forstaDb = DbFactory.getContactDb(context);
-    forstaDb.updateUsers(contacts, removeExisting);
-    forstaDb.close();
-  }
-
-  private static void syncForstaGroups(Context context) {
-    JSONObject response = getTags(context);
-    List<ForstaGroup> groups = parseTagGroups(response);
-    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    db.updateGroups(groups, activeNumbers);
-  }
-
-  private static boolean isErrorResponse(JSONObject response) {
-    if (response == null) {
-      return true;
+  // TODO Is there a reason to ever refresh the token.
+  public static boolean tokenNeedsRefresh(Context context) {
+    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
+    if (expireDate == null) {
+      return false;
     }
-    if (response.has("error")) {
-      try {
-        String error = response.getString("error");
-        if (error.equals("401")) {
-          return true;
-        }
-      } catch (JSONException e) {
-        e.printStackTrace();
+    Date current = new Date();
+    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
+    long expireDelta = EXPIRE_REFRESH_DELTA;
+    boolean expired = expiresIn < expireDelta;
+
+    Log.d(TAG, "Token expires in: " + expiresIn);
+    return expired;
+  }
+
+  public static JSONObject forstaRefreshToken(Context context) {
+    JSONObject result = new JSONObject();
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("token", ForstaPreferences.getRegisteredKey(context));
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
+      if (result.has("token")) {
+        Log.d(TAG, "Token refresh. New token issued.");
+        String token = result.getString("token");
+        ForstaPreferences.setRegisteredForsta(context, token);
+      } else {
+        Log.d(TAG, "Token refresh failed.");
+        ForstaPreferences.setRegisteredForsta(context, "");
       }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "forstaRefreshToken failed");
     }
-    return false;
+    return result;
   }
 }
