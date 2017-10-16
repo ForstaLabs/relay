@@ -60,6 +60,7 @@ import io.forsta.securesms.util.ViewUtil;
 import java.util.Locale;
 import java.util.Set;
 
+import static io.forsta.securesms.R.xml.preferences;
 import static io.forsta.securesms.util.SpanUtil.color;
 
 /**
@@ -98,6 +99,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private String forstaThreadTitle;
+  private MaterialColor threadColor;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -136,6 +138,7 @@ public class ConversationListItem extends RelativeLayout
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
     this.forstaThreadTitle = thread.getTitle();
+    this.threadColor = thread.getColor();
 
     this.fromView.setText(recipients, read);
     setForstaThreadTitle();
@@ -161,10 +164,8 @@ public class ConversationListItem extends RelativeLayout
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
-    ThreadPreferenceDatabase.ThreadPreference preferences = DatabaseFactory.getThreadPreferenceDatabase(getContext()).getThreadPreferences(threadId);
-    setRippleColor(preferences.getColor());
-//    setRippleColor(recipients);
-    this.contactPhotoImage.setAvatar(recipients, preferences.getColor());
+    setRippleColor(threadColor);
+    this.contactPhotoImage.setAvatar(recipients, threadColor);
   }
 
   @Override
@@ -262,9 +263,8 @@ public class ConversationListItem extends RelativeLayout
       @Override
       public void run() {
         fromView.setText(recipients, read);
-        setForstaThreadTitle();
-        contactPhotoImage.setAvatar(recipients, true);
-        setRippleColor(recipients);
+        setRippleColor(threadColor);
+        contactPhotoImage.setAvatar(recipients, threadColor);
       }
     });
   }

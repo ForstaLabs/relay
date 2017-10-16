@@ -22,14 +22,14 @@ public class ThreadPreferenceDatabase extends Database {
   private static final String TAG = ThreadPreferenceDatabase.class.getSimpleName();
   public static final String THREAD_PREFERENCES_URI = "content://textsecure/conversations/";
 
-  private static final String TABLE_NAME = "thread_preferences";
+  public static final String TABLE_NAME = "thread_preferences";
   private static final String ID = "_id";
-  private static final String THREAD_ID = "thread_id";
+  public static final String THREAD_ID = "thread_id";
   private static final String BLOCK = "block";
   private static final String NOTIFICATION = "notification";
   private static final String VIBRATE = "vibrate";
   private static final String MUTE_UNTIL = "mute_until";
-  private static final String COLOR = "color";
+  public static final String COLOR = "color";
   private static final String EXPIRE_MESSAGES = "expire_messages";
 
   public static final String CREATE_TABLE =

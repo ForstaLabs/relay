@@ -14,7 +14,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.preference.PreferenceFragment;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -136,6 +138,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       @Override
       public void onClick(View view) {
         DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
+        forstaSaveTitle.setVisibility(View.GONE);
         Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
       }
     });
@@ -145,8 +148,27 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    forstaTitle.setHint("Add a Title");
+    forstaTitle.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+      }
 
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if (s.length() > 0) {
+          forstaSaveTitle.setVisibility(View.VISIBLE);
+        } else {
+          forstaSaveTitle.setVisibility(View.GONE);
+        }
+      }
+
+      @Override
+      public void afterTextChanged(Editable s) {
+
+      }
+    });
     title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
 
     if (BuildConfig.FLAVOR.equals("dev")) {
