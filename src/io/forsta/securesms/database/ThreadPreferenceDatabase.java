@@ -113,14 +113,6 @@ public class ThreadPreferenceDatabase extends Database {
     updateOrInsert(threadId, values);
   }
 
-  public void setDefaultColor(long threadId) {
-    ContentValues values = new ContentValues();
-    int randColor = new Random().nextInt(MaterialColors.CONVERSATION_PALETTE.size());
-    MaterialColor color = MaterialColors.CONVERSATION_PALETTE.get(randColor);
-    values.put(COLOR, color.serialize());
-    updateOrInsert(threadId, values);
-  }
-
   public void setColor(long threadId, MaterialColor color) {
     ContentValues values = new ContentValues();
     values.put(COLOR, color.serialize());
@@ -190,7 +182,7 @@ public class ThreadPreferenceDatabase extends Database {
       try {
         return MaterialColor.fromSerialized(color);
       } catch (MaterialColor.UnknownColorException e) {
-        return MaterialColor.BLUE_GREY;
+        return MaterialColors.getRandomConversationColor();
       }
     }
   }

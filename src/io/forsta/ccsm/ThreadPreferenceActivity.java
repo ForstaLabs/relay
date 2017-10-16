@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.preference.PreferenceFragment;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -188,14 +189,15 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       this.findPreference(PREFERENCE_MUTED)
           .setOnPreferenceClickListener(new MuteClickListener());
+      this.findPreference(PREFERENCE_COLOR)
+          .setOnPreferenceChangeListener(new ColorChangeListener());
 //      this.findPreference(PREFERENCE_TONE)
 //          .setOnPreferenceChangeListener(new RingtoneChangeListener());
 //      this.findPreference(PREFERENCE_VIBRATE)
 //          .setOnPreferenceChangeListener(null);
 //      this.findPreference(PREFERENCE_BLOCK)
 //          .setOnPreferenceClickListener(null);
-      this.findPreference(PREFERENCE_COLOR)
-          .setOnPreferenceChangeListener(new ColorChangeListener());
+
     }
 
     private void initializePreferences() {
@@ -203,20 +205,16 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       ThreadPreferenceDatabase.ThreadPreference threadPreference = db.getThreadPreferences(threadId);
 
       mutePreference = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
+      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+      colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
+      mutePreference.setChecked(threadPreference.isMuted());
+      colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
+
 //      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
 //      notificationPreference.setSummary(R.string.preferences__default);
 //      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
-      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
-      colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
 
-//      blockPreference = this.findPreference(PREFERENCE_BLOCK);
-
-      int size = MaterialColors.CONVERSATION_PALETTE.size();
-      int randColor = new Random().nextInt(MaterialColors.CONVERSATION_PALETTE.size());
-      MaterialColor color = MaterialColors.CONVERSATION_PALETTE.get(randColor);
-
-      if (threadPreference != null) {
-//        if (threadPreference.getNotification() != null) {
+      //      if (threadPreference.getNotification() != null) {
 //          Ringtone tone = RingtoneManager.getRingtone(getActivity(), threadPreference.getNotification());
 //          if (tone != null) {
 //            notificationPreference.setSummary(tone.getTitle(getActivity()));
@@ -224,11 +222,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //          }
 //        }
 
-        mutePreference.setChecked(threadPreference.isMuted());
-        if (threadPreference.getColor() != null) {
-          colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
-        }
-      }
     }
 
     private class RingtoneChangeListener implements Preference.OnPreferenceChangeListener {

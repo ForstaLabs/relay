@@ -72,6 +72,7 @@ import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AnimatingToggle;
 import io.forsta.securesms.components.AttachmentTypeSelector;
 import io.forsta.securesms.components.ComposeText;
@@ -286,11 +287,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     composeText.setTransport(sendButton.getSelectedTransport());
 
-    titleView.setTitle(recipients);
-    setForstaTitle();
+    initThread();
 
-    setActionBarColor(recipients.getColor());
-    setBlockedUserState(recipients);
     calculateCharactersRemaining();
 
     MessageNotifier.setVisibleThread(threadId);
@@ -299,6 +297,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void onChange(boolean selfChange) {
         invalidateOptionsMenu();
+        initThread();
       }
     };
 
@@ -330,15 +329,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           .setMessage(sb.toString())
           .setPositiveButton("OK", null)
           .show();
-    }
-  }
-
-  private void setForstaTitle() {
-    if (threadId != -1) {
-      ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-      if (!TextUtils.isEmpty(forstaThread.title)) {
-        titleView.setForstaTitle(forstaThread.title);
-      }
     }
   }
 
@@ -396,8 +386,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case GROUP_EDIT:
       recipients = RecipientFactory.getRecipientsForIds(this, data.getLongArrayExtra(GroupCreateActivity.GROUP_RECIPIENT_EXTRA), true);
       recipients.addListener(this);
-      titleView.setTitle(recipients);
-      setBlockedUserState(recipients);
       supportInvalidateOptionsMenu();
       break;
     case TAKE_PHOTO:
@@ -731,6 +719,23 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   ///// Initializers
 
+  private void initThread() {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+    if (!TextUtils.isEmpty(thread.getTitle())) {
+      titleView.setForstaTitle(thread.getTitle());
+    } else {
+      titleView.setTitle(recipients);
+    }
+    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getThreadPreferences(threadId);
+    MaterialColor threadColor = MaterialColors.getRandomConversationColor();
+    if (threadPreference != null) {
+      threadColor = threadPreference.getColor();
+    } else {
+      DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setColor(threadId, threadColor);
+    }
+    setActionBarColor(threadColor);
+  }
+
   private void initializeDraft() {
     final String    draftText      = getIntent().getStringExtra(TEXT_EXTRA);
     final Uri       draftMedia     = getIntent().getData();
@@ -955,21 +960,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     recipients.addListener(this);
+
+    initThread();
   }
 
   @Override
   public void onModified(final Recipients recipients) {
-    titleView.post(new Runnable() {
-      @Override
-      public void run() {
-        titleView.setTitle(recipients);
-        setForstaTitle();
 
-//        setBlockedUserState(recipients);
-//        setActionBarColor(recipients.getColor());
-        invalidateOptionsMenu();
-      }
-    });
   }
 
   private void initializeReceivers() {

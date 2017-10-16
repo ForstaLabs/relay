@@ -146,11 +146,11 @@ public class ThreadDatabase extends Database {
 
     if (threadUid != null) {
       contentValues.put(UID, threadUid);
+    } else {
+      contentValues.put(UID, UUID.randomUUID().toString());
     }
 
     contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(UID, UUID.randomUUID().toString());
-
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
   }
@@ -506,7 +506,7 @@ public class ThreadDatabase extends Database {
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
-//    DatabaseFactory.getThreadPreferenceDatabase(context).setDefaultColor(threadId);
+    DatabaseFactory.getThreadPreferenceDatabase(context).setColor(threadId, MaterialColors.getRandomConversationColor());
     return getForstaThread(threadId);
   }
 
@@ -526,7 +526,7 @@ public class ThreadDatabase extends Database {
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
-//    DatabaseFactory.getThreadPreferenceDatabase(context).setDefaultColor(threadId);
+    DatabaseFactory.getThreadPreferenceDatabase(context).setColor(threadId, MaterialColors.getRandomConversationColor());
     return threadId;
   }
 
