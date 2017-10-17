@@ -148,6 +148,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     } catch (IOException e) {
       Log.w(TAG, e);
       throw new RetryLaterException(e);
+    } catch (IllegalStateException e) {
+      Log.w(TAG, "" + e);
     }
   }
 

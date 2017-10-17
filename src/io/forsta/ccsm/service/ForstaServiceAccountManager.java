@@ -3,6 +3,8 @@ package io.forsta.ccsm.service;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
+
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -12,6 +14,8 @@ import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.TrustStore;
 import org.whispersystems.signalservice.internal.push.PushServiceSocket;
 import org.whispersystems.signalservice.internal.util.StaticCredentialsProvider;
+
+import static android.content.ContentValues.TAG;
 
 public class ForstaServiceAccountManager extends SignalServiceAccountManager {
 
@@ -46,6 +50,7 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
     this.user = addr + "." + response.get("deviceId");
     this.userAgent = userAgent;
     String serverUrl = response.get("serverUrl").toString();
+    TextSecurePreferences.setLocalDeviceID(context, response.getInt("deviceId"));
     TextSecurePreferences.setServer(context, serverUrl);
     TextSecurePreferences.setUserAgent(context, userAgent);
     StaticCredentialsProvider creds = new StaticCredentialsProvider(this.user, password,

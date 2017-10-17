@@ -10,7 +10,7 @@ public class TextSecureCommunicationFactory {
   public static ForstaServiceAccountManager createManager(Context context) {
     return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
                                            new TextSecurePushTrustStore(context),
-                                           TextSecurePreferences.getLocalNumber(context),
+                                           TextSecurePreferences.getLocalNumber(context) + "." + TextSecurePreferences.getLocalDeviceId(context),
                                            TextSecurePreferences.getPushServerPassword(context),
                                            TextSecurePreferences.getUserAgent(context));
   }
