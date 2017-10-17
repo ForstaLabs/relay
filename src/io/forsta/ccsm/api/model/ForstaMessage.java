@@ -57,7 +57,7 @@ public class ForstaMessage {
     try {
       forstaMessage = fromJsonStringOrThrows(messageBody);
     } catch (InvalidMessagePayloadException e) {
-      Log.e(TAG, e.getMessage());
+      Log.e(TAG, "Invalid message payload: " + e.getMessage());
       Log.e(TAG, messageBody);
       forstaMessage.textBody = messageBody;
     }
