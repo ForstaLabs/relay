@@ -30,8 +30,10 @@ import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.attachments.Attachment;
+import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.Util;
@@ -221,8 +223,7 @@ public class ForstaMessage {
       if (attachments != null) {
         for (Attachment attachment : messageAttachments) {
           JSONObject attachmentJson = new JSONObject();
-          String attachmentFileName = attachment.getDataUri().toString();
-          attachmentJson.put("name", attachmentFileName);
+          attachmentJson.put("name", "");
           attachmentJson.put("size", attachment.getSize());
           attachmentJson.put("type", attachment.getContentType());
           attachments.put(attachmentJson);

@@ -1161,7 +1161,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
-  private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
+  private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
@@ -1184,6 +1184,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+        List<Slide> slides = slideDeck.getSlides();
 
 
         message.setForstaJsonBody(context, threadData);
