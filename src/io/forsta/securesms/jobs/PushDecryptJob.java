@@ -250,7 +250,7 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
@@ -347,7 +347,7 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -380,7 +380,7 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     OutgoingExpirationUpdateMessage expirationUpdateMessage = new OutgoingExpirationUpdateMessage(recipients,
         message.getTimestamp(),
@@ -409,7 +409,7 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = getOrAllocateThreadId(recipients, forstaMessage);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
       handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
@@ -513,16 +513,6 @@ public class PushDecryptJob extends ContextJob {
       return RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
     }
     throw new InvalidMessagePayloadException("No recipients found in message.");
-  }
-
-  private long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    if (threadId == -1) {
-      threadId = DatabaseFactory.getThreadDatabase(context).allocateThreadId(recipients, forstaMessage);
-    } else {
-      DatabaseFactory.getThreadDatabase(context).updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.getThreadTitle());
-    }
-    return threadId;
   }
 
   // XXX unused or obsolete methods and empty handlers.

@@ -535,6 +535,17 @@ public class ThreadDatabase extends Database {
     return threadId;
   }
 
+  public long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    long threadId = getThreadIdForUid(forstaMessage.getThreadUId());
+    if (threadId == -1) {
+      threadId = allocateThreadId(recipients, forstaMessage);
+    } else {
+      updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.getThreadTitle());
+    }
+    return threadId;
+  }
+
   public long getThreadIdForUid(String threadUid) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
