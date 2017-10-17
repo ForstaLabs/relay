@@ -98,7 +98,6 @@ import io.forsta.securesms.database.NotInDirectoryException;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
-import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentManager.MediaType;
 import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
@@ -121,7 +120,6 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.sms.OutgoingEncryptedMessage;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -600,6 +598,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
+  // This method uses the standard text message code path.
+  // Needs review and use case. For now it is hidden.
   private void handleResetSecureSession() {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.ConversationActivity_reset_secure_session_question);
@@ -640,6 +640,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivity(intent);
   }
 
+  // Group updates are no longer supported by other clients.
+  // Review and remove if not used for other purposes.
   private void handleLeavePushGroup() {
     if (getRecipients() == null) {
       Toast.makeText(this, getString(R.string.ConversationActivity_invalid_recipient),
@@ -1297,16 +1299,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
 
-        ForstaThread threadData = null;
-        if (message.isSecure()) {
-          if (threadId == -1) {
-            threadData = createForstaThread();
-          } else {
-            threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-          }
-          message.setForstaJsonBody(context, threadData);
+        ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+        if (threadData == null) {
+          // This should never happen.
+          threadData = createThread();
+          threadId = threadData.getThreadid();
         }
-        return MessageSender.send(context, masterSecret, message, (threadData != null && threadData.threadid > 0) ? threadData.threadid : threadId, forceSms);
+
+        message.setForstaJsonBody(context, threadData);
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
       @Override
@@ -1319,7 +1320,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-  private ForstaThread createForstaThread() {
+  private void fixEmptyExpression() {
     if (TextUtils.isEmpty(distribution_expression)) {
       distribution_expression = recipients.getRecipientExpression();
       ForstaUser user = ForstaUser.getLocalForstaUser(ConversationActivity.this);
@@ -1327,7 +1328,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         distribution_expression += user.getFullTag();
       }
     }
+  }
 
+  private ForstaThread createThread() {
+    fixEmptyExpression();
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, distribution_expression);
     return DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
 }
