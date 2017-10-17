@@ -343,7 +343,11 @@ public class ThreadDatabase extends Database {
     String titleSelection = TITLE + " LIKE ? ";
     String filterQuery = "%" + filter + "%";
 
-    cursors.add(db.query(TABLE_NAME, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+
+    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -353,9 +357,8 @@ public class ThreadDatabase extends Database {
   public Cursor getConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
-    builder.setTables(TABLE_NAME + " LEFT OUTER JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-//    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
     Cursor cursor = builder.query(db, null, null, null, null, null, DATE + " DESC");
     setNotifyConverationListListeners(cursor);
     return cursor;
@@ -363,7 +366,10 @@ public class ThreadDatabase extends Database {
 
   public Cursor getArchivedConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+    Cursor         cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
 
     setNotifyConverationListListeners(cursor);
 
@@ -431,6 +437,7 @@ public class ThreadDatabase extends Database {
     DatabaseFactory.getSmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getMmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getDraftDatabase(context).clearAllDrafts();
+    DatabaseFactory.getThreadPreferenceDatabase(context).deleteAllPreferences();
     deleteAllThreads();
   }
 
