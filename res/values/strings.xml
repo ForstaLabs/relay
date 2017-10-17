@@ -823,6 +823,8 @@
     <string name="recipient_preferences__color_for_this_contact">Color for this contact</string>
     <string name="recipient_preferences__verify_safety_numbers">Verify safety numbers</string>
 
+    <string name="thread_preferences__title">Mute conversation</string>
+    <string name="thread_preferences__recipients">Mute conversation</string>
     <string name="thread_preferences__mute_conversation">Mute conversation</string>
     <string name="thread_preferences__disable_notifications_for_this_conversation">Disable notifications for this conversation</string>
     <string name="thread_preferences__notification_sound">Notification sound</string>
@@ -830,8 +832,6 @@
     <string name="thread_preferences__block">Block</string>
     <string name="thread_preferences__color">Color</string>
     <string name="thread_preferences__color_for_this_conversation">Color for this conversation</string>
-
-
 
     <!--- redphone_call_controls -->
     <string name="redphone_call_card__signal_call">Forsta Call</string>

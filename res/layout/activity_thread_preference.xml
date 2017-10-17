@@ -70,7 +70,7 @@
     android:layout_marginBottom="0dp">
     <TextView style="@style/TextAppearance.AppCompat.Subhead"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content" android:text="Conversation Title"/>
+              android:layout_height="wrap_content" android:text="@string/thread_preferences__title"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -93,7 +93,7 @@
     </LinearLayout>
     <TextView style="@style/TextAppearance.AppCompat.Subhead"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content" android:text="Recipients"/>
+              android:layout_height="wrap_content" android:text="@string/thread_preferences__recipients"/>
     <TextView android:id="@+id/forsta_thread_recipients" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
     <LinearLayout
         android:id="@+id/forsta_thread_debug_details"

@@ -148,7 +148,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
-    forstaTitle.setHint("Add a Title");
+    if (!TextUtils.isEmpty(thread.getTitle())) {
+      forstaTitle.setText(thread.getTitle());
+    } else {
+      forstaTitle.setHint("Add a Title");
+    }
     forstaTitle.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
