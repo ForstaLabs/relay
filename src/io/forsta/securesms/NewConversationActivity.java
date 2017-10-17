@@ -190,7 +190,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
           intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
           intent.setDataAndType(getIntent().getData(), getIntent().getType());
           intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
-          intent.putExtra(ConversationActivity.DISTRIBUTION_EXPRESSION_EXTRA, distribution.universal);
           intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
           startActivity(intent);
           finish();
@@ -210,7 +209,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     case android.R.id.home:   super.onBackPressed(); return true;
     case R.id.menu_refresh:   handleManualRefresh(); return true;
     case R.id.menu_new_group: handleCreateGroup();   return true;
-//    case R.id.menu_invite:    handleInvite();        return true;
     }
 
     return false;
@@ -223,10 +221,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   private void handleCreateGroup() {
     startActivity(new Intent(this, GroupCreateActivity.class));
-  }
-
-  private void handleInvite() {
-    startActivity(new Intent(this, InviteActivity.class));
   }
 
   @Override
