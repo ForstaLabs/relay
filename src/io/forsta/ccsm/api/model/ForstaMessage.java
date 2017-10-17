@@ -1,6 +1,8 @@
 package io.forsta.ccsm.api.model;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -219,7 +221,8 @@ public class ForstaMessage {
       if (attachments != null) {
         for (Attachment attachment : messageAttachments) {
           JSONObject attachmentJson = new JSONObject();
-          attachmentJson.put("name", attachment.getDataUri().getLastPathSegment());
+          String attachmentFileName = attachment.getDataUri().toString();
+          attachmentJson.put("name", attachmentFileName);
           attachmentJson.put("size", attachment.getSize());
           attachmentJson.put("type", attachment.getContentType());
           attachments.put(attachmentJson);
