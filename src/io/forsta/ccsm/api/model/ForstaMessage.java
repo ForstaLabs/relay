@@ -27,6 +27,7 @@ import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.recipients.Recipients;
@@ -159,14 +160,14 @@ public class ForstaMessage {
   }
 
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
-    return createForstaMessageBody(context, richTextMessage, messageRecipients, "", "", "");
+    return createForstaMessageBody(context, richTextMessage, messageRecipients, new ArrayList<Attachment>(), "", "", "");
   }
 
-  public static String createForstaMessageBody(Context context, String message, Recipients recipients, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, forstaThread.distribution, forstaThread.title, forstaThread.uid);
+  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.distribution, forstaThread.title, forstaThread.uid);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, String universalExpression, String threadTitle, String threadUid) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, String universalExpression, String threadTitle, String threadUid) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -184,6 +185,8 @@ public class ForstaMessage {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
+      JSONArray attachments = new JSONArray();
+
       String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
 
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
@@ -213,6 +216,16 @@ public class ForstaMessage {
         }
       }
 
+      if (attachments != null) {
+        for (Attachment attachment : messageAttachments) {
+          JSONObject attachmentJson = new JSONObject();
+          attachmentJson.put("name", attachment.getDataUri().getLastPathSegment());
+          attachmentJson.put("size", attachment.getSize());
+          attachmentJson.put("type", attachment.getContentType());
+          attachments.put(attachmentJson);
+        }
+      }
+
       List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
 
       for (ForstaRecipient r : forstaRecipients) {
@@ -233,6 +246,7 @@ public class ForstaMessage {
       body.put(bodyPlain);
 
       data.put("body", body);
+      data.put("attachments", attachments);
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());
