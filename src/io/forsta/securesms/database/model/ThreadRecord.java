@@ -173,7 +173,7 @@ public class ThreadRecord extends DisplayRecord {
     try {
       return MaterialColor.fromSerialized(color);
     } catch (MaterialColor.UnknownColorException e) {
-      Log.w("ThreadRecord", "Unknown color");
+      Log.w("ThreadRecord", "Invalid or null color");
     }
     return MaterialColor.GREY;
   }
