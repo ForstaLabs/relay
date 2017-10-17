@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class MaterialColors {
 
@@ -74,6 +75,9 @@ public class MaterialColors {
 
   }
 
-
+  public static MaterialColor getRandomConversationColor() {
+    int randColor = new Random().nextInt(MaterialColors.CONVERSATION_PALETTE.size());
+    return MaterialColors.CONVERSATION_PALETTE.get(randColor);
+  }
 }
 

@@ -37,6 +37,16 @@ public class AvatarImageView extends ImageView {
     }
   }
 
+  public void setAvatar(final @Nullable Recipients recipients, MaterialColor backgroundColor) {
+    if (recipients != null) {
+      setImageDrawable(recipients.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+      setAvatarClickHandler(recipients, false);
+    } else {
+      setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
+      setOnClickListener(null);
+    }
+  }
+
   public void setAvatar(final @Nullable Recipients recipients, boolean quickContactEnabled) {
     if (recipients != null) {
       MaterialColor backgroundColor = recipients.getColor();

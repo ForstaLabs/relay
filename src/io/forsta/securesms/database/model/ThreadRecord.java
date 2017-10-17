@@ -24,8 +24,10 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import io.forsta.securesms.R;
+import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.recipients.Recipients;
@@ -50,11 +52,12 @@ public class ThreadRecord extends DisplayRecord {
   private final String distribution;
   private final String title;
   private final String threadUid;
+  private final String color;
 
   public ThreadRecord(@NonNull Context context, @NonNull Body body, @Nullable Uri snippetUri,
                       @NonNull Recipients recipients, long date, long count, boolean read,
                       long threadId, int receiptCount, int status, long snippetType,
-                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid)
+                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid, String color)
   {
     super(context, body, recipients, date, date, threadId, status, receiptCount, snippetType);
     this.context          = context.getApplicationContext();
@@ -67,6 +70,7 @@ public class ThreadRecord extends DisplayRecord {
     this.distribution = distribution;
     this.title = title;
     this.threadUid = threadUid;
+    this.color = color;
   }
 
   public @Nullable Uri getSnippetUri() {
@@ -163,5 +167,14 @@ public class ThreadRecord extends DisplayRecord {
 
   public String getThreadUid() {
     return threadUid;
+  }
+
+  public MaterialColor getColor() {
+    try {
+      return MaterialColor.fromSerialized(color);
+    } catch (MaterialColor.UnknownColorException e) {
+      Log.w("ThreadRecord", "Invalid or null color");
+    }
+    return MaterialColor.GREY;
   }
 }

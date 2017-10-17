@@ -70,7 +70,7 @@
     android:layout_marginBottom="0dp">
     <TextView style="@style/TextAppearance.AppCompat.Subhead"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content" android:text="Conversation Title"/>
+              android:layout_height="wrap_content" android:text="@string/thread_preferences__title"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -78,18 +78,22 @@
         <EditText android:id="@+id/forsta_thread_title"
                   android:layout_width="wrap_content"
                   android:layout_weight="1"
-                  android:layout_height="wrap_content">
+                  android:background="@color/transparent"
+                  android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
         </EditText>
         <ImageButton
             android:id="@+id/forsta_title_save_button"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/check"
+            android:visibility="gone"
+            android:background="@color/forsta_pop"
             android:layout_marginLeft="10dp"/>
     </LinearLayout>
     <TextView style="@style/TextAppearance.AppCompat.Subhead"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content" android:text="Recipients"/>
+              android:layout_height="wrap_content" android:text="@string/thread_preferences__recipients"/>
     <TextView android:id="@+id/forsta_thread_recipients" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
     <LinearLayout
         android:id="@+id/forsta_thread_debug_details"

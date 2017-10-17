@@ -22,6 +22,7 @@ import android.database.Cursor;
 import android.database.MergeCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -31,6 +32,8 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
+import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
@@ -144,11 +147,11 @@ public class ThreadDatabase extends Database {
 
     if (threadUid != null) {
       contentValues.put(UID, threadUid);
+    } else {
+      contentValues.put(UID, UUID.randomUUID().toString());
     }
 
     contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(UID, UUID.randomUUID().toString());
-
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     return db.insert(TABLE_NAME, null, contentValues);
   }
@@ -340,7 +343,11 @@ public class ThreadDatabase extends Database {
     String titleSelection = TITLE + " LIKE ? ";
     String filterQuery = "%" + filter + "%";
 
-    cursors.add(db.query(TABLE_NAME, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+
+    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -349,14 +356,20 @@ public class ThreadDatabase extends Database {
 
   public Cursor getConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    Cursor         cursor =  db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
     setNotifyConverationListListeners(cursor);
     return cursor;
   }
 
   public Cursor getArchivedConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    Cursor         cursor = db.query(TABLE_NAME, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+    Cursor         cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + " DESC");
 
     setNotifyConverationListListeners(cursor);
 
@@ -424,6 +437,7 @@ public class ThreadDatabase extends Database {
     DatabaseFactory.getSmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getMmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getDraftDatabase(context).clearAllDrafts();
+    DatabaseFactory.getThreadPreferenceDatabase(context).deleteAllPreferences();
     deleteAllThreads();
   }
 
@@ -504,6 +518,7 @@ public class ThreadDatabase extends Database {
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
+    DatabaseFactory.getThreadPreferenceDatabase(context).setColor(threadId, MaterialColors.getRandomConversationColor());
     return getForstaThread(threadId);
   }
 
@@ -522,7 +537,9 @@ public class ThreadDatabase extends Database {
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
-    return db.insert(TABLE_NAME, null, contentValues);
+    long threadId = db.insert(TABLE_NAME, null, contentValues);
+    DatabaseFactory.getThreadPreferenceDatabase(context).setColor(threadId, MaterialColors.getRandomConversationColor());
+    return threadId;
   }
 
   public long getThreadIdForUid(String threadUid) {
@@ -705,10 +722,11 @@ public class ThreadDatabase extends Database {
       String title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
       String threadUid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
       Uri snippetUri          = getSnippetUri(cursor);
+      String color = cursor.getString(cursor.getColumnIndexOrThrow(ThreadPreferenceDatabase.COLOR));
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid);
+                              expiresIn, distribution, title, threadUid, color);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {

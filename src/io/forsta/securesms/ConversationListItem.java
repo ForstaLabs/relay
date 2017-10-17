@@ -38,15 +38,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
@@ -56,6 +60,7 @@ import io.forsta.securesms.util.ViewUtil;
 import java.util.Locale;
 import java.util.Set;
 
+import static io.forsta.securesms.R.xml.preferences;
 import static io.forsta.securesms.util.SpanUtil.color;
 
 /**
@@ -94,6 +99,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private String forstaThreadTitle;
+  private MaterialColor threadColor;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -132,6 +138,7 @@ public class ConversationListItem extends RelativeLayout
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
     this.forstaThreadTitle = thread.getTitle();
+    this.threadColor = thread.getColor();
 
     this.fromView.setText(recipients, read);
     setForstaThreadTitle();
@@ -157,8 +164,8 @@ public class ConversationListItem extends RelativeLayout
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
-    setRippleColor(recipients);
-    this.contactPhotoImage.setAvatar(recipients, true);
+    setRippleColor(threadColor);
+    this.contactPhotoImage.setAvatar(recipients, threadColor);
   }
 
   @Override
@@ -242,15 +249,22 @@ public class ConversationListItem extends RelativeLayout
     }
   }
 
+  @TargetApi(VERSION_CODES.LOLLIPOP)
+  private void setRippleColor(MaterialColor color) {
+    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      ((RippleDrawable)(getBackground()).mutate())
+          .setColor(ColorStateList.valueOf(color.toConversationColor(getContext())));
+    }
+  }
+
   @Override
   public void onModified(final Recipients recipients) {
     handler.post(new Runnable() {
       @Override
       public void run() {
         fromView.setText(recipients, read);
-        setForstaThreadTitle();
-        contactPhotoImage.setAvatar(recipients, true);
-        setRippleColor(recipients);
+        setRippleColor(threadColor);
+        contactPhotoImage.setAvatar(recipients, threadColor);
       }
     });
   }

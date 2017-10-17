@@ -14,7 +14,10 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.preference.PreferenceFragment;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -25,12 +28,15 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.color.MaterialColor;
+import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -132,6 +138,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       @Override
       public void onClick(View view) {
         DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
+        forstaSaveTitle.setVisibility(View.GONE);
         Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
       }
     });
@@ -141,8 +148,31 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    if (!TextUtils.isEmpty(thread.getTitle())) {
+      forstaTitle.setText(thread.getTitle());
+    } else {
+      forstaTitle.setHint("Add a Title");
+    }
+    forstaTitle.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+      }
 
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if (s.length() > 0) {
+          forstaSaveTitle.setVisibility(View.VISIBLE);
+        } else {
+          forstaSaveTitle.setVisibility(View.GONE);
+        }
+      }
+
+      @Override
+      public void afterTextChanged(Editable s) {
+
+      }
+    });
     title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
 
     if (BuildConfig.FLAVOR.equals("dev")) {
@@ -172,7 +202,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     private ColorPreference colorPreference;
     private Preference blockPreference;
 
-
     @Override
     public void onCreate(Bundle icicle) {
       super.onCreate(icicle);
@@ -185,14 +214,15 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       this.findPreference(PREFERENCE_MUTED)
           .setOnPreferenceClickListener(new MuteClickListener());
+      this.findPreference(PREFERENCE_COLOR)
+          .setOnPreferenceChangeListener(new ColorChangeListener());
 //      this.findPreference(PREFERENCE_TONE)
 //          .setOnPreferenceChangeListener(new RingtoneChangeListener());
 //      this.findPreference(PREFERENCE_VIBRATE)
 //          .setOnPreferenceChangeListener(null);
 //      this.findPreference(PREFERENCE_BLOCK)
 //          .setOnPreferenceClickListener(null);
-//      this.findPreference(PREFERENCE_COLOR)
-//          .setOnPreferenceChangeListener(null);
+
     }
 
     private void initializePreferences() {
@@ -200,22 +230,26 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       ThreadPreferenceDatabase.ThreadPreference threadPreference = db.getThreadPreferences(threadId);
 
       mutePreference = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
+      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+      colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
+      mutePreference.setChecked(threadPreference.isMuted());
+      if (threadPreference.getColor() == null) {
+        db.setColor(threadId, MaterialColors.getRandomConversationColor());
+      }
+      colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
+
 //      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
 //      notificationPreference.setSummary(R.string.preferences__default);
 //      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
-//      colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
-//      blockPreference = this.findPreference(PREFERENCE_BLOCK);
 
-      if (threadPreference != null) {
-//        if (threadPreference.getNotification() != null) {
+      //      if (threadPreference.getNotification() != null) {
 //          Ringtone tone = RingtoneManager.getRingtone(getActivity(), threadPreference.getNotification());
 //          if (tone != null) {
 //            notificationPreference.setSummary(tone.getTitle(getActivity()));
 //            notificationPreference.setCurrentRingtone(threadPreference.getNotification());
 //          }
 //        }
-        mutePreference.setChecked(threadPreference.isMuted());
-      }
+
     }
 
     private class RingtoneChangeListener implements Preference.OnPreferenceChangeListener {
@@ -314,9 +348,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public boolean onPreferenceChange(Preference preference, Object o) {
-        return false;
+        final int           value         = (Integer) o;
+        final MaterialColor selectedColor = MaterialColors.CONVERSATION_PALETTE.getByColor(getActivity(), value);
+        DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setColor(threadId, selectedColor);
+        return true;
       }
     }
-
   }
 }
