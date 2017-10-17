@@ -359,7 +359,7 @@ public class ThreadDatabase extends Database {
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-    Cursor cursor = builder.query(db, null, null, null, null, null, DATE + " DESC");
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
     setNotifyConverationListListeners(cursor);
     return cursor;
   }
@@ -369,7 +369,7 @@ public class ThreadDatabase extends Database {
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-    Cursor         cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + "");
+    Cursor         cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"1"}, null, null, DATE + " DESC");
 
     setNotifyConverationListListeners(cursor);
 
