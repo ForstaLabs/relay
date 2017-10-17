@@ -202,7 +202,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     private ColorPreference colorPreference;
     private Preference blockPreference;
 
-
     @Override
     public void onCreate(Bundle icicle) {
       super.onCreate(icicle);
@@ -234,6 +233,9 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
       colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
       mutePreference.setChecked(threadPreference.isMuted());
+      if (threadPreference.getColor() == null) {
+        db.setColor(threadId, MaterialColors.getRandomConversationColor());
+      }
       colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
 
 //      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.Random;
 import java.util.Set;
@@ -81,6 +82,11 @@ public class ThreadPreferenceDatabase extends Database {
   public void deleteThreadPreference(long threadId) {
     SQLiteDatabase database = databaseHelper.getWritableDatabase();
     database.delete(TABLE_NAME, THREAD_ID + " = ? ", new String[] { threadId + ""});
+  }
+
+  public void deleteAllPreferences() {
+    SQLiteDatabase database = databaseHelper.getWritableDatabase();
+    database.delete(TABLE_NAME, null, null);
   }
 
   public int getExpireMessages(long threadId) {
@@ -190,8 +196,9 @@ public class ThreadPreferenceDatabase extends Database {
       try {
         return MaterialColor.fromSerialized(color);
       } catch (MaterialColor.UnknownColorException e) {
-        return MaterialColors.getRandomConversationColor();
+        Log.w("ThreadRecord", "Invalid or null color");
       }
+      return null;
     }
   }
 }
