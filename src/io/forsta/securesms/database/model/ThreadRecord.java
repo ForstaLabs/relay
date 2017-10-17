@@ -24,6 +24,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
@@ -172,7 +173,7 @@ public class ThreadRecord extends DisplayRecord {
     try {
       return MaterialColor.fromSerialized(color);
     } catch (MaterialColor.UnknownColorException e) {
-      e.printStackTrace();
+      Log.w("ThreadRecord", "Invalid or null color");
     }
     return MaterialColor.GREY;
   }

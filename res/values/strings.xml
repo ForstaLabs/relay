@@ -823,8 +823,8 @@
     <string name="recipient_preferences__color_for_this_contact">Color for this contact</string>
     <string name="recipient_preferences__verify_safety_numbers">Verify safety numbers</string>
 
-    <string name="thread_preferences__title">Mute conversation</string>
-    <string name="thread_preferences__recipients">Mute conversation</string>
+    <string name="thread_preferences__title">Conversation Title</string>
+    <string name="thread_preferences__recipients">Recipients</string>
     <string name="thread_preferences__mute_conversation">Mute conversation</string>
     <string name="thread_preferences__disable_notifications_for_this_conversation">Disable notifications for this conversation</string>
     <string name="thread_preferences__notification_sound">Notification sound</string>
