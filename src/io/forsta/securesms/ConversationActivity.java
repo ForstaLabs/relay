@@ -427,6 +427,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     switch (item.getItemId()) {
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
+    case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
     case R.id.menu_invite:                    handleInviteLink();                                return true;
     case R.id.menu_mute_notifications:        handleMuteNotifications();                         return true;
     case R.id.menu_unmute_notifications:      handleUnmuteNotifications();                       return true;
@@ -559,10 +560,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivity(intent);
   }
 
-    private void handleAddAttachment() {
+  private void handleAddAttachment() {
     if (isSecureText) {
       attachmentTypeSelector.show(this, attachButton);
     }
+  }
+
+  private void handleDisplayGroupRecipients() {
+    new GroupMembersDialog(this, getRecipients()).display();
   }
 
   private void initializeSecurity() {
@@ -1489,10 +1494,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivityForResult(intent, GROUP_EDIT);
   }
 
-  private void handleDisplayGroupRecipients() {
-    new GroupMembersDialog(this, getRecipients()).display();
-  }
-
   private void handleAddToContacts() {
     try {
       final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
@@ -1503,7 +1504,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       Log.w(TAG, e);
     }
   }
-
 
   private void handleCallRecipient () {
     TextView subtitle = (TextView) titleView.findViewById(R.id.subtitle);
