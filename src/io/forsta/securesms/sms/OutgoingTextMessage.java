@@ -81,8 +81,4 @@ public class OutgoingTextMessage {
     return new OutgoingTextMessage(this, body);
   }
 
-  public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
-    this.message = ForstaMessage.createForstaMessageBody(context, this.message, recipients, forstaThread);
-  }
-
 }
