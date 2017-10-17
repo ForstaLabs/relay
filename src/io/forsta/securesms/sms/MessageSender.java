@@ -100,16 +100,11 @@ public class MessageSender {
       ThreadDatabase threadDatabase = DatabaseFactory.getThreadDatabase(context);
       MmsDatabase    database       = DatabaseFactory.getMmsDatabase(context);
 
-      long allocatedThreadId;
-
       if (threadId == -1) {
-        allocatedThreadId = threadDatabase.getThreadIdFor(message.getRecipients(), message.getDistributionType());
-      } else {
-        allocatedThreadId = threadId;
+        throw new Exception("Invalid thread id");
       }
-
       Recipients recipients = message.getRecipients();
-      long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, allocatedThreadId, forceSms);
+      long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, forceSms);
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
@@ -117,11 +112,13 @@ public class MessageSender {
         CcsmSync.syncMediaMessage(masterSecret, context, message);
       }
 
-      return allocatedThreadId;
+      return threadId;
     } catch (MmsException e) {
       Log.w(TAG, e);
-      return threadId;
+    } catch (Exception e) {
+      Log.w(TAG, "Message send exception: " + e);
     }
+    return threadId;
   }
 
   public static void resendGroupMessage(Context context, MasterSecret masterSecret, MessageRecord messageRecord, long filterRecipientId) {
