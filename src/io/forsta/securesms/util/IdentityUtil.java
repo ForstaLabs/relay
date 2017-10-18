@@ -28,15 +28,16 @@ public class IdentityUtil {
     new AsyncTask<Recipient, Void, Optional<IdentityKey>>() {
       @Override
       protected Optional<IdentityKey> doInBackground(Recipient... recipient) {
-        SessionStore          sessionStore   = new TextSecureSessionStore(context, masterSecret);
-        SignalProtocolAddress axolotlAddress = new SignalProtocolAddress(recipient[0].getNumber(), SignalServiceAddress.DEFAULT_DEVICE_ID);
-        SessionRecord         record         = sessionStore.loadSession(axolotlAddress);
-
-        if (record == null) {
-          return Optional.absent();
+        SessionStore sessionStore = new TextSecureSessionStore(context, masterSecret);
+        String addr = recipient[0].getNumber();
+        List<Integer> devices = sessionStore.getDeviceSessions(addr);
+        for (int device : devices) {
+          SessionRecord record = sessionStore.loadSession(new SignalProtocolAddress(addr, device));
+          if (record != null) {
+            return Optional.fromNullable(record.getSessionState().getRemoteIdentityKey());
+          }
         }
-
-        return Optional.fromNullable(record.getSessionState().getRemoteIdentityKey());
+        return Optional.absent();
       }
 
       @Override

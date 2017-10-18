@@ -22,9 +22,9 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
   private final TrustStore trustStore;
 
   public ForstaServiceAccountManager(String url, TrustStore trustStore,
-                                     String addr, String password,
+                                     String number, Integer deviceId, String password,
                                      String userAgent) {
-    super(url, trustStore, addr, password, userAgent);
+    super(url, trustStore, number, deviceId, password, userAgent);
     this.trustStore = trustStore;
   }
 
@@ -47,13 +47,15 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
       response = CcsmApi.provisionAccount(context, attrs);
     }
     /* Retrofit ourself with the new datum provided here and through the provision act. */
-    this.user = addr + "." + response.get("deviceId");
+    this.user = addr;
+    this.deviceId = response.getInt("deviceId");
     this.userAgent = userAgent;
     String serverUrl = response.get("serverUrl").toString();
     TextSecurePreferences.setLocalDeviceID(context, response.getInt("deviceId"));
     TextSecurePreferences.setServer(context, serverUrl);
     TextSecurePreferences.setUserAgent(context, userAgent);
-    StaticCredentialsProvider creds = new StaticCredentialsProvider(this.user, password,
+    String username = addr + "." + this.deviceId;
+    StaticCredentialsProvider creds = new StaticCredentialsProvider(username, password,
                                                                     signalingKey);
     this.pushServiceSocket = new PushServiceSocket(serverUrl, trustStore, creds, userAgent);
   }
