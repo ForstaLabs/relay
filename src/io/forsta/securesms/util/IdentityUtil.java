@@ -16,6 +16,8 @@ import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
+import java.util.List;
+
 public class IdentityUtil {
 
   @UiThread

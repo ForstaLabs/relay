@@ -9,6 +9,8 @@ import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
+import java.util.List;
+
 public class SessionUtil {
 
   public static boolean hasSession(Context context, MasterSecret masterSecret, Recipient recipient) {
