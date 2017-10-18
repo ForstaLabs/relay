@@ -147,6 +147,7 @@ public class TextSecureSessionStore implements SessionStore {
             /* Legacy session entry that treated device id as special */
             results.add(new Integer(1));
           }
+        }
       } catch (NumberFormatException e) {
         Log.w(TAG, e);
       }
