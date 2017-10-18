@@ -3,7 +3,6 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
-import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -70,26 +69,17 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       throws RetryLaterException, MmsException, NoSuchMessageException,
              UndeliverableMessageException
   {
-    ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
-    MmsDatabase            database          = DatabaseFactory.getMmsDatabase(context);
-    OutgoingMediaMessage message           = database.getOutgoingMessage(masterSecret, messageId);
-
     try {
       Log.w(TAG, "Sending message: " + messageId);
-      processMessage(masterSecret, database, message, expirationManager);
+      processMessage(masterSecret, messageId);
     } catch (InsecureFallbackApprovalException ifae) {
       Log.w(TAG, ifae);
-      // XXX For now, there should be no insecure messages. Notify user by checking Recipients cache before submitting.
+      // XXX For now, there should be no insecure messages.
     } catch (UntrustedIdentityException uie) {
-      Log.w(TAG, uie);
-      Log.w(TAG, "Media Message. Auto handling untrusted identity, Single recipient.");
-      Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
-      long       recipientId = recipients.getPrimaryRecipient().getRecipientId();
-      IdentityKey identityKey    = uie.getIdentityKey();
-      DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+      acceptIndentityKey(uie);
       try {
         // Message was not sent to any recipients. Reprocess.
-        processMessage(masterSecret, database, message, expirationManager);
+        processMessage(masterSecret, messageId);
       } catch (InsecureFallbackApprovalException e) {
         e.printStackTrace();
       } catch (EncapsulatedExceptions encapsulatedExceptions) {
@@ -98,7 +88,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         e.printStackTrace();
       }
     } catch (EncapsulatedExceptions ee) {
-      handleMultipleUntrustedIdentities(ee, masterSecret, message);
+      handleMultipleUntrustedIdentities(ee, masterSecret, messageId);
     }
   }
 
@@ -153,8 +143,11 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     }
   }
 
-  private void processMessage(MasterSecret masterSecret, MmsDatabase database, OutgoingMediaMessage message, ExpiringMessageManager expirationManager)
-      throws EncapsulatedExceptions, RetryLaterException, UndeliverableMessageException, UntrustedIdentityException, InsecureFallbackApprovalException {
+  private void processMessage(MasterSecret masterSecret, long messageId)
+      throws EncapsulatedExceptions, RetryLaterException, UndeliverableMessageException, UntrustedIdentityException, InsecureFallbackApprovalException, NoSuchMessageException, MmsException {
+    ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
+    MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
+    OutgoingMediaMessage message = database.getOutgoingMessage(masterSecret, messageId);
     deliver(masterSecret, message);
     database.markAsPush(messageId);
     database.markAsSecure(messageId);
@@ -165,6 +158,15 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       database.markExpireStarted(messageId);
       expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
     }
+  }
+
+  private void acceptIndentityKey(UntrustedIdentityException uie) {
+    Log.w(TAG, uie);
+    Log.w(TAG, "Media Message. Auto handling untrusted identity, Single recipient.");
+    Recipients recipients  = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
+    long recipientId = recipients.getPrimaryRecipient().getRecipientId();
+    IdentityKey identityKey    = uie.getIdentityKey();
+    DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
   }
 
   private SignalServiceDataMessage createSignalServiceDataMessage(MasterSecret masterSecret, OutgoingMediaMessage message) throws UndeliverableMessageException {
@@ -180,27 +182,30 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     return mediaMessage;
   }
 
-  private void handleMultipleUntrustedIdentities(EncapsulatedExceptions ee, MasterSecret masterSecret, OutgoingMediaMessage message) {
+  private void handleMultipleUntrustedIdentities(EncapsulatedExceptions ee, MasterSecret masterSecret, long messageId) throws NoSuchMessageException, MmsException {
+    MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
+    OutgoingMediaMessage message = database.getOutgoingMessage(masterSecret, messageId);
     Log.w(TAG, "Media message. Auto handling untrusted identity. Multiple recipients.");
     if (ee.getUntrustedIdentityExceptions().size() > 0) {
       List<UntrustedIdentityException> untrustedIdentities = ee.getUntrustedIdentityExceptions();
       List<String> untrustedRecipients = new ArrayList<>();
       for (UntrustedIdentityException uie : untrustedIdentities) {
         untrustedRecipients.add(uie.getE164Number());
-        Recipients identityRecipients = RecipientFactory.getRecipientsFromString(context, uie.getE164Number(), false);
-        long uieRecipientId = identityRecipients.getPrimaryRecipient().getRecipientId();
-        IdentityKey identityKey    = uie.getIdentityKey();
-        DatabaseFactory.getIdentityDatabase(context).saveIdentity(uieRecipientId, identityKey);
+        acceptIndentityKey(uie);
       }
 
       try {
         // Resend message to each untrusted identity.
         if (untrustedRecipients.size() > 0) {
           Recipients resendRecipients = RecipientFactory.getRecipientsFromStrings(context, untrustedRecipients, false);
-          List<SignalServiceAddress> addresses = getPushAddresses(resendRecipients);
-          SignalServiceMessageSender messageSender = messageSenderFactory.create();
-          SignalServiceDataMessage dataMessage = createSignalServiceDataMessage(masterSecret, message);
-          messageSender.sendMessage(addresses, dataMessage);
+          if (resendRecipients.toNumberStringList(false).size() == message.getRecipients().toNumberStringList(false).size()) {
+            processMessage(masterSecret, messageId);
+          } else {
+            List<SignalServiceAddress> addresses = getPushAddresses(resendRecipients);
+            SignalServiceMessageSender messageSender = messageSenderFactory.create();
+            SignalServiceDataMessage dataMessage = createSignalServiceDataMessage(masterSecret, message);
+            messageSender.sendMessage(addresses, dataMessage);
+          }
         }
       } catch (EncapsulatedExceptions encapsulatedExceptions) {
         encapsulatedExceptions.printStackTrace();
