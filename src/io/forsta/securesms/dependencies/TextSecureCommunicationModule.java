@@ -60,7 +60,8 @@ public class TextSecureCommunicationModule {
   @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {
     return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
                                            new TextSecurePushTrustStore(context),
-                                           TextSecurePreferences.getLocalNumber(context) + "." + TextSecurePreferences.getLocalDeviceId(context),
+                                           TextSecurePreferences.getLocalNumber(context),
+                                           TextSecurePreferences.getLocalDeviceId(context),
                                            TextSecurePreferences.getPushServerPassword(context),
                                            TextSecurePreferences.getUserAgent(context));
   }
@@ -71,7 +72,8 @@ public class TextSecureCommunicationModule {
       public SignalServiceMessageSender create() {
         return new SignalServiceMessageSender(TextSecurePreferences.getServer(context),
                                               new TextSecurePushTrustStore(context),
-                                              TextSecurePreferences.getLocalNumber(context) + "." + TextSecurePreferences.getLocalDeviceId(context),
+                                              TextSecurePreferences.getLocalNumber(context),
+                                              TextSecurePreferences.getLocalDeviceId(context),
                                               TextSecurePreferences.getPushServerPassword(context),
                                               new SignalProtocolStoreImpl(context),
                                               TextSecurePreferences.getUserAgent(context),
