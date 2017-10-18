@@ -77,8 +77,8 @@ public class SignalProtocolStoreImpl implements SignalProtocolStore {
   }
 
   @Override
-  public List<Integer> getSubDeviceSessions(String number) {
-    return sessionStore.getSubDeviceSessions(number);
+  public List<Integer> getDeviceSessions(String number) {
+    return sessionStore.getDeviceSessions(number);
   }
 
   @Override
