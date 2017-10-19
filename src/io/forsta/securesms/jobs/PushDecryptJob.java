@@ -184,7 +184,7 @@ public class PushDecryptJob extends ContextJob {
       handleCorruptMessage(masterSecret, envelope, smsMessageId);
     } catch (NoSessionException e) {
       Log.w(TAG, e);
-//      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
+      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
     } catch (LegacyMessageException e) {
       Log.w(TAG, e);
 //      handleLegacyMessage(masterSecret, envelope, smsMessageId);

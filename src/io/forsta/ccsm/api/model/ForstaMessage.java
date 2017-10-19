@@ -72,7 +72,7 @@ public class ForstaMessage {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
       JSONObject jsonBody = getVersion(1, messageBody);
-      if (forstaMessage.isContentType(jsonBody)) {
+      if (jsonBody != null && forstaMessage.isContentType(jsonBody)) {
         forstaMessage.threadUid = jsonBody.getString("threadId");
         forstaMessage.messageId = jsonBody.getString("messageId");
         if (jsonBody.has("threadTitle")) {
@@ -101,7 +101,7 @@ public class ForstaMessage {
         forstaMessage.universalExpression = distribution.getString("expression");
       } else {
         Log.w(TAG, messageBody);
-        throw new InvalidMessagePayloadException("Control message type");
+        throw new InvalidMessagePayloadException("Control message type or other");
       }
     } catch (JSONException e) {
       Log.e(TAG, "Invalid JSON message body");
