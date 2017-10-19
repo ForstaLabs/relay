@@ -100,15 +100,13 @@ public class ForstaMessage {
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
       } else {
-        Log.w(TAG, messageBody);
         throw new InvalidMessagePayloadException("Control message type or other");
       }
     } catch (JSONException e) {
-      Log.e(TAG, "Invalid JSON message body");
-      Log.e(TAG, messageBody);
+      Log.e(TAG, "Invalid JSON message body: " + e.getMessage());
       throw new InvalidMessagePayloadException(e.getMessage());
     } catch (Exception e) {
-      Log.w(TAG, "Exception occurred");
+      Log.w(TAG, "Exception occurred: " + e.getMessage());
       throw new InvalidMessagePayloadException(e.getMessage());
     }
     return forstaMessage;
