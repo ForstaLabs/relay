@@ -181,10 +181,10 @@ public class PushDecryptJob extends ContextJob {
 //      handleInvalidVersionMessage(masterSecret, envelope, smsMessageId);
     } catch (InvalidMessageException | InvalidKeyIdException | InvalidKeyException | MmsException e) {
       Log.w(TAG, e);
-      handleCorruptMessage(masterSecret, envelope, smsMessageId);
+//      handleCorruptMessage(masterSecret, envelope, smsMessageId);
     } catch (NoSessionException e) {
       Log.w(TAG, e);
-      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
+//      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
     } catch (LegacyMessageException e) {
       Log.w(TAG, e);
 //      handleLegacyMessage(masterSecret, envelope, smsMessageId);
