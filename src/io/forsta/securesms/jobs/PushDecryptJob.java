@@ -350,7 +350,7 @@ public class PushDecryptJob extends ContextJob {
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
     // Refresh recipients cache on message receive to populate new users.
-    RecipientFactory.getRecipientsFromStrings(context, recipients.toNumberStringList(false), true);
+    recipients = RecipientFactory.getRecipientsFromStrings(context, recipients.toNumberStringList(false), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
