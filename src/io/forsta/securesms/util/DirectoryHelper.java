@@ -134,27 +134,27 @@ public class DirectoryHelper {
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
 
     try {
-      List<String> addresses = recipients.toNumberStringList(false);
+      List<String> addresses = new ArrayList<>();
       for (Recipient recipient : recipients) {
         if (TextUtils.isEmpty(recipient.getSlug())) {
           addresses.add(recipient.getNumber());
         }
       }
-      String ids = TextUtils.join(",", addresses);
-      CcsmApi.syncForstaContacts(context, ids);
+      if (addresses.size() > 0) {
+        String ids = TextUtils.join(",", addresses);
+        CcsmApi.syncForstaContacts(context, ids);
 
-      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
-      if (details.size() > 0) {
-        directory.setNumbers(details, new ArrayList<String>());
-        ContactDb contactsDb = DbFactory.getContactDb(context);
-        contactsDb.setActiveForstaAddresses(details);
-        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
+        List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<>(addresses));
+        if (details.size() > 0) {
+          directory.setNumbers(details, new ArrayList<String>());
+          ContactDb contactsDb = DbFactory.getContactDb(context);
+          contactsDb.setActiveForstaAddresses(details);
+        }
       }
-      return new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
+    return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
   }
 
   public static void refreshDirectoryFor(Context context, MasterSecret masterSecret, List<String> addresses) {
