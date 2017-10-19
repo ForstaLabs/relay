@@ -900,20 +900,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     recipientsStaleReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-        Log.w(TAG, "Group update received...");
-        if (recipients != null) {
-          long[] ids = recipients.getIds();
-          Log.w(TAG, "Looking up new recipients...");
-          recipients = RecipientFactory.getRecipientsForIds(context, ids, true);
-          recipients.addListener(ConversationActivity.this);
-          onModified(recipients);
-          fragment.reloadList();
-        }
+//        Log.w(TAG, "Group update received...");
+//        if (recipients != null) {
+//          long[] ids = recipients.getIds();
+//          Log.w(TAG, "Looking up new recipients...");
+//          recipients = RecipientFactory.getRecipientsForIds(context, ids, true);
+//          recipients.addListener(ConversationActivity.this);
+//          onModified(recipients);
+//          fragment.reloadList();
+//        }
       }
     };
 
     IntentFilter staleFilter = new IntentFilter();
-    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
+//    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
     staleFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
 
     registerReceiver(securityUpdateReceiver,

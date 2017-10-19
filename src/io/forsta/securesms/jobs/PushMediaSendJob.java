@@ -154,6 +154,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     SignalServiceMessageSender messageSender = messageSenderFactory.create();
     SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
     List<SignalServiceAddress> addresses = getPushAddresses(recipients);
+    Log.w(TAG, "Sending message: " + messageId);
     messageSender.sendMessage(addresses, mediaMessage);
   }
 
