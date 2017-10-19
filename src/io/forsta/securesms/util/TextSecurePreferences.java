@@ -98,6 +98,7 @@ public class TextSecurePreferences {
   public  static final String SYSTEM_EMOJI_PREF                = "pref_system_emoji";
   private static final String MULTI_DEVICE_PROVISIONED_PREF    = "pref_multi_device";
   public  static final String DIRECT_CAPTURE_CAMERA_ID         = "pref_direct_capture_camera_id";
+  public  static final String LOCAL_DEVICE_ID         = "pref_local_device_id";
 
   public static void setDirectCaptureCameraId(Context context, int value) {
     setIntegerPrefrence(context, DIRECT_CAPTURE_CAMERA_ID, value);
@@ -231,6 +232,14 @@ public class TextSecurePreferences {
 
   public static void setLocalNumber(Context context, String localNumber) {
     setStringPreference(context, LOCAL_NUMBER_PREF, localNumber);
+  }
+
+  public static void setLocalDeviceID(Context context, Integer id) {
+    setIntegerPrefrence(context, LOCAL_DEVICE_ID, id);
+  }
+
+  public static Integer getLocalDeviceId(Context context) {
+    return getIntegerPreference(context, LOCAL_DEVICE_ID, 1);
   }
 
   public static String getServer(Context context) {

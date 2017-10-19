@@ -30,15 +30,7 @@ public class DeviceListLoader extends AsyncLoader<List<DeviceInfo>> {
     try {
       List<DeviceInfo>     devices  = accountManager.getDevices();
       Iterator<DeviceInfo> iterator = devices.iterator();
-
-      while (iterator.hasNext()) {
-        if ((iterator.next().getId() == SignalServiceAddress.DEFAULT_DEVICE_ID)) {
-          iterator.remove();
-        }
-      }
-
       Collections.sort(devices, new DeviceInfoComparator());
-
       return devices;
     } catch (IOException e) {
       Log.w(TAG, e);

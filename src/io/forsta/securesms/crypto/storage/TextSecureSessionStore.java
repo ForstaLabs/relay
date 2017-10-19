@@ -119,9 +119,7 @@ public class TextSecureSessionStore implements SessionStore {
 
   @Override
   public void deleteAllSessions(String name) {
-    List<Integer> devices = getSubDeviceSessions(name);
-
-    deleteSession(new SignalProtocolAddress(name, SignalServiceAddress.DEFAULT_DEVICE_ID));
+    List<Integer> devices = getDeviceSessions(name);
 
     for (int device : devices) {
       deleteSession(new SignalProtocolAddress(name, device));
@@ -129,7 +127,7 @@ public class TextSecureSessionStore implements SessionStore {
   }
 
   @Override
-  public List<Integer> getSubDeviceSessions(String name) {
+  public List<Integer> getDeviceSessions(String name) {
     long          recipientId = RecipientFactory.getRecipientsFromString(context, name, true).getPrimaryRecipient().getRecipientId();
     List<Integer> results     = new LinkedList<>();
     File          parent      = getSessionDirectory();
@@ -142,8 +140,13 @@ public class TextSecureSessionStore implements SessionStore {
         String[] parts              = child.split("[.]", 2);
         long     sessionRecipientId = Long.parseLong(parts[0]);
 
-        if (sessionRecipientId == recipientId && parts.length > 1) {
-          results.add(Integer.parseInt(parts[1]));
+        if (sessionRecipientId == recipientId) {
+          if (parts.length > 1) {
+            results.add(Integer.parseInt(parts[1]));
+          } else {
+            /* Legacy session entry that treated device id as special */
+            results.add(new Integer(1));
+          }
         }
       } catch (NumberFormatException e) {
         Log.w(TAG, e);
@@ -186,13 +189,10 @@ public class TextSecureSessionStore implements SessionStore {
     return directory;
   }
 
-  private String getSessionName(SignalProtocolAddress axolotlAddress) {
-    Recipient recipient   = RecipientFactory.getRecipientsFromString(context, axolotlAddress.getName(), true)
-                                          .getPrimaryRecipient();
-    long      recipientId = recipient.getRecipientId();
-    int       deviceId    = axolotlAddress.getDeviceId();
-
-    return recipientId + (deviceId == SignalServiceAddress.DEFAULT_DEVICE_ID ? "" : "." + deviceId);
+  private String getSessionName(SignalProtocolAddress signalAddr) {
+    Recipient recipient   = RecipientFactory.getRecipientsFromString(context, signalAddr.getName(), true)
+                                            .getPrimaryRecipient();
+    return recipient.getRecipientId() + "." + signalAddr.getDeviceId();
   }
 
   private @Nullable SignalProtocolAddress getAddressName(File sessionFile) {
@@ -202,8 +202,11 @@ public class TextSecureSessionStore implements SessionStore {
 
       int deviceId;
 
-      if (parts.length > 1) deviceId = Integer.parseInt(parts[1]);
-      else                  deviceId = SignalServiceAddress.DEFAULT_DEVICE_ID;
+      if (parts.length > 1) {
+        deviceId = Integer.parseInt(parts[1]);
+      } else {
+        deviceId = 1; // Legacy session entry without device ID is 1
+      }
 
       return new SignalProtocolAddress(recipient.getNumber(), deviceId);
     } catch (NumberFormatException e) {

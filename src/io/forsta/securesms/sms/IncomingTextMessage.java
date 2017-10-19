@@ -39,12 +39,11 @@ public class IncomingTextMessage implements Parcelable {
   private final boolean push;
   private final int     subscriptionId;
   private final long    expiresInMillis;
-  private ForstaMessage forstaMessage;
 
   public IncomingTextMessage(SmsMessage message, int subscriptionId) {
     this.message              = message.getDisplayMessageBody();
     this.sender               = message.getDisplayOriginatingAddress();
-    this.senderDeviceId       = SignalServiceAddress.DEFAULT_DEVICE_ID;
+    this.senderDeviceId       = -1; // XXX This code is dead!
     this.protocol             = message.getProtocolIdentifier();
     this.serviceCenterAddress = message.getServiceCenterAddress();
     this.replyPathPresent     = message.isReplyPathPresent();
@@ -107,7 +106,6 @@ public class IncomingTextMessage implements Parcelable {
     this.push                 = base.isPush();
     this.subscriptionId       = base.getSubscriptionId();
     this.expiresInMillis      = base.getExpiresIn();
-    this.forstaMessage = base.getForstaMessage();
   }
 
   public IncomingTextMessage(List<IncomingTextMessage> fragments) {
@@ -135,7 +133,7 @@ public class IncomingTextMessage implements Parcelable {
   {
     this.message              = "";
     this.sender               = sender;
-    this.senderDeviceId       = SignalServiceAddress.DEFAULT_DEVICE_ID;
+    this.senderDeviceId       = -1; // XXX This code is dead!
     this.protocol             = 31338;
     this.serviceCenterAddress = "Outgoing";
     this.replyPathPresent     = true;
@@ -145,14 +143,6 @@ public class IncomingTextMessage implements Parcelable {
     this.push                 = true;
     this.subscriptionId       = -1;
     this.expiresInMillis      = 0;
-  }
-
-  public void setForstaMessage(ForstaMessage forstaMessage) {
-    this.forstaMessage = forstaMessage;
-  }
-
-  public ForstaMessage getForstaMessage() {
-    return forstaMessage;
   }
 
   public int getSubscriptionId() {

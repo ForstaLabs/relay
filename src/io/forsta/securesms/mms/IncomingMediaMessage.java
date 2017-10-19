@@ -24,7 +24,6 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
-  private ForstaMessage forstaMessage;
 
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
@@ -74,14 +73,6 @@ public class IncomingMediaMessage {
 
     this.to.add(to);
     this.attachments.addAll(PointerAttachment.forPointers(masterSecret, attachments));
-  }
-
-  public void setForstaMessage(ForstaMessage forstaMessage) {
-    this.forstaMessage = forstaMessage;
-  }
-
-  public ForstaMessage getForstaMessage() {
-    return forstaMessage;
   }
 
   public int getSubscriptionId() {

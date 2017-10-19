@@ -11,6 +11,7 @@ public class TextSecureCommunicationFactory {
     return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
                                            new TextSecurePushTrustStore(context),
                                            TextSecurePreferences.getLocalNumber(context),
+                                           TextSecurePreferences.getLocalDeviceId(context),
                                            TextSecurePreferences.getPushServerPassword(context),
                                            TextSecurePreferences.getUserAgent(context));
   }
@@ -20,6 +21,7 @@ public class TextSecureCommunicationFactory {
     return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
                                            new TextSecurePushTrustStore(context),
                                            addr,
+                                           new Integer(-1),
                                            password,
                                            TextSecurePreferences.getUserAgent(context));
   }

@@ -178,25 +178,24 @@ public class PushDecryptJob extends ContextJob {
       }
     } catch (InvalidVersionException e) {
       Log.w(TAG, e);
-      handleInvalidVersionMessage(masterSecret, envelope, smsMessageId);
+//      handleInvalidVersionMessage(masterSecret, envelope, smsMessageId);
     } catch (InvalidMessageException | InvalidKeyIdException | InvalidKeyException | MmsException e) {
       Log.w(TAG, e);
-      handleCorruptMessage(masterSecret, envelope, smsMessageId);
+//      handleCorruptMessage(masterSecret, envelope, smsMessageId);
     } catch (NoSessionException e) {
       Log.w(TAG, e);
-      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
+//      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
     } catch (LegacyMessageException e) {
       Log.w(TAG, e);
-      handleLegacyMessage(masterSecret, envelope, smsMessageId);
+//      handleLegacyMessage(masterSecret, envelope, smsMessageId);
     } catch (DuplicateMessageException e) {
       Log.w(TAG, e);
       handleDuplicateMessage(masterSecret, envelope, smsMessageId);
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
-      handleUntrustedIdentityMessage(masterSecret, envelope, smsMessageId);
+//      handleUntrustedIdentityMessage(masterSecret, envelope, smsMessageId);
     } catch (InvalidMessagePayloadException e) {
       Log.e(TAG, "Invalid Forsta message body");
-      Log.e(TAG, e.getMessage());
       e.printStackTrace();
     }
   }
@@ -346,7 +345,12 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getAttachments());
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
+
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+    DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+    // Refresh recipients cache on message receive to populate new users.
+    RecipientFactory.clearCache(context);
+    recipients = RecipientFactory.getRecipientsFromStrings(context, recipients.toNumberStringList(false), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {

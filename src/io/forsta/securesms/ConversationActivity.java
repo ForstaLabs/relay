@@ -900,20 +900,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     recipientsStaleReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-        Log.w(TAG, "Group update received...");
-        if (recipients != null) {
-          long[] ids = recipients.getIds();
-          Log.w(TAG, "Looking up new recipients...");
-          recipients = RecipientFactory.getRecipientsForIds(context, ids, true);
-          recipients.addListener(ConversationActivity.this);
-          onModified(recipients);
-          fragment.reloadList();
-        }
+//        Log.w(TAG, "Group update received...");
+//        if (recipients != null) {
+//          long[] ids = recipients.getIds();
+//          Log.w(TAG, "Looking up new recipients...");
+//          recipients = RecipientFactory.getRecipientsForIds(context, ids, true);
+//          recipients.addListener(ConversationActivity.this);
+//          onModified(recipients);
+//          fragment.reloadList();
+//        }
       }
     };
 
     IntentFilter staleFilter = new IntentFilter();
-    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
+//    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
     staleFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
 
     registerReceiver(securityUpdateReceiver,
@@ -1161,7 +1161,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
-  private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
+  private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
@@ -1184,6 +1184,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+        List<Slide> slides = slideDeck.getSlides();
 
 
         message.setForstaJsonBody(context, threadData);
