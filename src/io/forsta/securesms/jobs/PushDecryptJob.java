@@ -152,9 +152,6 @@ public class PushDecryptJob extends ContextJob {
       if (content.getDataMessage().isPresent()) {
         SignalServiceDataMessage message = content.getDataMessage().get();
 
-//        if      (message.isEndSession())               handleEndSessionMessage(masterSecret, envelope, message, smsMessageId);
-//        else if (message.isGroupUpdate())              handleGroupMessage(masterSecret, envelope, message, smsMessageId);
-//        else
         if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
         else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
       } else if (content.getSyncMessage().isPresent()) {
@@ -205,37 +202,6 @@ public class PushDecryptJob extends ContextJob {
     return new SignalServiceCipher(localAddress, axolotlStore);
   }
 
-  private void handleEndSessionMessage(@NonNull MasterSecretUnion        masterSecret,
-                                       @NonNull SignalServiceEnvelope    envelope,
-                                       @NonNull SignalServiceDataMessage message,
-                                       @NonNull Optional<Long>           smsMessageId)
-  {
-    EncryptingSmsDatabase smsDatabase         = DatabaseFactory.getEncryptingSmsDatabase(context);
-    IncomingTextMessage   incomingTextMessage = new IncomingTextMessage(envelope.getSource(),
-                                                                        envelope.getSourceDevice(),
-                                                                        message.getTimestamp(),
-                                                                        "", Optional.<SignalServiceGroup>absent(), 0);
-
-    long threadId;
-
-    if (!smsMessageId.isPresent()) {
-      IncomingEndSessionMessage incomingEndSessionMessage = new IncomingEndSessionMessage(incomingTextMessage);
-      Pair<Long, Long>          messageAndThreadId        = smsDatabase.insertMessageInbox(masterSecret, incomingEndSessionMessage);
-
-      threadId = messageAndThreadId.second;
-    } else {
-      smsDatabase.markAsEndSession(smsMessageId.get());
-      threadId = smsDatabase.getThreadIdForMessage(smsMessageId.get());
-    }
-
-    SessionStore sessionStore = new TextSecureSessionStore(context);
-    sessionStore.deleteAllSessions(envelope.getSource());
-
-    SecurityEvent.broadcastSecurityUpdateEvent(context);
-    MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), threadId);
-  }
-
-
   private void handleExpirationUpdate(@NonNull MasterSecretUnion masterSecret,
                                       @NonNull SignalServiceEnvelope envelope,
                                       @NonNull SignalServiceDataMessage message,
@@ -271,9 +237,7 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     Long threadId;
 
-    if (message.getMessage().isGroupUpdate()) {
-      threadId = GroupMessageProcessor.process(context, masterSecret, envelope, message.getMessage(), true);
-    } else if (message.getMessage().isExpirationUpdate()) {
+    if (message.getMessage().isExpirationUpdate()) {
       threadId = handleSynchronizeSentExpirationUpdate(masterSecret, message, smsMessageId);
     } else {
       threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
@@ -458,7 +422,26 @@ public class PushDecryptJob extends ContextJob {
     return threadId;
   }
 
+  private Recipients getDistributionRecipients(String expression) throws InvalidMessagePayloadException {
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, expression);
+    if (distribution.hasRecipients()) {
+      return RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    }
+    throw new InvalidMessagePayloadException("No recipients found in message.");
+  }
 
+  // XXX unused or obsolete methods and empty handlers.
+  // XXX
+
+  private Pair<Long, Long> insertPlaceholder(@NonNull SignalServiceEnvelope envelope) {
+    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
+    IncomingTextMessage   textMessage = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
+        envelope.getTimestamp(), "",
+        Optional.<SignalServiceGroup>absent(), 0);
+
+    textMessage = new IncomingEncryptedMessage(textMessage, "");
+    return database.insertMessageInbox(textMessage);
+  }
 
   private void handleInvalidVersionMessage(@NonNull MasterSecretUnion masterSecret,
                                            @NonNull SignalServiceEnvelope envelope,
@@ -506,25 +489,6 @@ public class PushDecryptJob extends ContextJob {
   }
 
 
-  private Pair<Long, Long> insertPlaceholder(@NonNull SignalServiceEnvelope envelope) {
-    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
-    IncomingTextMessage   textMessage = new IncomingTextMessage(envelope.getSource(), envelope.getSourceDevice(),
-                                                                envelope.getTimestamp(), "",
-                                                                Optional.<SignalServiceGroup>absent(), 0);
-
-    textMessage = new IncomingEncryptedMessage(textMessage, "");
-    return database.insertMessageInbox(textMessage);
-  }
-
-  private Recipients getDistributionRecipients(String expression) throws InvalidMessagePayloadException {
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, expression);
-    if (distribution.hasRecipients()) {
-      return RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
-    }
-    throw new InvalidMessagePayloadException("No recipients found in message.");
-  }
-
-  // XXX unused or obsolete methods and empty handlers.
   private Recipients getSyncMessageDestination(SentTranscriptMessage message) {
     if (message.getMessage().getGroupInfo().isPresent()) {
       return RecipientFactory.getRecipientsFromString(context, GroupUtil.getEncodedId(message.getMessage().getGroupInfo().get().getGroupId()), false);
@@ -619,6 +583,36 @@ public class PushDecryptJob extends ContextJob {
 //    } else {
 //      smsDatabase.markAsDecryptDuplicate(smsMessageId);
 //    }
+  }
+
+  private void handleEndSessionMessage(@NonNull MasterSecretUnion        masterSecret,
+                                       @NonNull SignalServiceEnvelope    envelope,
+                                       @NonNull SignalServiceDataMessage message,
+                                       @NonNull Optional<Long>           smsMessageId)
+  {
+    EncryptingSmsDatabase smsDatabase         = DatabaseFactory.getEncryptingSmsDatabase(context);
+    IncomingTextMessage   incomingTextMessage = new IncomingTextMessage(envelope.getSource(),
+        envelope.getSourceDevice(),
+        message.getTimestamp(),
+        "", Optional.<SignalServiceGroup>absent(), 0);
+
+    long threadId;
+
+    if (!smsMessageId.isPresent()) {
+      IncomingEndSessionMessage incomingEndSessionMessage = new IncomingEndSessionMessage(incomingTextMessage);
+      Pair<Long, Long>          messageAndThreadId        = smsDatabase.insertMessageInbox(masterSecret, incomingEndSessionMessage);
+
+      threadId = messageAndThreadId.second;
+    } else {
+      smsDatabase.markAsEndSession(smsMessageId.get());
+      threadId = smsDatabase.getThreadIdForMessage(smsMessageId.get());
+    }
+
+    SessionStore sessionStore = new TextSecureSessionStore(context);
+    sessionStore.deleteAllSessions(envelope.getSource());
+
+    SecurityEvent.broadcastSecurityUpdateEvent(context);
+    MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), threadId);
   }
 
 }
