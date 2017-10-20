@@ -67,6 +67,7 @@ import java.util.Map;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
@@ -327,6 +328,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append("Phone: ");
     sb.append(user.phone);
     sb.append("\n");
+    sb.append("Device ID: ");
+    sb.append(TextSecurePreferences.getLocalDeviceId(DashboardActivity.this));
+    sb.append("\n");
 
     mLoginInfo.setText(sb.toString());
   }
@@ -425,6 +429,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   private String printThreads() {
     StringBuilder sb = new StringBuilder();
+    SmsDatabase smsDb = DatabaseFactory.getSmsDatabase(DashboardActivity.this);
+    sb.append("SMS message count:" + smsDb.getMessageCount()).append("\n");
     ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
     Cursor cursor = tdb.getConversationList();
     while (cursor != null && cursor.moveToNext()) {

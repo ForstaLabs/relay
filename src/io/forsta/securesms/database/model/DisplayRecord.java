@@ -148,8 +148,9 @@ public abstract class DisplayRecord {
   }
 
   public boolean isDelivered() {
-    return (deliveryStatus >= SmsDatabase.Status.STATUS_COMPLETE &&
-            deliveryStatus < SmsDatabase.Status.STATUS_PENDING) || receiptCount > 0;
+    return receiptCount > 0;
+//    return (deliveryStatus >= SmsDatabase.Status.STATUS_COMPLETE &&
+//            deliveryStatus < SmsDatabase.Status.STATUS_PENDING) || receiptCount > 0;
   }
 
   public boolean isPendingInsecureSmsFallback() {
