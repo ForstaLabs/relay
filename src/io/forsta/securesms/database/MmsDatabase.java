@@ -887,10 +887,10 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(SUBSCRIPTION_ID, message.getSubscriptionId());
     contentValues.put(EXPIRES_IN, message.getExpiresIn());
 
-    if (message.getRecipients().isSingleRecipient()) {
+    for (Recipient recipient : message.getRecipients()) {
       try {
         contentValues.put(RECEIPT_COUNT, earlyReceiptCache.remove(message.getSentTimeMillis(),
-                                                                  Util.canonicalizeNumber(context, message.getRecipients().getPrimaryRecipient().getNumber())));
+            Util.canonicalizeNumber(context, recipient.getNumber())));
       } catch (InvalidNumberException e) {
         Log.w(TAG, e);
       }

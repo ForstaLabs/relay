@@ -92,6 +92,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
     localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
+    Log.w(TAG, "User: " + localUser.getFullTag());
+    Log.w(TAG, "ID: " + localUser.getUid() + " Device ID: " + TextSecurePreferences.getLocalDeviceId(ConversationListActivity.this));
+
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -101,7 +104,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     syncReceiver = new ContactsSyncReceiver();
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-//    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
