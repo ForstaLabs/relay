@@ -9,159 +9,45 @@
         android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/forsta_drawer_user"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:textAllCaps="true"
-            android:textColor="@color/forsta_primary"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp">
+        android:layout_marginBottom="20dp">
         <TextView
             android:id="@+id/forsta_drawer_domain"
-            android:text="Domain"
+            android:text="Organization"
             android:textAllCaps="true"
+            android:textColor="@color/forsta_primary"
             android:textAlignment="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent">
-        <FrameLayout
+        android:orientation="horizontal">
+        <io.forsta.securesms.components.AvatarImageView
+            android:id="@+id/drawer_photo_image"
+            android:layout_width="@dimen/contact_selection_photo_size"
+            android:layout_height="@dimen/contact_selection_photo_size"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:cropToPadding="true"
+            android:scaleType="centerCrop"
+            android:layout_marginRight="20dp"
+            android:contentDescription="@string/SingleContactSelectionActivity_contact_photo" />
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/forsta_pop4"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_forsta_conversations_light"/>
-        </FrameLayout>
+            android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/drawer_user"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Subhead"/>
+            <TextView android:id="@+id/drawer_org_tag"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"/>
+        </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Conversations"
-            android:textAllCaps="true"
-            android:textSize="10sp"
-            android:textAlignment="center"
-            android:layout_marginRight="30dp"
-            />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp">
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent">
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/forsta_pop"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_forsta_pin_light"/>
-        </FrameLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pinned"
-            android:textAllCaps="true"
-            android:textSize="10sp"
-            android:textAlignment="center"
-            android:layout_marginRight="30dp"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp">
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent">
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/forsta_pop2"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_forsta_announcements_light"/>
-        </FrameLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Announcements"
-            android:textAllCaps="true"
-            android:textSize="10sp"
-            android:textAlignment="center"
-            android:layout_marginRight="30dp"
-            />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp">
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent">
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/forsta_pop3"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_forsta_topic_light"/>
-        </FrameLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Topics"
-            android:textAllCaps="true"
-            android:textSize="10sp"
-            android:textAlignment="center"
-            android:layout_marginRight="30dp"/>
     </LinearLayout>
 </LinearLayout>
 

@@ -104,7 +104,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     syncReceiver = new ContactsSyncReceiver();
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-//    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
+    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
