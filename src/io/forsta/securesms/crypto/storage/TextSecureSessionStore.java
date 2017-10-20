@@ -144,10 +144,10 @@ public class TextSecureSessionStore implements SessionStore {
           if (parts.length > 1) {
             results.add(Integer.parseInt(parts[1]));
           }
-//          else {
-//            /* Legacy session entry that treated device id as special */
-//            results.add(new Integer(1));
-//          }
+          else {
+            /* Legacy session entry that treated device id as special */
+            results.add(new Integer(1));
+          }
         }
       } catch (NumberFormatException e) {
         Log.w(TAG, e);
