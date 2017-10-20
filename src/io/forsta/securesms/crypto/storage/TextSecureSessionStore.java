@@ -173,8 +173,24 @@ public class TextSecureSessionStore implements SessionStore {
     }
   }
 
-  private File getSessionFile(SignalProtocolAddress address) {
-    return new File(getSessionDirectory(), getSessionName(address));
+  private File getSessionFile(SignalProtocolAddress signalAddr) {
+    if (signalAddr.getDeviceId() == 1) {
+      // Look to see if we need to migrate a legacy session file (e.g. sans-deviceId).
+      File legacyFile = new File(getSessionDirectory(),
+                                 getSessionName(signalAddr, /*legacy*/ true));
+      if (legacyFile.exists()) {
+        File newFile = new File(getSessionDirectory(),
+                                getSessionName(signalAddr, /*legacy*/ false));
+        if (!legacyFile.renameTo(newFile)) {
+          Log.w(TAG, "Failed to migrate/rename legacy session");
+          return legacyFile;
+        } else {
+          Log.w(TAG, "Migrated legacy session to fully qualified name");
+          return newFile;
+        }
+      }
+    }
+    return new File(getSessionDirectory(), getSessionName(signalAddr));
   }
 
   private File getSessionDirectory() {
@@ -190,9 +206,17 @@ public class TextSecureSessionStore implements SessionStore {
   }
 
   private String getSessionName(SignalProtocolAddress signalAddr) {
+    return getSessionName(signalAddr, /*legacy*/ false);
+  }
+
+  private String getSessionName(SignalProtocolAddress signalAddr, boolean legacy) {
     Recipient recipient   = RecipientFactory.getRecipientsFromString(context, signalAddr.getName(), true)
                                             .getPrimaryRecipient();
-    return recipient.getRecipientId() + "." + signalAddr.getDeviceId();
+    if (legacy && signalAddr.getDeviceId() == 1) {
+        return String.valueOf(recipient.getRecipientId());
+    } else {
+        return recipient.getRecipientId() + "." + signalAddr.getDeviceId();
+    }
   }
 
   private @Nullable SignalProtocolAddress getAddressName(File sessionFile) {
