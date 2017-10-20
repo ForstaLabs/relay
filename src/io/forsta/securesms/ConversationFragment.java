@@ -301,10 +301,10 @@ public class ConversationFragment extends Fragment
                 threadDeleted = DatabaseFactory.getSmsDatabase(getActivity()).deleteMessage(messageRecord.getId());
               }
 
-              if (threadDeleted) {
-                threadId = -1;
-                listener.setThreadId(threadId);
-              }
+//              if (threadDeleted) {
+//                threadId = -1;
+//                listener.setThreadId(threadId);
+//              }
             }
 
             return null;

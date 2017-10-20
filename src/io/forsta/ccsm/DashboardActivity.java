@@ -429,6 +429,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   private String printThreads() {
     StringBuilder sb = new StringBuilder();
+    SmsDatabase smsDb = DatabaseFactory.getSmsDatabase(DashboardActivity.this);
+    sb.append("SMS message count:" + smsDb.getMessageCount()).append("\n");
     ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
     Cursor cursor = tdb.getConversationList();
     while (cursor != null && cursor.moveToNext()) {
