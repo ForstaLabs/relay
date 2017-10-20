@@ -145,24 +145,17 @@ public class PushDecryptJob extends ContextJob {
       try {
         content = cipher.decrypt(envelope);
       } catch (UntrustedIdentityException e) {
-        Log.w(TAG, "Auto handling untrusted identity");
-        Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
-        long recipientId = recipients.getPrimaryRecipient().getRecipientId();
-        Log.w(TAG, "From recipient: " + recipients.getPrimaryRecipient().getNumber() + " " + recipients.getPrimaryRecipient().getName());
-        byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
-        PreKeySignalMessage whisperMessage = new PreKeySignalMessage(encryptedContent);
-        IdentityKey identityKey = whisperMessage.getIdentityKey();
-        DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
-        SignalServiceCipher updatedCipher = new SignalServiceCipher(localAddress, axolotlStore);
-        content = updatedCipher.decrypt(envelope);
+        SignalServiceCipher updatedCypher = autoHandleUntrustedIdentity(envelope, localAddress, axolotlStore);
+        content = updatedCypher.decrypt(envelope);
       }
 
       if (content.getDataMessage().isPresent()) {
         SignalServiceDataMessage message = content.getDataMessage().get();
 
-        if      (message.isEndSession())               handleEndSessionMessage(masterSecret, envelope, message, smsMessageId);
-        else if (message.isGroupUpdate())              handleGroupMessage(masterSecret, envelope, message, smsMessageId);
-        else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
+//        if      (message.isEndSession())               handleEndSessionMessage(masterSecret, envelope, message, smsMessageId);
+//        else if (message.isGroupUpdate())              handleGroupMessage(masterSecret, envelope, message, smsMessageId);
+//        else
+        if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
         else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
       } else if (content.getSyncMessage().isPresent()) {
         SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
@@ -198,6 +191,18 @@ public class PushDecryptJob extends ContextJob {
       Log.e(TAG, "Invalid Forsta message body");
       e.printStackTrace();
     }
+  }
+
+  private SignalServiceCipher autoHandleUntrustedIdentity(SignalServiceEnvelope envelope, SignalServiceAddress localAddress, SignalProtocolStore axolotlStore) throws InvalidVersionException, InvalidMessageException {
+    Log.w(TAG, "Auto handling untrusted identity");
+    Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
+    long recipientId = recipients.getPrimaryRecipient().getRecipientId();
+    Log.w(TAG, "From recipient: " + recipients.getPrimaryRecipient().getNumber() + " " + recipients.getPrimaryRecipient().getName());
+    byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
+    PreKeySignalMessage whisperMessage = new PreKeySignalMessage(encryptedContent);
+    IdentityKey identityKey = whisperMessage.getIdentityKey();
+    DatabaseFactory.getIdentityDatabase(context).saveIdentity(recipientId, identityKey);
+    return new SignalServiceCipher(localAddress, axolotlStore);
   }
 
   private void handleEndSessionMessage(@NonNull MasterSecretUnion        masterSecret,
