@@ -11,6 +11,7 @@ import android.widget.TextView;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AvatarImageView;
+import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -26,6 +27,7 @@ public class DrawerFragment extends Fragment {
   private TextView userName;
   private TextView orgTag;
   private AvatarImageView contactPhotoImage;
+  private Recipients recipients;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,10 +46,10 @@ public class DrawerFragment extends Fragment {
     contactPhotoImage = (AvatarImageView) view.findViewById(R.id.drawer_photo_image);
 
     ForstaUser user = ForstaUser.getLocalForstaUser(getActivity());
-    Recipients recipients = RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), false);
+    recipients = RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), false);
     userName.setText(user.getName());
     orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-    contactPhotoImage.setAvatar(recipients.getPrimaryRecipient(), false);
+    contactPhotoImage.setAvatar(recipients, true);
     orgName.setText(user.getOrgTag());
 
     return view;
