@@ -361,4 +361,8 @@ public class ForstaMessage {
   public Spanned getHtmlBody() {
     return htmlBody;
   }
+
+  public MessageType getMessageType() {
+    return messageType;
+  }
 }
