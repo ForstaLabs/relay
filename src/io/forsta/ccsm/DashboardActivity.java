@@ -812,6 +812,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             publishProgress(forstaMessage.getUniversalExpression());
           } catch (InvalidMessagePayloadException e) {
             publishProgress(e.getMessage()  + ": " + mrecord.getBody().getBody());
+          } finally {
+            if (mcursor != null) {
+              mcursor.close();
+            }
           }
         }
       }
