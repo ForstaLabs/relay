@@ -51,7 +51,7 @@ public class ForstaMessage {
   private String universalExpression;
   private String threadUid;
   private String threadTitle;
-  private MessageType messageType;
+  private MessageType messageType = MessageType.CONTENT;
 
   public enum MessageType {
     CONTENT,
@@ -78,13 +78,43 @@ public class ForstaMessage {
     throw new InvalidMessagePayloadException(body);
   }
 
+  private boolean isContentType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("messageType")) {
+      if (jsonBody.getString("messageType").equals("content")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isControlType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("messageType")) {
+      if (jsonBody.getString("messageType").equals("control")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isConversationType(JSONObject jsonBody) throws JSONException {
+    if (jsonBody.has("threadType")) {
+      if (jsonBody.getString("threadType").equals("conversation")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean isJsonBody(String body) {
+    return getVersion(1, body) != null;
+  }
+
   public static ForstaMessage fromMessagBodyString(String messageBody) throws InvalidMessagePayloadException {
     ForstaMessage forstaMessage = new ForstaMessage();
 
     JSONObject jsonBody = getMessageVersion(1, messageBody);
     try {
       if (forstaMessage.isContentType(jsonBody)) {
-        forstaMessage.messageType = MessageType.CONTENT;
         forstaMessage.threadUid = jsonBody.getString("threadId");
         if (jsonBody.has("threadTitle")) {
           forstaMessage.threadTitle = jsonBody.getString("threadTitle");
@@ -106,19 +136,20 @@ public class ForstaMessage {
         }
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
+        if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
+          throw new InvalidMessagePayloadException("No universal expression");
+        }
         JSONObject sender = jsonBody.getJSONObject("sender");
         forstaMessage.senderId = sender.getString("userId");
         forstaMessage.messageId = jsonBody.getString("messageId");
+        return forstaMessage;
       } else if (forstaMessage.isControlType(jsonBody)) {
         forstaMessage.messageType = MessageType.CONTROL;
-
+        return forstaMessage;
       }
-
     } catch (JSONException e) {
-      e.printStackTrace();
-
+      throw new InvalidMessagePayloadException(e.getMessage());
     }
-
     throw new InvalidMessagePayloadException(messageBody);
   }
 
@@ -175,36 +206,7 @@ public class ForstaMessage {
     return forstaMessage;
   }
 
-  private boolean isContentType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.has("messageType")) {
-      if (jsonBody.getString("messageType").equals("content")) {
-        return true;
-      }
-    }
-    return false;
-  }
 
-  private boolean isControlType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.has("messageType")) {
-      if (jsonBody.getString("messageType").equals("control")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean isConversationType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.has("threadType")) {
-      if (jsonBody.getString("threadType").equals("conversation")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean isJsonBody(String body) {
-    return getVersion(1, body) != null;
-  }
 
   public boolean hasThreadUid() {
     return !TextUtils.isEmpty(threadUid);

@@ -28,10 +28,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -51,6 +53,7 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
@@ -84,6 +87,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private ProgressBar mProgressBar;
   private WebSocketUtils socketUtils;
   private Button socketTester;
+  private Button messageTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -244,6 +248,15 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       @Override
       public void onClick(View v) {
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
+      }
+    });
+    messageTester = (Button) findViewById(R.id.message_tests_button);
+    messageTester.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        mDebugText.setText("");
+        showScrollView();
+        new MessageTests().execute();
       }
     });
     printLoginInformation();
@@ -718,6 +731,105 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
       mDebugText.setText(jsonObject.toString());
+    }
+  }
+
+  private class MessageTests extends AsyncTask<Void, String, Void> {
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      publishProgress("Bad JSON blob test.");
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("");
+        publishProgress("Failed: empty string.");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("{}");
+        publishProgress("Failed: empty object.");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[]");
+        publishProgress("Failed: empty array");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      // No version object
+      publishProgress("Bad version object test");
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{virgin: 1}]");
+        publishProgress("Failed: empty array");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: blank}]");
+        publishProgress("Failed: invalid content type");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      // No distribution
+      publishProgress("Bad distribution object");
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content}]");
+        publishProgress("Failed: no distribution object");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {}}]");
+        publishProgress("Failed: empty distribution object");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      publishProgress("Bad distribution expression object");
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {expression: ''}}]");
+        publishProgress("Failed: empty distribution expression");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      // Go through all existing messages and verify JSON.
+      ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+      MmsSmsDatabase mdb = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this);
+      Cursor ccursor = tdb.getConversationList();
+      ThreadDatabase.Reader treader = tdb.readerFor(ccursor, mMasterCipher);
+      ThreadRecord trecord;
+      publishProgress("Verifying existing message records.");
+      while ((trecord = treader.getNext()) != null) {
+        Cursor mcursor = mdb.getConversation(trecord.getThreadId());
+        MmsSmsDatabase.Reader mreader = mdb.readerFor(mcursor, mMasterSecret);
+        MessageRecord mrecord;
+        while ((mrecord = mreader.getNext()) != null) {
+          try {
+            ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(mrecord.getBody().getBody());
+            publishProgress(forstaMessage.getUniversalExpression());
+          } catch (InvalidMessagePayloadException e) {
+            publishProgress(e.getMessage()  + ": " + mrecord.getBody().getBody());
+          }
+        }
+      }
+      publishProgress("Complete. Verified message records.");
+      // Create malformed message blobs and verify handling.
+      // No JSON blob
+
+      return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+      mDebugText.append(values[0] + "\n");
+    }
+
+    @Override
+    protected void onPostExecute(Void v) {
+      mDebugText.append("Complete");
     }
   }
 }
