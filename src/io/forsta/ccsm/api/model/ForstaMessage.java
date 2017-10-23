@@ -122,8 +122,6 @@ public class ForstaMessage {
     throw new InvalidMessagePayloadException(messageBody);
   }
 
-  private void 
-
   public static ForstaMessage fromJsonString(String messageBody) {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
