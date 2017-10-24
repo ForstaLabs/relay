@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -44,13 +45,23 @@ public class DrawerFragment extends Fragment {
     userName = (TextView) view.findViewById(R.id.drawer_user);
     orgTag = (TextView) view.findViewById(R.id.drawer_org_tag);
     contactPhotoImage = (AvatarImageView) view.findViewById(R.id.drawer_photo_image);
+    final ForstaUser user = ForstaUser.getLocalForstaUser(getActivity());
 
-    ForstaUser user = ForstaUser.getLocalForstaUser(getActivity());
-    recipients = RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), false);
-    userName.setText(user.getName());
-    orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-    contactPhotoImage.setAvatar(recipients, true);
-    orgName.setText(user.getOrgTag());
+    new AsyncTask<Void, Void, Recipients>() {
+
+      @Override
+      protected Recipients doInBackground(Void... voids) {
+        return RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), false);
+      }
+
+      @Override
+      protected void onPostExecute(Recipients recipients) {
+        userName.setText(user.getName());
+        orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
+        contactPhotoImage.setAvatar(recipients, true);
+        orgName.setText(user.getOrgTag());
+      }
+    }.execute();
 
     return view;
   }
