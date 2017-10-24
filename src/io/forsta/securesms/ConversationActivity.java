@@ -1135,19 +1135,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
       long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
 
-      Log.w(TAG, "isManual Selection: " + sendButton.isManualSelection());
-      Log.w(TAG, "forceSms: " + forceSms);
-
       if (recipients == null) {
-        throw new RecipientFormattingException("Badly formatted");
+        Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_recipient_is_not_valid, Toast.LENGTH_LONG).show();
       } else {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
       }
-    } catch (RecipientFormattingException ex) {
-      Toast.makeText(ConversationActivity.this,
-                     R.string.ConversationActivity_recipient_is_not_a_valid_sms_or_email_address_exclamation,
-                     Toast.LENGTH_LONG).show();
-      Log.w(TAG, ex);
     } catch (InvalidMessageException ex) {
       Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_message_is_empty_exclamation,
                      Toast.LENGTH_SHORT).show();
