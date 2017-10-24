@@ -1184,8 +1184,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-        List<Slide> slides = slideDeck.getSlides();
-
 
         message.setForstaJsonBody(context, threadData);
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
