@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -35,16 +36,21 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
+import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
 import io.forsta.securesms.preferences.ColorPreference;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
 import io.forsta.securesms.util.DynamicTheme;
@@ -74,6 +80,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private TextView forstaUid;
   private TextView forstaExpression;
   private ImageButton forstaSaveTitle;
+  private Recipients recipients;
+  private MasterSecret masterSecret;
 
   @Override
   public void onPreCreate() {
@@ -83,6 +91,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   public void onCreate(Bundle instanceState, @NonNull MasterSecret masterSecret) {
+    this.masterSecret = masterSecret;
     setContentView(R.layout.activity_thread_preference);
     threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     initializeToolbar();
@@ -139,14 +148,27 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       public void onClick(View view) {
         DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
         forstaSaveTitle.setVisibility(View.GONE);
-
         Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+
+        new AsyncTask<Void, Void, Void>() {
+
+          @Override
+          protected Void doInBackground(Void... voids) {
+            OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Control Message", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
+            message = new OutgoingSecureMediaMessage(message);
+            ForstaThread threadData = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+//            message.setForstaControlJsonBody(ThreadPreferenceActivity.this, threadData);
+//            MessageSender.send(ThreadPreferenceActivity.this, masterSecret, message, threadId, false);
+
+            return null;
+          }
+        }.execute();
       }
     });
   }
 
   private void initializeThread() {
-    Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
+    recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
     if (!TextUtils.isEmpty(thread.getTitle())) {

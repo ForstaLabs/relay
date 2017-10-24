@@ -114,11 +114,21 @@ public class ForstaMessage {
 
     JSONObject jsonBody = getMessageVersion(1, messageBody);
     try {
+      forstaMessage.threadUid = jsonBody.getString("threadId");
+      if (jsonBody.has("threadTitle")) {
+        forstaMessage.threadTitle = jsonBody.getString("threadTitle");
+      }
+
+      JSONObject distribution = jsonBody.getJSONObject("distribution");
+      forstaMessage.universalExpression = distribution.getString("expression");
+      if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
+        throw new InvalidMessagePayloadException("No universal expression");
+      }
+      JSONObject sender = jsonBody.getJSONObject("sender");
+      forstaMessage.senderId = sender.getString("userId");
+      forstaMessage.messageId = jsonBody.getString("messageId");
+
       if (forstaMessage.isContentType(jsonBody)) {
-        forstaMessage.threadUid = jsonBody.getString("threadId");
-        if (jsonBody.has("threadTitle")) {
-          forstaMessage.threadTitle = jsonBody.getString("threadTitle");
-        }
         if (jsonBody.has("data")) {
           JSONObject data = jsonBody.getJSONObject("data");
           if (data.has("body")) {
@@ -134,23 +144,25 @@ public class ForstaMessage {
             }
           }
         }
-        JSONObject distribution = jsonBody.getJSONObject("distribution");
-        forstaMessage.universalExpression = distribution.getString("expression");
-        if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
-          throw new InvalidMessagePayloadException("No universal expression");
-        }
-        JSONObject sender = jsonBody.getJSONObject("sender");
-        forstaMessage.senderId = sender.getString("userId");
-        forstaMessage.messageId = jsonBody.getString("messageId");
-        return forstaMessage;
       } else if (forstaMessage.isControlType(jsonBody)) {
         forstaMessage.messageType = MessageType.CONTROL;
-        return forstaMessage;
+        if (jsonBody.has("data")) {
+          JSONObject data = jsonBody.getJSONObject("data");
+          if (data.has("control")) {
+            JSONObject control = data.getJSONObject("control");
+            if (control.has("threadUpdate")) {
+              JSONObject threadUpdate = control.getJSONObject("threadUpdate");
+              if (threadUpdate.has("threadTitle")) {
+                forstaMessage.textBody = "Thread Update. New Title: " + threadUpdate.getString("threadTitle");
+              }
+            }
+          }
+        }
       }
+      return forstaMessage;
     } catch (JSONException e) {
       throw new InvalidMessagePayloadException(e.getMessage());
     }
-    throw new InvalidMessagePayloadException(messageBody);
   }
 
   public static ForstaMessage fromJsonString(String messageBody) {
@@ -206,8 +218,6 @@ public class ForstaMessage {
     return forstaMessage;
   }
 
-
-
   public boolean hasThreadUid() {
     return !TextUtils.isEmpty(threadUid);
   }
@@ -235,29 +245,37 @@ public class ForstaMessage {
     return null;
   }
 
+  public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.getDistribution(), forstaThread.getTitle(), forstaThread.getUid(), MessageType.CONTROL);
+  }
+
   public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
-    return createForstaMessageBody(context, richTextMessage, messageRecipients, new ArrayList<Attachment>(), "", "", "");
+    return createForstaMessageBody(context, richTextMessage, messageRecipients, new ArrayList<Attachment>(), "", "", "", MessageType.CONTENT);
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.distribution, forstaThread.title, forstaThread.uid);
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.getDistribution(), forstaThread.getTitle(), forstaThread.getUid(), MessageType.CONTENT);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, String universalExpression, String threadTitle, String threadUid) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, String universalExpression, String threadTitle, String threadUid, MessageType type) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
 
-    // Looking for a empty expression being sent.
-    if (TextUtils.isEmpty(universalExpression)) {
-      Log.e(TAG, "No universal expression for thread: " + threadUid);
-    }
-
     try {
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
-      String threadType = "conversation";
       String messageType = "content";
+      if (type == MessageType.CONTROL) {
+        messageType = "control";
+        JSONObject control = new JSONObject();
+        JSONObject threadUpdate = new JSONObject();
+        threadUpdate.put("threadTitle", "New title");
+        control.put("threadUpdate", threadUpdate);
+        data.put("control", control);
+      }
+
+      String threadType = "conversation";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();

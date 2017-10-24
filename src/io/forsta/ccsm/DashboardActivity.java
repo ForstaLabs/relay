@@ -205,8 +205,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             mDebugText.setText(printDirectory());
             break;
           case 4:
-            GetMessages getMessages = new GetMessages();
-            getMessages.execute();
+//            GetMessages getMessages = new GetMessages();
+//            getMessages.execute();
+            mDebugText.setText(printMediaMessages());
             break;
           case 5:
             mDebugText.setText(printThreads());
@@ -299,8 +300,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
           }
         }).show();
   }
-
-
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
@@ -452,6 +451,18 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append(cursor.getString(i)).append("\n");
       }
       sb.append("\n");
+    }
+    return sb.toString();
+  }
+
+  private String printMediaMessages() {
+    MmsDatabase db = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
+    Cursor cursor = db.getMessages(-1);
+    MmsDatabase.Reader reader = db.readerFor(mMasterSecret, cursor);
+    MessageRecord messageRecord;
+    StringBuilder sb = new StringBuilder();
+    while ((messageRecord = reader.getNext()) != null) {
+      sb.append(messageRecord.getDisplayBody()).append("\n");
     }
     return sb.toString();
   }
@@ -809,13 +820,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         while ((mrecord = mreader.getNext()) != null) {
           try {
             ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(mrecord.getBody().getBody());
-            publishProgress(forstaMessage.getUniversalExpression());
+            publishProgress("Type:" + forstaMessage.getMessageType().name() + " UID:" + forstaMessage.getThreadUId() + " ID:" + mrecord.getId() + " Legacy:" + mrecord.isLegacyMessage());
           } catch (InvalidMessagePayloadException e) {
             publishProgress(e.getMessage()  + ": " + mrecord.getBody().getBody());
-          } finally {
-            if (mcursor != null) {
-              mcursor.close();
-            }
           }
         }
       }

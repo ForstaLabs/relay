@@ -42,6 +42,7 @@ import android.widget.Toast;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
@@ -285,11 +286,15 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(messageRecord.getDisplayBody().toString());
-      if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-        bodyText.setText(forstaMessage.getTextBody());
-      } else {
-        bodyText.setText(forstaMessage.getTextBody());
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(messageRecord.getDisplayBody().toString());
+        if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
+          bodyText.setText(forstaMessage.getHtmlBody());
+        } else {
+          bodyText.setText(forstaMessage.getTextBody());
+        }
+      } catch (InvalidMessagePayloadException e) {
+        Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
       }
       bodyText.setVisibility(View.VISIBLE);
     }

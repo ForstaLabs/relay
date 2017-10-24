@@ -307,7 +307,7 @@ public class PushDecryptJob extends ContextJob {
 
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
-    if (forstaMessage.getMessageType().equals(ForstaMessage.MessageType.CONTROL)) {
+    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTROL) {
       handleControlMessage(forstaMessage, message);
     } else {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);

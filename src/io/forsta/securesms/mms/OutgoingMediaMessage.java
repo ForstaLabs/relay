@@ -109,4 +109,8 @@ public class OutgoingMediaMessage {
   public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
     this.body = ForstaMessage.createForstaMessageBody(context, this.body, recipients, attachments, forstaThread);
   }
+
+  public void setForstaControlJsonBody(Context context, ForstaThread forstaThread) {
+    this.body = ForstaMessage.createControlMessageBody(context, this.body, recipients, attachments, forstaThread);
+  }
 }
