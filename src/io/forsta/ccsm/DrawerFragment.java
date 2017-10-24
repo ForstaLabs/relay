@@ -28,7 +28,6 @@ public class DrawerFragment extends Fragment {
   private TextView userName;
   private TextView orgTag;
   private AvatarImageView contactPhotoImage;
-  private Recipients recipients;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
