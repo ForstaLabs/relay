@@ -41,7 +41,9 @@ import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -54,6 +56,7 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
 import io.forsta.securesms.util.DynamicTheme;
+import ws.com.google.android.mms.MmsException;
 
 public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivity {
   public static final String TAG = ThreadPreferenceActivity.class.getSimpleName();
@@ -157,9 +160,14 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
             OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Control Message", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
             message = new OutgoingSecureMediaMessage(message);
             ForstaThread threadData = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
-//            message.setForstaControlJsonBody(ThreadPreferenceActivity.this, threadData);
-//            MessageSender.send(ThreadPreferenceActivity.this, masterSecret, message, threadId, false);
-
+            message.setForstaControlJsonBody(ThreadPreferenceActivity.this, threadData);
+            MmsDatabase database = DatabaseFactory.getMmsDatabase(ThreadPreferenceActivity.this);
+            try {
+              long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
+              MessageSender.sendMediaMessage(ThreadPreferenceActivity.this, masterSecret, recipients, false, messageId, 0);
+            } catch (MmsException e) {
+              e.printStackTrace();
+            }
             return null;
           }
         }.execute();
