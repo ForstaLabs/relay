@@ -140,7 +140,7 @@ public class ConversationListItem extends RelativeLayout
     this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
 
-    this.fromView.setText(recipients, read);
+
     setForstaThreadTitle();
 
     ForstaMessage forstaMessage = ForstaMessage.fromJsonString(thread.getDisplayBody().toString());
@@ -262,7 +262,7 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        fromView.setText(recipients, read);
+        setForstaThreadTitle();
         setRippleColor(threadColor);
         contactPhotoImage.setAvatar(recipients, threadColor);
       }
@@ -309,6 +309,8 @@ public class ConversationListItem extends RelativeLayout
 
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
+    } else {
+      this.fromView.setText(recipients, read);
     }
   }
 }

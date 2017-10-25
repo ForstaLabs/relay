@@ -216,7 +216,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean    archived;
   private boolean    isSecureText = true;
   private Handler handler = new Handler();
-  private ContentObserver threadPreferenceObserver;
+  private ContentObserver threadObserver;
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -245,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeSecurity();
     initializeDraft();
     initializeDirectory();
+    initThread();
   }
 
   @Override
@@ -282,12 +283,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     composeText.setTransport(sendButton.getSelectedTransport());
 
-    initThread();
     calculateCharactersRemaining();
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
-    threadPreferenceObserver = new ContentObserver(handler) {
+    initThread();
+    threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
         invalidateOptionsMenu();
@@ -295,7 +296,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     };
 
-    getContentResolver().registerContentObserver(Uri.parse(ThreadPreferenceDatabase.THREAD_PREFERENCES_URI), true, threadPreferenceObserver);
+    getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.CONVERSATION_URI + threadId), true, threadObserver);
   }
 
   @Override
@@ -305,9 +306,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (isFinishing()) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_right);
     quickAttachmentDrawer.onPause();
     inputPanel.onPause();
+    getContentResolver().unregisterContentObserver(threadObserver);
 
     AudioSlidePlayer.stopAll();
-    getContentResolver().unregisterContentObserver(threadPreferenceObserver);
   }
 
   @Override
@@ -325,6 +326,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (recipients != null)              recipients.removeListener(this);
     if (securityUpdateReceiver != null)  unregisterReceiver(securityUpdateReceiver);
     if (recipientsStaleReceiver != null) unregisterReceiver(recipientsStaleReceiver);
+
     super.onDestroy();
   }
 

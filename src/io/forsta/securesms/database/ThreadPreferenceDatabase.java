@@ -21,7 +21,6 @@ import io.forsta.securesms.color.MaterialColors;
 
 public class ThreadPreferenceDatabase extends Database {
   private static final String TAG = ThreadPreferenceDatabase.class.getSimpleName();
-  public static final String THREAD_PREFERENCES_URI = "content://textsecure/conversations/";
 
   public static final String TABLE_NAME = "thread_preferences";
   private static final String ID = "_id";
@@ -143,13 +142,13 @@ public class ThreadPreferenceDatabase extends Database {
 
     if (updated < 1) {
       contentValues.put(THREAD_ID, threadId);
-      database.insert(TABLE_NAME, null, contentValues);
+      threadId = database.insert(TABLE_NAME, null, contentValues);
     }
 
     database.setTransactionSuccessful();
     database.endTransaction();
-
-    context.getContentResolver().notifyChange(Uri.parse(THREAD_PREFERENCES_URI), null);
+    notifyConversationListListeners();
+    notifyConversationListeners(threadId);
   }
 
   public class ThreadPreference {

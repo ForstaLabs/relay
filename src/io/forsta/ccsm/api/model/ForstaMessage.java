@@ -164,12 +164,11 @@ public class ForstaMessage {
           if (data.has("control")) {
             JSONObject control = data.getJSONObject("control");
             if (control.has("threadUpdate")) {
+              forstaMessage.controlType = ControlType.THREAD_UPDATE;
               JSONObject threadUpdate = control.getJSONObject("threadUpdate");
-              if (threadUpdate.has("threadId")) {
-                forstaMessage.threadUid = threadUpdate.getString("threadId");
-                if (threadUpdate.has("threadTitle")) {
-                  forstaMessage.threadTitle = threadUpdate.getString("threadTitle");
-                }
+              forstaMessage.threadUid = threadUpdate.getString("threadId");
+              if (threadUpdate.has("threadTitle")) {
+                forstaMessage.threadTitle = threadUpdate.getString("threadTitle");
               }
             }
           }

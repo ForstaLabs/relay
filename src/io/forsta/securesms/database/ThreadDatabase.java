@@ -177,6 +177,7 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, contentValues, ID + " = ?", new String[] {threadId + ""});
     notifyConversationListListeners();
+    notifyConversationListeners(threadId);
   }
 
   public void updateSnippet(long threadId, String snippet, @Nullable Uri attachment, long date, long type, boolean unarchive) {
@@ -686,6 +687,8 @@ public class ThreadDatabase extends Database {
     ContentValues values = new ContentValues(1);
     values.put(TITLE, title);
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+    notifyConversationListListeners();
+    notifyConversationListeners(threadId);
   }
 
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {
