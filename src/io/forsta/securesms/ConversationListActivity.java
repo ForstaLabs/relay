@@ -74,7 +74,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private DrawerFragment drawerFragment;
   private LinearLayout syncIndicator;
 
-  private ContentObserver observer;
   private MasterSecret masterSecret;
   private ForstaUser localUser;
 
@@ -137,7 +136,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   @Override
   public void onDestroy() {
     if (syncReceiver != null) unregisterReceiver(syncReceiver);
-    if (observer != null) getContentResolver().unregisterContentObserver(observer);
     super.onDestroy();
   }
 
