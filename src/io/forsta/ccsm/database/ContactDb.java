@@ -266,7 +266,6 @@ public class ContactDb extends DbBase {
         db.endTransaction();
       }
     }
-    db.close();
   }
 
   public void updateUser(ForstaUser user) {
@@ -293,7 +292,6 @@ public class ContactDb extends DbBase {
       values.put(TSREGISTERED, false);
       db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
     }
-    db.close();
   }
 
   public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens) {
@@ -305,7 +303,6 @@ public class ContactDb extends DbBase {
       values.put(TSREGISTERED, true);
       db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
     }
-    db.close();
   }
 
   public Cursor getActiveRecipients(String filter) {

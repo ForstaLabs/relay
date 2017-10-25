@@ -788,11 +788,18 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
+      publishProgress("Bad messageType object test");
+      try {
+        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1]}");
+        publishProgress("Failed: invalid content type");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
       try {
         ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: blank}]");
         publishProgress("Failed: invalid content type");
       } catch (InvalidMessagePayloadException e) {
-        publishProgress("Caught Exception. Body: " + e.getMessage());
+        publishProgress("Caught Exception: " + e.getMessage());
       }
       // No distribution
       publishProgress("Bad distribution object");
@@ -831,7 +838,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         while ((mrecord = mreader.getNext()) != null) {
           try {
             ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(mrecord.getBody().getBody());
-            publishProgress("Type:" + forstaMessage.getMessageType().name() + " UID:" + forstaMessage.getThreadUId() + " ID:" + mrecord.getId() + " Legacy:" + mrecord.isLegacyMessage());
+            publishProgress("Type:" + forstaMessage.getMessageType().name() + " UID:" + forstaMessage.getThreadUId() + " ID:" + mrecord.getId());
           } catch (InvalidMessagePayloadException e) {
             publishProgress(e.getMessage()  + ": " + mrecord.getBody().getBody());
           }

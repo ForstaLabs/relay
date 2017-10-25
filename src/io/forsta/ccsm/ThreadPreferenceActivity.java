@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Random;
 
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -68,7 +69,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private static final String PREFERENCE_BLOCK    = "pref_key_thread_block";
   private static final String PREFERENCE_COLOR    = "pref_key_thread_color";
   private static final String PREFERENCE_IDENTITY = "pref_key_thread_identity";
-
 
   private final DynamicTheme dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -146,39 +146,13 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
     forstaExpression = (TextView) findViewById(R.id.forsta_thread_expression);
     forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
-    forstaSaveTitle.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
-        forstaSaveTitle.setVisibility(View.GONE);
-        Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
-
-        new AsyncTask<Void, Void, Void>() {
-
-          @Override
-          protected Void doInBackground(Void... voids) {
-            OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Control Message", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
-            message = new OutgoingSecureMediaMessage(message);
-            ForstaThread threadData = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
-            message.setForstaControlJsonBody(ThreadPreferenceActivity.this, threadData);
-            MmsDatabase database = DatabaseFactory.getMmsDatabase(ThreadPreferenceActivity.this);
-            try {
-              long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
-              MessageSender.sendMediaMessage(ThreadPreferenceActivity.this, masterSecret, recipients, false, messageId, 0);
-            } catch (MmsException e) {
-              e.printStackTrace();
-            }
-            return null;
-          }
-        }.execute();
-      }
-    });
+    forstaSaveTitle.setOnClickListener(new TitleSaveClickListener());
   }
 
   private void initializeThread() {
     recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    final ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
     if (!TextUtils.isEmpty(thread.getTitle())) {
       forstaTitle.setText(thread.getTitle());
     } else {
@@ -192,7 +166,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (s.length() > 0) {
+        String saved = thread.getTitle() != null ? thread.getTitle() : "";
+        if (!saved.equals(s.toString())) {
           forstaSaveTitle.setVisibility(View.VISIBLE);
         } else {
           forstaSaveTitle.setVisibility(View.GONE);
@@ -222,6 +197,24 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       contacts.add(sb.toString());
     }
     return TextUtils.join(", ", contacts);
+  }
+
+  private class TitleSaveClickListener implements View.OnClickListener {
+
+    @Override
+    public void onClick(View view) {
+      DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
+      forstaSaveTitle.setVisibility(View.GONE);
+      Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+
+      new AsyncTask<Void, Void, Void>() {
+        @Override
+        protected Void doInBackground(Void... voids) {
+          ForstaMessageManager.sendThreadUpdate(ThreadPreferenceActivity.this, masterSecret, recipients, threadId);
+          return null;
+        }
+      }.execute();
+    }
   }
 
   public static class ThreadPreferenceFragment extends PreferenceFragment {

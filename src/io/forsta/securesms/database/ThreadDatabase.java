@@ -666,6 +666,21 @@ public class ThreadDatabase extends Database {
     return null;
   }
 
+  public ForstaThread getForstaThread(String threadUid) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      Cursor cursor = null;
+      try {
+        cursor = db.query(TABLE_NAME, null, UID + " = ? ", new String[]{threadUid}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+          return new ForstaThread(cursor);
+        }
+      } finally {
+        if (cursor != null)
+          cursor.close();
+      }
+      return null;
+  }
+
   public void updateThreadTitle(long threadId, String title) {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     ContentValues values = new ContentValues(1);

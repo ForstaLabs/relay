@@ -8,6 +8,7 @@ import android.util.Pair;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
@@ -218,7 +219,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getBody(), message.getGroupInfo(),
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
+    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(body);
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
@@ -306,7 +307,7 @@ public class PushDecryptJob extends ContextJob {
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(body);
+    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(body);
     if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTROL) {
       handleControlMessage(forstaMessage, message);
     } else {
@@ -321,7 +322,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase database   = DatabaseFactory.getMmsDatabase(context);
     Recipients  sender = getSyncMessageDestination(message);
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
+    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
@@ -350,7 +351,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
     Recipients            sender   = getSyncMessageDestination(message);
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonStringOrThrows(message.getMessage().getBody().get());
+    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
@@ -441,7 +442,20 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleControlMessage(ForstaMessage forstaMessage, SignalServiceDataMessage message) {
-    Log.w(TAG, "Got control message: " + message.getBody().get());
+    try {
+      Log.w(TAG, "Got control message: " + message.getBody().get());
+      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(forstaMessage.getThreadUId());
+
+      if (threadData != null) {
+        String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
+        if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
+          DatabaseFactory.getThreadDatabase(context).updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+        }
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Control message excption: " + e.getMessage());
+      e.printStackTrace();
+    }
   }
 
   // XXX unused or obsolete methods and empty handlers.

@@ -168,6 +168,8 @@ public class RecipientProvider {
           Log.w(TAG, "resultNumber is null");
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       if (cursor != null)
         cursor.close();

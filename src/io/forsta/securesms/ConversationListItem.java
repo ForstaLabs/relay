@@ -306,6 +306,7 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setForstaThreadTitle() {
+
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
     }

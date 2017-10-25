@@ -232,8 +232,6 @@ public class GroupDatabase extends Database {
     } finally {
       db.endTransaction();
     }
-
-    db.close();
   }
 
   public void createForstaGroup(byte[] groupId, String title, List<String> members,
@@ -446,13 +444,11 @@ public class GroupDatabase extends Database {
     } finally {
       db.endTransaction();
     }
-    db.close();
   }
 
   public void removeAllGroups() {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.delete(TABLE_NAME, null, null);
-    db.close();
   }
   private List<String> getCurrentMembers(byte[] id) {
     Cursor cursor = null;
