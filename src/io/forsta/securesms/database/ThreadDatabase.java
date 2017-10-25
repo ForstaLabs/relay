@@ -686,6 +686,7 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     ContentValues values = new ContentValues(1);
     values.put(TITLE, title);
+    values.put(READ, false);
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
     notifyConversationListListeners();
     notifyConversationListeners(threadId);

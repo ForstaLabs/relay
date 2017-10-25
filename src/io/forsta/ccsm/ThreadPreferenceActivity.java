@@ -193,7 +193,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     List<String> contacts = new ArrayList();
     for (Recipient recipient : recipients) {
       StringBuilder sb = new StringBuilder();
-      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")");
+      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")\n");
       contacts.add(sb.toString());
     }
     return TextUtils.join(", ", contacts);
