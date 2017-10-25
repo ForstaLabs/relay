@@ -64,11 +64,13 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -173,7 +175,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Canonical Address Db");
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
-    options.add("SMS and MMS Message Threads");
+    options.add("Control and Ccsm Sync messages.");
     options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
@@ -462,7 +464,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     MessageRecord messageRecord;
     StringBuilder sb = new StringBuilder();
     while ((messageRecord = reader.getNext()) != null) {
-      sb.append(messageRecord.getDisplayBody()).append("\n");
+      String displayDate = DateUtils.formatDateTime(DashboardActivity.this, messageRecord.getTimestamp(), android.text.format.DateUtils.FORMAT_ABBREV_TIME);
+      try {
+        ForstaMessage message = ForstaMessage.fromMessagBodyString(messageRecord.getBody().getBody());
+      } catch (InvalidMessagePayloadException e) {
+        Log.w(TAG, "Bad message payload");
+      }
+      sb.append(messageRecord.getId())
+          .append(" ")
+          .append(displayDate)
+          .append("\n");
     }
     return sb.toString();
   }

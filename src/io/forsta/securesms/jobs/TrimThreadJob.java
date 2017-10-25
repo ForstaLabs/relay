@@ -50,6 +50,10 @@ public class TrimThreadJob extends Job {
     if (!trimmingEnabled)
       return;
 
+    if (threadId == -1) {
+      threadLengthLimit = 100;
+    }
+
     DatabaseFactory.getThreadDatabase(context).trimThread(threadId, threadLengthLimit);
   }
 
