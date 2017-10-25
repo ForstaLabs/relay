@@ -287,7 +287,7 @@ public class ConversationItem extends LinearLayout
     } else {
       ForstaMessage forstaMessage = ForstaMessage.fromJsonString(messageRecord.getDisplayBody().toString());
       if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-        bodyText.setText(forstaMessage.getTextBody());
+        bodyText.setText(forstaMessage.getHtmlBody());
       } else {
         bodyText.setText(forstaMessage.getTextBody());
       }
