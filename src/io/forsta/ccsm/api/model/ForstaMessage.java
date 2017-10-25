@@ -52,10 +52,25 @@ public class ForstaMessage {
   private String threadUid;
   private String threadTitle;
   private MessageType messageType = MessageType.CONTENT;
+  private ControlType controlType = ControlType.NONE;
+
+  public enum ControlType {
+    NONE,
+    THREAD_UPDATE,
+    THREAD_CLEAR,
+    THREAD_CLOSE,
+    THREAD_DELETE,
+    SNOOZE,
+    PROVISION_REQUEST,
+    SYNC_REQUEST,
+    SYNC_RESPONSE,
+    DISCOVER,
+    DISCOVER_RESPONSE
+  }
 
   public enum MessageType {
     CONTENT,
-    CONTROL;
+    CONTROL
   }
 
   protected ForstaMessage() {
@@ -345,5 +360,9 @@ public class ForstaMessage {
 
   public MessageType getMessageType() {
     return messageType;
+  }
+
+  public ControlType getControlType() {
+    return controlType;
   }
 }

@@ -444,12 +444,15 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, SignalServiceDataMessage message) {
     try {
       Log.w(TAG, "Got control message: " + message.getBody().get());
-      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(forstaMessage.getThreadUId());
+      Log.w(TAG, "Control Type: " + forstaMessage.getControlType().name());
+      if (forstaMessage.getControlType() == ForstaMessage.ControlType.THREAD_UPDATE) {
+        ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(forstaMessage.getThreadUId());
 
-      if (threadData != null) {
-        String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
-        if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
-          DatabaseFactory.getThreadDatabase(context).updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+        if (threadData != null) {
+          String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
+          if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
+            DatabaseFactory.getThreadDatabase(context).updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+          }
         }
       }
     } catch (Exception e) {
