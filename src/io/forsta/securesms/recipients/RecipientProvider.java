@@ -157,15 +157,19 @@ public class RecipientProvider {
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
-          Bitmap gravatar = getContactGravatar(avatarUrl);
-          if (gravatar != null) {
-            contactPhoto = new BitmapContactPhoto(gravatar);
+          if (avatarUrl != null) {
+            Bitmap gravatar = getContactGravatar(avatarUrl);
+            if (gravatar != null) {
+              contactPhoto = new BitmapContactPhoto(gravatar);
+            }
           }
           return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug, orgSlug);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       if (cursor != null)
         cursor.close();
