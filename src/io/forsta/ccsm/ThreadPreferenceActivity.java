@@ -193,10 +193,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     List<String> contacts = new ArrayList();
     for (Recipient recipient : recipients) {
       StringBuilder sb = new StringBuilder();
-      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")\n");
+      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")");
       contacts.add(sb.toString());
     }
-    return TextUtils.join(", ", contacts);
+    return TextUtils.join("\n", contacts);
   }
 
   private class TitleSaveClickListener implements View.OnClickListener {
