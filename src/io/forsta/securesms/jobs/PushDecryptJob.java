@@ -9,6 +9,7 @@ import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.DatabaseAttachment;
@@ -219,7 +220,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  message.getBody(), message.getGroupInfo(),
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
-    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(body);
+    ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
@@ -307,7 +308,7 @@ public class PushDecryptJob extends ContextJob {
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
 
 
-    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(body);
+    ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
     if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTROL) {
       handleControlMessage(forstaMessage, message);
     } else {
@@ -322,7 +323,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase database   = DatabaseFactory.getMmsDatabase(context);
     Recipients  sender = getSyncMessageDestination(message);
 
-    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(message.getMessage().getBody().get());
+    ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
@@ -351,7 +352,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
     Recipients            sender   = getSyncMessageDestination(message);
 
-    ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(message.getMessage().getBody().get());
+    ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
     Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 

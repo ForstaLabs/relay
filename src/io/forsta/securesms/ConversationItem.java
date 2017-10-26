@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.components.AlertView;
@@ -287,7 +288,7 @@ public class ConversationItem extends LinearLayout
       bodyText.setVisibility(View.GONE);
     } else {
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(messageRecord.getDisplayBody().toString());
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
         if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
           bodyText.setText(forstaMessage.getHtmlBody());
         } else {

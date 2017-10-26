@@ -33,6 +33,7 @@ import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
@@ -466,7 +467,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     while ((messageRecord = reader.getNext()) != null) {
       String displayDate = DateUtils.formatDateTime(DashboardActivity.this, messageRecord.getTimestamp(), android.text.format.DateUtils.FORMAT_ABBREV_TIME);
       try {
-        ForstaMessage message = ForstaMessage.fromMessagBodyString(messageRecord.getBody().getBody());
+        ForstaMessage message = ForstaMessageManager.fromMessagBodyString(messageRecord.getBody().getBody());
       } catch (InvalidMessagePayloadException e) {
         Log.w(TAG, "Bad message payload");
       }
@@ -762,20 +763,20 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     protected Void doInBackground(Void... params) {
       publishProgress("Bad JSON blob test.");
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("");
         publishProgress("Failed: empty string.");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("{}");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("{}");
         publishProgress("Failed: empty object.");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
 
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[]");
         publishProgress("Failed: empty array");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
@@ -783,20 +784,20 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       // No version object
       publishProgress("Bad version object test");
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{virgin: 1}]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{virgin: 1}]");
         publishProgress("Failed: empty array");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
       publishProgress("Bad messageType object test");
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1]}");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1]}");
         publishProgress("Failed: invalid content type");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: blank}]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: blank}]");
         publishProgress("Failed: invalid content type");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception: " + e.getMessage());
@@ -804,13 +805,13 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       // No distribution
       publishProgress("Bad distribution object");
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content}]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content}]");
         publishProgress("Failed: no distribution object");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
       }
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {}}]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {}}]");
         publishProgress("Failed: empty distribution object");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
@@ -818,7 +819,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
       publishProgress("Bad distribution expression object");
       try {
-        ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {expression: ''}}]");
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {expression: ''}}]");
         publishProgress("Failed: empty distribution expression");
       } catch (InvalidMessagePayloadException e) {
         publishProgress("Caught Exception. Body: " + e.getMessage());
@@ -843,7 +844,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         while ((mrecord = mreader.getNext()) != null) {
           count++;
           try {
-            ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(mrecord.getBody().getBody());
+            ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(mrecord.getBody().getBody());
             passCount++;
           } catch (InvalidMessagePayloadException e) {
             failCount++;

@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
@@ -143,7 +144,7 @@ public class ConversationListItem extends RelativeLayout
 
     setForstaThreadTitle();
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(thread.getDisplayBody().toString());
+    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
     String body = forstaMessage.getTextBody();
     subjectView.setText(body);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);

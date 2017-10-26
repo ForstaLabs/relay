@@ -39,6 +39,7 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.R;
@@ -383,7 +384,7 @@ public class MessageNotifier {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
-      ForstaMessage forstaMessage = ForstaMessage.fromJsonString(body.toString());
+      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(body.toString());
       body = forstaMessage.getTextBody();
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
