@@ -120,7 +120,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     getSupportActionBar().setDisplayShowTitleEnabled(false);
-    this.toolbar.hideSearch();
   }
 
   private void initializeResources() {
@@ -133,14 +132,12 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
         if (count != currentDisplayCount) {
           currentDisplayCount = count;
           if (count < 1) {
-            toolbar.displaySearch();
             searchButton.setVisibility(View.VISIBLE);
             createConversationButton.setVisibility(View.GONE);
 
           } else {
             searchButton.setVisibility(View.GONE);
             createConversationButton.setVisibility(View.VISIBLE);
-            toolbar.hideSearch();
           }
         }
       }

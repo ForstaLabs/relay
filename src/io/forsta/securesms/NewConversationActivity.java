@@ -104,39 +104,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     });
 
-    toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
-      @Override
-      public void onSearchClicked(final String searchText) {
-        showProgressBar();
-        new AsyncTask<String, Void, ForstaDistribution>() {
-
-          @Override
-          protected ForstaDistribution doInBackground(String... strings) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
-            if (distribution.hasRecipients()) {
-              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
-            }
-            return distribution;
-          }
-
-          @Override
-          protected void onPostExecute(ForstaDistribution distribution) {
-            hideProgressBar();
-            if (distribution.hasWarnings()) {
-              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
-            }
-            if (distribution.hasRecipients()) {
-              if (searchText.contains(":")) {
-                String removeDomain = searchText.substring(0, searchText.indexOf(":"));
-                toolbar.setSearchText(removeDomain);
-              } else {
-                toolbar.setSearchText(searchText);
-              }
-            }
-          }
-        }.execute(searchText);
-      }
-    });
     createConversationButton.setEnabled(false);
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
   }

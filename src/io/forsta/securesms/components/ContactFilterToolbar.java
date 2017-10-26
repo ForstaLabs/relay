@@ -20,7 +20,6 @@ import io.forsta.securesms.util.ViewUtil;
 
 public class ContactFilterToolbar extends Toolbar {
   private   OnFilterChangedListener listener;
-  private OnSearchClickedListener searchListener;
 
   private EditText        searchText;
   private AnimatingToggle toggle;
@@ -29,8 +28,7 @@ public class ContactFilterToolbar extends Toolbar {
   private ImageView       dialpadToggle;
   private ImageView       clearToggle;
   private LinearLayout    toggleContainer;
-  private ImageView       searchIcon;
-  private ImageView       clearIcon;
+  private ImageView       searchToggle;
 
   public ContactFilterToolbar(Context context) {
     this(context, null);
@@ -52,15 +50,7 @@ public class ContactFilterToolbar extends Toolbar {
     this.dialpadToggle   = ViewUtil.findById(this, R.id.search_dialpad);
     this.clearToggle     = ViewUtil.findById(this, R.id.search_clear);
     this.toggleContainer = ViewUtil.findById(this, R.id.toggle_container);
-    this.searchIcon = ViewUtil.findById(this, R.id.toolbar_search_directory);
-    this.clearIcon = ViewUtil.findById(this, R.id.toolbar_search_clear);
-    this.clearIcon.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        searchText.setText("");
-      }
-    });
-
+    this.searchToggle = ViewUtil.findById(this, R.id.toolbar_search_directory);
 
     this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -85,8 +75,8 @@ public class ContactFilterToolbar extends Toolbar {
       public void onClick(View v) {
         searchText.setText("");
 
-        if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
-        else displayTogglingView(keyboardToggle);
+//        if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
+//        else displayTogglingView(keyboardToggle);
       }
     });
 
@@ -103,7 +93,11 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void afterTextChanged(Editable s) {
-//        if (!SearchUtil.isEmpty(searchText)) displayTogglingView(clearToggle);
+        if (!SearchUtil.isEmpty(searchText)) {
+          displayTogglingView(clearToggle);
+        } else {
+          displayTogglingView(searchToggle);
+        }
 //        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
 //        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);
         notifyListener();
@@ -112,19 +106,6 @@ public class ContactFilterToolbar extends Toolbar {
 
     expandTapArea(this, action);
     expandTapArea(toggleContainer, dialpadToggle);
-
-    this.searchIcon.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (searchListener != null) {
-          String normalized = searchText.getText().toString();
-          if (!normalized.startsWith("@")) {
-            normalized = "@" + normalized;
-          }
-          searchListener.onSearchClicked(normalized);
-        }
-      }
-    });
   }
 
   @Override
@@ -136,10 +117,6 @@ public class ContactFilterToolbar extends Toolbar {
   public void setNavigationOnClickListener(OnClickListener listener) {
     super.setNavigationOnClickListener(listener);
     action.setOnClickListener(listener);
-  }
-
-  public void setSearchListener(OnSearchClickedListener listener) {
-    searchListener = listener;
   }
 
   public void setShowCustomNavigationButton(boolean show) {
@@ -206,25 +183,7 @@ public class ContactFilterToolbar extends Toolbar {
     }
   }
 
-  public void displaySearch() {
-    searchIcon.setVisibility(VISIBLE);
-    clearIcon.setVisibility(GONE);
-  }
-
-  public void hideSearch() {
-    searchIcon.setVisibility(GONE);
-    if (!SearchUtil.isEmpty(searchText)) {
-      clearIcon.setVisibility(VISIBLE);
-    } else {
-      clearIcon.setVisibility(GONE);
-    }
-  }
-
   public interface OnFilterChangedListener {
     void onFilterChanged(String filter);
-  }
-
-  public interface OnSearchClickedListener {
-    void onSearchClicked(String searchText);
   }
 }
