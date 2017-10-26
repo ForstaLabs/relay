@@ -93,14 +93,14 @@ public class ForstaMessage {
     throw new InvalidMessagePayloadException(body);
   }
 
-  private boolean isContentType(JSONObject jsonBody) throws JSONException {
+  private static boolean isContentType(JSONObject jsonBody) throws JSONException {
     if (jsonBody.getString("messageType").equals("content")) {
       return true;
     }
     return false;
   }
 
-  private boolean isControlType(JSONObject jsonBody) throws JSONException {
+  private static boolean isControlType(JSONObject jsonBody) throws JSONException {
     if (jsonBody.has("messageType")) {
       if (jsonBody.getString("messageType").equals("control")) {
         return true;
@@ -109,65 +109,25 @@ public class ForstaMessage {
     return false;
   }
 
-  private boolean isConversationType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.has("threadType")) {
-      if (jsonBody.getString("threadType").equals("conversation")) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   public static boolean isJsonBody(String body) {
-    return getVersion(1, body) != null;
+    try {
+      getMessageVersion(1, body);
+    } catch (InvalidMessagePayloadException e) {
+      return false;
+    }
+    return true;
   }
 
   public static ForstaMessage fromMessagBodyString(String messageBody) throws InvalidMessagePayloadException {
-    ForstaMessage forstaMessage = new ForstaMessage();
-
     JSONObject jsonBody = getMessageVersion(1, messageBody);
     try {
-      if (forstaMessage.isContentType(jsonBody)) {
-        forstaMessage.threadUid = jsonBody.getString("threadId");
-        if (jsonBody.has("threadTitle")) {
-          forstaMessage.threadTitle = jsonBody.getString("threadTitle");
-        }
-        JSONObject distribution = jsonBody.getJSONObject("distribution");
-        forstaMessage.universalExpression = distribution.getString("expression");
-        if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
-          throw new InvalidMessagePayloadException("No universal expression");
-        }
-        JSONObject sender = jsonBody.getJSONObject("sender");
-        forstaMessage.senderId = sender.getString("userId");
-        forstaMessage.messageId = jsonBody.getString("messageId");
-        JSONObject data = jsonBody.getJSONObject("data");
-        if (data.has("body")) {
-          JSONArray body =  data.getJSONArray("body");
-          for (int j=0; j<body.length(); j++) {
-            JSONObject object = body.getJSONObject(j);
-            if (object.getString("type").equals("text/html")) {
-              forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
-            }
-            if (object.getString("type").equals("text/plain")) {
-              forstaMessage.textBody = object.getString("value");
-            }
-          }
-        }
-      } else if (forstaMessage.isControlType(jsonBody)) {
-        forstaMessage.messageType = MessageType.CONTROL;
-        JSONObject data = jsonBody.getJSONObject("data");
-        if (data.getString("control").equals("threadUpdate")) {
-          forstaMessage.controlType = ControlType.THREAD_UPDATE;
-          JSONObject threadUpdates = data.getJSONObject("threadUpdates");
-          forstaMessage.threadUid = threadUpdates.getString("threadId");
-          if (threadUpdates.has("threadTitle")) {
-            forstaMessage.threadTitle = threadUpdates.getString("threadTitle");
-          }
-        }
+      if (isContentType(jsonBody)) {
+        return handleContentType(jsonBody);
+      } else if (isControlType(jsonBody)) {
+        return handleControlType(jsonBody);
       } else {
-        throw new InvalidMessagePayloadException("Invalid messageType");
+        throw new InvalidMessagePayloadException("Unsupported messageType");
       }
-      return forstaMessage;
     } catch (JSONException e) {
       throw new InvalidMessagePayloadException(e.getMessage());
     }
@@ -182,6 +142,61 @@ public class ForstaMessage {
       Log.e(TAG, messageBody);
       forstaMessage.textBody = "Invalid message format";
     }
+    return forstaMessage;
+  }
+
+  private static ForstaMessage handleControlType(JSONObject jsonBody) throws InvalidMessagePayloadException {
+    ForstaMessage forstaMessage = new ForstaMessage();
+    try {
+      forstaMessage.messageType = MessageType.CONTROL;
+      JSONObject data = jsonBody.getJSONObject("data");
+      if (data.getString("control").equals("threadUpdate")) {
+        forstaMessage.controlType = ControlType.THREAD_UPDATE;
+        JSONObject threadUpdates = data.getJSONObject("threadUpdates");
+        forstaMessage.threadUid = threadUpdates.getString("threadId");
+        if (threadUpdates.has("threadTitle")) {
+          forstaMessage.threadTitle = threadUpdates.getString("threadTitle");
+        }
+      }
+    } catch (JSONException e) {
+      throw new InvalidMessagePayloadException(e.getMessage());
+    }
+
+    return forstaMessage;
+  }
+
+  private static ForstaMessage handleContentType(JSONObject jsonBody) throws InvalidMessagePayloadException {
+    ForstaMessage forstaMessage = new ForstaMessage();
+    try {
+      forstaMessage.threadUid = jsonBody.getString("threadId");
+      if (jsonBody.has("threadTitle")) {
+        forstaMessage.threadTitle = jsonBody.getString("threadTitle");
+      }
+      JSONObject distribution = jsonBody.getJSONObject("distribution");
+      forstaMessage.universalExpression = distribution.getString("expression");
+      if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
+        throw new InvalidMessagePayloadException("No universal expression");
+      }
+      JSONObject sender = jsonBody.getJSONObject("sender");
+      forstaMessage.senderId = sender.getString("userId");
+      forstaMessage.messageId = jsonBody.getString("messageId");
+      JSONObject data = jsonBody.getJSONObject("data");
+      if (data.has("body")) {
+        JSONArray body =  data.getJSONArray("body");
+        for (int j=0; j<body.length(); j++) {
+          JSONObject object = body.getJSONObject(j);
+          if (object.getString("type").equals("text/html")) {
+            forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
+          }
+          if (object.getString("type").equals("text/plain")) {
+            forstaMessage.textBody = object.getString("value");
+          }
+        }
+      }
+    } catch (JSONException e) {
+      throw new InvalidMessagePayloadException(e.getMessage());
+    }
+
     return forstaMessage;
   }
 

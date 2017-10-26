@@ -831,20 +831,27 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       ThreadDatabase.Reader treader = tdb.readerFor(ccursor, mMasterCipher);
       ThreadRecord trecord;
       publishProgress("Verifying existing message records.");
+      StringBuilder sb = new StringBuilder();
+      int count = 0;
+      int passCount = 0;
+      int failCount = 0;
       while ((trecord = treader.getNext()) != null) {
         Cursor mcursor = mdb.getConversation(trecord.getThreadId());
         MmsSmsDatabase.Reader mreader = mdb.readerFor(mcursor, mMasterSecret);
         MessageRecord mrecord;
+
         while ((mrecord = mreader.getNext()) != null) {
+          count++;
           try {
             ForstaMessage forstaMessage = ForstaMessage.fromMessagBodyString(mrecord.getBody().getBody());
-            publishProgress("Type:" + forstaMessage.getMessageType().name() + " UID:" + forstaMessage.getThreadUId() + " ID:" + mrecord.getId());
+            passCount++;
           } catch (InvalidMessagePayloadException e) {
-            publishProgress(e.getMessage()  + ": " + mrecord.getBody().getBody());
+            failCount++;
+            sb.append(e.getMessage()).append(": ").append(mrecord.getBody().getBody()).append("\n");
           }
         }
       }
-      publishProgress("Complete. Verified message records.");
+      publishProgress("Total Tested: " + count + " Passed: " + passCount + " Failed: " + failCount + "\n" + sb.toString());
       // Create malformed message blobs and verify handling.
       // No JSON blob
 

@@ -25,6 +25,7 @@ import ws.com.google.android.mms.MmsException;
  */
 
 public class ForstaMessageManager {
+  private static final String TAG = ForstaMessageManager.class.getSimpleName();
 
   public static String createMessageBody() {
     return null;
