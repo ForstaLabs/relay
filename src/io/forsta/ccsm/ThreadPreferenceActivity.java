@@ -147,7 +147,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private void initializeThread() {
     Recipients recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
     threadRecipients.setText(getRecipientData(recipients));
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    final ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
     if (!TextUtils.isEmpty(thread.getTitle())) {
       forstaTitle.setText(thread.getTitle());
     } else {
@@ -161,7 +161,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (s.length() > 0) {
+        String saved = thread.getTitle() != null ? thread.getTitle() : "";
+        if (!saved.equals(s.toString())) {
           forstaSaveTitle.setVisibility(View.VISIBLE);
         } else {
           forstaSaveTitle.setVisibility(View.GONE);
