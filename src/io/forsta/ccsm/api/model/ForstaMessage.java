@@ -132,7 +132,6 @@ public class ForstaMessage {
         if (jsonBody.has("threadTitle")) {
           forstaMessage.threadTitle = jsonBody.getString("threadTitle");
         }
-
         JSONObject distribution = jsonBody.getJSONObject("distribution");
         forstaMessage.universalExpression = distribution.getString("expression");
         if (TextUtils.isEmpty(forstaMessage.universalExpression)) {
@@ -141,36 +140,28 @@ public class ForstaMessage {
         JSONObject sender = jsonBody.getJSONObject("sender");
         forstaMessage.senderId = sender.getString("userId");
         forstaMessage.messageId = jsonBody.getString("messageId");
-
-        if (jsonBody.has("data")) {
-          JSONObject data = jsonBody.getJSONObject("data");
-          if (data.has("body")) {
-            JSONArray body =  data.getJSONArray("body");
-            for (int j=0; j<body.length(); j++) {
-              JSONObject object = body.getJSONObject(j);
-              if (object.getString("type").equals("text/html")) {
-                forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
-              }
-              if (object.getString("type").equals("text/plain")) {
-                forstaMessage.textBody = object.getString("value");
-              }
+        JSONObject data = jsonBody.getJSONObject("data");
+        if (data.has("body")) {
+          JSONArray body =  data.getJSONArray("body");
+          for (int j=0; j<body.length(); j++) {
+            JSONObject object = body.getJSONObject(j);
+            if (object.getString("type").equals("text/html")) {
+              forstaMessage.htmlBody = Html.fromHtml(object.getString("value"));
+            }
+            if (object.getString("type").equals("text/plain")) {
+              forstaMessage.textBody = object.getString("value");
             }
           }
         }
       } else if (forstaMessage.isControlType(jsonBody)) {
         forstaMessage.messageType = MessageType.CONTROL;
-        if (jsonBody.has("data")) {
-          JSONObject data = jsonBody.getJSONObject("data");
-          if (data.has("control")) {
-            JSONObject control = data.getJSONObject("control");
-            if (control.has("threadUpdate")) {
-              forstaMessage.controlType = ControlType.THREAD_UPDATE;
-              JSONObject threadUpdate = control.getJSONObject("threadUpdate");
-              forstaMessage.threadUid = threadUpdate.getString("threadId");
-              if (threadUpdate.has("threadTitle")) {
-                forstaMessage.threadTitle = threadUpdate.getString("threadTitle");
-              }
-            }
+        JSONObject data = jsonBody.getJSONObject("data");
+        if (data.getString("control").equals("threadUpdate")) {
+          forstaMessage.controlType = ControlType.THREAD_UPDATE;
+          JSONObject threadUpdates = data.getJSONObject("threadUpdates");
+          forstaMessage.threadUid = threadUpdates.getString("threadId");
+          if (threadUpdates.has("threadTitle")) {
+            forstaMessage.threadTitle = threadUpdates.getString("threadTitle");
           }
         }
       } else {
@@ -244,12 +235,11 @@ public class ForstaMessage {
       String messageType = "content";
       if (type == MessageType.CONTROL) {
         messageType = "control";
-        JSONObject control = new JSONObject();
-        JSONObject threadUpdate = new JSONObject();
-        threadUpdate.put("threadTitle", threadTitle);
-        threadUpdate.put("threadId", threadUid);
-        control.put("threadUpdate", threadUpdate);
-        data.put("control", control);
+        data.put("control", "threadUpdate");
+        JSONObject threadUpdates = new JSONObject();
+        threadUpdates.put("threadTitle", threadTitle);
+        threadUpdates.put("threadId", threadUid);
+        data.put("threadUpdates", threadUpdates);
       }
 
       String threadType = "conversation";
