@@ -296,6 +296,7 @@ public class ConversationItem extends LinearLayout
         }
       } catch (InvalidMessagePayloadException e) {
         Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
+        bodyText.setText("Invalid message format.");
       }
       bodyText.setVisibility(View.VISIBLE);
     }
