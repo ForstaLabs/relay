@@ -310,7 +310,7 @@ public class ContactDb extends DbBase {
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
       queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
-      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%" + filter, "%" + filter + "%"};
+      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%", "%" + filter + "%"};
     }
 
     try {
