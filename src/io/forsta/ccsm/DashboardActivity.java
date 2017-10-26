@@ -851,10 +851,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             sb.append(e.getMessage()).append(": ").append(mrecord.getBody().getBody()).append("\n");
           }
         }
+        mreader.close();
       }
+      treader.close();
       publishProgress("Total Tested: " + count + " Passed: " + passCount + " Failed: " + failCount + "\n" + sb.toString());
-      // Create malformed message blobs and verify handling.
-      // No JSON blob
 
       return null;
     }

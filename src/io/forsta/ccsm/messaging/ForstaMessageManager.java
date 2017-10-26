@@ -88,7 +88,6 @@ public class ForstaMessageManager {
     return forstaMessage;
   }
 
-
   public static ForstaMessage fromMessagBodyString(String messageBody) throws InvalidMessagePayloadException {
     JSONObject jsonBody = getMessageVersion(1, messageBody);
     try {
