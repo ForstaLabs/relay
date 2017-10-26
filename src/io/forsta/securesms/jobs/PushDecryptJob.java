@@ -245,7 +245,7 @@ public class PushDecryptJob extends ContextJob {
       threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
     }
 
-    if (threadId != null) {
+    if (threadId != -1) {
       DatabaseFactory.getThreadDatabase(getContext()).setRead(threadId);
       MessageNotifier.updateNotification(getContext(), masterSecret.getMasterSecret().orNull());
     }
@@ -309,10 +309,10 @@ public class PushDecryptJob extends ContextJob {
 
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
-    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTROL) {
-      handleControlMessage(forstaMessage, message);
-    } else {
+    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
+    } else {
+      handleControlMessage(forstaMessage, message.getBody().get());
     }
   }
 
@@ -353,45 +353,50 @@ public class PushDecryptJob extends ContextJob {
     Recipients            sender   = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
-    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
+    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
+      Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+      long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
 
-    if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
-      handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
+      if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
+        handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
+      }
+
+      OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
+          PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
+          message.getTimestamp(), -1,
+          message.getMessage().getExpiresInSeconds() * 1000,
+          ThreadDatabase.DistributionTypes.DEFAULT);
+
+      mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
+      long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
+
+      database.markAsSent(messageId);
+      database.markAsPush(messageId);
+
+      for (DatabaseAttachment attachment : DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageId)) {
+        ApplicationContext.getInstance(context)
+            .getJobManager()
+            .add(new AttachmentDownloadJob(context, messageId, attachment.getAttachmentId()));
+      }
+
+      if (smsMessageId.isPresent()) {
+        DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
+      }
+
+      if (message.getMessage().getExpiresInSeconds() > 0) {
+        database.markExpireStarted(messageId, message.getExpirationStartTimestamp());
+        ApplicationContext.getInstance(context)
+            .getExpiringMessageManager()
+            .scheduleDeletion(messageId, true,
+                message.getExpirationStartTimestamp(),
+                message.getMessage().getExpiresInSeconds() * 1000);
+      }
+
+      return threadId;
+    } else {
+      handleControlMessage(forstaMessage, message.getMessage().getBody().get());
+      return -1;
     }
-
-    OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
-        PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
-        message.getTimestamp(), -1,
-        message.getMessage().getExpiresInSeconds() * 1000,
-        ThreadDatabase.DistributionTypes.DEFAULT);
-
-    mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
-    long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
-
-    database.markAsSent(messageId);
-    database.markAsPush(messageId);
-
-    for (DatabaseAttachment attachment : DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageId)) {
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new AttachmentDownloadJob(context, messageId, attachment.getAttachmentId()));
-    }
-
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
-
-    if (message.getMessage().getExpiresInSeconds() > 0) {
-      database.markExpireStarted(messageId, message.getExpirationStartTimestamp());
-      ApplicationContext.getInstance(context)
-                        .getExpiringMessageManager()
-                        .scheduleDeletion(messageId, true,
-                                          message.getExpirationStartTimestamp(),
-                                          message.getMessage().getExpiresInSeconds() * 1000);
-    }
-
-    return threadId;
   }
 
   private Recipients getDistributionRecipients(String expression) throws InvalidMessagePayloadException {
@@ -442,9 +447,9 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void handleControlMessage(ForstaMessage forstaMessage, SignalServiceDataMessage message) {
+  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody) {
     try {
-      Log.w(TAG, "Got control message: " + message.getBody().get());
+      Log.w(TAG, "Got control message: " + messageBody);
       Log.w(TAG, "Control Type: " + forstaMessage.getControlType().name());
       if (forstaMessage.getControlType() == ForstaMessage.ControlType.THREAD_UPDATE) {
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
