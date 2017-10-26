@@ -90,7 +90,7 @@ public class CcsmSync {
     long superThreadId = -1;
     MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
     if (!ForstaMessageManager.isJsonBody(body)) {
-      body = ForstaMessage.createForstaMessageBody(context, body, recipients);
+      body = ForstaMessageManager.createForstaMessageBody(context, body, recipients);
     }
     OutgoingMediaMessage superMediaMessage = new OutgoingMediaMessage(superRecipients, body, attachments, System.currentTimeMillis(), -1, expiresIn, ThreadDatabase.DistributionTypes.CONVERSATION);
     Log.w(TAG, "Forsta Sync. Sending Sync Message.");
