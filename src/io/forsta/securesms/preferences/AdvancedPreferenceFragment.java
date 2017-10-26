@@ -63,7 +63,7 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     Preference submitDebugLog = this.findPreference(SUBMIT_DEBUG_LOG_PREF);
     PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("advanced_preferences_screen");
     Preference debugDashboard = this.findPreference(FORSTA_DASHBOARD_PREFERENCE);
-    if (!BuildConfig.FORSTA_API_URL.contains("dev")) {
+    if (BuildConfig.FLAVOR.contains("prod")) {
       preferenceScreen.removePreference(debugDashboard);
     } else {
       debugDashboard.setOnPreferenceClickListener(new DashboardClickListener());
