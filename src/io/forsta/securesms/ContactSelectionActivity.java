@@ -65,6 +65,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   protected ContactSelectionListFragment contactsFragment;
   protected ImageButton createConversationButton;
+  protected ImageButton searchButton;
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
   protected FlowLayout expressionElements;
@@ -95,6 +96,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
     expressionElements = (FlowLayout) findViewById(R.id.contact_expression_elements);
+    searchButton = (ImageButton) findViewById(R.id.contact_selection_search_button);
 
     initializeToolbar();
     initializeResources();
@@ -132,7 +134,12 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
           currentDisplayCount = count;
           if (count < 1) {
             toolbar.displaySearch();
+            searchButton.setVisibility(View.VISIBLE);
+            createConversationButton.setVisibility(View.GONE);
+
           } else {
+            searchButton.setVisibility(View.GONE);
+            createConversationButton.setVisibility(View.VISIBLE);
             toolbar.hideSearch();
           }
         }

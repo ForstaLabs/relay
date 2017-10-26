@@ -151,6 +151,10 @@ public class ContactFilterToolbar extends Toolbar {
     notifyListener();
   }
 
+  public String getSearchText() {
+    return searchText.getText().toString();
+  }
+
   public void setSearchText(String text) {
     searchText.setText(text);
     searchText.setSelection(searchText.length());

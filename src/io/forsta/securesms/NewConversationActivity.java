@@ -65,6 +65,45 @@ public class NewConversationActivity extends ContactSelectionActivity {
         handleCreateConversation();
       }
     });
+    searchButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        showProgressBar();
+        String searchText = toolbar.getSearchText();
+        if (!searchText.startsWith("@")) {
+          searchText = "@" + searchText;
+        }
+        new AsyncTask<String, Void, ForstaDistribution>() {
+
+          @Override
+          protected ForstaDistribution doInBackground(String... strings) {
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+            if (distribution.hasRecipients()) {
+              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
+            }
+            return distribution;
+          }
+
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
+            hideProgressBar();
+            if (distribution.hasWarnings()) {
+              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
+            }
+            if (distribution.hasRecipients()) {
+              String searchText = toolbar.getSearchText();
+              if (searchText.contains(":")) {
+                String removeDomain = searchText.substring(0, searchText.indexOf(":"));
+                toolbar.setSearchText(removeDomain);
+              } else {
+                toolbar.setSearchText(searchText);
+              }
+            }
+          }
+        }.execute(searchText);
+      }
+    });
+
     toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
       @Override
       public void onSearchClicked(final String searchText) {
@@ -231,5 +270,4 @@ public class NewConversationActivity extends ContactSelectionActivity {
     super.onPrepareOptionsMenu(menu);
     return true;
   }
-
 }
