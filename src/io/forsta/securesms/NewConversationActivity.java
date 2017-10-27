@@ -140,7 +140,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);
-      updateToggleBar();
     }
   }
 
