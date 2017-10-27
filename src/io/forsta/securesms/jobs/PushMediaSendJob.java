@@ -115,7 +115,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
       if (e.getUnregisteredUserExceptions().size() > 0) {
         for (UnregisteredUserException uue : e.getUnregisteredUserExceptions()) {
-          Log.w(TAG, "Unregistered Users: " + uue.getE164Number());
+          Log.w(TAG, "Unregistered User: " + uue.getE164Number());
         }
       }
 
