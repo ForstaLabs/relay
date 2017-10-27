@@ -22,18 +22,14 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.components.FlowLayout;
-import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.components.ContactFilterToolbar.OnFilterChangedListener;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -129,12 +125,12 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     contactsFragment.setOnSearchResultsCountChangedListener(new ContactSelectionListFragment.OnSearchResultsCountChanged() {
       @Override
       public void onSearchResultsCountChanged(int count) {
+        updateToggleBar();
         if (count != currentDisplayCount) {
           currentDisplayCount = count;
           if (count < 1) {
             searchButton.setVisibility(View.VISIBLE);
             createConversationButton.setVisibility(View.GONE);
-
           } else {
             searchButton.setVisibility(View.GONE);
             createConversationButton.setVisibility(View.VISIBLE);
@@ -153,6 +149,10 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
         contactsFragment.setQueryFilter(filter);
       }
     });
+  }
+
+  protected void updateToggleBar() {
+    toolbar.updateToggleState(!contactsFragment.getSelectedAddresses().isEmpty(), contactsFragment.getSearchResultCount() > 0);
   }
 
   @Override

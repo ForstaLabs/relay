@@ -48,6 +48,8 @@
                 android:paddingRight="10dp"
                 android:gravity="center">
 
+
+
                 <ImageView android:id="@+id/toolbar_search_directory"
                            android:layout_width="wrap_content"
                            android:layout_height="wrap_content"
@@ -56,6 +58,17 @@
                            android:clickable="true"
                            android:background="@drawable/circle_touch_highlight_background"
                            android:src="@drawable/ic_search_white_24dp"
+                    />
+
+                <ImageView android:id="@+id/toolbar_create_conversation"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:layout_gravity="center_vertical"
+                           android:gravity="center_vertical"
+                           android:clickable="true"
+                           android:background="@drawable/circle_touch_highlight_background"
+                           android:src="@drawable/check"
+                           android:visibility="gone"
                     />
 
                 <ImageView android:id="@+id/search_dialpad"
