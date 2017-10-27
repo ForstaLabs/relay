@@ -38,26 +38,7 @@
                       android:background="@android:color/transparent"
                       android:layout_gravity="center_vertical"
                       android:gravity="center_vertical"/>
-            <ImageView android:id="@+id/toolbar_search_directory"
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:layout_gravity="center_vertical"
-                       android:gravity="center_vertical"
-                       android:clickable="true"
-                       android:background="@drawable/circle_touch_highlight_background"
-                       android:src="@drawable/ic_search_white_24dp"
-                       android:visibility="gone"/>
 
-            <ImageView android:id="@+id/toolbar_search_clear"
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:layout_gravity="center_vertical"
-                       android:gravity="center_vertical"
-                       android:clickable="true"
-                       android:visibility="gone"
-                       android:focusable="true"
-                       android:background="@drawable/circle_touch_highlight_background"
-                       android:src="@drawable/ic_clear_white_24dp" />
             <io.forsta.securesms.components.AnimatingToggle
                 android:id="@+id/button_toggle"
                 android:layout_width="wrap_content"
@@ -65,8 +46,31 @@
                 android:layout_gravity="center"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:gravity="center"
-                android:visibility="gone">
+                android:gravity="center">
+
+
+
+                <ImageView android:id="@+id/toolbar_search_directory"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:layout_gravity="center_vertical"
+                           android:gravity="center_vertical"
+                           android:clickable="true"
+                           android:background="@drawable/circle_touch_highlight_background"
+                           android:src="@drawable/ic_search_white_24dp"
+                           android:visibility="gone"
+                    />
+
+                <ImageView android:id="@+id/toolbar_create_conversation"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:layout_gravity="center_vertical"
+                           android:gravity="center_vertical"
+                           android:clickable="true"
+                           android:background="@drawable/circle_touch_highlight_background"
+                           android:src="@drawable/check"
+                           android:visibility="gone"
+                    />
 
                 <ImageView android:id="@+id/search_dialpad"
                            android:layout_width="wrap_content"

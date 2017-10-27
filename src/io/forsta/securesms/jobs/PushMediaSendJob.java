@@ -86,10 +86,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         database.markExpireStarted(messageId);
         expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
       }
-    } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
-      Log.w(TAG, e);
-      database.markAsSentFailed(messageId);
-      notifyMediaMessageDeliveryFailed(context, messageId);
     } catch (EncapsulatedExceptions e) {
       Log.w(TAG, e);
       List<NetworkFailure> failures = new LinkedList<>();
@@ -113,6 +109,12 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         }
       }
 
+      if (e.getUnregisteredUserExceptions().size() > 0) {
+        for (UnregisteredUserException uue : e.getUnregisteredUserExceptions()) {
+          Log.w(TAG, "Unregistered User: " + uue.getE164Number());
+        }
+      }
+
       database.addFailures(messageId, failures);
       database.markAsPush(messageId);
 
@@ -124,8 +126,14 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         database.markAsSentFailed(messageId);
         notifyMediaMessageDeliveryFailed(context, messageId);
       }
+    } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
+      Log.w(TAG, e);
+      database.markAsSentFailed(messageId);
+      notifyMediaMessageDeliveryFailed(context, messageId);
     } catch (IllegalStateException e) {
-      Log.w(TAG, "Something went wildly wrong: ", e);
+      Log.w(TAG, "Something went wildly wrong: " +  e.getMessage());
+    } catch (Exception e) {
+      Log.w(TAG, "General exception: " + e.getMessage());
     }
   }
 

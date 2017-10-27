@@ -20,7 +20,8 @@ import io.forsta.securesms.util.ViewUtil;
 
 public class ContactFilterToolbar extends Toolbar {
   private   OnFilterChangedListener listener;
-  private OnSearchClickedListener searchListener;
+  private   OnClickListener searchListener;
+  private   OnClickListener createConversationListener;
 
   private EditText        searchText;
   private AnimatingToggle toggle;
@@ -28,9 +29,9 @@ public class ContactFilterToolbar extends Toolbar {
   private ImageView       keyboardToggle;
   private ImageView       dialpadToggle;
   private ImageView       clearToggle;
+  private ImageView       createConversationToggle;
   private LinearLayout    toggleContainer;
-  private ImageView       searchIcon;
-  private ImageView       clearIcon;
+  private ImageView       searchToggle;
 
   public ContactFilterToolbar(Context context) {
     this(context, null);
@@ -52,41 +53,34 @@ public class ContactFilterToolbar extends Toolbar {
     this.dialpadToggle   = ViewUtil.findById(this, R.id.search_dialpad);
     this.clearToggle     = ViewUtil.findById(this, R.id.search_clear);
     this.toggleContainer = ViewUtil.findById(this, R.id.toggle_container);
-    this.searchIcon = ViewUtil.findById(this, R.id.toolbar_search_directory);
-    this.clearIcon = ViewUtil.findById(this, R.id.toolbar_search_clear);
-    this.clearIcon.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        searchText.setText("");
-      }
-    });
+    this.searchToggle = ViewUtil.findById(this, R.id.toolbar_search_directory);
+    this.createConversationToggle = ViewUtil.findById(this, R.id.toolbar_create_conversation);
 
-
-    this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        searchText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
-        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
-        displayTogglingView(dialpadToggle);
-      }
-    });
-
-    this.dialpadToggle.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        searchText.setInputType(InputType.TYPE_CLASS_PHONE);
-        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
-        displayTogglingView(keyboardToggle);
-      }
-    });
+//    this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View v) {
+//        searchText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
+//        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
+//        displayTogglingView(dialpadToggle);
+//      }
+//    });
+//
+//    this.dialpadToggle.setOnClickListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View v) {
+//        searchText.setInputType(InputType.TYPE_CLASS_PHONE);
+//        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
+//        displayTogglingView(keyboardToggle);
+//      }
+//    });
 
     this.clearToggle.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         searchText.setText("");
 
-        if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
-        else displayTogglingView(keyboardToggle);
+//        if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
+//        else displayTogglingView(keyboardToggle);
       }
     });
 
@@ -103,7 +97,9 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void afterTextChanged(Editable s) {
-//        if (!SearchUtil.isEmpty(searchText)) displayTogglingView(clearToggle);
+//        if (SearchUtil.isEmpty(searchText)) {
+//          displayTogglingView(Toggle);
+//        }
 //        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
 //        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);
         notifyListener();
@@ -112,19 +108,7 @@ public class ContactFilterToolbar extends Toolbar {
 
     expandTapArea(this, action);
     expandTapArea(toggleContainer, dialpadToggle);
-
-    this.searchIcon.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (searchListener != null) {
-          String normalized = searchText.getText().toString();
-          if (!normalized.startsWith("@")) {
-            normalized = "@" + normalized;
-          }
-          searchListener.onSearchClicked(normalized);
-        }
-      }
-    });
+    displayTogglingView(searchToggle);
   }
 
   @Override
@@ -138,10 +122,6 @@ public class ContactFilterToolbar extends Toolbar {
     action.setOnClickListener(listener);
   }
 
-  public void setSearchListener(OnSearchClickedListener listener) {
-    searchListener = listener;
-  }
-
   public void setShowCustomNavigationButton(boolean show) {
     action.setVisibility(show ? VISIBLE : GONE);
   }
@@ -149,6 +129,10 @@ public class ContactFilterToolbar extends Toolbar {
   public void clear() {
     searchText.setText("");
     notifyListener();
+  }
+
+  public String getSearchText() {
+    return searchText.getText().toString();
   }
 
   public void setSearchText(String text) {
@@ -160,6 +144,14 @@ public class ContactFilterToolbar extends Toolbar {
     this.listener = listener;
   }
 
+  public void setSearchOnClickListener(OnClickListener listener) {
+    this.searchToggle.setOnClickListener(listener);
+  }
+
+  public void setCreateConversationListener(OnClickListener listener) {
+    this.createConversationToggle.setOnClickListener(listener);
+  }
+
   private void notifyListener() {
     if (listener != null) listener.onFilterChanged(searchText.getText().toString());
   }
@@ -167,6 +159,30 @@ public class ContactFilterToolbar extends Toolbar {
   private void displayTogglingView(View view) {
     toggle.display(view);
     expandTapArea(toggleContainer, view);
+  }
+
+  public void showCreateConversationToggle() {
+    displayTogglingView(createConversationToggle);
+  }
+
+  public void updateToggleState(boolean hasSelected, boolean hasResults) {
+    if (searchText.length() < 1) {
+      if (hasSelected) {
+        displayTogglingView(createConversationToggle);
+      } else {
+        displayTogglingView(searchToggle);
+      }
+    } else {
+      if (hasResults) {
+        displayTogglingView(clearToggle);
+      } else {
+        displayTogglingView(searchToggle);
+      }
+    }
+  }
+
+  public void showSearchToggle() {
+    displayTogglingView(searchToggle);
   }
 
   private void expandTapArea(final View container, final View child) {
@@ -202,25 +218,7 @@ public class ContactFilterToolbar extends Toolbar {
     }
   }
 
-  public void displaySearch() {
-    searchIcon.setVisibility(VISIBLE);
-    clearIcon.setVisibility(GONE);
-  }
-
-  public void hideSearch() {
-    searchIcon.setVisibility(GONE);
-    if (!SearchUtil.isEmpty(searchText)) {
-      clearIcon.setVisibility(VISIBLE);
-    } else {
-      clearIcon.setVisibility(GONE);
-    }
-  }
-
   public interface OnFilterChangedListener {
     void onFilterChanged(String filter);
-  }
-
-  public interface OnSearchClickedListener {
-    void onSearchClicked(String searchText);
   }
 }

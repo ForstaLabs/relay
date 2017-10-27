@@ -16,31 +16,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/forsta_chip_layout_background"
+        android:minHeight="20dp"
         android:padding="5dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_marginLeft="3dp">
+        android:layout_marginBottom="0dp">
         <io.forsta.ccsm.components.FlowLayout
             android:id="@+id/contact_expression_elements"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_weight="1">
         </io.forsta.ccsm.components.FlowLayout>
-
-        <ImageButton
-            android:id="@+id/contact_selection_confirm_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:src="@drawable/check"
-            android:background="@drawable/rounded_button"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            />
     </LinearLayout>
 
     <fragment android:id="@+id/contact_selection_list_fragment"

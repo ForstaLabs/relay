@@ -31,12 +31,9 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.securesms.color.MaterialColor;
-import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -59,16 +56,14 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    createConversationButton.setOnClickListener(new View.OnClickListener() {
+    toolbar.setSearchOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        handleCreateConversation();
-      }
-    });
-    toolbar.setSearchListener(new ContactFilterToolbar.OnSearchClickedListener() {
-      @Override
-      public void onSearchClicked(final String searchText) {
         showProgressBar();
+        String searchText = toolbar.getSearchText();
+        if (!searchText.startsWith("@")) {
+          searchText = "@" + searchText;
+        }
         new AsyncTask<String, Void, ForstaDistribution>() {
 
           @Override
@@ -87,6 +82,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
               Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
             }
             if (distribution.hasRecipients()) {
+              String searchText = toolbar.getSearchText();
               if (searchText.contains(":")) {
                 String removeDomain = searchText.substring(0, searchText.indexOf(":"));
                 toolbar.setSearchText(removeDomain);
@@ -98,7 +94,13 @@ public class NewConversationActivity extends ContactSelectionActivity {
         }.execute(searchText);
       }
     });
-    createConversationButton.setEnabled(false);
+
+    toolbar.setCreateConversationListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        handleCreateConversation();
+      }
+    });
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
   }
 
@@ -107,9 +109,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     public void onClick(View view) {
       removeRecipientChip(view);
       selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-      if (contactsFragment.getSelectedAddresses().size() < 1) {
-        createConversationButton.setEnabled(false);
-      }
+      updateToggleBar();
     }
   }
 
@@ -118,6 +118,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     addRecipientChip(number);
     selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
     toolbar.clear();
+    updateToggleBar();
   }
 
   private void removeRecipientChip(View view) {
@@ -139,7 +140,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);
-      createConversationButton.setEnabled(true);
     }
   }
 
@@ -231,5 +231,4 @@ public class NewConversationActivity extends ContactSelectionActivity {
     super.onPrepareOptionsMenu(menu);
     return true;
   }
-
 }
