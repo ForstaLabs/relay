@@ -113,6 +113,12 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         }
       }
 
+      if (e.getUnregisteredUserExceptions().size() > 0) {
+        for (UnregisteredUserException uue : e.getUnregisteredUserExceptions()) {
+          Log.w(TAG, "Unregistered Users: " + uue.getE164Number());
+        }
+      }
+
       database.addFailures(messageId, failures);
       database.markAsPush(messageId);
 
@@ -125,7 +131,9 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         notifyMediaMessageDeliveryFailed(context, messageId);
       }
     } catch (IllegalStateException e) {
-      Log.w(TAG, "Something went wildly wrong: ", e);
+      Log.w(TAG, "Something went wildly wrong: " +  e.getMessage());
+    } catch (Exception e) {
+      Log.w(TAG, "General exception: " + e.getMessage());
     }
   }
 
