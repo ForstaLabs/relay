@@ -56,51 +56,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    createConversationButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        handleCreateConversation();
-      }
-    });
-    searchButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        showProgressBar();
-        String searchText = toolbar.getSearchText();
-        if (!searchText.startsWith("@")) {
-          searchText = "@" + searchText;
-        }
-        new AsyncTask<String, Void, ForstaDistribution>() {
-
-          @Override
-          protected ForstaDistribution doInBackground(String... strings) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
-            if (distribution.hasRecipients()) {
-              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
-            }
-            return distribution;
-          }
-
-          @Override
-          protected void onPostExecute(ForstaDistribution distribution) {
-            hideProgressBar();
-            if (distribution.hasWarnings()) {
-              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
-            }
-            if (distribution.hasRecipients()) {
-              String searchText = toolbar.getSearchText();
-              if (searchText.contains(":")) {
-                String removeDomain = searchText.substring(0, searchText.indexOf(":"));
-                toolbar.setSearchText(removeDomain);
-              } else {
-                toolbar.setSearchText(searchText);
-              }
-            }
-          }
-        }.execute(searchText);
-      }
-    });
-
     toolbar.setSearchOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -146,7 +101,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
         handleCreateConversation();
       }
     });
-    createConversationButton.setEnabled(false);
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
   }
 
@@ -155,9 +109,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
     public void onClick(View view) {
       removeRecipientChip(view);
       selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-      if (contactsFragment.getSelectedAddresses().size() < 1) {
-        createConversationButton.setEnabled(false);
-      }
       updateToggleBar();
     }
   }
@@ -189,7 +140,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);
-      createConversationButton.setEnabled(true);
       updateToggleBar();
     }
   }

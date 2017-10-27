@@ -27,43 +27,6 @@
         </io.forsta.ccsm.components.FlowLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/forsta_accent"
-        android:padding="5dp"
-        android:layout_marginBottom="0dp" android:visibility="gone">
-
-
-        <ImageButton
-            android:id="@+id/contact_selection_confirm_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:src="@drawable/check"
-            android:background="@drawable/rounded_button"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-             />
-
-        <ImageButton
-            android:id="@+id/contact_selection_search_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center"
-            android:background="@color/transparent"
-            android:src="@drawable/ic_search_holo_light"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:visibility="gone"
-            />
-    </LinearLayout>
-
     <fragment android:id="@+id/contact_selection_list_fragment"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"

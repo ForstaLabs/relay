@@ -60,12 +60,9 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   private MasterSecret masterSecret;
 
   protected ContactSelectionListFragment contactsFragment;
-  protected ImageButton createConversationButton;
-  protected ImageButton searchButton;
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
   protected FlowLayout expressionElements;
-  private int currentDisplayCount = -1;
 
   @Override
   protected void onPreCreate() {
@@ -89,10 +86,8 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
       Log.d(TAG, "Show sync indicator");
     }
 
-    createConversationButton = (ImageButton) findViewById(R.id.contact_selection_confirm_button);
     progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
     expressionElements = (FlowLayout) findViewById(R.id.contact_expression_elements);
-    searchButton = (ImageButton) findViewById(R.id.contact_selection_search_button);
 
     initializeToolbar();
     initializeResources();
@@ -122,22 +117,6 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     contactsFragment = (ContactSelectionListFragment) getSupportFragmentManager().findFragmentById(R.id.contact_selection_list_fragment);
     contactsFragment.setOnContactSelectedListener(this);
     contactsFragment.setOnRefreshListener(this);
-    contactsFragment.setOnSearchResultsCountChangedListener(new ContactSelectionListFragment.OnSearchResultsCountChanged() {
-      @Override
-      public void onSearchResultsCountChanged(int count) {
-        updateToggleBar();
-        if (count != currentDisplayCount) {
-          currentDisplayCount = count;
-          if (count < 1) {
-            searchButton.setVisibility(View.VISIBLE);
-            createConversationButton.setVisibility(View.GONE);
-          } else {
-            searchButton.setVisibility(View.GONE);
-            createConversationButton.setVisibility(View.VISIBLE);
-          }
-        }
-      }
-    });
   }
 
   private void initializeSearch() {
