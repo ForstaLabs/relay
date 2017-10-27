@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/forsta_accent"
+        android:minHeight="20dp"
         android:padding="5dp"
         android:layout_marginBottom="0dp">
         <io.forsta.ccsm.components.FlowLayout
