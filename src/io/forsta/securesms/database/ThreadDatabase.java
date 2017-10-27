@@ -177,6 +177,7 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, contentValues, ID + " = ?", new String[] {threadId + ""});
     notifyConversationListListeners();
+    notifyConversationListeners(threadId);
   }
 
   public void updateSnippet(long threadId, String snippet, @Nullable Uri attachment, long date, long type, boolean unarchive) {
@@ -666,11 +667,38 @@ public class ThreadDatabase extends Database {
     return null;
   }
 
+  public ForstaThread getForstaThread(String threadUid) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      Cursor cursor = null;
+      try {
+        cursor = db.query(TABLE_NAME, null, UID + " = ? ", new String[]{threadUid}, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+          return new ForstaThread(cursor);
+        }
+      } finally {
+        if (cursor != null)
+          cursor.close();
+      }
+      return null;
+  }
+
+  public void setThreadUnread(long threadId) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    ContentValues values = new ContentValues(1);
+    values.put(READ, false);
+    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+    notifyConversationListListeners();
+    notifyConversationListeners(threadId);
+  }
+
   public void updateThreadTitle(long threadId, String title) {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     ContentValues values = new ContentValues(1);
     values.put(TITLE, title);
+
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+    notifyConversationListListeners();
+    notifyConversationListeners(threadId);
   }
 
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {

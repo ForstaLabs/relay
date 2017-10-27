@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
@@ -140,10 +141,10 @@ public class ConversationListItem extends RelativeLayout
     this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
 
-    this.fromView.setText(recipients, read);
+
     setForstaThreadTitle();
 
-    ForstaMessage forstaMessage = ForstaMessage.fromJsonString(thread.getDisplayBody().toString());
+    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
     String body = forstaMessage.getTextBody();
     subjectView.setText(body);
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
@@ -262,7 +263,7 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        fromView.setText(recipients, read);
+        setForstaThreadTitle();
         setRippleColor(threadColor);
         contactPhotoImage.setAvatar(recipients, threadColor);
       }
@@ -306,8 +307,11 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setForstaThreadTitle() {
+
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
+    } else {
+      this.fromView.setText(recipients, read);
     }
   }
 }

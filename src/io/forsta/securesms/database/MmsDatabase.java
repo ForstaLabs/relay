@@ -336,6 +336,10 @@ public class MmsDatabase extends MessagingDatabase {
                              " WHERE " + where, arguments);
   }
 
+  public Cursor getMessages(long threadId) {
+    return rawQuery(THREAD_ID + " = ? ", new String[] {threadId+ ""});
+  }
+
   public Cursor getMessage(long messageId) {
     Cursor cursor = rawQuery(RAW_ID_WHERE, new String[] {messageId + ""});
     setNotifyConverationListeners(cursor, getThreadIdForMessage(messageId));

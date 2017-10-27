@@ -216,7 +216,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean    archived;
   private boolean    isSecureText = true;
   private Handler handler = new Handler();
-  private ContentObserver threadPreferenceObserver;
+  private ContentObserver threadObserver;
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -245,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeSecurity();
     initializeDraft();
     initializeDirectory();
+    initThread();
   }
 
   @Override
@@ -282,12 +283,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     composeText.setTransport(sendButton.getSelectedTransport());
 
-    initThread();
     calculateCharactersRemaining();
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
-    threadPreferenceObserver = new ContentObserver(handler) {
+    initThread();
+    threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
         invalidateOptionsMenu();
@@ -295,7 +296,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     };
 
-    getContentResolver().registerContentObserver(Uri.parse(ThreadPreferenceDatabase.THREAD_PREFERENCES_URI), true, threadPreferenceObserver);
+    getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.CONVERSATION_URI + threadId), true, threadObserver);
   }
 
   @Override
@@ -305,9 +306,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (isFinishing()) overridePendingTransition(R.anim.fade_scale_in, R.anim.slide_to_right);
     quickAttachmentDrawer.onPause();
     inputPanel.onPause();
+    getContentResolver().unregisterContentObserver(threadObserver);
 
     AudioSlidePlayer.stopAll();
-    getContentResolver().unregisterContentObserver(threadPreferenceObserver);
   }
 
   @Override
@@ -325,6 +326,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (recipients != null)              recipients.removeListener(this);
     if (securityUpdateReceiver != null)  unregisterReceiver(securityUpdateReceiver);
     if (recipientsStaleReceiver != null) unregisterReceiver(recipientsStaleReceiver);
+
     super.onDestroy();
   }
 
@@ -827,6 +829,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         if (threadId != -1) {
           Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
           intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
+          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
           startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_preferences");
         }
@@ -1135,19 +1138,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
       long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
 
-      Log.w(TAG, "isManual Selection: " + sendButton.isManualSelection());
-      Log.w(TAG, "forceSms: " + forceSms);
-
       if (recipients == null) {
-        throw new RecipientFormattingException("Badly formatted");
+        Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_recipient_is_not_valid, Toast.LENGTH_LONG).show();
       } else {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
       }
-    } catch (RecipientFormattingException ex) {
-      Toast.makeText(ConversationActivity.this,
-                     R.string.ConversationActivity_recipient_is_not_a_valid_sms_or_email_address_exclamation,
-                     Toast.LENGTH_LONG).show();
-      Log.w(TAG, ex);
     } catch (InvalidMessageException ex) {
       Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_message_is_empty_exclamation,
                      Toast.LENGTH_SHORT).show();
@@ -1184,8 +1179,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         OutgoingMediaMessage message = messages[0];
 
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-        List<Slide> slides = slideDeck.getSlides();
-
 
         message.setForstaJsonBody(context, threadData);
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);

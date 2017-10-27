@@ -28,10 +28,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaGroup;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
@@ -51,6 +54,7 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
@@ -61,11 +65,13 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -84,6 +90,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private ProgressBar mProgressBar;
   private WebSocketUtils socketUtils;
   private Button socketTester;
+  private Button messageTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -169,7 +176,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Canonical Address Db");
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
-    options.add("SMS and MMS Message Threads");
+    options.add("Control and Ccsm Sync messages.");
     options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
@@ -201,8 +208,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             mDebugText.setText(printDirectory());
             break;
           case 4:
-            GetMessages getMessages = new GetMessages();
-            getMessages.execute();
+//            GetMessages getMessages = new GetMessages();
+//            getMessages.execute();
+            mDebugText.setText(printMediaMessages());
             break;
           case 5:
             mDebugText.setText(printThreads());
@@ -246,6 +254,15 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
       }
     });
+    messageTester = (Button) findViewById(R.id.message_tests_button);
+    messageTester.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        mDebugText.setText("");
+        showScrollView();
+        new MessageTests().execute();
+      }
+    });
     printLoginInformation();
   }
 
@@ -286,8 +303,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
           }
         }).show();
   }
-
-
 
   private void startLoginIntent() {
     Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
@@ -439,6 +454,27 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append(cursor.getString(i)).append("\n");
       }
       sb.append("\n");
+    }
+    return sb.toString();
+  }
+
+  private String printMediaMessages() {
+    MmsDatabase db = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
+    Cursor cursor = db.getMessages(-1);
+    MmsDatabase.Reader reader = db.readerFor(mMasterSecret, cursor);
+    MessageRecord messageRecord;
+    StringBuilder sb = new StringBuilder();
+    while ((messageRecord = reader.getNext()) != null) {
+      String displayDate = DateUtils.formatDateTime(DashboardActivity.this, messageRecord.getTimestamp(), android.text.format.DateUtils.FORMAT_ABBREV_TIME);
+      try {
+        ForstaMessage message = ForstaMessageManager.fromMessagBodyString(messageRecord.getBody().getBody());
+      } catch (InvalidMessagePayloadException e) {
+        Log.w(TAG, "Bad message payload");
+      }
+      sb.append(messageRecord.getId())
+          .append(" ")
+          .append(displayDate)
+          .append("\n");
     }
     return sb.toString();
   }
@@ -718,6 +754,119 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
       mDebugText.setText(jsonObject.toString());
+    }
+  }
+
+  private class MessageTests extends AsyncTask<Void, String, Void> {
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      publishProgress("Bad JSON blob test.");
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("");
+        publishProgress("Failed: empty string.");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("{}");
+        publishProgress("Failed: empty object.");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[]");
+        publishProgress("Failed: empty array");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      // No version object
+      publishProgress("Bad version object test");
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{virgin: 1}]");
+        publishProgress("Failed: empty array");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      publishProgress("Bad messageType object test");
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1]}");
+        publishProgress("Failed: invalid content type");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: blank}]");
+        publishProgress("Failed: invalid content type");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception: " + e.getMessage());
+      }
+      // No distribution
+      publishProgress("Bad distribution object");
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content}]");
+        publishProgress("Failed: no distribution object");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {}}]");
+        publishProgress("Failed: empty distribution object");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      publishProgress("Bad distribution expression object");
+      try {
+        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString("[{version: 1, threadId: 1, messageType: content, distribution: {expression: ''}}]");
+        publishProgress("Failed: empty distribution expression");
+      } catch (InvalidMessagePayloadException e) {
+        publishProgress("Caught Exception. Body: " + e.getMessage());
+      }
+
+      // Go through all existing messages and verify JSON.
+      ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
+      MmsSmsDatabase mdb = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this);
+      Cursor ccursor = tdb.getConversationList();
+      ThreadDatabase.Reader treader = tdb.readerFor(ccursor, mMasterCipher);
+      ThreadRecord trecord;
+      publishProgress("Verifying existing message records.");
+      StringBuilder sb = new StringBuilder();
+      int count = 0;
+      int passCount = 0;
+      int failCount = 0;
+      while ((trecord = treader.getNext()) != null) {
+        Cursor mcursor = mdb.getConversation(trecord.getThreadId());
+        MmsSmsDatabase.Reader mreader = mdb.readerFor(mcursor, mMasterSecret);
+        MessageRecord mrecord;
+
+        while ((mrecord = mreader.getNext()) != null) {
+          count++;
+          try {
+            ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(mrecord.getBody().getBody());
+            passCount++;
+          } catch (InvalidMessagePayloadException e) {
+            failCount++;
+            sb.append(e.getMessage()).append(": ").append(mrecord.getBody().getBody()).append("\n");
+          }
+        }
+        mreader.close();
+      }
+      treader.close();
+      publishProgress("Total Tested: " + count + " Passed: " + passCount + " Failed: " + failCount + "\n" + sb.toString());
+
+      return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+      mDebugText.append(values[0] + "\n");
+    }
+
+    @Override
+    protected void onPostExecute(Void v) {
+      mDebugText.append("Complete");
     }
   }
 }

@@ -121,6 +121,12 @@ public class MessageSender {
     return threadId;
   }
 
+  public static void sendControlMessage(final Context context,
+                                        final MasterSecret masterSecret,
+                                        final OutgoingMediaMessage message) {
+
+  }
+
   public static void resendGroupMessage(Context context, MasterSecret masterSecret, MessageRecord messageRecord, long filterRecipientId) {
     if (!messageRecord.isMms()) throw new AssertionError("Not Group");
 

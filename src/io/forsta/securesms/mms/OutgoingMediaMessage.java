@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
@@ -107,6 +108,10 @@ public class OutgoingMediaMessage {
   }
 
   public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
-    this.body = ForstaMessage.createForstaMessageBody(context, this.body, recipients, attachments, forstaThread);
+    this.body = ForstaMessageManager.createForstaMessageBody(context, this.body, recipients, attachments, forstaThread);
+  }
+
+  public void setForstaControlJsonBody(Context context, ForstaThread forstaThread) {
+    this.body = ForstaMessageManager.createControlMessageBody(context, this.body, recipients, attachments, forstaThread);
   }
 }

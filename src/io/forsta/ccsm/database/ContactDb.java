@@ -296,7 +296,7 @@ public class ContactDb extends DbBase {
 
   public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
+    // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3), or batch the transaction.
     for (ContactTokenDetails token : activeTokens) {
       String address = token.getNumber();
       ContentValues values = new ContentValues();
@@ -309,8 +309,8 @@ public class ContactDb extends DbBase {
     String queryFilter = TSREGISTERED + " = 1";
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
-      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ?)";
-      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%" };
+      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
+      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%", "%" + filter + "%"};
     }
 
     try {
