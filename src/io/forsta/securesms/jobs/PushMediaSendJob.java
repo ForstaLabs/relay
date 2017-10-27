@@ -86,10 +86,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         database.markExpireStarted(messageId);
         expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
       }
-    } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
-      Log.w(TAG, e);
-      database.markAsSentFailed(messageId);
-      notifyMediaMessageDeliveryFailed(context, messageId);
     } catch (EncapsulatedExceptions e) {
       Log.w(TAG, e);
       List<NetworkFailure> failures = new LinkedList<>();
@@ -130,6 +126,10 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         database.markAsSentFailed(messageId);
         notifyMediaMessageDeliveryFailed(context, messageId);
       }
+    } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
+      Log.w(TAG, e);
+      database.markAsSentFailed(messageId);
+      notifyMediaMessageDeliveryFailed(context, messageId);
     } catch (IllegalStateException e) {
       Log.w(TAG, "Something went wildly wrong: " +  e.getMessage());
     } catch (Exception e) {
