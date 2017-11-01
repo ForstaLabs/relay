@@ -17,6 +17,7 @@
 package io.forsta.securesms;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -170,7 +171,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
 
       @Override
-      protected void onPostExecute(ForstaDistribution distribution) {
+      protected void onPostExecute(final ForstaDistribution distribution) {
 
         if (distribution.hasWarnings()) {
           hideProgressBar();
@@ -179,33 +180,57 @@ public class NewConversationActivity extends ContactSelectionActivity {
         }
 
         if (distribution.hasRecipients()) {
-          Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
-          ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+          final Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
+          final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           if (forstaThread == null) {
-            forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
+            createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+            // forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
           } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
             builder.setTitle("New Conversation")
-                .setPositiveButton("New", null)
-                .setNegativeButton("Existing", null).create();
+                .setPositiveButton("New", new DialogInterface.OnClickListener() {
+                  @Override
+                  public void onClick(DialogInterface dialogInterface, int i) {
+                    createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+                  }
+                })
+                .setNegativeButton("Existing", new DialogInterface.OnClickListener() {
+                  @Override
+                  public void onClick(DialogInterface dialogInterface, int i) {
+                    createConversation(forstaThread, recipients);
+                  }
+                }).create();
+            builder.show();
             showProgressBar();
           }
 
-          long threadId = forstaThread.getThreadid();
-          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
-          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
-          intent.setDataAndType(getIntent().getData(), getIntent().getType());
-          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
-          intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-          startActivity(intent);
-          finish();
+//          long threadId = forstaThread.getThreadid();
+//          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
+//          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+//          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
+//          intent.setDataAndType(getIntent().getData(), getIntent().getType());
+//          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
+//          intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+//          startActivity(intent);
+//          finish();
         } else {
           hideProgressBar();
           Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
         }
       }
     }.execute(selectedRecipients.getLocalizedRecipientExpression(localUser.getOrgTag()));
+  }
+
+  private void createConversation(ForstaThread forstaThread, Recipients recipients) {
+    long threadId = forstaThread.getThreadid();
+    Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
+    intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
+    intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
+    intent.setDataAndType(getIntent().getData(), getIntent().getType());
+    intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
+    intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
+    startActivity(intent);
+    finish();
   }
 
   @Override
