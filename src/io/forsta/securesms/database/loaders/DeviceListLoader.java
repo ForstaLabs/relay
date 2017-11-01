@@ -5,6 +5,8 @@ import android.util.Log;
 
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.util.AsyncLoader;
+import io.forsta.securesms.util.TextSecurePreferences;
+
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
@@ -29,6 +31,11 @@ public class DeviceListLoader extends AsyncLoader<List<DeviceInfo>> {
   public List<DeviceInfo> loadInBackground() {
     try {
       List<DeviceInfo>     devices  = accountManager.getDevices();
+      for (int i=0;i< devices.size(); i++) {
+        if (devices.get(i).getId() == TextSecurePreferences.getLocalDeviceId(getContext())) {
+          devices.remove(i);
+        }
+      }
       Iterator<DeviceInfo> iterator = devices.iterator();
       Collections.sort(devices, new DeviceInfoComparator());
       return devices;
