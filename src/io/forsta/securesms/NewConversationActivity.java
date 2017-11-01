@@ -184,7 +184,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
           final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           if (forstaThread == null) {
             createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
-            // forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
           } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
             builder.setTitle("New Conversation")
@@ -203,16 +202,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
             builder.show();
             showProgressBar();
           }
-
-//          long threadId = forstaThread.getThreadid();
-//          Intent intent = new Intent(NewConversationActivity.this, ConversationActivity.class);
-//          intent.putExtra(ConversationActivity.RECIPIENTS_EXTRA, recipients.getIds());
-//          intent.putExtra(ConversationActivity.TEXT_EXTRA, getIntent().getStringExtra(ConversationActivity.TEXT_EXTRA));
-//          intent.setDataAndType(getIntent().getData(), getIntent().getType());
-//          intent.putExtra(ConversationActivity.THREAD_ID_EXTRA, threadId);
-//          intent.putExtra(ConversationActivity.DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-//          startActivity(intent);
-//          finish();
         } else {
           hideProgressBar();
           Toast.makeText(NewConversationActivity.this, "No recipients found in expression.", Toast.LENGTH_LONG).show();
