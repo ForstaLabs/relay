@@ -16,10 +16,12 @@
  */
 package io.forsta.securesms;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -153,7 +155,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
       Toast.makeText(NewConversationActivity.this, "Please select a recipient", Toast.LENGTH_LONG).show();
       return;
     }
-    showProgressBar();
 
     new AsyncTask<String, Void, ForstaDistribution>() {
       @Override
@@ -182,6 +183,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
           ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           if (forstaThread == null) {
             forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution);
+          } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
+            builder.setTitle("New Conversation")
+                .setPositiveButton("New", null)
+                .setNegativeButton("Existing", null).create();
+            showProgressBar();
           }
 
           long threadId = forstaThread.getThreadid();
