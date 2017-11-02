@@ -232,14 +232,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
         Recipients recipients = RecipientFactory.getRecipientsFromString(context, number, false);
 
         if (recipients.getPrimaryRecipient() != null) {
-          Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences    = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipients.getIds());
-          int                             subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
-
-          MessageSender.send(context, masterSecret, new OutgoingTextMessage(recipients, message, subscriptionId), -1L, true);
-
-          if (recipients.getPrimaryRecipient().getContactUri() != null) {
-            DatabaseFactory.getRecipientPreferenceDatabase(context).setSeenInviteReminder(recipients, true);
-          }
+          MessageSender.sendSmsInvite(context, masterSecret, new OutgoingTextMessage(recipients, message, -1));
         }
       }
       return null;

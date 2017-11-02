@@ -121,6 +121,16 @@ public class MessageSender {
     return threadId;
   }
 
+  public static void sendSmsInvite(final Context context, final MasterSecret masterSecret, final OutgoingTextMessage message) {
+    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
+    Recipients            recipients  = message.getRecipients();
+
+    long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), -1,
+        message, true, System.currentTimeMillis());
+
+    sendSms(context, recipients, messageId);
+  }
+
   public static void sendControlMessage(final Context context,
                                         final MasterSecret masterSecret,
                                         final OutgoingMediaMessage message) {
