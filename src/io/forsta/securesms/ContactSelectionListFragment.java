@@ -45,6 +45,7 @@ import io.forsta.securesms.util.ViewUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,9 @@ public class ContactSelectionListFragment extends    Fragment
   }
 
   public List<String> getSelectedAddresses() {
+    if (selectedAddresses == null) {
+      selectedAddresses = new HashSet<>();
+    }
     return new ArrayList<>(selectedAddresses);
   }
 
@@ -218,7 +222,8 @@ public class ContactSelectionListFragment extends    Fragment
     selectedAddresses.remove(address);
   }
 
-  public void setOnContactSelectedListener(OnContactSelectedListener onContactSelectedListener) {
+  public void
+  setOnContactSelectedListener(OnContactSelectedListener onContactSelectedListener) {
     this.onContactSelectedListener = onContactSelectedListener;
   }
 

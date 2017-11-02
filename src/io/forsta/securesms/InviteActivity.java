@@ -115,15 +115,15 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
 
   private void sendSmsInvites() {
     new SendSmsInvitesAsyncTask(this, inviteText.getText().toString())
-        .execute(contactsFragment.getSelectedContacts()
-                                 .toArray(new String[contactsFragment.getSelectedContacts().size()]));
+        .execute(contactsFragment.getSelectedAddresses()
+                                 .toArray(new String[contactsFragment.getSelectedAddresses().size()]));
   }
 
   private void updateSmsButtonText() {
     smsSendButton.setText(getResources().getQuantityString(R.plurals.InviteActivity_send_sms_to_friends,
-                                                           contactsFragment.getSelectedContacts().size(),
-                                                           contactsFragment.getSelectedContacts().size()));
-    smsSendButton.setEnabled(!contactsFragment.getSelectedContacts().isEmpty());
+                                                           contactsFragment.getSelectedAddresses().size(),
+                                                           contactsFragment.getSelectedAddresses().size()));
+    smsSendButton.setEnabled(!contactsFragment.getSelectedAddresses().isEmpty());
   }
 
   @Override public void onBackPressed() {
@@ -174,8 +174,8 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     public void onClick(View v) {
       new AlertDialog.Builder(InviteActivity.this)
           .setTitle(getResources().getQuantityString(R.plurals.InviteActivity_send_sms_invites,
-                                                     contactsFragment.getSelectedContacts().size(),
-                                                     contactsFragment.getSelectedContacts().size()))
+                                                     contactsFragment.getSelectedAddresses().size(),
+                                                     contactsFragment.getSelectedAddresses().size()))
           .setMessage(inviteText.getText().toString())
           .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
