@@ -187,7 +187,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
             builder.setTitle("New Conversation")
-                .setMessage("A conversation already exists with these recipients. Would you like to create a new conversation or use the existing one?")
+                .setMessage("Use existing conversation or create new?")
                 .setPositiveButton("New", new DialogInterface.OnClickListener() {
                   @Override
                   public void onClick(DialogInterface dialogInterface, int i) {
