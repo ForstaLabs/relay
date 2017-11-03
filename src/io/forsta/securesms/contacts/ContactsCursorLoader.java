@@ -79,69 +79,65 @@ public class ContactsCursorLoader extends CursorLoader {
 
     ArrayList<Cursor> cursorList       = new ArrayList<>(3);
 
-    if (mode == MODE_ALL) {
-      cursorList.add(contactsDatabase.querySystemContacts(filter));
-    } else if (mode == MODE_OTHER_ONLY) {
+    if (mode == MODE_OTHER_ONLY) {
       cursorList.add(filterNonPushContacts(contactsDatabase.querySystemContacts(filter)));
-    }
 
-    if (!TextUtils.isEmpty(filter) && NumberUtil.isValidSmsOrEmail(filter)) {
-      MatrixCursor newNumberCursor = new MatrixCursor(columns, 1);
+      if (!TextUtils.isEmpty(filter) && NumberUtil.isValidSmsOrEmail(filter)) {
+        MatrixCursor newNumberCursor = new MatrixCursor(columns, 1);
 
-      newNumberCursor.addRow(new Object[] {-1L, getContext().getString(R.string.contact_selection_list__unknown_contact),
-                                           filter, ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
-                                           "\u21e2", ContactsDatabase.NEW_TYPE});
+        newNumberCursor.addRow(new Object[] {-1L, getContext().getString(R.string.contact_selection_list__unknown_contact),
+            filter, ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM,
+            "\u21e2", ContactsDatabase.NEW_TYPE});
 
-      cursorList.add(newNumberCursor);
-    }
+        cursorList.add(newNumberCursor);
+      }
+    } else {
+      //Get cursors from the forsta contacts and group databases.
+      MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
 
-    //Get cursors from the forsta contacts and group databases.
-    MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
+      ContactDb contactDb = DbFactory.getContactDb(getContext());
+      Cursor contactsCursor = contactDb.getActiveRecipients(filter);
+      // XXX Remove self from list of recipients?
+      String localUid = TextSecurePreferences.getLocalNumber(getContext());
+      try {
+        while (contactsCursor != null && contactsCursor.moveToNext()) {
+          if (!localUid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
+            forstaContactsCursor.addRow(new Object[]{
+                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
+                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
+                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
+                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
+                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
+                ContactsDatabase.PUSH_TYPE
+            });
+          }
+        }
+      } finally {
+        if (contactsCursor != null) {
+          contactsCursor.close();
+        }
+      }
 
-    ContactDb contactDb = DbFactory.getContactDb(getContext());
-    Cursor contactsCursor = contactDb.getActiveRecipients(filter);
-    // XXX Remove self from list of recipients?
-    String localUid = TextSecurePreferences.getLocalNumber(getContext());
-    try {
-      while (contactsCursor != null && contactsCursor.moveToNext()) {
-        if (!localUid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
-          forstaContactsCursor.addRow(new Object[]{
-              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-              contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
+      GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
+      Cursor groupCursor = gdb.getForstaGroupsByTitle(filter);
+      try {
+        while (groupCursor!= null && groupCursor.moveToNext()) {
+          forstaContactsCursor.addRow(new Object[] {
+              groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ID)),
+              groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
+              groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
+              groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
+              groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
               ContactsDatabase.PUSH_TYPE
           });
         }
+      } finally {
+        if (groupCursor != null) {
+          groupCursor.close();
+        }
       }
-    } finally {
-      if (contactsCursor != null) {
-        contactsCursor.close();
-      }
+      cursorList.add(forstaContactsCursor);
     }
-
-
-    GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());
-    Cursor groupCursor = gdb.getForstaGroupsByTitle(filter);
-    try {
-      while (groupCursor!= null && groupCursor.moveToNext()) {
-        forstaContactsCursor.addRow(new Object[] {
-            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ID)),
-            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.TITLE)),
-            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.GROUP_ID)),
-            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.SLUG)),
-            groupCursor.getString(groupCursor.getColumnIndex(GroupDatabase.ORG_SLUG)),
-            ContactsDatabase.PUSH_TYPE
-        });
-      }
-    } finally {
-      if (groupCursor != null) {
-        groupCursor.close();
-      }
-    }
-    cursorList.add(forstaContactsCursor);
-
     return new MergeCursor(cursorList.toArray(new Cursor[0]));
   }
 

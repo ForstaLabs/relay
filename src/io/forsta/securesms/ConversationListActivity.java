@@ -203,7 +203,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
       case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
       case R.id.menu_import_export:     handleImportExport();    return true;
-  //    case R.id.menu_invite:            handleInvite();          return true;
+      case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();            return true;
       case R.id.menu_directory:         handleDirectoryRefresh();       return true;
