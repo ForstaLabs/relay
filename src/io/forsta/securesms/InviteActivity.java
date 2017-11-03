@@ -95,6 +95,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     smsCancelButton.setOnClickListener(new SmsCancelClickListener());
     smsSendButton.setOnClickListener(new SmsSendClickListener());
     contactFilter.setOnFilterChangedListener(new ContactFilterChangedListener());
+    contactFilter.setToolbarHintSms();
   }
 
   private Animation loadAnimation(@AnimRes int animResId) {
@@ -115,15 +116,15 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
 
   private void sendSmsInvites() {
     new SendSmsInvitesAsyncTask(this, inviteText.getText().toString())
-        .execute(contactsFragment.getSelectedContacts()
-                                 .toArray(new String[contactsFragment.getSelectedContacts().size()]));
+        .execute(contactsFragment.getSelectedAddresses()
+                                 .toArray(new String[contactsFragment.getSelectedAddresses().size()]));
   }
 
   private void updateSmsButtonText() {
     smsSendButton.setText(getResources().getQuantityString(R.plurals.InviteActivity_send_sms_to_friends,
-                                                           contactsFragment.getSelectedContacts().size(),
-                                                           contactsFragment.getSelectedContacts().size()));
-    smsSendButton.setEnabled(!contactsFragment.getSelectedContacts().isEmpty());
+                                                           contactsFragment.getSelectedAddresses().size(),
+                                                           contactsFragment.getSelectedAddresses().size()));
+    smsSendButton.setEnabled(!contactsFragment.getSelectedAddresses().isEmpty());
   }
 
   @Override public void onBackPressed() {
@@ -174,8 +175,8 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     public void onClick(View v) {
       new AlertDialog.Builder(InviteActivity.this)
           .setTitle(getResources().getQuantityString(R.plurals.InviteActivity_send_sms_invites,
-                                                     contactsFragment.getSelectedContacts().size(),
-                                                     contactsFragment.getSelectedContacts().size()))
+                                                     contactsFragment.getSelectedAddresses().size(),
+                                                     contactsFragment.getSelectedAddresses().size()))
           .setMessage(inviteText.getText().toString())
           .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
@@ -232,14 +233,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
         Recipients recipients = RecipientFactory.getRecipientsFromString(context, number, false);
 
         if (recipients.getPrimaryRecipient() != null) {
-          Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences    = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipients.getIds());
-          int                             subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
-
-          MessageSender.send(context, masterSecret, new OutgoingTextMessage(recipients, message, subscriptionId), -1L, true);
-
-          if (recipients.getPrimaryRecipient().getContactUri() != null) {
-            DatabaseFactory.getRecipientPreferenceDatabase(context).setSeenInviteReminder(recipients, true);
-          }
+          MessageSender.sendSmsInvite(context, masterSecret, new OutgoingTextMessage(recipients, message, -1));
         }
       }
       return null;

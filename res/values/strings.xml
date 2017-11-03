@@ -634,6 +634,7 @@
 
     <!-- contact_selection_activity -->
     <string name="contact_selection_activity__enter_name_or_number">Enter name or tag</string>
+    <string name="contact_selection_activity__enter_name_or_number_sms">Enter name or number</string>
     <string name="contact_selection_activity__enter_custom_expression">Enter a tag or tag expression</string>
     <string name="contact_selection_activity__title">Create Conversation</string>
     <string name="contact_selection_activity__no_results">No results. Click the search icon to search the entire directory.</string>
