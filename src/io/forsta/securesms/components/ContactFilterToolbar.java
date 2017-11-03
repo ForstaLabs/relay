@@ -161,6 +161,10 @@ public class ContactFilterToolbar extends Toolbar {
     expandTapArea(toggleContainer, view);
   }
 
+  public void setToolbarHintSms() {
+    searchText.setHint(R.string.contact_selection_activity__enter_name_or_number_sms);
+  }
+
   public void showCreateConversationToggle() {
     displayTogglingView(createConversationToggle);
   }

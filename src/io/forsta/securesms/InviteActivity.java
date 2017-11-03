@@ -95,6 +95,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     smsCancelButton.setOnClickListener(new SmsCancelClickListener());
     smsSendButton.setOnClickListener(new SmsSendClickListener());
     contactFilter.setOnFilterChangedListener(new ContactFilterChangedListener());
+    contactFilter.setToolbarHintSms();
   }
 
   private Animation loadAnimation(@AnimRes int animResId) {
