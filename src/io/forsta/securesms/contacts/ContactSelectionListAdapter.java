@@ -124,9 +124,14 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     String orgSlug       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN)); //ContactsDb.ORGSLUG
     String slug = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_TYPE_COLUMN)); //ContactsDb.SLUG
     ForstaUser localUser = ForstaUser.getLocalForstaUser(getContext());
-    if (!localUser.org_slug.equals(orgSlug)) {
-      slug += ":" + orgSlug;
+    if (orgSlug == null) {
+      slug = number;
+    } else {
+      if (!localUser.org_slug.equals(orgSlug)) {
+        slug += ":" + orgSlug;
+      }
     }
+
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);
 
