@@ -12,6 +12,7 @@ import android.util.Pair;
 import android.widget.Toast;
 
 import io.forsta.securesms.R;
+import io.forsta.securesms.attachments.AttachmentServer;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.util.Util;
@@ -35,7 +36,8 @@ public class AudioSlidePlayer {
 
   private @NonNull  WeakReference<Listener> listener;
   private @Nullable MediaPlayer             mediaPlayer;
-  private @Nullable AudioAttachmentServer   audioAttachmentServer;
+  private @Nullable
+  AttachmentServer attachmentServer;
 
   public synchronized static AudioSlidePlayer createFor(@NonNull Context context,
                                                         @NonNull MasterSecret masterSecret,
@@ -66,11 +68,11 @@ public class AudioSlidePlayer {
     if (this.mediaPlayer != null) return;
 
     this.mediaPlayer           = new MediaPlayer();
-    this.audioAttachmentServer = new AudioAttachmentServer(context, masterSecret, slide.asAttachment());
+    this.attachmentServer = new AttachmentServer(context, masterSecret, slide.asAttachment());
 
-    audioAttachmentServer.start();
+    attachmentServer.start();
 
-    mediaPlayer.setDataSource(context, audioAttachmentServer.getUri());
+    mediaPlayer.setDataSource(context, attachmentServer.getUri());
     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
       @Override
@@ -100,9 +102,9 @@ public class AudioSlidePlayer {
         synchronized (AudioSlidePlayer.this) {
           mediaPlayer = null;
 
-          if (audioAttachmentServer != null) {
-            audioAttachmentServer.stop();
-            audioAttachmentServer = null;
+          if (attachmentServer != null) {
+            attachmentServer.stop();
+            attachmentServer = null;
           }
         }
 
@@ -121,9 +123,9 @@ public class AudioSlidePlayer {
         synchronized (AudioSlidePlayer.this) {
           mediaPlayer = null;
 
-          if (audioAttachmentServer != null) {
-            audioAttachmentServer.stop();
-            audioAttachmentServer = null;
+          if (attachmentServer != null) {
+            attachmentServer.stop();
+            attachmentServer = null;
           }
         }
 
@@ -145,12 +147,12 @@ public class AudioSlidePlayer {
       this.mediaPlayer.stop();
     }
 
-    if (this.audioAttachmentServer != null) {
-      this.audioAttachmentServer.stop();
+    if (this.attachmentServer != null) {
+      this.attachmentServer.stop();
     }
 
     this.mediaPlayer           = null;
-    this.audioAttachmentServer = null;
+    this.attachmentServer = null;
   }
 
   public synchronized static void stopAll() {
