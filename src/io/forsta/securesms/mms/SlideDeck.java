@@ -122,4 +122,14 @@ public class SlideDeck {
 
     return null;
   }
+
+  public @Nullable DocumentSlide getDocumentSlide() {
+    for (Slide slide : slides) {
+      if (slide.hasDocument()) {
+        return (DocumentSlide)slide;
+      }
+    }
+
+    return null;
+  }
 }

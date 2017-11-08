@@ -52,6 +52,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -418,5 +419,14 @@ public class Util {
 
   public static float clamp(float value, float min, float max) {
     return Math.min(Math.max(value, min), max);
+  }
+
+  public static String getPrettyFileSize(long sizeBytes) {
+    if (sizeBytes <= 0) return "0";
+
+    String[] units       = new String[]{"B", "kB", "MB", "GB", "TB"};
+    int      digitGroups = (int) (Math.log10(sizeBytes) / Math.log10(1024));
+
+    return new DecimalFormat("#,##0.#").format(sizeBytes/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
   }
 }

@@ -13,6 +13,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.mms.AudioSlide;
+import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.GifSlide;
 import io.forsta.securesms.mms.ImageSlide;
 import io.forsta.securesms.mms.PartAuthority;
@@ -65,6 +66,8 @@ public class MediaUtil {
       slide = new VideoSlide(context, attachment);
     } else if (ContentType.isAudioType(attachment.getContentType())) {
       slide = new AudioSlide(context, attachment);
+    } else {
+      slide = new DocumentSlide(context, attachment);
     }
 
     return slide;
