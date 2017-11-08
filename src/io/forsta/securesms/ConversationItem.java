@@ -66,6 +66,7 @@ import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -274,6 +275,12 @@ public class ConversationItem extends LinearLayout
            ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getAudioSlide() != null;
   }
 
+  private boolean hasVideo(MessageRecord messageRecord) {
+    return messageRecord.isMms() &&
+        !messageRecord.isMmsNotification() &&
+        ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getVideoSlide() != null;
+  }
+
   private boolean hasThumbnail(MessageRecord messageRecord) {
     return messageRecord.isMms()              &&
            !messageRecord.isMmsNotification() &&
@@ -321,6 +328,11 @@ public class ConversationItem extends LinearLayout
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
+
+      SlideDeck slideDeck = ((MediaMmsMessageRecord) messageRecord).getSlideDeck();
+      if (hasVideo(messageRecord)) {
+        mediaThumbnail.showVideoPlayButton();
+      }
 
       //noinspection ConstantConditions
       mediaThumbnail.setImageResource(masterSecret,
