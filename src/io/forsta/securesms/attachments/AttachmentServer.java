@@ -1,4 +1,4 @@
-package io.forsta.securesms.audio;
+package io.forsta.securesms.attachments;
 
 
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.spongycastle.util.encoders.Hex;
-import io.forsta.securesms.attachments.Attachment;
+
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.util.Util;
@@ -33,9 +33,9 @@ import java.util.StringTokenizer;
 /**
  * @author      Stefan "frostymarvelous" Froelich <stefan d0t froelich At whisppa DoT com>
  */
-public class AudioAttachmentServer implements Runnable {
+public class AttachmentServer implements Runnable {
 
-  private static final String TAG = AudioAttachmentServer.class.getSimpleName();
+  private static final String TAG = AttachmentServer.class.getSimpleName();
 
   private final Context      context;
   private final MasterSecret masterSecret;
@@ -46,7 +46,7 @@ public class AudioAttachmentServer implements Runnable {
 
   private volatile boolean isRunning;
 
-  public AudioAttachmentServer(Context context, MasterSecret masterSecret, Attachment attachment)
+  public AttachmentServer(Context context, MasterSecret masterSecret, Attachment attachment)
       throws IOException
   {
     try {
@@ -122,11 +122,11 @@ public class AudioAttachmentServer implements Runnable {
     }
 
     public boolean processRequest() throws IOException {
-            InputStream is         = client.getInputStream();
+      InputStream is         = client.getInputStream();
       final int         bufferSize = 8192;
-            byte[]      buffer     = new byte[bufferSize];
-            int         splitByte  = 0;
-            int         readLength = 0;
+      byte[]      buffer     = new byte[bufferSize];
+      int         splitByte  = 0;
+      int         readLength = 0;
 
       {
         int read = is.read(buffer, 0, bufferSize);
@@ -280,14 +280,14 @@ public class AudioAttachmentServer implements Runnable {
         StringTokenizer st = new StringTokenizer(inLine);
         if (!st.hasMoreTokens())
           Log.e(TAG,
-                "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
+              "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
 
         String method = st.nextToken();
         pre.put("method", method);
 
         if (!st.hasMoreTokens())
           Log.e(TAG,
-                "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
+              "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
 
         String uri = st.nextToken();
 
@@ -309,7 +309,7 @@ public class AudioAttachmentServer implements Runnable {
             int p = line.indexOf(':');
             if (p >= 0)
               header.put(line.substring(0, p).trim().toLowerCase(),
-                         line.substring(p + 1).trim());
+                  line.substring(p + 1).trim());
             line = in.readLine();
           }
         }
@@ -317,7 +317,7 @@ public class AudioAttachmentServer implements Runnable {
         pre.put("uri", uri);
       } catch (IOException ioe) {
         Log.e(TAG,
-              "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+            "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
       }
     }
 
@@ -339,7 +339,7 @@ public class AudioAttachmentServer implements Runnable {
         int sep = e.indexOf('=');
         if (sep >= 0)
           p.put(decodePercent(e.substring(0, sep)).trim(),
-                decodePercent(e.substring(sep + 1)));
+              decodePercent(e.substring(sep + 1)));
       }
     }
 

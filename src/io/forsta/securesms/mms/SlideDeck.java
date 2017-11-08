@@ -112,4 +112,14 @@ public class SlideDeck {
 
     return null;
   }
+
+  public @Nullable VideoSlide getVideoSlide() {
+    for (Slide slide : slides) {
+      if (slide.hasVideo()) {
+        return (VideoSlide)slide;
+      }
+    }
+
+    return null;
+  }
 }

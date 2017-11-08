@@ -32,13 +32,17 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 import io.forsta.securesms.components.ZoomingImageView;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.mms.VideoSlide;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.SaveAttachmentTask;
+import io.forsta.securesms.video.VideoPlayer;
 
 /**
  * Activity for displaying media attachments in-app
@@ -48,16 +52,19 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
 
   public static final String RECIPIENT_EXTRA = "recipient";
   public static final String DATE_EXTRA      = "date";
+  public static final String SIZE_EXTRA      = "size";
 
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   private MasterSecret masterSecret;
 
-  private ZoomingImageView image;
+  private ZoomingImageView  image;
+  private VideoPlayer video;
   private Uri               mediaUri;
   private String            mediaType;
   private Recipient         recipient;
   private long              date;
+  private long              size;
 
   @Override
   protected void onCreate(Bundle bundle, @NonNull MasterSecret masterSecret) {
@@ -67,7 +74,7 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
 
     setFullscreenIfPossible();
     getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                         WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     setContentView(R.layout.media_preview_activity);
@@ -93,13 +100,13 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
     final CharSequence relativeTimeSpan;
     if (date > 0) {
       relativeTimeSpan = DateUtils.getRelativeTimeSpanString(date,
-                                                             System.currentTimeMillis(),
-                                                             DateUtils.MINUTE_IN_MILLIS);
+          System.currentTimeMillis(),
+          DateUtils.MINUTE_IN_MILLIS);
     } else {
       relativeTimeSpan = null;
     }
     getSupportActionBar().setTitle(recipient == null ? getString(R.string.MediaPreviewActivity_you)
-                                                     : recipient.toShortString());
+        : recipient.toShortString());
     getSupportActionBar().setSubtitle(relativeTimeSpan);
   }
 
@@ -129,6 +136,7 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
 
   private void initializeViews() {
     image = (ZoomingImageView)findViewById(R.id.image);
+    video = (VideoPlayer)findViewById(R.id.video_player);
   }
 
   private void initializeResources() {
@@ -137,6 +145,7 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
     mediaUri     = getIntent().getData();
     mediaType    = getIntent().getType();
     date         = getIntent().getLongExtra(DATE_EXTRA, System.currentTimeMillis());
+    size         = getIntent().getLongExtra(SIZE_EXTRA, 0);
 
     if (recipientId > -1) {
       recipient = RecipientFactory.getRecipientForId(this, recipientId, true);
@@ -155,13 +164,33 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
 
     Log.w(TAG, "Loading Part URI: " + mediaUri);
 
-    if (mediaType != null && mediaType.startsWith("image/")) {
-      image.setImageUri(masterSecret, mediaUri);
+    try {
+      if (mediaType != null && mediaType.startsWith("image/")) {
+        image.setVisibility(View.VISIBLE);
+        video.setVisibility(View.GONE);
+        image.setImageUri(masterSecret, mediaUri);
+      } else if (mediaType != null && mediaType.startsWith("video/")) {
+        image.setVisibility(View.GONE);
+        video.setVisibility(View.VISIBLE);
+        video.setVideoSource(masterSecret, new VideoSlide(this, mediaUri, size));
+      }
+    } catch (IOException e) {
+      Log.w(TAG, e);
+      Toast.makeText(getApplicationContext(), R.string.MediaPreviewActivity_unssuported_media_type, Toast.LENGTH_LONG).show();
+      finish();
     }
   }
 
   private void cleanupMedia() {
     image.setImageDrawable(null);
+    video.cleanup();
+  }
+
+  private void forward() {
+    Intent composeIntent = new Intent(this, ShareActivity.class);
+    composeIntent.putExtra(Intent.EXTRA_STREAM, mediaUri);
+    composeIntent.setType(mediaType);
+    startActivity(composeIntent);
   }
 
   private void saveToDisk() {
@@ -190,14 +219,15 @@ public class MediaPreviewActivity extends PassphraseRequiredActionBarActivity im
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-    case R.id.save:         saveToDisk(); return true;
-    case android.R.id.home: finish();     return true;
+      case R.id.media_preview__forward: forward();    return true;
+      case R.id.save:                   saveToDisk(); return true;
+      case android.R.id.home:           finish();     return true;
     }
 
     return false;
   }
 
   public static boolean isContentTypeSupported(final String contentType) {
-    return contentType != null && contentType.startsWith("image/");
+    return contentType != null && (contentType.startsWith("image/") || contentType.startsWith("video/"));
   }
 }
