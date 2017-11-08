@@ -162,6 +162,10 @@ public class ThumbnailView extends FrameLayout {
     videoPlayButton.setVisibility(VISIBLE);
   }
 
+  public void hideVideoPlayButton() {
+    videoPlayButton.setVisibility(GONE);
+  }
+
   @TargetApi(VERSION_CODES.JELLY_BEAN_MR1)
   private boolean isContextValid() {
     return !(getContext() instanceof Activity)            ||

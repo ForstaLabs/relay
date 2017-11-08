@@ -66,7 +66,7 @@ public class MediaUtil {
       slide = new VideoSlide(context, attachment);
     } else if (ContentType.isAudioType(attachment.getContentType())) {
       slide = new AudioSlide(context, attachment);
-    } else {
+    } else if (attachment.getContentType() != null) {
       slide = new DocumentSlide(context, attachment);
     }
 

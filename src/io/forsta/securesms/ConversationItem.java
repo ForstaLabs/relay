@@ -326,27 +326,33 @@ public class ConversationItem extends LinearLayout
     if (messageRecord.isMmsNotification()) {
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
 
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
       setNotificationMmsAttributes((NotificationMmsMessageRecord) messageRecord);
     } else if (hasAudio(messageRecord)) {
       audioView.setVisibility(View.VISIBLE);
       mediaThumbnail.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
 
       //noinspection ConstantConditions
       audioView.setAudio(masterSecret, ((MediaMmsMessageRecord) messageRecord).getSlideDeck().getAudioSlide(), showControls);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasDocument(messageRecord)) {
+      mediaThumbnail.setVisibility(View.GONE);
+      audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
       documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), showControls);
 
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
+      mediaThumbnail.hideVideoPlayButton();
 
-      SlideDeck slideDeck = ((MediaMmsMessageRecord) messageRecord).getSlideDeck();
       if (hasVideo(messageRecord)) {
         mediaThumbnail.showVideoPlayButton();
+        audioView.setVisibility(View.GONE);
       }
 
       //noinspection ConstantConditions
