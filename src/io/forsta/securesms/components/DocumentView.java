@@ -100,6 +100,9 @@ public class DocumentView extends FrameLayout {
 
     this.fileName.setText(documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file)));
     this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
+    if (fileSize.getText().equals("0")) {
+      fileSize.setText("Click to download document.");
+    }
     this.document.setText(getFileType(documentSlide.getFileName()));
     this.setOnClickListener(new OpenClickedListener(documentSlide));
   }
