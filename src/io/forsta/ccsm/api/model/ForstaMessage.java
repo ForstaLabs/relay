@@ -53,6 +53,7 @@ public class ForstaMessage {
   private String threadTitle;
   private MessageType messageType = MessageType.CONTENT;
   private ControlType controlType = ControlType.NONE;
+  private List<ForstaAttachment> attachments = new ArrayList<>();
 
   public enum ControlType {
     NONE,
@@ -147,5 +148,34 @@ public class ForstaMessage {
 
   public void setSenderId(String senderId) {
     this.senderId = senderId;
+  }
+
+  public void addAttachment(String name, String type, long size) {
+    ForstaAttachment attachment = new ForstaAttachment(name, type, size);
+    attachments.add(attachment);
+  }
+
+  public class ForstaAttachment {
+    private String name;
+    private String type;
+    private long size;
+
+    public ForstaAttachment(String name, String type, long size) {
+      this.name = name;
+      this.type = type;
+      this.size = size;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public long getSize() {
+      return size;
+    }
   }
 }

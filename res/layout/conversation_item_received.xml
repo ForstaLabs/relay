@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:visibility="gone"
                 app:documentForegroundTintColor="@color/white"
-                app:documentBackgroundTintColor="@color/blue_500"
+                app:documentBackgroundTintColor="@color/white"
                 tools:visibility="visible"/>
 
             <io.forsta.securesms.components.AudioView

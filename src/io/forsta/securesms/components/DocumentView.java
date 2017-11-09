@@ -4,11 +4,14 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -64,13 +67,13 @@ public class DocumentView extends FrameLayout {
     this.documentBackground =                   findViewById(R.id.document_background);
     this.document           = (TextView)        findViewById(R.id.document);
 
-//    if (attrs != null) {
-//      TypedArray typedArray = context.getTheme().obtainStyledAttributes(attrs, R.styleable.DocumentView, 0, 0);
-//      setTint(typedArray.getColor(R.styleable.DocumentView_documentForegroundTintColor, Color.WHITE),
-//          typedArray.getColor(R.styleable.DocumentView_documentBackgroundTintColor, Color.WHITE));
-//      container.setBackgroundColor(typedArray.getColor(R.styleable.DocumentView_documentWidgetBackground, Color.TRANSPARENT));
-//      typedArray.recycle();
-//    }
+    if (attrs != null) {
+      TypedArray typedArray = context.getTheme().obtainStyledAttributes(attrs, R.styleable.DocumentView, 0, 0);
+      setTint(typedArray.getColor(R.styleable.DocumentView_documentForegroundTintColor, Color.WHITE),
+          typedArray.getColor(R.styleable.DocumentView_documentBackgroundTintColor, Color.WHITE));
+      container.setBackgroundColor(typedArray.getColor(R.styleable.DocumentView_documentWidgetBackground, Color.TRANSPARENT));
+      typedArray.recycle();
+    }
   }
 
   public void setDownloadClickListener(@Nullable SlideClickListener listener) {
@@ -84,9 +87,20 @@ public class DocumentView extends FrameLayout {
   public void setDocument(final @NonNull DocumentSlide documentSlide,
                           final boolean showControls)
   {
+    boolean pending = documentSlide.isPendingDownload();
+    long size = documentSlide.getFileSize();
+    boolean inProgress = documentSlide.isInProgress();
+    Uri doc = documentSlide.getUri();
+
+    this.documentSlide = documentSlide;
+    this.fileName.setText(documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file)));
+    this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
+    this.document.setText(getFileType(documentSlide.getFileName()));
+
     if (showControls && documentSlide.isPendingDownload()) {
       controlToggle.displayQuick(downloadButton);
       downloadButton.setOnClickListener(new DownloadClickedListener(documentSlide));
+      fileSize.setText("Download");
       if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();
     } else if (showControls && documentSlide.getTransferState() == AttachmentDatabase.TRANSFER_PROGRESS_STARTED) {
       controlToggle.displayQuick(downloadProgress);
@@ -96,22 +110,14 @@ public class DocumentView extends FrameLayout {
       if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();
     }
 
-    this.documentSlide = documentSlide;
-
-    this.fileName.setText(documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file)));
-    this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
-    if (fileSize.getText().equals("0")) {
-      fileSize.setText("Click to download document.");
-    }
-    this.document.setText(getFileType(documentSlide.getFileName()));
     this.setOnClickListener(new OpenClickedListener(documentSlide));
   }
 
   public void setTint(int foregroundTint, int backgroundTint) {
     DrawableCompat.setTint(this.document.getBackground(), backgroundTint);
     DrawableCompat.setTint(this.documentBackground.getBackground(), foregroundTint);
-    this.document.setTextColor(foregroundTint);
 
+    this.document.setTextColor(foregroundTint);
     this.fileName.setTextColor(foregroundTint);
     this.fileSize.setTextColor(foregroundTint);
 

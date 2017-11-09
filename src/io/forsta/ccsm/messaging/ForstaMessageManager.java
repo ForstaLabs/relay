@@ -167,6 +167,16 @@ public class ForstaMessageManager {
             }
           }
         }
+        if (data.has("attachments")) {
+          JSONArray attachments = data.getJSONArray("attachments");
+          for (int i=0; i<attachments.length(); i++) {
+            JSONObject object = attachments.getJSONObject(i);
+            String name = object.getString("name");
+            String type = object.getString("type");
+            long size = object.getLong("size");
+            forstaMessage.addAttachment(name, type, size);
+          }
+        }
       }
     } catch (JSONException e) {
       throw new InvalidMessagePayloadException(e.getMessage());

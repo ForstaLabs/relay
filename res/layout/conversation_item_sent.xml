@@ -59,7 +59,7 @@
                 android:layout_width="210dp"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                app:documentForegroundTintColor="@color/white"
+                app:documentForegroundTintColor="@color/grey_500"
                 app:documentBackgroundTintColor="@color/blue_500"
                 tools:visibility="visible"/>
 

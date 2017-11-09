@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -306,6 +307,7 @@ public class ConversationItem extends LinearLayout
       bodyText.setVisibility(View.GONE);
     } else {
       try {
+        // TODO Move this inside DisplayRecord.
         ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
         if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
           bodyText.setText(forstaMessage.getHtmlBody());
@@ -342,8 +344,8 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
-      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), showControls);
-
+      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), true);
+      bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
