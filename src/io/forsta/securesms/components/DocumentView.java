@@ -1,6 +1,7 @@
 package io.forsta.securesms.components;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.pnikosis.materialishprogress.ProgressWheel;
 
@@ -29,7 +31,9 @@ import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.events.PartProgressEvent;
 import io.forsta.securesms.mms.DocumentSlide;
+import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
+import io.forsta.securesms.util.SaveAttachmentTask;
 import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -90,17 +94,8 @@ public class DocumentView extends FrameLayout {
     this.viewListener = listener;
   }
 
-  public void setDocument(final @NonNull DocumentSlide documentSlide, List<ForstaMessage.ForstaAttachment> attachments)
+  public void setDocument(final @NonNull DocumentSlide documentSlide, String fileName)
   {
-
-    String fileName = documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file));
-    for (ForstaMessage.ForstaAttachment attachment : attachments) {
-      if (documentSlide.getContentType().equals(attachment.getType())) {
-        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
-        break;
-      }
-    }
-
     this.documentSlide = documentSlide;
     this.fileName.setText(fileName);
     this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
@@ -210,5 +205,4 @@ public class DocumentView extends FrameLayout {
       }
     }
   }
-
 }

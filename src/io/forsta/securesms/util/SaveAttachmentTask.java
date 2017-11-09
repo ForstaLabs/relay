@@ -6,6 +6,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
@@ -81,7 +82,7 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
 
   private boolean saveAttachment(Context context, MasterSecret masterSecret, Attachment attachment) throws IOException {
     String contentType      = MediaUtil.getCorrectedMimeType(attachment.contentType);
-    File mediaFile          = constructOutputFile(contentType, attachment.date);
+    File mediaFile          = constructOutputFile(attachment.fileName, contentType, attachment.date);
     InputStream inputStream = PartAuthority.getAttachmentStream(context, masterSecret, attachment.uri);
 
     if (inputStream == null) {
@@ -122,6 +123,10 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
   }
 
   private File constructOutputFile(String contentType, long timestamp) throws IOException {
+    return constructOutputFile("", contentType, timestamp);
+  }
+
+  private File constructOutputFile(String fileName, String contentType, long timestamp) throws IOException {
     File sdCard = Environment.getExternalStorageDirectory();
     File outputDirectory;
 
@@ -138,9 +143,15 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
     if (!outputDirectory.mkdirs()) Log.w(TAG, "mkdirs() returned false, attempting to continue");
 
     MimeTypeMap       mimeTypeMap   = MimeTypeMap.getSingleton();
-    String            extension     = mimeTypeMap.getExtensionFromMimeType(contentType);
     SimpleDateFormat  dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
+    String            extension     = mimeTypeMap.getExtensionFromMimeType(contentType);
     String            base          = "forsta-" + dateFormatter.format(timestamp);
+
+    if (!TextUtils.isEmpty(fileName)) {
+      if (fileName.contains(extension)) {
+        base = fileName.substring(0, fileName.indexOf(extension));
+      }
+    }
 
     if (extension == null) extension = "attach";
 
@@ -157,6 +168,7 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
     public Uri    uri;
     public String contentType;
     public long   date;
+    public String fileName;
 
     public Attachment(Uri uri, String contentType, long date) {
       if (uri == null || contentType == null || date < 0) {
@@ -165,6 +177,11 @@ public class SaveAttachmentTask extends ProgressDialogAsyncTask<SaveAttachmentTa
       this.uri         = uri;
       this.contentType = contentType;
       this.date        = date;
+    }
+
+    public Attachment(Uri uri, String contentType, long date, String fileName) {
+      this(uri, contentType, date);
+      this.fileName = fileName;
     }
   }
 

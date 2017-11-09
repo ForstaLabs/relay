@@ -66,6 +66,7 @@ import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
+import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
@@ -75,6 +76,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.DynamicTheme;
+import io.forsta.securesms.util.SaveAttachmentTask;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
@@ -182,7 +184,6 @@ public class ConversationItem extends LinearLayout
     audioView.setDownloadClickListener(downloadClickListener);
     audioView.setOnLongClickListener(passthroughClickListener);
     documentView.setDownloadClickListener(downloadClickListener);
-    documentView.setDocumentClickListener(new ThumbnailClickListener());
     documentView.setOnLongClickListener(passthroughClickListener);
     bodyText.setOnLongClickListener(passthroughClickListener);
     bodyText.setOnClickListener(passthroughClickListener);
@@ -337,7 +338,9 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
-      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), messageRecord.getForstaMessageAttachments());
+      String attachmentFileName = getFileName(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), messageRecord.getForstaMessageAttachments());
+      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), attachmentFileName);
+      documentView.setDocumentClickListener(new DocumentAttachmentSaveClickListener(attachmentFileName));
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
@@ -361,6 +364,17 @@ public class ConversationItem extends LinearLayout
       documentView.setVisibility(GONE);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
+  }
+
+  private String getFileName(DocumentSlide documentSlide, List<ForstaMessage.ForstaAttachment> attachments) {
+    String fileName = documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file));
+    for (ForstaMessage.ForstaAttachment attachment : attachments) {
+      if (documentSlide.getContentType().equals(attachment.getType())) {
+        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
+        break;
+      }
+    }
+    return fileName;
   }
 
   private void setContactPhoto(Recipient recipient) {
@@ -551,6 +565,30 @@ public class ConversationItem extends LinearLayout
         setAudioViewTint(messageRecord, recipients);
       }
     });
+  }
+
+  private class DocumentAttachmentSaveClickListener implements SlideClickListener {
+    private final String fileName;
+    public DocumentAttachmentSaveClickListener(String fileName) {
+      this.fileName = fileName;
+    }
+
+    @Override
+    public void onClick(View v, final Slide slide) {
+      SaveAttachmentTask.showWarningDialog(getContext(), new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+          if (slide.getUri() != null) {
+            SaveAttachmentTask saveTask = new SaveAttachmentTask(getContext(), masterSecret);
+            saveTask.execute(new SaveAttachmentTask.Attachment(slide.getUri(), slide.getContentType(), messageRecord.getDateReceived(), fileName));
+          } else {
+            Log.w(TAG, "No slide with attachable media found, failing nicely.");
+            Toast.makeText(getContext(),
+                getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
+                Toast.LENGTH_LONG).show();
+          }
+        }
+      });
+    }
   }
 
   private class AttachmentDownloadClickListener implements SlideClickListener {
