@@ -10,6 +10,7 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -21,13 +22,18 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 
 //import org.greenrobot.eventbus.Subscribe;
 //import org.greenrobot.eventbus.ThreadMode;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.database.model.MediaMmsMessageRecord;
+import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.events.PartProgressEvent;
 import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.SlideClickListener;
 import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.util.guava.Optional;
+
+import java.util.List;
 
 public class DocumentView extends FrameLayout {
 
@@ -84,25 +90,28 @@ public class DocumentView extends FrameLayout {
     this.viewListener = listener;
   }
 
-  public void setDocument(final @NonNull DocumentSlide documentSlide,
-                          final boolean showControls)
+  public void setDocument(final @NonNull DocumentSlide documentSlide, List<ForstaMessage.ForstaAttachment> attachments)
   {
-    boolean pending = documentSlide.isPendingDownload();
-    long size = documentSlide.getFileSize();
-    boolean inProgress = documentSlide.isInProgress();
-    Uri doc = documentSlide.getUri();
+
+    String fileName = documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file));
+    for (ForstaMessage.ForstaAttachment attachment : attachments) {
+      if (documentSlide.getContentType().equals(attachment.getType())) {
+        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
+        break;
+      }
+    }
 
     this.documentSlide = documentSlide;
-    this.fileName.setText(documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file)));
+    this.fileName.setText(fileName);
     this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
     this.document.setText(getFileType(documentSlide.getFileName()));
 
-    if (showControls && documentSlide.isPendingDownload()) {
+    if (documentSlide.isPendingDownload()) {
       controlToggle.displayQuick(downloadButton);
       downloadButton.setOnClickListener(new DownloadClickedListener(documentSlide));
       fileSize.setText("Download");
       if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();
-    } else if (showControls && documentSlide.getTransferState() == AttachmentDatabase.TRANSFER_PROGRESS_STARTED) {
+    } else if (documentSlide.getTransferState() == AttachmentDatabase.TRANSFER_PROGRESS_STARTED) {
       controlToggle.displayQuick(downloadProgress);
       downloadProgress.spin();
     } else {

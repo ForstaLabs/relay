@@ -154,6 +154,10 @@ public class ForstaMessage {
     this.senderId = senderId;
   }
 
+  public List<ForstaAttachment> getAttachments() {
+    return attachments;
+  }
+
   public void addAttachment(String name, String type, long size) {
     ForstaAttachment attachment = new ForstaAttachment(name, type, size);
     attachments.add(attachment);

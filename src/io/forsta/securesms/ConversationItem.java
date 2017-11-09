@@ -337,7 +337,7 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
-      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), true);
+      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), messageRecord.getForstaMessageAttachments());
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);

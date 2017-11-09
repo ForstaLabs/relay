@@ -21,6 +21,8 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 
+import java.util.List;
+
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.database.MmsSmsColumns;
@@ -95,6 +97,10 @@ public abstract class DisplayRecord {
 
   public boolean hasHtmlBody() {
     return forstaMessagePayload.hasHtmlBody();
+  }
+
+  public List<ForstaMessage.ForstaAttachment> getForstaMessageAttachments() {
+    return forstaMessagePayload.getAttachments();
   }
 
   public Recipients getRecipients() {

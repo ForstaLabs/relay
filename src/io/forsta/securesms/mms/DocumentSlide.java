@@ -9,8 +9,11 @@ import io.forsta.securesms.attachments.Attachment;
 
 public class DocumentSlide extends Slide {
 
+  private final String fileName;
+
   public DocumentSlide(@NonNull Context context, @NonNull Attachment attachment) {
     super(context, attachment);
+    this.fileName = "";
   }
 
   public DocumentSlide(@NonNull Context context, @NonNull Uri uri,
@@ -18,6 +21,7 @@ public class DocumentSlide extends Slide {
                        @Nullable String fileName)
   {
     super(context, constructAttachmentFromUri(context, uri, contentType, size));
+    this.fileName = fileName;
   }
 
   @Override
