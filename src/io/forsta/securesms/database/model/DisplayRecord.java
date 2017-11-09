@@ -17,8 +17,12 @@
 package io.forsta.securesms.database.model;
 
 import android.content.Context;
+import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.recipients.Recipients;
@@ -43,6 +47,7 @@ public abstract class DisplayRecord {
   private final Body       body;
   private final int        deliveryStatus;
   private final int        receiptCount;
+  public final ForstaMessage forstaMessagePayload;
 
   public DisplayRecord(Context context, Body body, Recipients recipients, long dateSent,
                        long dateReceived, long threadId, int deliveryStatus, int receiptCount, long type)
@@ -56,6 +61,7 @@ public abstract class DisplayRecord {
     this.body                 = body;
     this.receiptCount         = receiptCount;
     this.deliveryStatus       = deliveryStatus;
+    this.forstaMessagePayload = ForstaMessageManager.fromJsonString(body.getBody());
   }
 
   public Body getBody() {
@@ -78,6 +84,18 @@ public abstract class DisplayRecord {
   }
 
   public abstract SpannableString getDisplayBody();
+
+  public Spanned getForstaHtmlBody() {
+    return forstaMessagePayload.getHtmlBody();
+  }
+
+  public String getForstaPlainTextBody() {
+    return forstaMessagePayload.getTextBody();
+  }
+
+  public boolean hasHtmlBody() {
+    return forstaMessagePayload.hasHtmlBody();
+  }
 
   public Recipients getRecipients() {
     return recipients;

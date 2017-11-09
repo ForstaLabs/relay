@@ -374,7 +374,7 @@ public class MessageNotifier {
       Recipient    recipient        = record.getIndividualRecipient();
       Recipients   recipients       = record.getRecipients();
       long         threadId         = record.getThreadId();
-      CharSequence body             = record.getDisplayBody();
+      CharSequence body             = record.getForstaPlainTextBody();
       Recipients   threadRecipients = null;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
@@ -383,9 +383,6 @@ public class MessageNotifier {
       if (threadId != -1) {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
-
-      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(body.toString());
-      body = forstaMessage.getTextBody();
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));

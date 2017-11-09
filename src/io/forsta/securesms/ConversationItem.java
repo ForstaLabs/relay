@@ -306,17 +306,10 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      try {
-        // TODO Move this inside DisplayRecord.
-        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
-        if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-          bodyText.setText(forstaMessage.getHtmlBody());
-        } else {
-          bodyText.setText(forstaMessage.getTextBody());
-        }
-      } catch (InvalidMessagePayloadException e) {
-        Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
-        bodyText.setText("Invalid message format.");
+      if (messageRecord.hasHtmlBody()) {
+        bodyText.setText(messageRecord.getForstaHtmlBody());
+      } else {
+        bodyText.setText(messageRecord.getForstaPlainTextBody());
       }
       bodyText.setVisibility(View.VISIBLE);
     }

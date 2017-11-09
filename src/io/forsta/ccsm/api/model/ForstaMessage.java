@@ -106,6 +106,10 @@ public class ForstaMessage {
     return htmlBody;
   }
 
+  public boolean hasHtmlBody() {
+    return htmlBody != null;
+  }
+
   public MessageType getMessageType() {
     return messageType;
   }
