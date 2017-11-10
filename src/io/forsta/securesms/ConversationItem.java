@@ -342,11 +342,6 @@ public class ConversationItem extends LinearLayout
       String attachmentFileName = ((MediaMmsMessageRecord)messageRecord).getDocumentAttachmentFileName();
       DocumentSlide documentSlide = ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide();
       documentView.setDocument(documentSlide, attachmentFileName);
-      if (messageRecord.isOutgoing() && documentSlide.isPendingDownload()) {
-        DatabaseFactory.getAttachmentDatabase(context).setTransferState(messageRecord.getId(),
-            documentSlide.asAttachment(),
-            AttachmentDatabase.TRANSFER_PROGRESS_STARTED);
-      }
       documentView.setDocumentClickListener(new DocumentAttachmentSaveClickListener(attachmentFileName));
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
