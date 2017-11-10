@@ -1256,6 +1256,7 @@ public class MmsDatabase extends MessagingDatabase {
 
     private SlideDeck getSlideDeck(@NonNull Cursor cursor) {
       Attachment attachment = DatabaseFactory.getAttachmentDatabase(context).getAttachment(cursor);
+      Log.w(TAG, "MMS_ID: " + ((DatabaseAttachment)attachment).getMmsId());
       return new SlideDeck(context, attachment);
     }
 

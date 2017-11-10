@@ -100,6 +100,7 @@ public class DocumentView extends FrameLayout {
     this.fileName.setText(fileName);
     this.fileSize.setText(Util.getPrettyFileSize(documentSlide.getFileSize()));
     this.document.setText(getFileType(documentSlide.getFileName()));
+    Log.w(TAG, "Pending: " + documentSlide.isPendingDownload() + " Type: " + documentSlide.getContentType() + " Size: " + documentSlide.getFileSize() + " Name: " + fileName);
 
     if (documentSlide.isPendingDownload()) {
       controlToggle.displayQuick(downloadButton);

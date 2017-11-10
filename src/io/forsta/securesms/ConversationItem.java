@@ -338,8 +338,15 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
-      String attachmentFileName = getFileName(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), messageRecord.getForstaMessageAttachments());
-      documentView.setDocument(((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide(), attachmentFileName);
+
+      String attachmentFileName = ((MediaMmsMessageRecord)messageRecord).getDocumentAttachmentFileName();
+      DocumentSlide documentSlide = ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide();
+      documentView.setDocument(documentSlide, attachmentFileName);
+      if (messageRecord.isOutgoing() && documentSlide.isPendingDownload()) {
+        DatabaseFactory.getAttachmentDatabase(context).setTransferState(messageRecord.getId(),
+            documentSlide.asAttachment(),
+            AttachmentDatabase.TRANSFER_PROGRESS_STARTED);
+      }
       documentView.setDocumentClickListener(new DocumentAttachmentSaveClickListener(attachmentFileName));
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
@@ -364,17 +371,6 @@ public class ConversationItem extends LinearLayout
       documentView.setVisibility(GONE);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
-  }
-
-  private String getFileName(DocumentSlide documentSlide, List<ForstaMessage.ForstaAttachment> attachments) {
-    String fileName = documentSlide.getFileName().or(getContext().getString(R.string.DocumentView_unknown_file));
-    for (ForstaMessage.ForstaAttachment attachment : attachments) {
-      if (documentSlide.getContentType().equals(attachment.getType())) {
-        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
-        break;
-      }
-    }
-    return fileName;
   }
 
   private void setContactPhoto(Recipient recipient) {
@@ -597,6 +593,10 @@ public class ConversationItem extends LinearLayout
                                                                       slide.asAttachment(),
                                                                       AttachmentDatabase.TRANSFER_PROGRESS_STARTED);
     }
+  }
+
+  private void downloadAttachment() {
+
   }
 
   private class ThumbnailClickListener implements SlideClickListener {

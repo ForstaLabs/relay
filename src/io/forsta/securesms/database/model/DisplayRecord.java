@@ -20,11 +20,13 @@ import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 
 import java.util.List;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.recipients.Recipients;
