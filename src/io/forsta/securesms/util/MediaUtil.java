@@ -1,8 +1,10 @@
 package io.forsta.securesms.util;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -71,6 +73,23 @@ public class MediaUtil {
     }
 
     return slide;
+  }
+
+  public static String getFileName(Context context, Uri uri) {
+    String name = "";
+    if (uri.getScheme().equals("content")) {
+      Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+      try {
+        if (cursor != null && cursor.moveToFirst()) {
+          name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+        }
+      } finally {
+        if (cursor != null) {
+          cursor.close();
+        }
+      }
+    }
+    return name;
   }
 
   public static @Nullable String getMimeType(Context context, Uri uri) {

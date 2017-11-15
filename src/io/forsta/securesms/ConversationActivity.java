@@ -187,6 +187,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int TAKE_PHOTO        = 6;
   private static final int ADD_CONTACT       = 7;
   private static final int PICK_LOCATION     = 8;
+  private static final int PICK_DOCUMENT = 9;
 
   private MasterSecret masterSecret;
   protected ComposeText           composeText;
@@ -371,6 +372,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       SignalPlace place = new SignalPlace(PlacePicker.getPlace(data, this));
       attachmentManager.setLocation(masterSecret, place, getCurrentMediaConstraints());
       break;
+    case PICK_DOCUMENT:
+      setMedia(data.getData(), MediaType.DOCUMENT);
     }
   }
 
@@ -944,6 +947,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       AttachmentManager.selectLocation(this, PICK_LOCATION); break;
     case AttachmentTypeSelectorAdapter.TAKE_PHOTO:
       attachmentManager.capturePhoto(this, TAKE_PHOTO); break;
+    case AttachmentTypeSelectorAdapter.ADD_DOCUMENT:
+      AttachmentManager.selectDocument(this, PICK_DOCUMENT); break;
     }
   }
 
