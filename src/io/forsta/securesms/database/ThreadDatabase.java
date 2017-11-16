@@ -602,13 +602,7 @@ public class ThreadDatabase extends Database {
     notifyConversationListListeners();
   }
 
-
-
   public boolean update(long threadId, boolean unarchive) {
-    return update(threadId, unarchive, null);
-  }
-
-  public boolean update(long threadId, boolean unarchive, MasterSecret masterSecret) {
     MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(context);
     long count                    = mmsSmsDatabase.getConversationCount(threadId);
 
@@ -621,7 +615,7 @@ public class ThreadDatabase extends Database {
     MmsSmsDatabase.Reader reader = null;
 
     try {
-      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId), masterSecret);
+      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId));
       MessageRecord record;
 
       if (reader != null && (record = reader.getNext()) != null) {
