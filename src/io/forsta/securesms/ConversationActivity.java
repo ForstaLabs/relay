@@ -1034,7 +1034,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                        drafts.getUriSnippet(ConversationActivity.this),
                                        System.currentTimeMillis(), Types.BASE_DRAFT_TYPE, true);
         } else if (threadId > 0) {
-          threadDatabase.update(threadId, false);
+          threadDatabase.update(threadId, false, masterSecret);
         }
 
         return threadId;

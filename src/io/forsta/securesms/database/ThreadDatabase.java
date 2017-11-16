@@ -35,6 +35,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
+import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
@@ -601,7 +602,13 @@ public class ThreadDatabase extends Database {
     notifyConversationListListeners();
   }
 
+
+
   public boolean update(long threadId, boolean unarchive) {
+    return update(threadId, unarchive, null);
+  }
+
+  public boolean update(long threadId, boolean unarchive, MasterSecret masterSecret) {
     MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(context);
     long count                    = mmsSmsDatabase.getConversationCount(threadId);
 
@@ -614,7 +621,7 @@ public class ThreadDatabase extends Database {
     MmsSmsDatabase.Reader reader = null;
 
     try {
-      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId));
+      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId), masterSecret);
       MessageRecord record;
 
       if (reader != null && (record = reader.getNext()) != null) {
