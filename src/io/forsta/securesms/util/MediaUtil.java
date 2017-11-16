@@ -89,6 +89,14 @@ public class MediaUtil {
         }
       }
     }
+    if (name == null) {
+      name = uri.getLastPathSegment();
+      String path = uri.getPath();
+//      int cut = name.lastIndexOf('/');
+//      if (cut != -1) {
+//        name = name.substring(cut + 1);
+//      }
+    }
     return name;
   }
 

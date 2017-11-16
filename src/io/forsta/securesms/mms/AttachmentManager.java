@@ -40,6 +40,7 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import io.forsta.securesms.MediaPreviewActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AudioView;
+import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.RemovableMediaView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.components.location.SignalMapView;
@@ -68,10 +69,10 @@ public class AttachmentManager {
 
   private final @NonNull Context            context;
   private final @NonNull View               attachmentView;
-  private final @NonNull
-  RemovableMediaView removableMediaView;
+  private final @NonNull RemovableMediaView removableMediaView;
   private final @NonNull ThumbnailView      thumbnail;
   private final @NonNull AudioView          audioView;
+  private final @NonNull DocumentView documentView;
   private final @NonNull
   SignalMapView mapView;
   private final @NonNull AttachmentListener attachmentListener;
@@ -84,6 +85,7 @@ public class AttachmentManager {
     this.attachmentView     = ViewUtil.findById(activity, R.id.attachment_editor);
     this.thumbnail          = ViewUtil.findById(activity, R.id.attachment_thumbnail);
     this.audioView          = ViewUtil.findById(activity, R.id.attachment_audio);
+    this.documentView          = ViewUtil.findById(activity, R.id.attachment_document);
     this.mapView            = ViewUtil.findById(activity, R.id.attachment_location);
     this.removableMediaView = ViewUtil.findById(activity, R.id.removable_media_view);
     this.context            = activity;
@@ -217,6 +219,9 @@ public class AttachmentManager {
           if (slide.hasAudio()) {
             audioView.setAudio(masterSecret, (AudioSlide)slide, false);
             removableMediaView.display(audioView);
+          } else if (slide.hasDocument()) {
+            documentView.setDocument((DocumentSlide)slide, MediaUtil.getFileName(context, slide.getUri()));
+            removableMediaView.display(documentView);
           } else {
             thumbnail.setImageResource(masterSecret, slide, false);
             removableMediaView.display(thumbnail);
