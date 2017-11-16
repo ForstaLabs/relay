@@ -40,6 +40,7 @@ import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.Util;
 import ws.com.google.android.mms.MmsException;
 
@@ -269,7 +270,7 @@ public class ForstaMessageManager {
       if (attachments != null) {
         for (Attachment attachment : messageAttachments) {
           JSONObject attachmentJson = new JSONObject();
-          attachmentJson.put("name", "");
+          attachmentJson.put("name", MediaUtil.getFileName(context, attachment.getDataUri()));
           attachmentJson.put("size", attachment.getSize());
           attachmentJson.put("type", attachment.getContentType());
           attachments.put(attachmentJson);

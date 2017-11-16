@@ -73,8 +73,7 @@ public class AttachmentManager {
   private final @NonNull ThumbnailView      thumbnail;
   private final @NonNull AudioView          audioView;
   private final @NonNull DocumentView documentView;
-  private final @NonNull
-  SignalMapView mapView;
+  private final @NonNull SignalMapView mapView;
   private final @NonNull AttachmentListener attachmentListener;
 
   private @NonNull  List<Uri>       garbage = new LinkedList<>();
