@@ -176,7 +176,7 @@
                 android:src="@drawable/ic_insert_drive_file_white_24dp"
                 android:scaleType="center"
                 android:elevation="4dp"
-                app:circleColor="@color/blue_grey_400"/>
+                app:circleColor="@color/cyan_400"/>
 
             <TextView android:layout_marginTop="10dp"
                       android:layout_width="wrap_content"
