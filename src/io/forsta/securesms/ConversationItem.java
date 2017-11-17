@@ -23,9 +23,11 @@ import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -48,6 +50,7 @@ import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
+import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -63,14 +66,17 @@ import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
+import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.DynamicTheme;
+import io.forsta.securesms.util.SaveAttachmentTask;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
@@ -117,6 +123,7 @@ public class ConversationItem extends LinearLayout
   private @Nullable Recipients          conversationRecipients;
   private @NonNull  ThumbnailView       mediaThumbnail;
   private @NonNull  AudioView           audioView;
+  private @NonNull DocumentView documentView;
   private @NonNull  Button              mmsDownloadButton;
   private @NonNull  TextView            mmsDownloadingLabel;
   private @NonNull
@@ -162,6 +169,7 @@ public class ConversationItem extends LinearLayout
     this.bodyBubble              =                      findViewById(R.id.body_bubble);
     this.mediaThumbnail          = (ThumbnailView)      findViewById(R.id.image_view);
     this.audioView               = (AudioView)          findViewById(R.id.audio_view);
+    this.documentView               = (DocumentView)          findViewById(R.id.document_view);
     this.expirationTimer         = (ExpirationTimerView) findViewById(R.id.expiration_indicator);
 
     setOnClickListener(new ClickListener(null));
@@ -175,6 +183,8 @@ public class ConversationItem extends LinearLayout
     mediaThumbnail.setOnClickListener(passthroughClickListener);
     audioView.setDownloadClickListener(downloadClickListener);
     audioView.setOnLongClickListener(passthroughClickListener);
+    documentView.setDownloadClickListener(downloadClickListener);
+    documentView.setOnLongClickListener(passthroughClickListener);
     bodyText.setOnLongClickListener(passthroughClickListener);
     bodyText.setOnClickListener(passthroughClickListener);
   }
@@ -274,10 +284,20 @@ public class ConversationItem extends LinearLayout
            ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getAudioSlide() != null;
   }
 
+  private boolean hasVideo(MessageRecord messageRecord) {
+    return messageRecord.isMms() &&
+        !messageRecord.isMmsNotification() &&
+        ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getVideoSlide() != null;
+  }
+
   private boolean hasThumbnail(MessageRecord messageRecord) {
     return messageRecord.isMms()              &&
            !messageRecord.isMmsNotification() &&
            ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getThumbnailSlide() != null;
+  }
+
+  private boolean hasDocument(MessageRecord messageRecord) {
+    return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
   }
 
   private void setBodyText(MessageRecord messageRecord) {
@@ -287,16 +307,10 @@ public class ConversationItem extends LinearLayout
     if (isCaptionlessMms(messageRecord)) {
       bodyText.setVisibility(View.GONE);
     } else {
-      try {
-        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
-        if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-          bodyText.setText(forstaMessage.getHtmlBody());
-        } else {
-          bodyText.setText(forstaMessage.getTextBody());
-        }
-      } catch (InvalidMessagePayloadException e) {
-        Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
-        bodyText.setText("Invalid message format.");
+      if (messageRecord.hasHtmlBody()) {
+        bodyText.setText(messageRecord.getForstaHtmlBody());
+      } else {
+        bodyText.setText(messageRecord.getForstaPlainTextBody());
       }
       bodyText.setVisibility(View.VISIBLE);
     }
@@ -308,19 +322,38 @@ public class ConversationItem extends LinearLayout
     if (messageRecord.isMmsNotification()) {
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
 
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
       setNotificationMmsAttributes((NotificationMmsMessageRecord) messageRecord);
     } else if (hasAudio(messageRecord)) {
       audioView.setVisibility(View.VISIBLE);
       mediaThumbnail.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
 
       //noinspection ConstantConditions
       audioView.setAudio(masterSecret, ((MediaMmsMessageRecord) messageRecord).getSlideDeck().getAudioSlide(), showControls);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+    } else if (hasDocument(messageRecord)) {
+      mediaThumbnail.setVisibility(View.GONE);
+      audioView.setVisibility(View.GONE);
+      documentView.setVisibility(VISIBLE);
+
+      String attachmentFileName = ((MediaMmsMessageRecord)messageRecord).getDocumentAttachmentFileName();
+      DocumentSlide documentSlide = ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide();
+      documentView.setDocument(documentSlide, attachmentFileName);
+      documentView.setDocumentClickListener(new DocumentAttachmentSaveClickListener(attachmentFileName));
+      bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
+      mediaThumbnail.hideVideoPlayButton();
+
+      if (hasVideo(messageRecord)) {
+        mediaThumbnail.showVideoPlayButton();
+        audioView.setVisibility(View.GONE);
+      }
 
       //noinspection ConstantConditions
       mediaThumbnail.setImageResource(masterSecret,
@@ -330,6 +363,7 @@ public class ConversationItem extends LinearLayout
     } else {
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
   }
@@ -524,12 +558,40 @@ public class ConversationItem extends LinearLayout
     });
   }
 
+  private class DocumentAttachmentSaveClickListener implements SlideClickListener {
+    private final String fileName;
+    public DocumentAttachmentSaveClickListener(String fileName) {
+      this.fileName = fileName;
+    }
+
+    @Override
+    public void onClick(View v, final Slide slide) {
+      SaveAttachmentTask.showWarningDialog(getContext(), new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+          if (slide.getUri() != null) {
+            SaveAttachmentTask saveTask = new SaveAttachmentTask(getContext(), masterSecret);
+            saveTask.execute(new SaveAttachmentTask.Attachment(slide.getUri(), slide.getContentType(), messageRecord.getDateReceived(), fileName));
+          } else {
+            Log.w(TAG, "No slide with attachable media found, failing nicely.");
+            Toast.makeText(getContext(),
+                getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
+                Toast.LENGTH_LONG).show();
+          }
+        }
+      });
+    }
+  }
+
   private class AttachmentDownloadClickListener implements SlideClickListener {
     @Override public void onClick(View v, final Slide slide) {
       DatabaseFactory.getAttachmentDatabase(context).setTransferState(messageRecord.getId(),
                                                                       slide.asAttachment(),
                                                                       AttachmentDatabase.TRANSFER_PROGRESS_STARTED);
     }
+  }
+
+  private void downloadAttachment() {
+
   }
 
   private class ThumbnailClickListener implements SlideClickListener {
@@ -550,15 +612,30 @@ public class ConversationItem extends LinearLayout
       if (shouldInterceptClicks(messageRecord) || !batchSelected.isEmpty()) {
         performClick();
       } else if (MediaPreviewActivity.isContentTypeSupported(slide.getContentType()) &&
-                 slide.getThumbnailUri() != null)
+                 slide.getUri() != null)
       {
         Intent intent = new Intent(context, MediaPreviewActivity.class);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.setDataAndType(slide.getUri(), slide.getContentType());
         if (!messageRecord.isOutgoing()) intent.putExtra(MediaPreviewActivity.RECIPIENT_EXTRA, recipient.getRecipientId());
         intent.putExtra(MediaPreviewActivity.DATE_EXTRA, messageRecord.getTimestamp());
+        intent.putExtra(MediaPreviewActivity.SIZE_EXTRA, slide.asAttachment().getSize());
 
         context.startActivity(intent);
+      } else if (slide.getUri() != null) {
+        Log.w(TAG, "Clicked: " + slide.getUri() + " , " + slide.getContentType());
+        Uri publicUri = PartAuthority.getAttachmentPublicUri(slide.getUri());
+        Log.w(TAG, "Public URI: " + publicUri);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(PartAuthority.getAttachmentPublicUri(slide.getUri()), slide.getContentType());
+        try {
+          context.startActivity(intent);
+        } catch (ActivityNotFoundException anfe) {
+          Log.w(TAG, "No activity existed to view the media.");
+          Toast.makeText(context, R.string.ConversationItem_unable_to_open_media, Toast.LENGTH_LONG).show();
+        }
+
       } else {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(R.string.ConversationItem_view_secure_media_question);

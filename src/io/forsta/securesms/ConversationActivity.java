@@ -69,6 +69,7 @@ import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -186,6 +187,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int TAKE_PHOTO        = 6;
   private static final int ADD_CONTACT       = 7;
   private static final int PICK_LOCATION     = 8;
+  private static final int PICK_DOCUMENT = 9;
 
   private MasterSecret masterSecret;
   protected ComposeText           composeText;
@@ -370,6 +372,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       SignalPlace place = new SignalPlace(PlacePicker.getPlace(data, this));
       attachmentManager.setLocation(masterSecret, place, getCurrentMediaConstraints());
       break;
+    case PICK_DOCUMENT:
+      setMedia(data.getData(), MediaType.DOCUMENT);
     }
   }
 
@@ -705,6 +709,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
               setMedia(Uri.parse(draft.getValue()), MediaType.AUDIO);
             } else if (draft.getType().equals(DraftDatabase.Draft.VIDEO)) {
               setMedia(Uri.parse(draft.getValue()), MediaType.VIDEO);
+            } else if (draft.getType().equals(DraftDatabase.Draft.DOCUMENT)) {
+              setMedia(Uri.parse(draft.getValue()), MediaType.DOCUMENT);
             }
           } catch (IOException e) {
             Log.w(TAG, e);
@@ -829,7 +835,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         if (threadId != -1) {
           Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
           intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
-          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
           startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_preferences");
         }
@@ -943,6 +948,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       AttachmentManager.selectLocation(this, PICK_LOCATION); break;
     case AttachmentTypeSelectorAdapter.TAKE_PHOTO:
       attachmentManager.capturePhoto(this, TAKE_PHOTO); break;
+    case AttachmentTypeSelectorAdapter.ADD_DOCUMENT:
+      AttachmentManager.selectDocument(this, PICK_DOCUMENT); break;
     }
   }
 
@@ -993,6 +1000,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       else if (slide.hasVideo())    drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.VIDEO, slide.getUri().toString()));
       else if (slide.hasLocation()) drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.LOCATION, ((LocationSlide)slide).getPlace().serialize()));
       else if (slide.hasImage())    drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.IMAGE, slide.getUri().toString()));
+      else if (slide.hasDocument()) drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.DOCUMENT, slide.getUri().toString()));
     }
 
     return drafts;
@@ -1022,7 +1030,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           if (threadId == -1) threadId = threadDatabase.getThreadIdFor(getRecipients(), thisDistributionType);
 
           draftDatabase.insertDrafts(new MasterCipher(thisMasterSecret), threadId, drafts);
-          threadDatabase.updateSnippet(threadId, drafts.getSnippet(ConversationActivity.this),
+          ForstaThread threadData = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData);
+          threadDatabase.updateSnippet(threadId, snippet,
                                        drafts.getUriSnippet(ConversationActivity.this),
                                        System.currentTimeMillis(), Types.BASE_DRAFT_TYPE, true);
         } else if (threadId > 0) {

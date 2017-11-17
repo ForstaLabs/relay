@@ -40,6 +40,7 @@ import com.google.android.gms.location.places.ui.PlacePicker;
 import io.forsta.securesms.MediaPreviewActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AudioView;
+import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.RemovableMediaView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.components.location.SignalMapView;
@@ -68,12 +69,11 @@ public class AttachmentManager {
 
   private final @NonNull Context            context;
   private final @NonNull View               attachmentView;
-  private final @NonNull
-  RemovableMediaView removableMediaView;
+  private final @NonNull RemovableMediaView removableMediaView;
   private final @NonNull ThumbnailView      thumbnail;
   private final @NonNull AudioView          audioView;
-  private final @NonNull
-  SignalMapView mapView;
+  private final @NonNull DocumentView documentView;
+  private final @NonNull SignalMapView mapView;
   private final @NonNull AttachmentListener attachmentListener;
 
   private @NonNull  List<Uri>       garbage = new LinkedList<>();
@@ -84,6 +84,7 @@ public class AttachmentManager {
     this.attachmentView     = ViewUtil.findById(activity, R.id.attachment_editor);
     this.thumbnail          = ViewUtil.findById(activity, R.id.attachment_thumbnail);
     this.audioView          = ViewUtil.findById(activity, R.id.attachment_audio);
+    this.documentView          = ViewUtil.findById(activity, R.id.attachment_document);
     this.mapView            = ViewUtil.findById(activity, R.id.attachment_location);
     this.removableMediaView = ViewUtil.findById(activity, R.id.removable_media_view);
     this.context            = activity;
@@ -217,6 +218,9 @@ public class AttachmentManager {
           if (slide.hasAudio()) {
             audioView.setAudio(masterSecret, (AudioSlide)slide, false);
             removableMediaView.display(audioView);
+          } else if (slide.hasDocument()) {
+            documentView.setDocument((DocumentSlide)slide, MediaUtil.getFileName(context, slide.getUri()));
+            removableMediaView.display(documentView);
           } else {
             thumbnail.setImageResource(masterSecret, slide, false);
             removableMediaView.display(thumbnail);
@@ -248,6 +252,10 @@ public class AttachmentManager {
 
   public static void selectAudio(Activity activity, int requestCode) {
     selectMediaType(activity, "audio/*", requestCode);
+  }
+
+  public static void selectDocument(Activity activity, int requestCode) {
+    selectMediaType(activity, "*/*", requestCode);
   }
 
   public static void selectContactInfo(Activity activity, int requestCode) {
@@ -351,7 +359,7 @@ public class AttachmentManager {
   }
 
   public enum MediaType {
-    IMAGE, GIF, AUDIO, VIDEO;
+    IMAGE, GIF, AUDIO, VIDEO, DOCUMENT;
 
     public @NonNull Slide createSlide(@NonNull Context context,
                                       @NonNull Uri     uri,
@@ -362,6 +370,7 @@ public class AttachmentManager {
       case GIF:   return new GifSlide(context, uri, dataSize);
       case AUDIO: return new AudioSlide(context, uri, dataSize);
       case VIDEO: return new VideoSlide(context, uri, dataSize);
+        case DOCUMENT: return new DocumentSlide(context, uri, MediaUtil.getMimeType(context, uri), dataSize, MediaUtil.getFileName(context, uri));
       default:    throw  new AssertionError("unrecognized enum");
       }
     }
@@ -372,6 +381,7 @@ public class AttachmentManager {
       if (ContentType.isImageType(mimeType)) return IMAGE;
       if (ContentType.isAudioType(mimeType)) return AUDIO;
       if (ContentType.isVideoType(mimeType)) return VIDEO;
+      if (mimeType.contains("application")) return DOCUMENT;
       return null;
     }
   }

@@ -60,6 +60,15 @@ public abstract class Slide {
     return Optional.absent();
   }
 
+  @NonNull
+  public Optional<String> getFileName() {
+    return Optional.fromNullable(attachment.getFileName());
+  }
+
+  public long getFileSize() {
+    return attachment.getSize();
+  }
+
   public boolean hasImage() {
     return false;
   }
@@ -69,6 +78,10 @@ public abstract class Slide {
   }
 
   public boolean hasAudio() {
+    return false;
+  }
+
+  public boolean hasDocument() {
     return false;
   }
 

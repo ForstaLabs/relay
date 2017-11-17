@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -13,6 +14,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.bumptech.glide.DrawableRequestBuilder;
@@ -44,6 +46,7 @@ public class ThumbnailView extends FrameLayout {
   private SlideClickListener thumbnailClickListener = null;
   private SlideClickListener            downloadClickListener  = null;
   private Slide slide                  = null;
+  private ImageButton videoPlayButton;
 
   public ThumbnailView(Context context) {
     this(context, null);
@@ -60,6 +63,8 @@ public class ThumbnailView extends FrameLayout {
 
     this.radius = getResources().getDimensionPixelSize(R.dimen.message_bubble_corner_radius);
     this.image  = (ImageView) findViewById(R.id.thumbnail_image);
+    this.videoPlayButton = (ImageButton) findViewById(R.id.video_play_button);
+
     super.setOnClickListener(new ThumbnailClickDispatcher());
 
     if (attrs != null) {
@@ -151,6 +156,14 @@ public class ThumbnailView extends FrameLayout {
 
   public void showProgressSpinner() {
     getTransferControls().showProgressSpinner();
+  }
+
+  public void showVideoPlayButton() {
+    videoPlayButton.setVisibility(VISIBLE);
+  }
+
+  public void hideVideoPlayButton() {
+    videoPlayButton.setVisibility(GONE);
   }
 
   @TargetApi(VERSION_CODES.JELLY_BEAN_MR1)

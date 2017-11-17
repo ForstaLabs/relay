@@ -1,8 +1,10 @@
 package io.forsta.securesms.util;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -13,6 +15,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.mms.AudioSlide;
+import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.GifSlide;
 import io.forsta.securesms.mms.ImageSlide;
 import io.forsta.securesms.mms.PartAuthority;
@@ -65,9 +68,36 @@ public class MediaUtil {
       slide = new VideoSlide(context, attachment);
     } else if (ContentType.isAudioType(attachment.getContentType())) {
       slide = new AudioSlide(context, attachment);
+    } else if (attachment.getContentType() != null) {
+      slide = new DocumentSlide(context, attachment);
     }
 
     return slide;
+  }
+
+  public static String getFileName(Context context, Uri uri) {
+    String name = "";
+    if (uri.getScheme().equals("content")) {
+      Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+      try {
+        if (cursor != null && cursor.moveToFirst()) {
+          name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+        }
+      } finally {
+        if (cursor != null) {
+          cursor.close();
+        }
+      }
+    }
+    if (name == null) {
+      name = uri.getLastPathSegment();
+      String path = uri.getPath();
+//      int cut = name.lastIndexOf('/');
+//      if (cut != -1) {
+//        name = name.substring(cut + 1);
+//      }
+    }
+    return name;
   }
 
   public static @Nullable String getMimeType(Context context, Uri uri) {

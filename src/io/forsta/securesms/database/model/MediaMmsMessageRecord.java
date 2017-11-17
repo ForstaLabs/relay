@@ -19,11 +19,14 @@ package io.forsta.securesms.database.model;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.SpannableString;
+import android.text.TextUtils;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.NetworkFailure;
+import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
@@ -117,5 +120,17 @@ public class MediaMmsMessageRecord extends MessageRecord {
     }
 
     return super.getDisplayBody();
+  }
+
+  public String getDocumentAttachmentFileName() {
+    DocumentSlide documentSlide = getSlideDeck().getDocumentSlide();
+    String fileName = documentSlide.getFileName().or(context.getString(R.string.DocumentView_unknown_file));
+    for (ForstaMessage.ForstaAttachment attachment : getForstaMessageAttachments()) {
+      if (documentSlide.getContentType().equals(attachment.getType())) {
+        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
+        break;
+      }
+    }
+    return fileName;
   }
 }

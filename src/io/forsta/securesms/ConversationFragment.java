@@ -34,7 +34,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemAnimator.ItemAnimatorFinishedListener;
 import android.text.ClipboardManager;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,9 +46,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsDatabase;
@@ -259,8 +255,7 @@ public class ConversationFragment extends Fragment
     boolean          first       = true;
 
     for (MessageRecord messageRecord : messageList) {
-//      String body = messageRecord.getDisplayBody().toString();
-      String body = getMessageBody(messageRecord.getDisplayBody().toString());
+      String body = getMessageBody(messageRecord);
 
       if (body != null) {
         if (!first) bodyBuilder.append('\n');
@@ -328,19 +323,17 @@ public class ConversationFragment extends Fragment
     startActivity(intent);
   }
 
-  private String getMessageBody(String body) {
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(body);
-    if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-      return forstaMessage.getHtmlBody().toString();
+  private String getMessageBody(MessageRecord messageRecord) {
+    if (messageRecord.hasHtmlBody()) {
+      return messageRecord.getForstaHtmlBody().toString();
+    } else {
+      return messageRecord.getForstaPlainTextBody();
     }
-    return forstaMessage.getTextBody();
   }
 
   private void handleForwardMessage(MessageRecord message) {
     Intent composeIntent = new Intent(getActivity(), ShareActivity.class);
-    String body = getMessageBody(message.getDisplayBody().toString());
-//    String body = message.getDisplayBody().toString();
-//    composeIntent.putExtra(Intent.EXTRA_TEXT, message.getDisplayBody().toString());
+    String body = getMessageBody(message);
     composeIntent.putExtra(Intent.EXTRA_TEXT, body);
     if (message.isMms()) {
       MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
@@ -368,7 +361,7 @@ public class ConversationFragment extends Fragment
     SaveAttachmentTask.showWarningDialog(getActivity(), new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int which) {
         for (Slide slide : message.getSlideDeck().getSlides()) {
-          if (slide.hasImage() || slide.hasVideo() || slide.hasAudio()) {
+          if ((slide.hasImage() || slide.hasVideo() || slide.hasAudio() || slide.hasDocument()) && slide.getUri() != null) {
             SaveAttachmentTask saveTask = new SaveAttachmentTask(getActivity(), masterSecret);
             saveTask.execute(new SaveAttachmentTask.Attachment(slide.getUri(), slide.getContentType(), message.getDateReceived()));
             return;

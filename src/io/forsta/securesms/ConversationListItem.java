@@ -141,12 +141,7 @@ public class ConversationListItem extends RelativeLayout
     this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
 
-
-    setForstaThreadTitle();
-
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
-    String body = forstaMessage.getTextBody();
-    subjectView.setText(body);
+    this.subjectView.setText(thread.getForstaPlainTextBody());
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
@@ -161,6 +156,7 @@ public class ConversationListItem extends RelativeLayout
       this.archivedView.setVisibility(View.GONE);
     }
 
+    setForstaThreadTitle();
     setStatusIcons(thread);
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);

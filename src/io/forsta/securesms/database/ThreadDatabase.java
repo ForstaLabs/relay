@@ -35,6 +35,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
+import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;

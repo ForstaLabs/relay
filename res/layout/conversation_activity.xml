@@ -72,6 +72,16 @@
                         android:paddingBottom="15dp"
                         app:tintColor="@color/grey_500"/>
 
+                <io.forsta.securesms.components.DocumentView
+                    android:id="@+id/attachment_document"
+                    android:layout_width="210dp"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    app:documentForegroundTintColor="@color/grey_500"
+                    tools:visibility="visible"/>
+
             </io.forsta.securesms.components.RemovableMediaView>
 
         </FrameLayout>

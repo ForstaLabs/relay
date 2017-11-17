@@ -15,6 +15,9 @@ public abstract class Attachment {
   private final long    size;
 
   @Nullable
+  private final String fileName;
+
+  @Nullable
   private final String  location;
 
   @Nullable
@@ -36,6 +39,7 @@ public abstract class Attachment {
     this.location      = location;
     this.key           = key;
     this.relay         = relay;
+    this.fileName = "";
   }
 
   @Nullable
@@ -55,6 +59,11 @@ public abstract class Attachment {
 
   public long getSize() {
     return size;
+  }
+
+  @Nullable
+  public String getFileName() {
+    return fileName;
   }
 
   @NonNull
