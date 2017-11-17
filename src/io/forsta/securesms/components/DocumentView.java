@@ -108,8 +108,14 @@ public class DocumentView extends FrameLayout {
       fileSize.setText("Download");
       if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();
     } else if (documentSlide.getTransferState() == AttachmentDatabase.TRANSFER_PROGRESS_STARTED) {
-      controlToggle.displayQuick(downloadProgress);
-      downloadProgress.spin();
+      if (documentSlide.getFileSize() > 0) {
+        setTint(getResources().getColor(R.color.grey_500), getResources().getColor(R.color.blue_500));
+        controlToggle.display(documentBackground);
+        if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();
+      } else {
+        controlToggle.displayQuick(downloadProgress);
+        downloadProgress.spin();
+      }
     } else {
       controlToggle.displayQuick(documentBackground);
       if (downloadProgress.isSpinning()) downloadProgress.stopSpinning();

@@ -80,7 +80,7 @@
                     android:paddingTop="15dp"
                     android:paddingBottom="15dp"
                     app:documentForegroundTintColor="@color/grey_500"
-                    app:documentBackgroundTintColor="@color/white"/>
+                    tools:visibility="visible"/>
 
             </io.forsta.securesms.components.RemovableMediaView>
 
