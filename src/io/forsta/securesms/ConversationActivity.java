@@ -835,7 +835,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         if (threadId != -1) {
           Intent intent = new Intent(ConversationActivity.this, ThreadPreferenceActivity.class);
           intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
-          intent.putExtra(ThreadPreferenceActivity.THREAD_ID_EXTRA, threadId);
 
           startActivitySceneTransition(intent, titleView.findViewById(R.id.title), "thread_preferences");
         }
