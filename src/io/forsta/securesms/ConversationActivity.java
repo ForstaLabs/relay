@@ -709,6 +709,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
               setMedia(Uri.parse(draft.getValue()), MediaType.AUDIO);
             } else if (draft.getType().equals(DraftDatabase.Draft.VIDEO)) {
               setMedia(Uri.parse(draft.getValue()), MediaType.VIDEO);
+            } else if (draft.getType().equals(DraftDatabase.Draft.DOCUMENT)) {
+              setMedia(Uri.parse(draft.getValue()), MediaType.DOCUMENT);
             }
           } catch (IOException e) {
             Log.w(TAG, e);
@@ -999,6 +1001,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       else if (slide.hasVideo())    drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.VIDEO, slide.getUri().toString()));
       else if (slide.hasLocation()) drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.LOCATION, ((LocationSlide)slide).getPlace().serialize()));
       else if (slide.hasImage())    drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.IMAGE, slide.getUri().toString()));
+      else if (slide.hasDocument()) drafts.add(new DraftDatabase.Draft(DraftDatabase.Draft.DOCUMENT, slide.getUri().toString()));
     }
 
     return drafts;
