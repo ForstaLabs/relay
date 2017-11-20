@@ -163,9 +163,6 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
-        String address = c.getString(c.getColumnIndex(UID));
-        String name = c.getString(c.getColumnIndex(NAME));
-        String number = c.getString(c.getColumnIndex(NUMBER));
         addresses.add(c.getString(c.getColumnIndex(UID)));
       }
       c.close();

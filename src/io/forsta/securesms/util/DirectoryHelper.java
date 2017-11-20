@@ -108,7 +108,23 @@ public class DirectoryHelper {
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
-    eligibleContactAddresses.add(TextUtils.isEmpty(localNumber) ? TextSecurePreferences.getLocalNumber(context) : localNumber);
+    //XXX This is to provide some insight into why 2 devices are crashing when invoking accountManager.getContacts.
+    // There is a null address in the list.
+    if (eligibleContactAddresses.contains(null)) {
+      // This is very unlikely, but checking.
+      Log.e(TAG, "Null number in contactsDb!");
+      eligibleContactAddresses.remove(null);
+    }
+    if (localNumber != null) {
+      eligibleContactAddresses.add(localNumber);
+    } else {
+      Log.e(TAG, "Localnumber is not valid!: " + localNumber);
+      if (TextSecurePreferences.getLocalNumber(context) != null) {
+        eligibleContactAddresses.add(TextSecurePreferences.getLocalNumber(context));
+      } else {
+        Log.e(TAG, "TextSecurePreferences.getLocalNumber = : " + TextSecurePreferences.getLocalNumber(context));
+      }
+    }
     eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
 
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
