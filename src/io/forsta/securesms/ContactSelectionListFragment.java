@@ -17,6 +17,7 @@
 package io.forsta.securesms;
 
 
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -29,6 +30,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -139,6 +141,7 @@ public class ContactSelectionListFragment extends    Fragment
     ContactSelectionListAdapter adapter = new ContactSelectionListAdapter(getActivity(),
                                                                           null,
                                                                           new ListClickListener(),
+                                                                          new ListLongClickListener(),
                                                                           isMulti());
     selectedContacts = adapter.getSelectedContacts();
     selectedAddresses = adapter.getSelectedAddresses();
@@ -201,6 +204,24 @@ public class ContactSelectionListFragment extends    Fragment
   public void onLoaderReset(Loader<Cursor> loader) {
     ((CursorRecyclerViewAdapter) recyclerView.getAdapter()).changeCursor(null);
     fastScroller.setVisibility(View.GONE);
+  }
+
+  private class ListLongClickListener implements ContactSelectionListAdapter.ItemLongClickListener {
+
+    @Override
+    public void onItemLongClick(ContactSelectionListItem item) {
+      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+      builder.setTitle("User Details");
+      builder.setMessage(item.getNumber());
+      builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+          dialogInterface.dismiss();
+        }
+      });
+      AlertDialog alert = builder.create();
+      alert.show();
+    }
   }
 
   private class ListClickListener implements ContactSelectionListAdapter.ItemClickListener {

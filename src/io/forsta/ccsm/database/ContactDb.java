@@ -239,10 +239,18 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.EMAIL, user.email);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         if (uids.containsKey(user.uid)) {
-          String id = uids.get(user.uid);
-          db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
+          String id = uids.get(user.getUid());
+          if (TextUtils.isEmpty(user.getUid())) {
+            Log.w(TAG, "Existing user with empty UID!: " + user.slug);
+            db.delete(TABLE_NAME, ID + " = ?", new String[] { id });
+          } else {
+            db.update(TABLE_NAME, values, ID + " = ?", new String[] { id });
+          }
         } else {
-          db.insert(TABLE_NAME, null, values);
+          if (!TextUtils.isEmpty(user.getUid())) {
+            Log.w(TAG, "New user with empty UID!: " + user.slug);
+            db.insert(TABLE_NAME, null, values);
+          }
         }
         uids.remove(user.uid);
       }

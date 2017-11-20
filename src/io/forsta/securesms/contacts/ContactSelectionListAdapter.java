@@ -65,19 +65,28 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
   private final LayoutInflater    li;
   private final TypedArray        drawables;
   private final ItemClickListener clickListener;
+  private final ItemLongClickListener longClickListener;
 
   private final HashMap<Long, String> selectedContacts = new HashMap<>();
   private final Set<String> selectedAddresses = new HashSet();
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
     public ViewHolder(@NonNull  final View              itemView,
-                      @Nullable final ItemClickListener clickListener)
+                      @Nullable final ItemClickListener itemClickListener,
+                      @Nullable final ItemLongClickListener itemLongClickListener)
     {
       super(itemView);
       itemView.setOnClickListener(new OnClickListener() {
         @Override
         public void onClick(View v) {
-          if (clickListener != null) clickListener.onItemClick(getView());
+          if (itemClickListener != null) itemClickListener.onItemClick(getView());
+        }
+      });
+      itemView.setOnLongClickListener(new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View view) {
+          if (itemLongClickListener != null) itemLongClickListener.onItemLongClick(getView());
+          return true;
         }
       });
     }
@@ -96,6 +105,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
   public ContactSelectionListAdapter(@NonNull  Context context,
                                      @Nullable Cursor cursor,
                                      @Nullable ItemClickListener clickListener,
+                                     @Nullable ItemLongClickListener longClickListener,
                                      boolean multiSelect)
   {
     super(context, cursor);
@@ -103,6 +113,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     this.drawables    = context.obtainStyledAttributes(STYLE_ATTRIBUTES);
     this.multiSelect  = multiSelect;
     this.clickListener = clickListener;
+    this.longClickListener = longClickListener;
   }
 
   @Override
@@ -112,7 +123,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   @Override
   public ViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType) {
-    return new ViewHolder(li.inflate(R.layout.contact_selection_list_item, parent, false), clickListener);
+    return new ViewHolder(li.inflate(R.layout.contact_selection_list_item, parent, false), clickListener, longClickListener);
   }
 
   @Override
@@ -195,5 +206,9 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
 
   public interface ItemClickListener {
     void onItemClick(ContactSelectionListItem item);
+  }
+
+  public interface ItemLongClickListener {
+    void onItemLongClick(ContactSelectionListItem item);
   }
 }
