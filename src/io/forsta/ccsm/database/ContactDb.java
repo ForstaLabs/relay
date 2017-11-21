@@ -247,8 +247,9 @@ public class ContactDb extends DbBase {
             db.update(TABLE_NAME, values, ID + " = ?", new String[] { id });
           }
         } else {
-          if (!TextUtils.isEmpty(user.getUid())) {
+          if (TextUtils.isEmpty(user.getUid())) {
             Log.w(TAG, "New user with empty UID!: " + user.slug);
+          } else {
             db.insert(TABLE_NAME, null, values);
           }
         }

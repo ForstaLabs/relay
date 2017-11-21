@@ -210,17 +210,7 @@ public class ContactSelectionListFragment extends    Fragment
 
     @Override
     public void onItemLongClick(ContactSelectionListItem item) {
-      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-      builder.setTitle("User Details");
-      builder.setMessage(item.getNumber());
-      builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialogInterface, int i) {
-          dialogInterface.dismiss();
-        }
-      });
-      AlertDialog alert = builder.create();
-      alert.show();
+      // TODO Show recipient details in Activity or dialog. Allow delete?
     }
   }
 
