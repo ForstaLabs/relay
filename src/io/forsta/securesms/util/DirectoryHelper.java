@@ -91,11 +91,11 @@ public class DirectoryHelper {
                                              TextSecureCommunicationFactory.createManager(context),
                                              TextSecurePreferences.getLocalNumber(context));
 
-    if (!newUsers.isEmpty() && TextSecurePreferences.isMultiDevice(context)) {
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new MultiDeviceContactUpdateJob(context));
-    }
+//    if (!newUsers.isEmpty() && TextSecurePreferences.isMultiDevice(context)) {
+//      ApplicationContext.getInstance(context)
+//                        .getJobManager()
+//                        .add(new MultiDeviceContactUpdateJob(context));
+//    }
 
 //    notifyNewUsers(context, masterSecret, newUsers);
     context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
@@ -108,7 +108,13 @@ public class DirectoryHelper {
   {
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
-    eligibleContactAddresses.add(TextUtils.isEmpty(localNumber) ? TextSecurePreferences.getLocalNumber(context) : localNumber);
+    // Two devices had crashes because of a null UID value in the contactsDb
+    if (eligibleContactAddresses.contains(null)) {
+      Log.e(TAG, "Null number in contactsDb!");
+      eligibleContactAddresses.remove(null);
+    }
+
+    eligibleContactAddresses.add(localNumber);
     eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
 
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
@@ -123,7 +129,6 @@ public class DirectoryHelper {
       directory.setNumbers(activeTokens, eligibleContactAddresses);
       // Update the forsta contacts db to set active users.
       contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
-      contactsDb.close();
     }
 
     return new LinkedList<>();

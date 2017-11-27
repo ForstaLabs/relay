@@ -163,9 +163,6 @@ public class ContactDb extends DbBase {
     try {
       Cursor c = getRecords(TABLE_NAME, allColumns, null, null, UID);
       while (c.moveToNext()) {
-        String address = c.getString(c.getColumnIndex(UID));
-        String name = c.getString(c.getColumnIndex(NAME));
-        String number = c.getString(c.getColumnIndex(NUMBER));
         addresses.add(c.getString(c.getColumnIndex(UID)));
       }
       c.close();
@@ -242,10 +239,19 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.EMAIL, user.email);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         if (uids.containsKey(user.uid)) {
-          String id = uids.get(user.uid);
-          db.update(TABLE_NAME, values, ID + "=?", new String[] { id });
+          String id = uids.get(user.getUid());
+          if (TextUtils.isEmpty(user.getUid())) {
+            Log.w(TAG, "Existing user with empty UID!: " + user.slug);
+            db.delete(TABLE_NAME, ID + " = ?", new String[] { id });
+          } else {
+            db.update(TABLE_NAME, values, ID + " = ?", new String[] { id });
+          }
         } else {
-          db.insert(TABLE_NAME, null, values);
+          if (TextUtils.isEmpty(user.getUid())) {
+            Log.w(TAG, "New user with empty UID!: " + user.slug);
+          } else {
+            db.insert(TABLE_NAME, null, values);
+          }
         }
         uids.remove(user.uid);
       }
