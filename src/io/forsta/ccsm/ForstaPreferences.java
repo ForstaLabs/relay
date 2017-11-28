@@ -56,7 +56,7 @@ public class ForstaPreferences {
   public static void setRegisteredForsta(Context context, String value) {
     setStringPreference(context, API_KEY, value);
     ForstaJWT jwt = new ForstaJWT(value);
-    TextSecurePreferences.setLocalNumber(context, jwt.getUserInfo().uid);
+    TextSecurePreferences.setLocalNumber(context, jwt.getUid());
   }
 
   public static String getRegisteredKey(Context context) {
@@ -72,7 +72,7 @@ public class ForstaPreferences {
   public static String getUserId(Context context) {
     String token = getStringPreference(context, API_KEY);
     ForstaJWT jwt = new ForstaJWT(token);
-    return jwt.getUserInfo().uid;
+    return jwt.getUid();
   }
 
   public static void setCCSMDebug(Context context, boolean value) {

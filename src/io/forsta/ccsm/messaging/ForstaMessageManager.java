@@ -99,7 +99,7 @@ public class ForstaMessageManager {
     } catch (InvalidMessagePayloadException e) {
       Log.e(TAG, "Invalid message payload: " + e.getMessage());
       Log.e(TAG, messageBody);
-      forstaMessage.setTextBody("Invalid message format");
+      forstaMessage.setTextBody("Invalid message body:" + messageBody);
     }
     return forstaMessage;
   }
