@@ -59,24 +59,18 @@ public class ForstaJWT {
     return expireDate;
   }
 
-  public ForstaUser getUserInfo() {
-    ForstaUser user = new ForstaUser();
+  public String getUid() {
     String payload = getPayload();
     try {
       byte[] payloadBytes = Base64.decodeWithoutPadding(payload);
       String payloadString = new String(payloadBytes, "UTF-8");
       JSONObject obj = new JSONObject(payloadString);
-      user.org_id = obj.getString("org_id");
-      user.uid = obj.getString("user_id");
-      user.email = obj.getString("email");
-      user.slug = user.username = obj.getString("username");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      return obj.getString("user_id");
     } catch (IOException e) {
       e.printStackTrace();
     } catch (JSONException e) {
       e.printStackTrace();
     }
-    return user;
+    return null;
   }
 }

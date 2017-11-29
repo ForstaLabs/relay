@@ -51,7 +51,6 @@ public abstract class DisplayRecord {
   private final Body       body;
   private final int        deliveryStatus;
   private final int        receiptCount;
-  public final ForstaMessage forstaMessagePayload;
 
   public DisplayRecord(Context context, Body body, Recipients recipients, long dateSent,
                        long dateReceived, long threadId, int deliveryStatus, int receiptCount, long type)
@@ -65,7 +64,6 @@ public abstract class DisplayRecord {
     this.body                 = body;
     this.receiptCount         = receiptCount;
     this.deliveryStatus       = deliveryStatus;
-    this.forstaMessagePayload = ForstaMessageManager.fromJsonString(body.getBody());
   }
 
   public Body getBody() {
@@ -88,22 +86,6 @@ public abstract class DisplayRecord {
   }
 
   public abstract SpannableString getDisplayBody();
-
-  public Spanned getForstaHtmlBody() {
-    return forstaMessagePayload.getHtmlBody();
-  }
-
-  public String getForstaPlainTextBody() {
-    return forstaMessagePayload.getTextBody();
-  }
-
-  public boolean hasHtmlBody() {
-    return forstaMessagePayload.hasHtmlBody();
-  }
-
-  public List<ForstaMessage.ForstaAttachment> getForstaMessageAttachments() {
-    return forstaMessagePayload.getAttachments();
-  }
 
   public Recipients getRecipients() {
     return recipients;

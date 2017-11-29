@@ -22,6 +22,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
@@ -125,7 +126,8 @@ public class MediaMmsMessageRecord extends MessageRecord {
   public String getDocumentAttachmentFileName() {
     DocumentSlide documentSlide = getSlideDeck().getDocumentSlide();
     String fileName = documentSlide.getFileName().or(context.getString(R.string.DocumentView_unknown_file));
-    for (ForstaMessage.ForstaAttachment attachment : getForstaMessageAttachments()) {
+    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(getDisplayBody().toString());
+    for (ForstaMessage.ForstaAttachment attachment : forstaMessage.getAttachments()) {
       if (documentSlide.getContentType().equals(attachment.getType())) {
         fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
         break;
