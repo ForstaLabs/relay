@@ -321,7 +321,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      CcsmApi.tokenNeedsRefresh(ConversationListActivity.this);
+      CcsmApi.forstaRefreshToken(ConversationListActivity.this);
 
       JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
