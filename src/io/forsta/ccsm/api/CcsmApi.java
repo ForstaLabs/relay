@@ -298,6 +298,41 @@ public class CcsmApi {
     return false;
   }
 
+  public static boolean tokenNeedsRefresh(Context context) {
+    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
+    if (expireDate == null) {
+      return false;
+    }
+    Date current = new Date();
+    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
+    long expireDelta = EXPIRE_REFRESH_DELTA;
+    boolean expired = expiresIn < expireDelta;
+
+    Log.d(TAG, "Token expires in: " + expiresIn);
+    return expired;
+  }
+
+  public static JSONObject forstaRefreshToken(Context context) {
+    JSONObject result = new JSONObject();
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("token", ForstaPreferences.getRegisteredKey(context));
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
+      if (result.has("token")) {
+        Log.w(TAG, "Token refresh. New token issued.");
+        String token = result.getString("token");
+        ForstaPreferences.setRegisteredForsta(context, token);
+      } else {
+        Log.w(TAG, "Token refresh failed.");
+        ForstaPreferences.setRegisteredForsta(context, "");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "forstaRefreshToken failed");
+    }
+    return result;
+  }
+
   // XXX obsolete XXX
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();
@@ -349,39 +384,5 @@ public class CcsmApi {
     }
   }
 
-  // TODO Is there a reason to ever refresh the token.
-  public static boolean tokenNeedsRefresh(Context context) {
-    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
-    if (expireDate == null) {
-      return false;
-    }
-    Date current = new Date();
-    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
-    long expireDelta = EXPIRE_REFRESH_DELTA;
-    boolean expired = expiresIn < expireDelta;
 
-    Log.d(TAG, "Token expires in: " + expiresIn);
-    return expired;
-  }
-
-  public static JSONObject forstaRefreshToken(Context context) {
-    JSONObject result = new JSONObject();
-    try {
-      JSONObject obj = new JSONObject();
-      obj.put("token", ForstaPreferences.getRegisteredKey(context));
-      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
-      if (result.has("token")) {
-        Log.d(TAG, "Token refresh. New token issued.");
-        String token = result.getString("token");
-        ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.d(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      Log.e(TAG, "forstaRefreshToken failed");
-    }
-    return result;
-  }
 }
