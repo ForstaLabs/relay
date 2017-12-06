@@ -80,6 +80,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
 
     String expression = outgoingMessage.getRecipients().getRecipientExpression();
+    // Need to add self to expression if not already there.
+
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, expression);
     outgoingMessage.updateMessageDistribution(context, distribution);
     // Also update thread recipients if that has changed from the time of send.

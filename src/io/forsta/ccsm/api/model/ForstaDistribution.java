@@ -104,9 +104,8 @@ public class ForstaDistribution {
   }
 
   public JSONArray getRecipientsArray(Context context) {
-    List<String> recipients = getRecipients(context);
     JSONArray recipientArray = new JSONArray();
-    for (String recipient : recipients) {
+    for (String recipient : userIds) {
       recipientArray.put(recipient);
     }
     return recipientArray;
