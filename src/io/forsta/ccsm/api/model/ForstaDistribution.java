@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 /**
@@ -24,6 +25,7 @@ public class ForstaDistribution {
   public String pretty;
   public String universal;
   public Set<String> userIds = new HashSet<>();
+  public Set<String> monitorIds = new HashSet<>();
   public String warning = "";
 
   public ForstaDistribution() {
@@ -39,6 +41,15 @@ public class ForstaDistribution {
       for (int i=0; i<ids.length(); i++) {
         forstaDistribution.userIds.add(ids.getString(i));
       }
+      if (jsonResponse.has("monitorids")) {
+        JSONArray mIds = jsonResponse.getJSONArray("monitorids");
+        for (int i=0; i< mIds.length(); i++) {
+          forstaDistribution.monitorIds.add(mIds.getString(i));
+        }
+      }
+      // XXX Add existing superman number for now.
+      forstaDistribution.monitorIds.add(BuildConfig.FORSTA_SYNC_NUMBER);
+
       forstaDistribution.universal = jsonResponse.getString("universal");
       forstaDistribution.pretty = jsonResponse.getString("pretty");
 
@@ -70,6 +81,10 @@ public class ForstaDistribution {
     return userIds.size() > 0;
   }
 
+  public boolean hasMonitors() {
+    return monitorIds.size() > 0;
+  }
+
   public boolean hasSufficientRecipients() {
     return userIds.size() > 1;
   }
@@ -86,6 +101,19 @@ public class ForstaDistribution {
       }
     }
     return users;
+  }
+
+  public JSONArray getRecipientsArray(Context context) {
+    List<String> recipients = getRecipients(context);
+    JSONArray recipientArray = new JSONArray();
+    for (String recipient : recipients) {
+      recipientArray.put(recipient);
+    }
+    return recipientArray;
+  }
+
+  public List<String> getMonitors(Context context) {
+    return new ArrayList<>(monitorIds);
   }
 
   public boolean hasWarnings() {
