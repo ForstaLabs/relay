@@ -79,6 +79,15 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
 
+    Recipients recipients = outgoingMessage.getRecipients();
+    Recipient me = recipients.getRecipient(TextSecurePreferences.getLocalNumber(context));
+    if (recipients.isSingleRecipient()) {
+      // Add self to expression so that it is in the distribution payload.
+      // DO NOT add self as a recipient when communicating
+    } else {
+      // Group type message.
+      // Remove self from recipient list.
+    }
     String expression = outgoingMessage.getRecipients().getRecipientExpression();
     // Need to add self to expression if not already there.
 
