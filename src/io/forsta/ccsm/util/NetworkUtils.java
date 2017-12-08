@@ -57,7 +57,7 @@ public class NetworkUtils {
     try {
       return apiHardFetch(method, authKey, path, body, timeout, type);
     } catch (Exception e) {
-      Log.e(TAG, e.getMessage());
+      e.printStackTrace();
       JSONObject error = new JSONObject();
       try {
         error.put("error", e.getMessage());

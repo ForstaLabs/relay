@@ -9,6 +9,8 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -257,6 +260,33 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       @Override
       public void onClick(View v) {
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
+      }
+    });
+    EditText search = (EditText) findViewById(R.id.search_directory);
+    search.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+      }
+
+      @Override
+      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        if (charSequence.length() > 2) {
+          new AsyncTask<String, Void, Void>() {
+            @Override
+            protected Void doInBackground(String[] objects) {
+              JSONObject response = CcsmApi.searchUserDirectory(DashboardActivity.this, objects[0]);
+              List<ForstaUser> users = CcsmApi.parseUsers(DashboardActivity.this, response);
+              Log.w(TAG, "Getting response");
+              return null;
+            }
+          }.execute(charSequence.toString());
+        }
+      }
+
+      @Override
+      public void afterTextChanged(Editable editable) {
+
       }
     });
     printLoginInformation();
