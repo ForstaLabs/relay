@@ -302,13 +302,9 @@ public class PushDecryptJob extends ContextJob {
                                   @NonNull SignalServiceDataMessage message,
                                   @NonNull Optional<Long> smsMessageId)
       throws MmsException, InvalidMessagePayloadException {
-    MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
-    String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-    Recipients           sender   = getMessageDestination(envelope, message);
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-
-
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
+
     if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
@@ -434,7 +430,6 @@ public class PushDecryptJob extends ContextJob {
     }
 
     Pair<Long, Long>         messageAndThreadId = database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
-
     List<DatabaseAttachment> attachments        = DatabaseFactory.getAttachmentDatabase(context).getAttachmentsForMessage(messageAndThreadId.first);
 
     for (DatabaseAttachment attachment : attachments) {

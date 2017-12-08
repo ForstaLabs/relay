@@ -5,6 +5,7 @@ import android.util.Log;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -78,22 +79,11 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
     MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
-
-    Recipients recipients = outgoingMessage.getRecipients();
-    Recipient me = recipients.getRecipient(TextSecurePreferences.getLocalNumber(context));
-    if (recipients.isSingleRecipient()) {
-      // Add self to expression so that it is in the distribution payload.
-      // DO NOT add self as a recipient when communicating
-    } else {
-      // Group type message.
-      // Remove self from recipient list.
-    }
-    String expression = outgoingMessage.getRecipients().getRecipientExpression();
-    // Need to add self to expression if not already there.
-
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, expression);
-    outgoingMessage.updateMessageDistribution(context, distribution);
-    // Also update thread recipients if that has changed from the time of send.
+    long threadId = database.getThreadIdForMessage(messageId);
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    String distributionUniversal = thread.getDistribution();
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, distributionUniversal);
+    // This could potentially have new userIds because of tag updates. Update the thread recipients?
 
     List<OutgoingMediaMessage> messageQueue = new ArrayList<>();
     messageQueue.add(outgoingMessage);

@@ -172,7 +172,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
       @Override
       protected void onPostExecute(final ForstaDistribution distribution) {
-
         if (distribution.hasWarnings()) {
           hideProgressBar();
           Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();

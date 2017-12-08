@@ -247,6 +247,8 @@ public class ForstaMessageManager {
 
       List<String> recipientList = new ArrayList<>();
       if (messageRecipients.isGroupRecipient()) {
+        // XXX Obsolete. REMOVE.
+        Log.e(TAG, "ERROR: Group message received!!!!");
         try {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
           String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();

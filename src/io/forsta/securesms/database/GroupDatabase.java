@@ -192,7 +192,6 @@ public class GroupDatabase extends Database {
             members.remove(i);
           }
         }
-        members.remove(BuildConfig.FORSTA_SYNC_NUMBER);
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
