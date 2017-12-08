@@ -87,7 +87,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
     List<OutgoingMediaMessage> messageQueue = new ArrayList<>();
     messageQueue.add(outgoingMessage);
-    if (distribution.hasMonitors()) {
+    if (distribution.hasMonitors() && !outgoingMessage.isExpirationUpdate()) {
       Recipients monitors = RecipientFactory.getRecipientsFromStrings(context, distribution.getMonitors(context), false);
       OutgoingMediaMessage monitorMessage = new OutgoingMediaMessage(monitors, outgoingMessage.getBody(), outgoingMessage.getAttachments(), System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.CONVERSATION);
       messageQueue.add(monitorMessage);

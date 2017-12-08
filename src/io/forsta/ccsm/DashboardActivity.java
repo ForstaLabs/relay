@@ -90,7 +90,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private ProgressBar mProgressBar;
   private WebSocketUtils socketUtils;
   private Button socketTester;
-  private Button messageTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -183,6 +182,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Get API Users");
     options.add("Get API Groups");
     options.add("Get Directory");
+    options.add("Message Tests");
 
     ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
     mSpinner.setAdapter(adapter);
@@ -237,6 +237,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             mDebugText.setText("");
             GetDirectory directory = new GetDirectory();
             directory.execute();
+            break;
+          case 11:
+            mDebugText.setText("");
+            showScrollView();
+            new MessageTests().execute();
         }
       }
 
@@ -252,15 +257,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       @Override
       public void onClick(View v) {
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
-      }
-    });
-    messageTester = (Button) findViewById(R.id.message_tests_button);
-    messageTester.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        mDebugText.setText("");
-        showScrollView();
-        new MessageTests().execute();
       }
     });
     printLoginInformation();
@@ -319,8 +315,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append("API Host:");
     sb.append(BuildConfig.FORSTA_API_URL);
     sb.append("\n");
-    sb.append("Sync Number:");
-    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
     Date tokenExpire = jwt.getExpireDate();
     sb.append("\n");
     sb.append("Token Expires: ");

@@ -145,7 +145,7 @@ public class ForstaLogSubmitFragment extends Fragment {
         stream.close();
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
         emailIntent.setType("vnd.android.cursor.dir/email");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL,   new String[] { "support@forsta.io" });
+        emailIntent.putExtra(Intent.EXTRA_EMAIL,   new String[] { "androidsupport@forsta.io" });
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Android App Debug Log");
         String out = outFile.getAbsolutePath();
         emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outFile));
