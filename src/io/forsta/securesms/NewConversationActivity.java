@@ -120,8 +120,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
   public void onContactSelected(final String number) {
     addRecipientChip(number);
     selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-//    toolbar.clear();
+    toolbar.clear();
     updateToggleBar();
+    contactsFragment.resetQueryFilter();
   }
 
   private void removeRecipientChip(View view) {
