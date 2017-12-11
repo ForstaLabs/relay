@@ -247,7 +247,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeSecurity();
     initializeDraft();
     initializeDirectory();
-    initThread();
   }
 
   @Override
@@ -1187,10 +1186,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
-
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-
         message.setForstaJsonBody(context, threadData);
+
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 

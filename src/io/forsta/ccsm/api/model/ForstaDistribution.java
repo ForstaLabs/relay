@@ -47,9 +47,6 @@ public class ForstaDistribution {
           forstaDistribution.monitorIds.add(mIds.getString(i));
         }
       }
-      // XXX Add existing superman number for now.
-      forstaDistribution.monitorIds.add(BuildConfig.FORSTA_SYNC_NUMBER);
-
       forstaDistribution.universal = jsonResponse.getString("universal");
       forstaDistribution.pretty = jsonResponse.getString("pretty");
 

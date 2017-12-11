@@ -333,6 +333,19 @@ public class CcsmApi {
     return result;
   }
 
+  public static JSONObject searchUserDirectory(Context context, String searchText) {
+    JSONObject response = new JSONObject();
+    try {
+      String urlEncoded = TextUtils.isEmpty(searchText) ? "" : URLEncoder.encode(searchText, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?q=" + urlEncoded);
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return response;
+  }
+
   // XXX obsolete XXX
   private static Set<String> getSystemContacts(Context context) {
     Set<String> results = new HashSet<>();

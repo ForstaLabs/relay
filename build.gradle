@@ -156,8 +156,8 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 14
         targetSdkVersion 22
-        versionName "0.1.77"
-        versionCode 177
+        versionName "0.1.78"
+        versionCode 178
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
@@ -167,7 +167,6 @@ android {
         dev {
             applicationIdSuffix '.dev'
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-dev-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
             buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", dev_service_config
@@ -175,14 +174,12 @@ android {
         stage {
             applicationIdSuffix '.stage'
             buildConfigField "String", "FORSTA_API_URL", "\"https://ccsm-stage-api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a14a-bb802bb0cefb\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
             buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", stage_service_config
         }
         prod {
             buildConfigField "String", "FORSTA_API_URL", "\"https://api.forsta.io\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\""
             buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", prod_service_config
         }
     }

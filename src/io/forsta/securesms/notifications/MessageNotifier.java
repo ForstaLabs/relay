@@ -80,10 +80,11 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 public class MessageNotifier {
 
   private static final String TAG = MessageNotifier.class.getSimpleName();
-
+  private static final long ALARM_DEBOUNCE_TIME = 3000L;
   public static final int NOTIFICATION_ID = 1338;
 
   private volatile static long visibleThread = -1;
+  private volatile static long lastUpdate = 0L;
 
   public static final String EXTRA_VOICE_REPLY = "extra_voice_reply";
 
@@ -211,6 +212,8 @@ public class MessageNotifier {
                                                    @NonNull  NotificationState notificationState,
                                                    boolean signal)
   {
+
+
     if (notificationState.getNotifications().isEmpty()) {
       ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
           .cancel(NOTIFICATION_ID);
@@ -243,13 +246,18 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
+      Log.w(TAG, "Debounce diff: " + (System.currentTimeMillis() - lastUpdate));
+      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
+        builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
+      }
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
     }
 
     ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
       .notify(NOTIFICATION_ID, builder.build());
+
+    lastUpdate = System.currentTimeMillis();
   }
 
   private static void sendMultipleThreadNotification(@NonNull  Context context,
@@ -275,13 +283,17 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
+      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
+        builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
+      }
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
     }
 
     ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
       .notify(NOTIFICATION_ID, builder.build());
+
+    lastUpdate = System.currentTimeMillis();
   }
 
   private static void sendInThreadNotification(Context context, Recipients recipients) {
