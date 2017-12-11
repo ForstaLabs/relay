@@ -111,6 +111,10 @@ public class ForstaUser {
     this.tsRegistered = cursor.getInt(cursor.getColumnIndex(ContactDb.TSREGISTERED)) == 1 ? true : false;
   }
 
+  public String getDbId() {
+    return id;
+  }
+
   public String getName() {
     return name;
   }
@@ -146,5 +150,15 @@ public class ForstaUser {
 
   public String getFormattedTag(String currentOrg) {
     return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag());
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    ForstaUser other = (ForstaUser)o;
+    return this.uid.equals(other.uid);
   }
 }

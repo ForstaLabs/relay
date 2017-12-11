@@ -43,6 +43,8 @@ import io.forsta.securesms.util.NumberUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -98,14 +100,35 @@ public class ContactsCursorLoader extends CursorLoader {
     } else {
       //Get cursors from the forsta contacts and group databases.
       MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
-      if (filter != null) {
-        try {
+      // XXX Remove self from list of recipients?
+      String localUid = TextSecurePreferences.getLocalNumber(getContext());
+      Log.w(TAG, "Loading filter: " + filter);
+
+      ContactDb contactDb = DbFactory.getContactDb(getContext());
+      List<ForstaUser> localUsers = contactDb.getActiveForstaUsers(filter);
+
+      try {
+        if (!TextUtils.isEmpty(filter)) {
           JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
           Log.w(TAG, results.toString());
           List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
           for (ForstaUser user : searchResults) {
+            if (!localUsers.contains(user)) {
+              localUsers.add(user);
+            }
+          }
+        }
+        Collections.sort(localUsers, new Comparator<ForstaUser>() {
+          @Override
+          public int compare(ForstaUser forstaUser, ForstaUser t1) {
+            return forstaUser.getName().compareToIgnoreCase(t1.getName());
+          }
+        });
+
+        for (ForstaUser user : localUsers) {
+          if (!localUid.equals(user.getUid())) {
             forstaContactsCursor.addRow(new Object[] {
-                0,
+                user.getDbId(),
                 user.getName(),
                 user.getUid(),
                 user.getTag(),
@@ -113,32 +136,9 @@ public class ContactsCursorLoader extends CursorLoader {
                 ContactsDatabase.PUSH_TYPE
             });
           }
-        } catch (Exception e) {
-          e.printStackTrace();
         }
-      }
-
-      ContactDb contactDb = DbFactory.getContactDb(getContext());
-      Cursor contactsCursor = contactDb.getActiveRecipients(filter);
-      // XXX Remove self from list of recipients?
-      String localUid = TextSecurePreferences.getLocalNumber(getContext());
-      try {
-        while (contactsCursor != null && contactsCursor.moveToNext()) {
-          if (!localUid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
-            forstaContactsCursor.addRow(new Object[]{
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
-                ContactsDatabase.PUSH_TYPE
-            });
-          }
-        }
-      } finally {
-        if (contactsCursor != null) {
-          contactsCursor.close();
-        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
 
       GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());

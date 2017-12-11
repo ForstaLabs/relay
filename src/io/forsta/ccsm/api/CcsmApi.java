@@ -6,6 +6,7 @@ import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -26,8 +27,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
@@ -104,6 +109,32 @@ public class CcsmApi {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
+    List<ForstaUser> filteredContacts = new ArrayList<>();
+
+
+    Set<String> systemNumbers = new HashSet<>();
+    Cursor cursor = null;
+    try {
+      cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
+      while (cursor != null && cursor.moveToNext()) {
+        String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
+        systemNumbers.add(number);
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+
+    for (int i=0; i< forstaContacts.size(); i++) {
+      if (systemNumbers.contains(forstaContacts.get(i).getPhone())) {
+        // forstaContacts.remove(i);
+        // For debugging, use another filtered list.
+        // This would restrict full directory sync to only people in local contacts db.
+        filteredContacts.add(forstaContacts.get(i));
+      }
+    }
+
     syncForstaContactsDb(context, forstaContacts, false);
     CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
@@ -267,7 +298,6 @@ public class CcsmApi {
   private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
     ContactDb forstaDb = DbFactory.getContactDb(context);
     forstaDb.updateUsers(contacts, removeExisting);
-    forstaDb.close();
   }
 
   private static void syncForstaGroups(Context context) {

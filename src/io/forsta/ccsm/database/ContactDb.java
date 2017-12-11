@@ -13,6 +13,7 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -218,13 +219,11 @@ public class ContactDb extends DbBase {
 
   public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    Set<String> forstaUids = new HashSet<>();
     Map<String, String> uids = getUids();
 
     db.beginTransaction();
     try {
       for (ForstaUser user : users) {
-        forstaUids.add(user.uid);
         ContentValues values = new ContentValues();
         values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.TAGID, user.tag_id);
@@ -325,6 +324,21 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<ForstaUser> getActiveForstaUsers(String filter) {
+    List<ForstaUser> users = new LinkedList<>();
+    Cursor cursor = getActiveRecipients(filter);
+    try {
+      while (cursor != null && cursor.moveToNext()) {
+        users.add(new ForstaUser(cursor));
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+    return users;
   }
 
   public Cursor filterActiveRecipients(String slugPart) {
