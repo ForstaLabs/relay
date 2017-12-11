@@ -26,6 +26,9 @@ import android.support.v4.content.CursorLoader;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.json.JSONObject;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -40,6 +43,7 @@ import io.forsta.securesms.util.NumberUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * CursorLoader that initializes a ContactsDatabase instance
@@ -94,6 +98,25 @@ public class ContactsCursorLoader extends CursorLoader {
     } else {
       //Get cursors from the forsta contacts and group databases.
       MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
+      if (filter != null) {
+        try {
+          JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
+          Log.w(TAG, results.toString());
+          List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
+          for (ForstaUser user : searchResults) {
+            forstaContactsCursor.addRow(new Object[] {
+                0,
+                user.getName(),
+                user.getUid(),
+                user.getTag(),
+                user.getOrgTag(),
+                ContactsDatabase.PUSH_TYPE
+            });
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
 
       ContactDb contactDb = DbFactory.getContactDb(getContext());
       Cursor contactsCursor = contactDb.getActiveRecipients(filter);

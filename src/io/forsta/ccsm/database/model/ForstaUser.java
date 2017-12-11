@@ -77,6 +77,8 @@ public class ForstaUser {
       this.tsRegistered = false;
 
     } catch (JSONException e) {
+      e.printStackTrace();
+      Log.w(TAG, userObj.toString());
       throw new InvalidUserException("An error occured parsing user JSON");
     }
   }
