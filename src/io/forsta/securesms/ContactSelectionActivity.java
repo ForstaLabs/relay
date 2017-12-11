@@ -125,6 +125,17 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
         if (filter.startsWith("@")) {
           filter = filter.substring(1, filter.length());
         }
+        // TODO
+        // 1) Get results from local contacts first.
+        // If no results, then query api directory endpoint for more.
+        //
+        // 2) When syncing local contacts, only include records that
+        // match local device contact db numbers, instead of entire org directory.
+        //
+        // 3) api query must be done on background thread.
+        // Create worker thread and pass filter text to it
+        // and update results.
+
         contactsFragment.setQueryFilter(filter);
       }
     });
