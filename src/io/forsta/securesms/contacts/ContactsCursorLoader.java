@@ -82,8 +82,7 @@ public class ContactsCursorLoader extends CursorLoader {
   @Override
   public Cursor loadInBackground() {
     ContactsDatabase  contactsDatabase = DatabaseFactory.getContactsDatabase(getContext());
-
-    ArrayList<Cursor> cursorList       = new ArrayList<>(3);
+    ArrayList<Cursor> cursorList = new ArrayList<>(3);
 
     if (mode == MODE_OTHER_ONLY) {
       cursorList.add(filterNonPushContacts(contactsDatabase.querySystemContacts(filter)));
@@ -98,17 +97,15 @@ public class ContactsCursorLoader extends CursorLoader {
         cursorList.add(newNumberCursor);
       }
     } else {
-      //Get cursors from the forsta contacts and group databases.
-      MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
-      // XXX Remove self from list of recipients?
-      String localUid = TextSecurePreferences.getLocalNumber(getContext());
       Log.w(TAG, "Loading filter: " + filter);
-
-      ContactDb contactDb = DbFactory.getContactDb(getContext());
-      List<ForstaUser> localUsers = contactDb.getActiveForstaUsers(filter);
+      MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
+      // XXX Remove self from list of recipients
+      String localUid = TextSecurePreferences.getLocalNumber(getContext());
+      List<ForstaUser> localUsers = DbFactory.getContactDb(getContext()).getActiveForstaUsers(filter);
 
       try {
-        if (!TextUtils.isEmpty(filter)) {
+        if (!TextUtils.isEmpty(filter) && localUsers.size() < 1) {
+          Log.w(TAG, "No local users found for filter.");
           JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
           Log.w(TAG, results.toString());
           List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);

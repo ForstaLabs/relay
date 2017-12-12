@@ -31,6 +31,8 @@ public class ForstaUser {
   public String org_id;
   public String org_slug;
   public boolean tsRegistered;
+  public boolean isActive = true;
+  public boolean isMonitor = false;
 
   public ForstaUser() {
 
@@ -38,6 +40,12 @@ public class ForstaUser {
 
   public ForstaUser(JSONObject userObj) throws InvalidUserException {
     try {
+      if (userObj.has("is_monitor")) {
+        this.isMonitor = userObj.getBoolean("is_monitor");
+      }
+      if (userObj.has("is_active")) {
+        this.isActive = userObj.getBoolean("is_active");
+      }
       this.uid = userObj.getString("id");
       if (TextUtils.isEmpty(this.uid)) {
         throw new InvalidUserException("UID is empty of null");

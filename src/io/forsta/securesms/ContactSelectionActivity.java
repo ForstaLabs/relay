@@ -57,7 +57,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   private final DynamicTheme    dynamicTheme    = new DynamicNoActionBarTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
-  private MasterSecret masterSecret;
+  protected MasterSecret masterSecret;
 
   protected ContactSelectionListFragment contactsFragment;
   protected ContactFilterToolbar toolbar;

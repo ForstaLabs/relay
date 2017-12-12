@@ -23,15 +23,22 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
+import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -56,6 +63,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   @Override
   public void onCreate(Bundle bundle, @NonNull final MasterSecret masterSecret) {
     super.onCreate(bundle, masterSecret);
+
 
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -117,12 +125,32 @@ public class NewConversationActivity extends ContactSelectionActivity {
   }
 
   @Override
-  public void onContactSelected(final String number) {
-    addRecipientChip(number);
-    selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-    toolbar.clear();
-    updateToggleBar();
-    contactsFragment.resetQueryFilter();
+  public void onContactSelected(final String address) {
+    new AsyncTask<String, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(String... strings) {
+        List<String> addresses = new ArrayList<>();
+        addresses. add(strings[0]);
+        RecipientFactory.clearCache(NewConversationActivity.this);
+        DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(Void aVoid) {
+        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+        if (user == null || TextUtils.isEmpty(user.getName())) {
+          Toast.makeText(NewConversationActivity.this, "Unable to retrieve user information.", Toast.LENGTH_LONG).show();
+        } else {
+          addRecipientChip(address);
+          selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+          toolbar.clear();
+          updateToggleBar();
+          contactsFragment.resetQueryFilter();
+        }
+      }
+    }.execute(address);
   }
 
   private void removeRecipientChip(View view) {
