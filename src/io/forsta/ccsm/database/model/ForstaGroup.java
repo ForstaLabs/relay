@@ -35,7 +35,6 @@ public class ForstaGroup {
       this.id = jsonObject.getString("id");
       this.slug = jsonObject.getString("slug");
       this.description = jsonObject.getString("description");
-      this.parent = jsonObject.getString("parent");
       JSONObject orgObj = jsonObject.getJSONObject("org");
       if (orgObj.has("id")) {
         this.org_id = orgObj.getString("id");
