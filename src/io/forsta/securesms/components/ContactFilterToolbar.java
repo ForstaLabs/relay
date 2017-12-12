@@ -2,23 +2,31 @@ package io.forsta.securesms.components;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.TouchDelegate;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import io.forsta.securesms.MessageDetailsActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.ViewUtil;
 
 public class ContactFilterToolbar extends Toolbar {
+  private static final String TAG = ContactFilterToolbar.class.getSimpleName();
   private   OnFilterChangedListener listener;
   private   OnClickListener searchListener;
   private   OnClickListener createConversationListener;
@@ -32,6 +40,10 @@ public class ContactFilterToolbar extends Toolbar {
   private ImageView       createConversationToggle;
   private LinearLayout    toggleContainer;
   private ImageView       searchToggle;
+  private long debounceThreshhold = 500L;
+  private Timer debounceTimer;
+  private final int DEBOUNCE_MESSAGE = 13;
+  private Handler handler;
 
   public ContactFilterToolbar(Context context) {
     this(context, null);
@@ -41,10 +53,18 @@ public class ContactFilterToolbar extends Toolbar {
     this(context, attrs, R.attr.toolbarStyle);
   }
 
-  public ContactFilterToolbar(Context context, AttributeSet attrs, int defStyleAttr) {
+  public ContactFilterToolbar(final Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
+    handler = new Handler() {
+      @Override
+      public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+        if (msg.what == DEBOUNCE_MESSAGE) {
+          notifyListener();
+        }
+      }
+    };
     inflate(context, R.layout.contact_filter_toolbar, this);
-
 
     this.action          = ViewUtil.findById(this, R.id.action_icon);
     this.searchText      = ViewUtil.findById(this, R.id.search_view);
@@ -55,32 +75,10 @@ public class ContactFilterToolbar extends Toolbar {
     this.toggleContainer = ViewUtil.findById(this, R.id.toggle_container);
     this.searchToggle = ViewUtil.findById(this, R.id.toolbar_search_directory);
     this.createConversationToggle = ViewUtil.findById(this, R.id.toolbar_create_conversation);
-
-//    this.keyboardToggle.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-//        searchText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
-//        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
-//        displayTogglingView(dialpadToggle);
-//      }
-//    });
-//
-//    this.dialpadToggle.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-//        searchText.setInputType(InputType.TYPE_CLASS_PHONE);
-//        ServiceUtil.getInputMethodManager(getContext()).showSoftInput(searchText, 0);
-//        displayTogglingView(keyboardToggle);
-//      }
-//    });
-
     this.clearToggle.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         searchText.setText("");
-
-//        if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
-//        else displayTogglingView(keyboardToggle);
       }
     });
 
@@ -92,17 +90,26 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+        Log.w(TAG, "Text input: " + s.toString());
+        if (debounceTimer != null) {
+          Log.w(TAG, "Cancelling timer...");
+          debounceTimer.cancel();
+        }
       }
 
       @Override
       public void afterTextChanged(Editable s) {
-//        if (SearchUtil.isEmpty(searchText)) {
-//          displayTogglingView(Toggle);
-//        }
-//        else if (SearchUtil.isTextInput(searchText)) displayTogglingView(dialpadToggle);
-//        else if (SearchUtil.isPhoneInput(searchText)) displayTogglingView(keyboardToggle);
-        notifyListener();
+        debounceTimer = new Timer();
+        Log.w(TAG, "Scheduling update");
+        debounceTimer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            Log.w(TAG, "Updating...");
+            if (handler != null) {
+              handler.sendEmptyMessage(DEBOUNCE_MESSAGE);
+            }
+          }
+        }, debounceThreshhold);
       }
     });
 

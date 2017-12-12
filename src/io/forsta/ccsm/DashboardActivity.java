@@ -340,8 +340,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append("API Host:");
     sb.append(BuildConfig.FORSTA_API_URL);
     sb.append("\n");
-    Date tokenExpire = jwt.getExpireDate();
+    sb.append("SIgnal Host:");
+    sb.append(TextSecurePreferences.getServer(DashboardActivity.this));
     sb.append("\n");
+    Date tokenExpire = jwt.getExpireDate();
     sb.append("Token Expires: ");
     sb.append(tokenExpire);
     sb.append("\n");

@@ -20,6 +20,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
+import android.net.NetworkInfo;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.content.CursorLoader;
@@ -40,6 +41,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.NumberUtil;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.ArrayList;
@@ -106,12 +108,15 @@ public class ContactsCursorLoader extends CursorLoader {
       try {
         if (!TextUtils.isEmpty(filter) && localUsers.size() < 1) {
           Log.w(TAG, "No local users found for filter.");
-          JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
-          Log.w(TAG, results.toString());
-          List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
-          for (ForstaUser user : searchResults) {
-            if (!localUsers.contains(user)) {
-              localUsers.add(user);
+          NetworkInfo network = ServiceUtil.getConnectivityManager(getContext()).getActiveNetworkInfo();
+          if (network != null && network.isConnectedOrConnecting()) {
+            JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
+            Log.w(TAG, results.toString());
+            List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
+            for (ForstaUser user : searchResults) {
+              if (!localUsers.contains(user)) {
+                localUsers.add(user);
+              }
             }
           }
         }
