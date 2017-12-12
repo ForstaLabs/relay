@@ -733,6 +733,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Recipients        recipients   = params[0];
 
           UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.clearCache(context);
+          recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
           if (capabilities.getTextCapability() == Capability.SUPPORTED) {
             return true;
           }
@@ -892,7 +894,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void onModified(final Recipients recipients) {
-
+    Log.w(TAG, "Recipients modified.");
   }
 
   private void initializeReceivers() {
