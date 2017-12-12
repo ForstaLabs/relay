@@ -15,7 +15,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DbHelper extends SQLiteOpenHelper {
   private static final String DB_NAME = "relay.db";
   private static final int ADD_CONTACT_FIELDS = 5;
-  private static final int VERSION = 5;
+  private static final int ADD_CONTACT_TYPE = 6;
+  private static final int VERSION = 6;
 
   public DbHelper(Context context) {
     super(context, DB_NAME, null, VERSION);
@@ -31,6 +32,10 @@ public class DbHelper extends SQLiteOpenHelper {
     if (oldVersion < ADD_CONTACT_FIELDS) {
       db.execSQL("ALTER TABLE contacts ADD COLUMN isactive INTEGER DEFAULT 0");
       db.execSQL("ALTER TABLE contacts ADD COLUMN ismonitor INTEGER DEFAULT 0");
+    }
+
+    if (oldVersion < ADD_CONTACT_TYPE) {
+      db.execSQL("ALTER TABLE contacts ADD COLUMN type");
     }
   }
 }

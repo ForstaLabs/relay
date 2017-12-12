@@ -46,6 +46,7 @@ public class ContactDb extends DbBase {
   public static final String TSREGISTERED = "tsregistered";
   public static final String ISACTIVE = "isactive";
   public static final String ISMONITOR = "ismonitor";
+  public static final String USERTYPE = "type";
 
   public static final String CREATE_TABLE = "create table " +
       TABLE_NAME + "(" +
@@ -64,6 +65,7 @@ public class ContactDb extends DbBase {
       TSREGISTERED + " integer default 0, " +
       ISACTIVE + " integer default 0, " +
       ISMONITOR + " integer default 0, " +
+      USERTYPE + ", " +
       "CONSTRAINT item_number_unique UNIQUE (" + UID + ")" +
       ")";
 
@@ -82,7 +84,8 @@ public class ContactDb extends DbBase {
       DATE,
       TSREGISTERED,
       ISACTIVE,
-      ISMONITOR
+      ISMONITOR,
+      USERTYPE
   };
 
   public ContactDb(Context context, DbHelper dbHelper) {
@@ -245,6 +248,7 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         values.put(ContactDb.ISACTIVE, user.isActive);
         values.put(ContactDb.ISMONITOR, user.isMonitor);
+        values.put(ContactDb.USERTYPE, user.type.toString());
         if (uids.containsKey(user.uid)) {
           String id = uids.get(user.getUid());
           if (TextUtils.isEmpty(user.getUid())) {
@@ -319,7 +323,7 @@ public class ContactDb extends DbBase {
   }
 
   public Cursor getActiveRecipients(String filter) {
-    String queryFilter = "(" + TSREGISTERED + " = 1 AND " + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0)";
+    String queryFilter = "(" + TSREGISTERED + " = 1 AND " + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0 AND " + USERTYPE + " = 'PERSON')";
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
       queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
