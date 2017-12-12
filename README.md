@@ -73,4 +73,6 @@ Copyright 2011 Whisper Systems
 
 Copyright 2013-2016 Open Whisper Systems
 
+Copyright 2017 Forsta Inc.
+
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
