@@ -115,8 +115,6 @@ public class DirectoryHelper {
     }
 
     eligibleContactAddresses.add(localNumber);
-    eligibleContactAddresses.add(BuildConfig.FORSTA_SYNC_NUMBER);
-
     TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
     List<ContactTokenDetails> activeTokens = accountManager.getContacts(eligibleContactAddresses);
 
@@ -127,7 +125,6 @@ public class DirectoryHelper {
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
-      // Update the forsta contacts db to set active users.
       contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
     }
 

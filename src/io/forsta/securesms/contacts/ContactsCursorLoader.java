@@ -20,12 +20,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.MergeCursor;
+import android.net.NetworkInfo;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.content.CursorLoader;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.json.JSONObject;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaUser;
@@ -37,9 +41,13 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.NumberUtil;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * CursorLoader that initializes a ContactsDatabase instance
@@ -76,8 +84,7 @@ public class ContactsCursorLoader extends CursorLoader {
   @Override
   public Cursor loadInBackground() {
     ContactsDatabase  contactsDatabase = DatabaseFactory.getContactsDatabase(getContext());
-
-    ArrayList<Cursor> cursorList       = new ArrayList<>(3);
+    ArrayList<Cursor> cursorList = new ArrayList<>(3);
 
     if (mode == MODE_OTHER_ONLY) {
       cursorList.add(filterNonPushContacts(contactsDatabase.querySystemContacts(filter)));
@@ -92,30 +99,48 @@ public class ContactsCursorLoader extends CursorLoader {
         cursorList.add(newNumberCursor);
       }
     } else {
-      //Get cursors from the forsta contacts and group databases.
+      Log.w(TAG, "Loading filter: " + filter);
       MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
-
-      ContactDb contactDb = DbFactory.getContactDb(getContext());
-      Cursor contactsCursor = contactDb.getActiveRecipients(filter);
-      // XXX Remove self from list of recipients?
+      // XXX Remove self from list of recipients
       String localUid = TextSecurePreferences.getLocalNumber(getContext());
+      List<ForstaUser> localUsers = DbFactory.getContactDb(getContext()).getActiveForstaUsers(filter);
+
       try {
-        while (contactsCursor != null && contactsCursor.moveToNext()) {
-          if (!localUid.equals(contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)))) {
-            forstaContactsCursor.addRow(new Object[]{
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ID)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.NAME)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.UID)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.SLUG)),
-                contactsCursor.getString(contactsCursor.getColumnIndex(ContactDb.ORGSLUG)),
+        if (!TextUtils.isEmpty(filter) && localUsers.size() < 1) {
+          Log.w(TAG, "No local users found for filter.");
+          NetworkInfo network = ServiceUtil.getConnectivityManager(getContext()).getActiveNetworkInfo();
+          if (network != null && network.isConnectedOrConnecting()) {
+            JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
+            Log.w(TAG, results.toString());
+            List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
+            for (ForstaUser user : searchResults) {
+              if (!localUsers.contains(user)) {
+                localUsers.add(user);
+              }
+            }
+          }
+        }
+        Collections.sort(localUsers, new Comparator<ForstaUser>() {
+          @Override
+          public int compare(ForstaUser forstaUser, ForstaUser t1) {
+            return forstaUser.getName().compareToIgnoreCase(t1.getName());
+          }
+        });
+
+        for (ForstaUser user : localUsers) {
+          if (!localUid.equals(user.getUid())) {
+            forstaContactsCursor.addRow(new Object[] {
+                user.getDbId(),
+                user.getName(),
+                user.getUid(),
+                user.getTag(),
+                user.getOrgTag(),
                 ContactsDatabase.PUSH_TYPE
             });
           }
         }
-      } finally {
-        if (contactsCursor != null) {
-          contactsCursor.close();
-        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
 
       GroupDatabase gdb = DatabaseFactory.getGroupDatabase(getContext());

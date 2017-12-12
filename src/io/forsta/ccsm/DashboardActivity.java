@@ -4,11 +4,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,13 +19,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
@@ -40,7 +41,6 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
-import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -54,7 +54,6 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
@@ -65,7 +64,6 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +88,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private ProgressBar mProgressBar;
   private WebSocketUtils socketUtils;
   private Button socketTester;
-  private Button messageTester;
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -183,6 +180,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     options.add("Get API Users");
     options.add("Get API Groups");
     options.add("Get Directory");
+    options.add("Message Tests");
 
     ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, options);
     mSpinner.setAdapter(adapter);
@@ -237,6 +235,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             mDebugText.setText("");
             GetDirectory directory = new GetDirectory();
             directory.execute();
+            break;
+          case 11:
+            mDebugText.setText("");
+            showScrollView();
+            new MessageTests().execute();
         }
       }
 
@@ -254,13 +257,31 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
       }
     });
-    messageTester = (Button) findViewById(R.id.message_tests_button);
-    messageTester.setOnClickListener(new View.OnClickListener() {
+    EditText search = (EditText) findViewById(R.id.search_directory);
+    search.addTextChangedListener(new TextWatcher() {
       @Override
-      public void onClick(View v) {
-        mDebugText.setText("");
-        showScrollView();
-        new MessageTests().execute();
+      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+      }
+
+      @Override
+      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        if (charSequence.length() > 2) {
+          new AsyncTask<String, Void, Void>() {
+            @Override
+            protected Void doInBackground(String[] objects) {
+              JSONObject response = CcsmApi.searchUserDirectory(DashboardActivity.this, objects[0]);
+              List<ForstaUser> users = CcsmApi.parseUsers(DashboardActivity.this, response);
+              Log.w(TAG, "Getting response");
+              return null;
+            }
+          }.execute(charSequence.toString());
+        }
+      }
+
+      @Override
+      public void afterTextChanged(Editable editable) {
+
       }
     });
     printLoginInformation();
@@ -319,10 +340,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     sb.append("API Host:");
     sb.append(BuildConfig.FORSTA_API_URL);
     sb.append("\n");
-    sb.append("Sync Number:");
-    sb.append(BuildConfig.FORSTA_SYNC_NUMBER);
-    Date tokenExpire = jwt.getExpireDate();
+    sb.append("SIgnal Host:");
+    sb.append(TextSecurePreferences.getServer(DashboardActivity.this));
     sb.append("\n");
+    Date tokenExpire = jwt.getExpireDate();
     sb.append("Token Expires: ");
     sb.append(tokenExpire);
     sb.append("\n");
@@ -727,7 +748,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getUsers(DashboardActivity.this);
+      return CcsmApi.getOrgUsers(DashboardActivity.this);
     }
 
     @Override

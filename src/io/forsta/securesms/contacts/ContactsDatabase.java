@@ -91,11 +91,9 @@ public class ContactsDatabase {
 
     for (ContactTokenDetails registeredContact : registeredContacts) {
       String registeredNumber = registeredContact.getNumber();
-
       registeredNumbers.put(registeredNumber, registeredContact);
-      boolean isSyncNumber = registeredNumber.equals(BuildConfig.FORSTA_SYNC_NUMBER);
 
-      if (!currentContacts.containsKey(registeredNumber) && !isSyncNumber) {
+      if (!currentContacts.containsKey(registeredNumber)) {
         Optional<SystemContactInfo> systemContactInfo = getSystemContactInfo(registeredNumber, localNumber);
 
         if (systemContactInfo.isPresent()) {

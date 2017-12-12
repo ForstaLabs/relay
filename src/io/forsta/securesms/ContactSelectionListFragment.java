@@ -21,6 +21,7 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
@@ -33,11 +34,16 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.components.RecyclerViewFastScroller;
 import io.forsta.securesms.contacts.ContactSelectionListAdapter;
 import io.forsta.securesms.contacts.ContactSelectionListItem;
@@ -228,6 +234,8 @@ public class ContactSelectionListFragment extends    Fragment
       }
     }
   }
+
+
 
   public void removeAddress(String address) {
     selectedAddresses.remove(address);

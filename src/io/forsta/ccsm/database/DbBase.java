@@ -28,14 +28,12 @@ public abstract class DbBase {
   protected int updateRecord(String table, String id, ContentValues values) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     int result = db.update(table, values, " _id= ? ", new String[] {id});
-    mDbHelper.close();
     return result;
   }
 
   protected long addRecord(String table, ContentValues values) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     long result = db.insert(table, null, values);
-    mDbHelper.close();
     return result;
   }
 
@@ -43,7 +41,6 @@ public abstract class DbBase {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     String[] args = new String[] {id};
     int result = db.delete(table, "_id = ?", args);
-    mDbHelper.close();
     return result;
   }
 
@@ -55,10 +52,5 @@ public abstract class DbBase {
   protected void removeAll(String table) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.delete(table, null, null);
-    mDbHelper.close();
-  }
-
-  public void close() {
-    mDbHelper.close();
   }
 }

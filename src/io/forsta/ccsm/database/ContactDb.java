@@ -13,6 +13,7 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,8 @@ public class ContactDb extends DbBase {
   public static final String ORGSLUG = "org_slug";
   public static final String DATE = "date";
   public static final String TSREGISTERED = "tsregistered";
+  public static final String ISACTIVE = "isactive";
+  public static final String ISMONITOR = "ismonitor";
 
   public static final String CREATE_TABLE = "create table " +
       TABLE_NAME + "(" +
@@ -59,6 +62,8 @@ public class ContactDb extends DbBase {
       ORGSLUG + ", " +
       DATE + ", " +
       TSREGISTERED + " integer default 0, " +
+      ISACTIVE + " integer default 0, " +
+      ISMONITOR + " integer default 0, " +
       "CONSTRAINT item_number_unique UNIQUE (" + UID + ")" +
       ")";
 
@@ -75,7 +80,9 @@ public class ContactDb extends DbBase {
       ORGID,
       ORGSLUG,
       DATE,
-      TSREGISTERED
+      TSREGISTERED,
+      ISACTIVE,
+      ISMONITOR
   };
 
   public ContactDb(Context context, DbHelper dbHelper) {
@@ -218,13 +225,11 @@ public class ContactDb extends DbBase {
 
   public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    Set<String> forstaUids = new HashSet<>();
     Map<String, String> uids = getUids();
 
     db.beginTransaction();
     try {
       for (ForstaUser user : users) {
-        forstaUids.add(user.uid);
         ContentValues values = new ContentValues();
         values.put(ContactDb.UID, user.uid);
         values.put(ContactDb.TAGID, user.tag_id);
@@ -238,6 +243,8 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.EMAIL, user.email);
         values.put(ContactDb.TSREGISTERED, user.tsRegistered);
+        values.put(ContactDb.ISACTIVE, user.isActive);
+        values.put(ContactDb.ISMONITOR, user.isMonitor);
         if (uids.containsKey(user.uid)) {
           String id = uids.get(user.getUid());
           if (TextUtils.isEmpty(user.getUid())) {
@@ -312,7 +319,7 @@ public class ContactDb extends DbBase {
   }
 
   public Cursor getActiveRecipients(String filter) {
-    String queryFilter = TSREGISTERED + " = 1";
+    String queryFilter = "(" + TSREGISTERED + " = 1 AND " + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0)";
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
       queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
@@ -325,6 +332,21 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<ForstaUser> getActiveForstaUsers(String filter) {
+    List<ForstaUser> users = new LinkedList<>();
+    Cursor cursor = getActiveRecipients(filter);
+    try {
+      while (cursor != null && cursor.moveToNext()) {
+        users.add(new ForstaUser(cursor));
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+    return users;
   }
 
   public Cursor filterActiveRecipients(String slugPart) {

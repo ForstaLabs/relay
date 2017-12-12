@@ -3,12 +3,16 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.util.Log;
 
+import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.documents.NetworkFailure;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.mms.MediaConstraints;
@@ -74,66 +78,82 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
   {
     ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
     MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
-    OutgoingMediaMessage message = database.getOutgoingMessage(masterSecret, messageId);
-    try {
-      deliver(masterSecret, message, message.getRecipients());
-      database.markAsPush(messageId);
-      database.markAsSecure(messageId);
-      database.markAsSent(messageId);
-      markAttachmentsUploaded(messageId, message.getAttachments());
+    OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
+    long threadId = database.getThreadIdForMessage(messageId);
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    String distributionUniversal = thread.getDistribution();
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, distributionUniversal);
+    // This could potentially have new userIds because of tag updates. Update the thread recipients?
 
-      if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-        database.markExpireStarted(messageId);
-        expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
-      }
-    } catch (EncapsulatedExceptions e) {
-      Log.w(TAG, e);
-      List<NetworkFailure> failures = new LinkedList<>();
-      for (NetworkFailureException nfe : e.getNetworkExceptions()) {
-        Recipient recipient = RecipientFactory.getRecipientsFromString(context, nfe.getE164number(), false).getPrimaryRecipient();
-        failures.add(new NetworkFailure(recipient.getRecipientId()));
-      }
+    List<OutgoingMediaMessage> messageQueue = new ArrayList<>();
+    messageQueue.add(outgoingMessage);
+    if (distribution.hasMonitors() && !outgoingMessage.isExpirationUpdate()) {
+      Recipients monitors = RecipientFactory.getRecipientsFromStrings(context, distribution.getMonitors(context), false);
+      OutgoingMediaMessage monitorMessage = new OutgoingMediaMessage(monitors, outgoingMessage.getBody(), outgoingMessage.getAttachments(), System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.CONVERSATION);
+      messageQueue.add(monitorMessage);
+    }
 
-      List<String> untrustedRecipients = new ArrayList<>();
-      for (UntrustedIdentityException uie : e.getUntrustedIdentityExceptions()) {
-        untrustedRecipients.add(uie.getE164Number());
-        acceptIndentityKey(uie);
-      }
-
-      if (untrustedRecipients.size() > 0) {
-        Recipients failedRecipients = RecipientFactory.getRecipientsFromStrings(context, untrustedRecipients, false);
-        try {
-          deliver(masterSecret, message, failedRecipients);
-        } catch (InvalidNumberException | EncapsulatedExceptions | RecipientFormattingException e1) {
-          e1.printStackTrace();
-        }
-      }
-
-      if (e.getUnregisteredUserExceptions().size() > 0) {
-        for (UnregisteredUserException uue : e.getUnregisteredUserExceptions()) {
-          Log.w(TAG, "Unregistered User: " + uue.getE164Number());
-        }
-      }
-
-      database.addFailures(messageId, failures);
-      database.markAsPush(messageId);
-
-      if (e.getNetworkExceptions().isEmpty()) {
+    for (OutgoingMediaMessage message : messageQueue) {
+      try {
+        deliver(masterSecret, message, message.getRecipients());
+        database.markAsPush(messageId);
         database.markAsSecure(messageId);
         database.markAsSent(messageId);
         markAttachmentsUploaded(messageId, message.getAttachments());
-      } else {
+
+        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+          database.markExpireStarted(messageId);
+          expirationManager.scheduleDeletion(messageId, true, message.getExpiresIn());
+        }
+      } catch (EncapsulatedExceptions e) {
+        Log.w(TAG, e);
+        List<NetworkFailure> failures = new LinkedList<>();
+        for (NetworkFailureException nfe : e.getNetworkExceptions()) {
+          Recipient recipient = RecipientFactory.getRecipientsFromString(context, nfe.getE164number(), false).getPrimaryRecipient();
+          failures.add(new NetworkFailure(recipient.getRecipientId()));
+        }
+
+        List<String> untrustedRecipients = new ArrayList<>();
+        for (UntrustedIdentityException uie : e.getUntrustedIdentityExceptions()) {
+          untrustedRecipients.add(uie.getE164Number());
+          acceptIndentityKey(uie);
+        }
+
+        if (untrustedRecipients.size() > 0) {
+          Recipients failedRecipients = RecipientFactory.getRecipientsFromStrings(context, untrustedRecipients, false);
+          try {
+            deliver(masterSecret, message, failedRecipients);
+          } catch (InvalidNumberException | EncapsulatedExceptions | RecipientFormattingException e1) {
+            e1.printStackTrace();
+          }
+        }
+
+        if (e.getUnregisteredUserExceptions().size() > 0) {
+          for (UnregisteredUserException uue : e.getUnregisteredUserExceptions()) {
+            Log.w(TAG, "Unregistered User: " + uue.getE164Number());
+          }
+        }
+
+        database.addFailures(messageId, failures);
+        database.markAsPush(messageId);
+
+        if (e.getNetworkExceptions().isEmpty()) {
+          database.markAsSecure(messageId);
+          database.markAsSent(messageId);
+          markAttachmentsUploaded(messageId, message.getAttachments());
+        } else {
+          database.markAsSentFailed(messageId);
+          notifyMediaMessageDeliveryFailed(context, messageId);
+        }
+      } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
+        Log.w(TAG, e);
         database.markAsSentFailed(messageId);
         notifyMediaMessageDeliveryFailed(context, messageId);
+      } catch (IllegalStateException e) {
+        Log.w(TAG, "Something went wildly wrong: " +  e.getMessage());
+      } catch (Exception e) {
+        Log.w(TAG, "General exception: " + e.getMessage());
       }
-    } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
-      Log.w(TAG, e);
-      database.markAsSentFailed(messageId);
-      notifyMediaMessageDeliveryFailed(context, messageId);
-    } catch (IllegalStateException e) {
-      Log.w(TAG, "Something went wildly wrong: " +  e.getMessage());
-    } catch (Exception e) {
-      Log.w(TAG, "General exception: " + e.getMessage());
     }
   }
 

@@ -53,7 +53,6 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import java.io.IOException;
 import java.util.List;
 
-import io.forsta.ccsm.api.CcsmSync;
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {
@@ -83,10 +82,6 @@ public class MessageSender {
 
     sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
 
-    if (!ForstaPreferences.getOffTheRecord(context)) {
-      CcsmSync.syncTextMessage(masterSecret, context, message);
-    }
-
     return allocatedThreadId;
   }
 
@@ -107,10 +102,6 @@ public class MessageSender {
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, forceSms);
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
-
-      if (!ForstaPreferences.getOffTheRecord(context)) {
-        CcsmSync.syncMediaMessage(masterSecret, context, message);
-      }
 
       return threadId;
     } catch (MmsException e) {

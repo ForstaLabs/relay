@@ -99,11 +99,44 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    JSONObject response = getUsers(context);
+    JSONObject response = getOrgUsers(context);
     if (isUnauthorizedResponse(response)) {
       return;
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
+    List<ForstaUser> filteredContacts = new ArrayList<>();
+
+
+    Set<String> systemNumbers = new HashSet<>();
+    Cursor cursor = null;
+    try {
+      cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
+      while (cursor != null && cursor.moveToNext()) {
+        String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
+        systemNumbers.add(number);
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+
+    for (int i=0; i< forstaContacts.size(); i++) {
+      if (systemNumbers.contains(forstaContacts.get(i).getPhone())) {
+        // forstaContacts.remove(i);
+        // For debugging, use another filtered list.
+        // This would restrict full directory sync to only people in local contacts db.
+        filteredContacts.add(forstaContacts.get(i));
+      }
+    }
+
+    List<ForstaUser> dbContacts = DbFactory.getContactDb(context).getUsers();
+    for (ForstaUser user : dbContacts) {
+      if (!forstaContacts.contains(user)) {
+        forstaContacts.add(user);
+      }
+    }
+
     syncForstaContactsDb(context, forstaContacts, false);
     CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
@@ -148,7 +181,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_USER_PICK);
   }
 
-  public static JSONObject getUsers(Context context) {
+  public static JSONObject getOrgUsers(Context context) {
     return fetchResource(context, "GET", API_USER);
   }
 
@@ -267,7 +300,6 @@ public class CcsmApi {
   private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
     ContactDb forstaDb = DbFactory.getContactDb(context);
     forstaDb.updateUsers(contacts, removeExisting);
-    forstaDb.close();
   }
 
   private static void syncForstaGroups(Context context) {
@@ -296,6 +328,54 @@ public class CcsmApi {
       }
     }
     return false;
+  }
+
+  public static boolean tokenNeedsRefresh(Context context) {
+    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
+    if (expireDate == null) {
+      return false;
+    }
+    Date current = new Date();
+    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
+    long expireDelta = EXPIRE_REFRESH_DELTA;
+    boolean expired = expiresIn < expireDelta;
+
+    Log.d(TAG, "Token expires in: " + expiresIn);
+    return expired;
+  }
+
+  public static JSONObject forstaRefreshToken(Context context) {
+    JSONObject result = new JSONObject();
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("token", ForstaPreferences.getRegisteredKey(context));
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
+      if (result.has("token")) {
+        Log.w(TAG, "Token refresh. New token issued.");
+        String token = result.getString("token");
+        ForstaPreferences.setRegisteredForsta(context, token);
+      } else {
+        Log.w(TAG, "Token refresh failed.");
+        ForstaPreferences.setRegisteredForsta(context, "");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "forstaRefreshToken failed");
+    }
+    return result;
+  }
+
+  public static JSONObject searchUserDirectory(Context context, String searchText) {
+    JSONObject response = new JSONObject();
+    try {
+      String urlEncoded = TextUtils.isEmpty(searchText) ? "" : URLEncoder.encode(searchText, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?q=" + urlEncoded);
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return response;
   }
 
   // XXX obsolete XXX
@@ -349,39 +429,5 @@ public class CcsmApi {
     }
   }
 
-  // TODO Is there a reason to ever refresh the token.
-  public static boolean tokenNeedsRefresh(Context context) {
-    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
-    if (expireDate == null) {
-      return false;
-    }
-    Date current = new Date();
-    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
-    long expireDelta = EXPIRE_REFRESH_DELTA;
-    boolean expired = expiresIn < expireDelta;
 
-    Log.d(TAG, "Token expires in: " + expiresIn);
-    return expired;
-  }
-
-  public static JSONObject forstaRefreshToken(Context context) {
-    JSONObject result = new JSONObject();
-    try {
-      JSONObject obj = new JSONObject();
-      obj.put("token", ForstaPreferences.getRegisteredKey(context));
-      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
-      if (result.has("token")) {
-        Log.d(TAG, "Token refresh. New token issued.");
-        String token = result.getString("token");
-        ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.d(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      Log.e(TAG, "forstaRefreshToken failed");
-    }
-    return result;
-  }
 }

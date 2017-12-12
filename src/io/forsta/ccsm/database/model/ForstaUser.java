@@ -31,6 +31,8 @@ public class ForstaUser {
   public String org_id;
   public String org_slug;
   public boolean tsRegistered;
+  public boolean isActive = true;
+  public boolean isMonitor = false;
 
   public ForstaUser() {
 
@@ -38,6 +40,12 @@ public class ForstaUser {
 
   public ForstaUser(JSONObject userObj) throws InvalidUserException {
     try {
+      if (userObj.has("is_monitor")) {
+        this.isMonitor = userObj.getBoolean("is_monitor");
+      }
+      if (userObj.has("is_active")) {
+        this.isActive = userObj.getBoolean("is_active");
+      }
       this.uid = userObj.getString("id");
       if (TextUtils.isEmpty(this.uid)) {
         throw new InvalidUserException("UID is empty of null");
@@ -77,6 +85,8 @@ public class ForstaUser {
       this.tsRegistered = false;
 
     } catch (JSONException e) {
+      e.printStackTrace();
+      Log.w(TAG, userObj.toString());
       throw new InvalidUserException("An error occured parsing user JSON");
     }
   }
@@ -107,6 +117,10 @@ public class ForstaUser {
     this.email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
     this.phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
     this.tsRegistered = cursor.getInt(cursor.getColumnIndex(ContactDb.TSREGISTERED)) == 1 ? true : false;
+  }
+
+  public String getDbId() {
+    return id;
   }
 
   public String getName() {
@@ -144,5 +158,15 @@ public class ForstaUser {
 
   public String getFormattedTag(String currentOrg) {
     return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag());
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    ForstaUser other = (ForstaUser)o;
+    return this.uid.equals(other.uid);
   }
 }

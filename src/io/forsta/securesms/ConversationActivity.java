@@ -247,7 +247,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeSecurity();
     initializeDraft();
     initializeDirectory();
-    initThread();
   }
 
   @Override
@@ -734,6 +733,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Recipients        recipients   = params[0];
 
           UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.clearCache(context);
+          recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
           if (capabilities.getTextCapability() == Capability.SUPPORTED) {
             return true;
           }
@@ -893,7 +894,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void onModified(final Recipients recipients) {
-
+    Log.w(TAG, "Recipients modified.");
   }
 
   private void initializeReceivers() {
@@ -1187,10 +1188,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
-
         ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-
         message.setForstaJsonBody(context, threadData);
+
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 

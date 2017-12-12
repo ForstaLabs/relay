@@ -3,12 +3,16 @@ package io.forsta.securesms.mms;
 import android.content.Context;
 import android.text.TextUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
 
@@ -104,6 +108,20 @@ public class OutgoingMediaMessage {
       return message;
     } else {
       return slideDeck.getBody();
+    }
+  }
+
+  public void updateMessageDistribution(Context context, ForstaDistribution distribution) {
+    try {
+      JSONObject jsonBody = ForstaMessageManager.getMessageVersion(1, this.body);
+      JSONObject recipients = new JSONObject();
+      recipients.put("userIds", distribution.getRecipientsArray(context));
+      recipients.put("expression", distribution.universal);
+      jsonBody.put("distribution", recipients);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
   }
 

@@ -94,7 +94,7 @@ public class WebSocketUtils {
 
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes) {
-      Log.d(TAG, "New byte stream");
+      Log.d(TAG, "New byte stream: " + bytes.size());
     }
 
     @Override
