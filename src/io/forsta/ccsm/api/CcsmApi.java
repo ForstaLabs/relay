@@ -130,8 +130,11 @@ public class CcsmApi {
       }
     }
 
-    List<ForstaUser> dbContacts = DbFactory.getContactDb(context).getUsers();
-    for (ForstaUser user : dbContacts) {
+    Set<String> dbAddresses = DbFactory.getContactDb(context).getAddresses();
+    String ids = TextUtils.join(",", dbAddresses);
+    JSONObject jsonResult = CcsmApi.getUserDirectory(context, ids);
+    List<ForstaUser> updatedUsers = CcsmApi.parseUsers(context, jsonResult);
+    for (ForstaUser user : updatedUsers) {
       if (!forstaContacts.contains(user)) {
         forstaContacts.add(user);
       }
@@ -246,13 +249,16 @@ public class CcsmApi {
     try {
       JSONArray results = jsonObject.getJSONArray("results");
       for (int i = 0; i < results.length(); i++) {
-        JSONObject user = results.getJSONObject(i);
-        ForstaUser forstaUser = new ForstaUser(user);
-        users.add(forstaUser);
+        try {
+          JSONObject user = results.getJSONObject(i);
+          ForstaUser forstaUser = new ForstaUser(user);
+          users.add(forstaUser);
+        } catch (Exception e) {
+          Log.e(TAG, "parseUsers exception: " + e.getMessage());
+        }
       }
-    } catch (Exception e) {
-      Log.e(TAG, "parseUsers exception: " + e.getMessage());
-      e.printStackTrace();
+    } catch (JSONException e) {
+      Log.e(TAG, "No results array.");
     }
     return users;
   }

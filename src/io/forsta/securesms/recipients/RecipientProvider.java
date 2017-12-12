@@ -211,7 +211,6 @@ public class RecipientProvider {
     });
 
     asyncRecipientResolver.execute(task);
-
     return task;
   }
 
@@ -272,7 +271,6 @@ public class RecipientProvider {
         recipient.setStale();
       }
     }
-
   }
 
   private static class RecipientsCache {
