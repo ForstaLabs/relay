@@ -95,26 +95,22 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
 
   private void setText(int type, String name, String number, String label) {
     if (number == null || number.isEmpty()) {
-      this.nameView.setEnabled(false);
       this.numberView.setText("");
       this.labelView.setVisibility(View.GONE);
     } else if (type == ContactsDatabase.PUSH_TYPE) {
       this.numberView.setText(number);
-      this.nameView.setEnabled(true);
       this.labelView.setText(label);
       this.labelView.setVisibility(View.VISIBLE);
     } else if(GroupUtil.isEncodedGroup(number)) {
       this.numberView.setText("Group");
-      this.nameView.setEnabled(true);
       this.labelView.setText(label);
       this.labelView.setVisibility(View.VISIBLE);
     } else {
       this.numberView.setText(number);
-      this.nameView.setEnabled(true);
       this.labelView.setText(label);
       this.labelView.setVisibility(View.VISIBLE);
     }
-
+    this.nameView.setEnabled(true);
     this.nameView.setText(name);
   }
 
@@ -133,7 +129,7 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
         @Override
         public void run() {
           contactPhotoImage.setAvatar(recipients, false);
-          nameView.setText(recipients.toShortString());
+//          nameView.setText(recipients.toShortString());
         }
       });
     }
