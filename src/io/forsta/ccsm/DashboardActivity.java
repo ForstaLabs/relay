@@ -4,7 +4,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -27,7 +26,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
@@ -43,7 +41,6 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
-import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -57,7 +54,6 @@ import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
@@ -68,7 +64,6 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -751,7 +746,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getUsers(DashboardActivity.this);
+      return CcsmApi.getOrgUsers(DashboardActivity.this);
     }
 
     @Override

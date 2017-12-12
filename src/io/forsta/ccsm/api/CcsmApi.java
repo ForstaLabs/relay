@@ -6,7 +6,6 @@ import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -27,12 +26,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
@@ -104,7 +99,7 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    JSONObject response = getUsers(context);
+    JSONObject response = getOrgUsers(context);
     if (isUnauthorizedResponse(response)) {
       return;
     }
@@ -132,6 +127,13 @@ public class CcsmApi {
         // For debugging, use another filtered list.
         // This would restrict full directory sync to only people in local contacts db.
         filteredContacts.add(forstaContacts.get(i));
+      }
+    }
+
+    List<ForstaUser> dbContacts = DbFactory.getContactDb(context).getUsers();
+    for (ForstaUser user : dbContacts) {
+      if (!forstaContacts.contains(user)) {
+        forstaContacts.add(user);
       }
     }
 
@@ -179,7 +181,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_USER_PICK);
   }
 
-  public static JSONObject getUsers(Context context) {
+  public static JSONObject getOrgUsers(Context context) {
     return fetchResource(context, "GET", API_USER);
   }
 
