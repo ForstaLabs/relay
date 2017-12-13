@@ -6,7 +6,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
-import android.os.Build;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -15,14 +14,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
-import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -30,7 +26,6 @@ import io.forsta.securesms.crypto.SessionUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.NotInDirectoryException;
 import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
@@ -39,7 +34,6 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 
-import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -47,7 +41,6 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -83,29 +76,14 @@ public class DirectoryHelper {
 
   private static final String TAG = DirectoryHelper.class.getSimpleName();
 
-  public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret)
-      throws IOException
+  public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret) throws IOException
   {
-    CcsmApi.syncForstaContacts(context);
-    List<String> newUsers = refreshDirectory(context,
-                                             TextSecureCommunicationFactory.createManager(context),
-                                             TextSecurePreferences.getLocalNumber(context));
-
-//    if (!newUsers.isEmpty() && TextSecurePreferences.isMultiDevice(context)) {
-//      ApplicationContext.getInstance(context)
-//                        .getJobManager()
-//                        .add(new MultiDeviceContactUpdateJob(context));
-//    }
-
-//    notifyNewUsers(context, masterSecret, newUsers);
-    context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
+    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context));
   }
 
-  public static @NonNull List<String> refreshDirectory(@NonNull Context context,
-                                                       @NonNull ForstaServiceAccountManager accountManager,
-                                                       @NonNull String localNumber)
-      throws IOException
+  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber) throws IOException
   {
+    CcsmApi.syncForstaContacts(context);
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
     // Two devices had crashes because of a null UID value in the contactsDb
@@ -127,36 +105,30 @@ public class DirectoryHelper {
       directory.setNumbers(activeTokens, eligibleContactAddresses);
       contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
     }
-
-    return new LinkedList<>();
+    notifyRefresh(context);
   }
 
-  public static UserCapabilities refreshDirectoryFor(@NonNull Context context, @Nullable MasterSecret masterSecret, @NonNull Recipients recipients) {
+  public static void refreshDirectoryFor(@NonNull Context context, @Nullable MasterSecret masterSecret, @NonNull Recipients recipients) {
     TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
+    ContactDb contactsDb = DbFactory.getContactDb(context);
 
     try {
-      List<String> addresses = new ArrayList<>();
-      for (Recipient recipient : recipients) {
-        if (TextUtils.isEmpty(recipient.getSlug())) {
-          addresses.add(recipient.getNumber());
-        }
-      }
+      List<String> addresses = recipients.toNumberStringList(false);
       if (addresses.size() > 0) {
         String ids = TextUtils.join(",", addresses);
         CcsmApi.syncForstaContacts(context, ids);
-
         List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<>(addresses));
+
         if (details.size() > 0) {
           directory.setNumbers(details, new ArrayList<String>());
-          ContactDb contactsDb = DbFactory.getContactDb(context);
           contactsDb.setActiveForstaAddresses(details);
+          notifyRefresh(context);
         }
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
   }
 
   public static void refreshDirectoryFor(Context context, MasterSecret masterSecret, List<String> addresses) {
@@ -171,10 +143,20 @@ public class DirectoryHelper {
         directory.setNumbers(details, new ArrayList<String>());
         ContactDb contactsDb = DbFactory.getContactDb(context);
         contactsDb.setActiveForstaAddresses(details);
+        notifyRefresh(context);
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private static void notifyRefresh(Context context) {
+    RecipientFactory.clearCache(context);
+    context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
+  }
+
+  private static void refreshRecipients(Context context, List<String> addresses) {
+    RecipientFactory.getRecipientsFromStrings(context, new ArrayList<String>(addresses), false);
   }
 
   public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context,

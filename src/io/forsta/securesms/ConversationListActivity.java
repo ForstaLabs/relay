@@ -312,7 +312,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     public void onReceive(Context context, Intent intent) {
       Log.d(TAG, "Sync complete");
       syncIndicator.setVisibility(View.GONE);
-      RecipientFactory.clearCache(ConversationListActivity.this);
       fragment.getListAdapter().notifyDataSetChanged();
     }
   }

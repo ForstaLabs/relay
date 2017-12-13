@@ -769,7 +769,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getUserDirectory(DashboardActivity.this, null);
+      return CcsmApi.getUserDirectory(DashboardActivity.this, new ArrayList<String>());
     }
 
     @Override

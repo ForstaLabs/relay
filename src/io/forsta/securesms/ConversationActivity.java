@@ -730,25 +730,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Boolean doInBackground(Recipients... params) {
         try {
           Context           context      = ConversationActivity.this;
-          Recipients        recipients   = params[0];
 
-          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          RecipientFactory.clearCache(context);
-          recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-          if (capabilities.getTextCapability() == Capability.SUPPORTED) {
-            return true;
-          }
+          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
         } catch (Exception e) {
-          Log.w(TAG, e);
+          e.printStackTrace();
         }
-        return false;
-      }
-
-      @Override
-      protected void onPostExecute(Boolean result) {
-        if (!result) {
-          initializeEnabled(false);
-        }
+        return true;
       }
     }.execute(recipients);
 

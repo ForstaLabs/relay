@@ -182,6 +182,21 @@ public class ContactDb extends DbBase {
     return addresses;
   }
 
+  public Set<String> getOtherAddresses(Set<String> apiAddresses) {
+    Set<String> addresses = new HashSet<>();
+    String stringAddresses = TextUtils.join(",", apiAddresses);
+    try {
+      Cursor c = getRecords(TABLE_NAME, allColumns, UID + " not in (?)", new String[] {  }, UID);
+      while (c.moveToNext()) {
+        addresses.add(c.getString(c.getColumnIndex(UID)));
+      }
+      c.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return addresses;
+  }
+
   public Map<String, String> getUids() {
     Map<String, String> ids = new HashMap<>();
     try {

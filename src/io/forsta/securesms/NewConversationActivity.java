@@ -131,9 +131,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected Void doInBackground(String... strings) {
         List<String> addresses = new ArrayList<>();
-        addresses. add(strings[0]);
-        RecipientFactory.clearCache(NewConversationActivity.this);
-        DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+        addresses.add(strings[0]);
+        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+        if (user == null || TextUtils.isEmpty(user.getName())) {
+          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+        }
         return null;
       }
 
