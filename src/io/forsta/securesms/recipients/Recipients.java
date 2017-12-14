@@ -34,6 +34,7 @@ import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.NumberUtil;
 import io.forsta.securesms.util.Util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -287,6 +288,14 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       ids[i] = recipients.get(i).getRecipientId();
     }
     return ids;
+  }
+
+  public List<String> getAddresses() {
+    List<String> addresses = new ArrayList<>();
+    for (Recipient recipient : recipients) {
+      addresses.add(recipient.getNumber());
+    }
+    return addresses;
   }
 
   public String getSortedIdsString() {

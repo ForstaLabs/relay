@@ -575,6 +575,32 @@ public class ThreadDatabase extends Database {
     return -1;
   }
 
+  public Recipients getAllRecipients() {
+    Set<String> recipients = new HashSet<>();
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = db.query(TABLE_NAME, new String[] {RECIPIENT_IDS}, null, null, null, null, null);
+      while (cursor != null && cursor.moveToNext()) {
+        String ids = cursor.getString(0);
+        String[] idsArray = ids.split(",");
+        for (int i=0; i<idsArray.length; i++) {
+          recipients.add(idsArray[i]);
+        }
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+    long[] ids = new long[recipients.size()];
+    int item = 0;
+    for (String id : recipients) {
+      ids[item++] = Long.parseLong(id);
+    }
+    return RecipientFactory.getRecipientsForIds(context, ids, false);
+  }
+
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;

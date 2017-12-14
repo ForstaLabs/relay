@@ -36,6 +36,8 @@ import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -118,14 +120,21 @@ public class CcsmApi {
           cursor.close();
         }
       }
+      List<ForstaUser> knownContacts = new ArrayList<>();
       if (systemNumbers.size() > 0) {
-        JSONObject knownUsers = getUserByPhone(context, systemNumbers);
+        JSONObject knownUsers = getUsersByPhone(context, systemNumbers);
         if (isUnauthorizedResponse(knownUsers)) {
           return;
         }
-        List<ForstaUser> knownContacts = parseUsers(context, knownUsers);
-        syncForstaContactsDb(context, knownContacts, true);
+        knownContacts = parseUsers(context, knownUsers);
+      } else {
+        // See if we've already talked to some people.
+        Recipients recipients = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+        List<String> addresses = recipients.getAddresses();
+        JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(addresses));
+        knownContacts = CcsmApi.parseUsers(context, otherUsers);
       }
+      syncForstaContactsDb(context, knownContacts, true);
     } else {
       JSONObject orgUsers = getOrgUsers(context);
       if (isUnauthorizedResponse(orgUsers)) {
@@ -163,7 +172,7 @@ public class CcsmApi {
     syncForstaContactsDb(context, forstaContacts, false);
   }
 
-  public static JSONObject getUserByPhone(Context context, Set<String> phoneNumbers) {
+  public static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
     String query = "?phone_in=" + TextUtils.join(",", phoneNumbers);
     return fetchResource(context, "GET", API_USER + query);
   }
