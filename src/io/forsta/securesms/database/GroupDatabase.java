@@ -13,10 +13,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -171,7 +170,7 @@ public class GroupDatabase extends Database {
     return RecipientFactory.getRecipientsFor(context, recipients, false);
   }
 
-  public void updateGroups(List<ForstaGroup> groups, List<String> activeNumbers) {
+  public void updateGroups(List<ForstaTag> groups, List<String> activeNumbers) {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     Set<String> groupIds = new HashSet<>();
     // Don't get locally created groups.
@@ -184,7 +183,7 @@ public class GroupDatabase extends Database {
 
     db.beginTransaction();
     try {
-      for (ForstaGroup group : groups) {
+      for (ForstaTag group : groups) {
         String id = group.getEncodedId();
         List<String> members = new ArrayList<>(group.members);
         for (int i=0; i<members.size(); i++) {

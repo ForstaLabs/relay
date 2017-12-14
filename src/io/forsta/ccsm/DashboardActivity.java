@@ -30,7 +30,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
@@ -718,10 +718,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
+      List<ForstaTag> groups = CcsmApi.parseTagGroups(jsonObject);
 
       StringBuilder sb = new StringBuilder();
-      for (ForstaGroup group : groups) {
+      for (ForstaTag group : groups) {
         String groupId = group.id;
         sb.append(groupId).append("\n");
         String encoded = GroupUtil.getEncodedId(groupId.getBytes());

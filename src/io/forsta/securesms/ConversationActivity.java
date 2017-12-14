@@ -246,7 +246,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeResources();
     initializeSecurity();
     initializeDraft();
-    initializeDirectory();
+//    initializeDirectory();
   }
 
   @Override
@@ -268,7 +268,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeResources();
     initializeSecurity();
     initializeDraft();
-    initializeDirectory();
+//    initializeDirectory();
 
     if (fragment != null) {
       fragment.onNewIntent();

@@ -18,7 +18,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
 
@@ -279,8 +279,8 @@ public class CcsmApi {
     return users;
   }
 
-  public static List<ForstaGroup> parseTagGroups(JSONObject jsonObject) {
-    List<ForstaGroup> groups = new ArrayList<>();
+  public static List<ForstaTag> parseTagGroups(JSONObject jsonObject) {
+    List<ForstaTag> groups = new ArrayList<>();
 
     try {
       JSONArray results = jsonObject.getJSONArray("results");
@@ -302,7 +302,7 @@ public class CcsmApi {
           }
         }
         if (isGroup) {
-          ForstaGroup group = new ForstaGroup(result);
+          ForstaTag group = new ForstaTag(result);
           group.addMembers(members);
           groups.add(group);
         }
@@ -326,7 +326,7 @@ public class CcsmApi {
 
   private static void syncForstaGroups(Context context) {
     JSONObject response = getTags(context);
-    List<ForstaGroup> groups = parseTagGroups(response);
+    List<ForstaTag> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
     TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
     List<String> activeNumbers = dir.getActiveNumbers();

@@ -39,14 +39,17 @@ import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
+import io.forsta.securesms.util.GroupUtil;
 
 /**
  * Activity container for starting a new conversation.
@@ -131,26 +134,46 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected Void doInBackground(String... strings) {
         List<String> addresses = new ArrayList<>();
-        addresses.add(strings[0]);
-        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
-        if (user == null || TextUtils.isEmpty(user.getName())) {
-          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+        if (GroupUtil.isEncodedGroup(strings[0])) {
+          addresses.add(strings[0]);
+          //Look up group.
+          GroupDatabase.GroupRecord tag = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(address);
+          //If it is not there, because it was found in a search, add it to the GroupDatabase.
+          if (tag == null || TextUtils.isEmpty(tag.getTitle())) {
+            DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+          }
+
+        } else {
+          addresses.add(strings[0]);
+          ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+          // Add user to ContactsDb if not there.
+          if (user == null || TextUtils.isEmpty(user.getName())) {
+            DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
+          }
         }
         return null;
       }
 
       @Override
       protected void onPostExecute(Void aVoid) {
-        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
-        if (user == null || TextUtils.isEmpty(user.getName())) {
-          Toast.makeText(NewConversationActivity.this, "Unable to retrieve user information.", Toast.LENGTH_LONG).show();
+        if (GroupUtil.isEncodedGroup(address)) {
+          GroupDatabase.GroupRecord tag = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(address);
+          if (tag == null || TextUtils.isEmpty(tag.getTitle())) {
+            Toast.makeText(NewConversationActivity.this, "Unable to retrieve tag information.", Toast.LENGTH_LONG).show();
+            return;
+          }
         } else {
-          addRecipientChip(address);
-          selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
-          toolbar.clear();
-          updateToggleBar();
-          contactsFragment.resetQueryFilter();
+          ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+          if (user == null || TextUtils.isEmpty(user.getName())) {
+            Toast.makeText(NewConversationActivity.this, "Unable to retrieve user information.", Toast.LENGTH_LONG).show();
+            return ;
+          }
         }
+        addRecipientChip(address);
+        selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
+        toolbar.clear();
+        updateToggleBar();
+        contactsFragment.resetQueryFilter();
       }
     }.execute(address);
   }

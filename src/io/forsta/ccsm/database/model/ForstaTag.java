@@ -7,10 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.forsta.securesms.database.GroupDatabase;
@@ -20,8 +17,8 @@ import io.forsta.securesms.util.GroupUtil;
  * Created by jlewis on 2/24/17.
  */
 
-public class ForstaGroup {
-  private static final String TAG = ForstaGroup.class.getSimpleName();
+public class ForstaTag {
+  private static final String TAG = ForstaTag.class.getSimpleName();
   public String id;
   public String slug;
   public String org_id;
@@ -30,7 +27,7 @@ public class ForstaGroup {
   public String parent;
   public Set<String> members = new HashSet<>();
 
-  public ForstaGroup(JSONObject jsonObject) {
+  public ForstaTag(JSONObject jsonObject) {
     try {
       this.id = jsonObject.getString("id");
       this.slug = jsonObject.getString("slug");
@@ -46,7 +43,7 @@ public class ForstaGroup {
     }
   }
 
-  public ForstaGroup(Cursor cursor) {
+  public ForstaTag(Cursor cursor) {
     this.id = cursor.getString(cursor.getColumnIndex(GroupDatabase.GROUP_ID));
     this.slug = cursor.getString(cursor.getColumnIndex(GroupDatabase.SLUG));
     this.org_id = cursor.getString(cursor.getColumnIndex(GroupDatabase.ORG_ID));
