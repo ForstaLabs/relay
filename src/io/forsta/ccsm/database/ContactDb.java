@@ -339,10 +339,20 @@ public class ContactDb extends DbBase {
 
   public Cursor getActiveRecipients(String filter) {
     String queryFilter = "(" + TSREGISTERED + " = 1 AND " + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0 AND " + USERTYPE + " = 'PERSON')";
+
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
+      String user = filter;
+      String org = filter;
+      String[] parts = filter.split(":");
+      if (parts.length > 0) {
+        user = parts[0];
+        if (parts.length > 1) {
+          org = parts[1];
+        }
+      }
       queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
-      queryValues = new String[] { "%" + filter + "%", "%" + filter + "%", "%" + filter + "%"};
+      queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + org + "%"};
     }
 
     try {

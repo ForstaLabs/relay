@@ -23,6 +23,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +32,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,7 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.Util;
 
 /**
  * Activity container for starting a new conversation.
@@ -66,48 +69,43 @@ public class NewConversationActivity extends ContactSelectionActivity {
   @Override
   public void onCreate(Bundle bundle, @NonNull final MasterSecret masterSecret) {
     super.onCreate(bundle, masterSecret);
-
-
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//    toolbar.setSearchOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View view) {
-//        showProgressBar();
-//        String searchText = toolbar.getSearchText();
-//        if (!searchText.startsWith("@")) {
-//          searchText = "@" + searchText;
-//        }
-//        new AsyncTask<String, Void, ForstaDistribution>() {
-//
-//          @Override
-//          protected ForstaDistribution doInBackground(String... strings) {
-//            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
-//            if (distribution.hasRecipients()) {
-//              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
-//            }
-//            return distribution;
-//          }
-//
-//          @Override
-//          protected void onPostExecute(ForstaDistribution distribution) {
-//            hideProgressBar();
-//            if (distribution.hasWarnings()) {
-//              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
-//            }
-//            if (distribution.hasRecipients()) {
-//              String searchText = toolbar.getSearchText();
-//              if (searchText.contains(":")) {
-//                String removeDomain = searchText.substring(0, searchText.indexOf(":"));
-//                toolbar.setSearchTexttoolbar.setSearchText(removeDomain);
-//              } else {
-//                toolbar.setSearchText(searchText);
-//              }
-//            }
-//          }
-//        }.execute(searchText);
-//      }
-//    });
+
+    initListeners();
+  }
+
+  private void initListeners() {
+    toolbar.setSearchOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        showProgressBar();
+        String searchText = toolbar.getSearchText();
+        if (!searchText.startsWith("@")) {
+          searchText = "@" + searchText;
+        }
+
+        new AsyncTask<String, Void, ForstaDistribution>() {
+          @Override
+          protected ForstaDistribution doInBackground(String... strings) {
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+            if (distribution.hasRecipients()) {
+              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
+            }
+            return distribution;
+          }
+
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
+            hideProgressBar();
+            if (distribution.hasWarnings()) {
+              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
+            }
+            contactsFragment.setQueryFilter(toolbar.getSearchText());
+          }
+        }.execute(searchText);
+      }
+    });
 
     toolbar.setCreateConversationListener(new View.OnClickListener() {
       @Override

@@ -47,42 +47,13 @@ import java.util.List;
 import java.util.Set;
 
 public class DirectoryHelper {
-
-  public static class UserCapabilities {
-
-    public static final UserCapabilities UNKNOWN     = new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
-    public static final UserCapabilities UNSUPPORTED = new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
-
-    public enum Capability {
-      UNKNOWN, SUPPORTED, UNSUPPORTED
-    }
-
-    private final Capability text;
-    private final Capability voice;
-
-    public UserCapabilities(Capability text, Capability voice) {
-      this.text  = text;
-      this.voice = voice;
-    }
-
-    public Capability getTextCapability() {
-      return text;
-    }
-
-    public Capability getVoiceCapability() {
-      return voice;
-    }
-  }
-
   private static final String TAG = DirectoryHelper.class.getSimpleName();
 
-  public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret) throws IOException
-  {
+  public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret) throws IOException {
     refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context));
   }
 
-  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber) throws IOException
-  {
+  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber) throws IOException {
     CcsmApi.syncForstaContacts(context);
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
@@ -99,7 +70,6 @@ public class DirectoryHelper {
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
         eligibleContactAddresses.remove(activeToken.getNumber());
-        activeToken.setNumber(activeToken.getNumber()); //Huh?
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
@@ -159,9 +129,7 @@ public class DirectoryHelper {
     RecipientFactory.getRecipientsFromStrings(context, new ArrayList<String>(addresses), false);
   }
 
-  public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context,
-                                                              @Nullable Recipients recipients)
-  {
+  public static @NonNull UserCapabilities getUserCapabilities(@NonNull Context context, @Nullable Recipients recipients) {
     try {
       if (recipients == null) {
         return UserCapabilities.UNSUPPORTED;
@@ -283,6 +251,32 @@ public class DirectoryHelper {
     } else {
       Log.w(TAG, "Failed to create account!");
       return Optional.absent();
+    }
+  }
+
+  public static class UserCapabilities {
+
+    public static final UserCapabilities UNKNOWN     = new UserCapabilities(Capability.UNKNOWN, Capability.UNKNOWN);
+    public static final UserCapabilities UNSUPPORTED = new UserCapabilities(Capability.UNSUPPORTED, Capability.UNSUPPORTED);
+
+    public enum Capability {
+      UNKNOWN, SUPPORTED, UNSUPPORTED
+    }
+
+    private final Capability text;
+    private final Capability voice;
+
+    public UserCapabilities(Capability text, Capability voice) {
+      this.text  = text;
+      this.voice = voice;
+    }
+
+    public Capability getTextCapability() {
+      return text;
+    }
+
+    public Capability getVoiceCapability() {
+      return voice;
     }
   }
 }

@@ -53,6 +53,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.ResUtil;
@@ -304,7 +305,10 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setForstaThreadTitle() {
-
+    Log.w(TAG, "Thread: " + threadId);
+    for (Recipient recipient : recipients) {
+      Log.w(TAG, "Recipient: " + recipient.getSlug() + " Active: " + recipient.getIsActive() + " Type: " + recipient.getUserType());
+    }
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
     } else {

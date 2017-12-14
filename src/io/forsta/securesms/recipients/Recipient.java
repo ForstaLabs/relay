@@ -47,6 +47,8 @@ public class Recipient {
   private @Nullable String  name;
   private @Nullable String slug;
   private @Nullable String orgSlug;
+  private boolean isActive;
+  private String userType;
   private String email;
   private boolean stale;
 
@@ -72,6 +74,8 @@ public class Recipient {
       this.color        = stale.color;
       this.slug = stale.slug;
       this.orgSlug = stale.orgSlug;
+      this.isActive = stale.isActive;
+      this.userType = stale.userType;
     }
 
     future.addListener(new FutureTaskListener<RecipientDetails>() {
@@ -86,6 +90,8 @@ public class Recipient {
             Recipient.this.color        = result.color;
             Recipient.this.slug = result.slug;
             Recipient.this.orgSlug = result.orgSlug;
+            Recipient.this.isActive = result.isActive;
+            Recipient.this.userType = result.userType;
           }
 
           notifyListeners();
@@ -108,6 +114,8 @@ public class Recipient {
     this.color        = details.color;
     this.slug = details.slug;
     this.orgSlug = details.orgSlug;
+    this.isActive = details.isActive;
+    this.userType = details.userType;
   }
 
   public synchronized @Nullable Uri getContactUri() {
@@ -124,6 +132,14 @@ public class Recipient {
 
   public synchronized @Nullable String getOrgSlug() {
     return this.orgSlug;
+  }
+
+  public synchronized boolean getIsActive() {
+    return this.isActive;
+  }
+
+  public synchronized String getUserType() {
+    return this.userType;
   }
 
   public synchronized @NonNull MaterialColor getColor() {
@@ -178,7 +194,7 @@ public class Recipient {
 
   public static Recipient getUnknownRecipient() {
     return new Recipient(-1, new RecipientDetails("Unknown", "Unknown", null,
-                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null));
+                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null, false, "PERSON"));
   }
 
   @Override

@@ -38,6 +38,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.forsta.ccsm.api.CcsmApi;
@@ -79,7 +80,7 @@ public class ContactSelectionListFragment extends    Fragment
   public final static int DISPLAY_MODE_OTHER_ONLY = ContactsCursorLoader.MODE_OTHER_ONLY;
 
   private TextView emptyText;
-  private TextView noResultsText;
+  private LinearLayout noResultsText;
 
   private Map<Long, String>         selectedContacts;
   private Set<String> selectedAddresses;
@@ -234,8 +235,6 @@ public class ContactSelectionListFragment extends    Fragment
       }
     }
   }
-
-
 
   public void removeAddress(String address) {
     selectedAddresses.remove(address);
