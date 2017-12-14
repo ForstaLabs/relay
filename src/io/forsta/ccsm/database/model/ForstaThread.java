@@ -48,4 +48,8 @@ public class ForstaThread {
   public String getTitle() {
     return !TextUtils.isEmpty(title) ? title : "";
   }
+
+  public String getRecipientIds() {
+    return recipientIds;
+  }
 }

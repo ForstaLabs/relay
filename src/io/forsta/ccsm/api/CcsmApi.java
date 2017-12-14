@@ -18,6 +18,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
+import io.forsta.ccsm.database.model.ForstaOrg;
 import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BuildConfig;
@@ -99,56 +100,57 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    JSONObject orgUsers = getOrgUsers(context);
-    if (isUnauthorizedResponse(orgUsers)) {
-      return;
-    }
-    List<ForstaUser> allContacts = parseUsers(context, orgUsers);
+    ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
 
-    // TODO Only retrieve org users that match entries in the local system contacts db?
-    List<ForstaUser> filteredContacts = new ArrayList<>();
-    Set<String> systemNumbers = new HashSet<>();
-    Cursor cursor = null;
-    try {
-      cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
-      while (cursor != null && cursor.moveToNext()) {
-        String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
-        systemNumbers.add(number);
-      }
-    } finally {
-      if (cursor != null) {
-        cursor.close();
-      }
-    }
-
-    for (int i=0; i< allContacts.size(); i++) {
-      if (systemNumbers.contains(allContacts.get(i).getPhone())) {
-        // forstaContacts.remove(i);
-        // For debugging, use another filtered list.
-        // This would restrict full directory sync to only people in local contacts db.
-        filteredContacts.add(allContacts.get(i));
-      }
-    }
-    //
-
-    Set<String> orgAddresses = new HashSet<>();
-    for (ForstaUser user : allContacts) {
-      orgAddresses.add(user.getUid());
-    }
-
-    Set<String> otherAddresses = DbFactory.getContactDb(context).getOtherAddresses(orgAddresses);
-    if (otherAddresses.size() > 0) {
-      JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(otherAddresses));
-      List<ForstaUser> otherContacts = CcsmApi.parseUsers(context, otherUsers);
-      for (ForstaUser user : otherContacts) {
-        if (!allContacts.contains(user)) {
-          allContacts.add(user);
+    if (org.getSlug().equals("public") || org.getSlug().equals("forsta")) {
+      // TODO Only retrieve org users that match entries in the local system contacts db
+      List<ForstaUser> filteredContacts = new ArrayList<>();
+      Set<String> systemNumbers = new HashSet<>();
+      Cursor cursor = null;
+      try {
+        cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
+        while (cursor != null && cursor.moveToNext()) {
+          String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
+          systemNumbers.add(number);
+        }
+      } finally {
+        if (cursor != null) {
+          cursor.close();
         }
       }
+      if (systemNumbers.size() > 0) {
+        JSONObject knownUsers = getUserByPhone(context, systemNumbers);
+        if (isUnauthorizedResponse(knownUsers)) {
+          return;
+        }
+        List<ForstaUser> knownContacts = parseUsers(context, knownUsers);
+        syncForstaContactsDb(context, knownContacts, true);
+      }
+    } else {
+      JSONObject orgUsers = getOrgUsers(context);
+      if (isUnauthorizedResponse(orgUsers)) {
+        return;
+      }
+      List<ForstaUser> allContacts = parseUsers(context, orgUsers);
+      Set<String> orgAddresses = new HashSet<>();
+      for (ForstaUser user : allContacts) {
+        orgAddresses.add(user.getUid());
+      }
+
+      Set<String> otherAddresses = DbFactory.getContactDb(context).getOtherAddresses(orgAddresses);
+      if (otherAddresses.size() > 0) {
+        JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(otherAddresses));
+        List<ForstaUser> otherContacts = CcsmApi.parseUsers(context, otherUsers);
+        for (ForstaUser user : otherContacts) {
+          if (!allContacts.contains(user)) {
+            allContacts.add(user);
+          }
+        }
+      }
+      syncForstaContactsDb(context, allContacts, false);
+      CcsmApi.syncOrgTags(context);
     }
 
-    syncForstaContactsDb(context, allContacts, false);
-    CcsmApi.syncForstaGroups(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 
@@ -159,6 +161,11 @@ public class CcsmApi {
     }
     List<ForstaUser> forstaContacts = parseUsers(context, response);
     syncForstaContactsDb(context, forstaContacts, false);
+  }
+
+  public static JSONObject getUserByPhone(Context context, Set<String> phoneNumbers) {
+    String query = "?phone_in=" + TextUtils.join(",", phoneNumbers);
+    return fetchResource(context, "GET", API_USER + query);
   }
 
   public static JSONObject getUserDirectory(Context context, String ids) {
@@ -324,7 +331,7 @@ public class CcsmApi {
     forstaDb.updateUsers(contacts, removeExisting);
   }
 
-  private static void syncForstaGroups(Context context) {
+  private static void syncOrgTags(Context context) {
     JSONObject response = getTags(context);
     List<ForstaTag> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);

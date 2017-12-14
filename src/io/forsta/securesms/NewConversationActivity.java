@@ -136,9 +136,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
         List<String> addresses = new ArrayList<>();
         if (GroupUtil.isEncodedGroup(strings[0])) {
           addresses.add(strings[0]);
-          //Look up group.
           GroupDatabase.GroupRecord tag = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(address);
-          //If it is not there, because it was found in a search, add it to the GroupDatabase.
           if (tag == null || TextUtils.isEmpty(tag.getTitle())) {
             DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
           }
@@ -146,7 +144,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
         } else {
           addresses.add(strings[0]);
           ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
-          // Add user to ContactsDb if not there.
           if (user == null || TextUtils.isEmpty(user.getName())) {
             DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
           }

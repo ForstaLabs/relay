@@ -28,6 +28,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
@@ -80,6 +81,7 @@ public class ThreadDatabase extends Database {
   public static final String DISTRIBUTION = "distribution";
   public static final String TITLE = "title";
   public static final String UID = "uid";
+  public static final String PRETTY_EXPRESSION = "pretty_expression";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -91,7 +93,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -516,6 +518,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, UUID.randomUUID().toString());
     contentValues.put(DISTRIBUTION, distribution.universal);
+    contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
@@ -524,7 +527,7 @@ public class ThreadDatabase extends Database {
     return getForstaThread(threadId);
   }
 
-  public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+  public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues contentValues = new ContentValues(5);
@@ -535,6 +538,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, forstaMessage.getThreadUId());
     contentValues.put(DISTRIBUTION, forstaMessage.getUniversalExpression());
+    contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
 
@@ -544,13 +548,13 @@ public class ThreadDatabase extends Database {
     return threadId;
   }
 
-  public long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+  public long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage, ForstaDistribution distribution) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     long threadId = getThreadIdForUid(forstaMessage.getThreadUId());
     if (threadId == -1) {
-      threadId = allocateThreadId(recipients, forstaMessage);
+      threadId = allocateThreadId(recipients, forstaMessage, distribution);
     } else {
-      updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.getThreadTitle());
+      updateForstaThread(threadId, recipients, forstaMessage, distribution);
     }
     return threadId;
   }
@@ -635,17 +639,37 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public void updateForstaThread(long threadId, Recipients recipients, String distribution, String title) {
+  public void updateForstaThread(long threadId, ForstaDistribution distribution) {
+    Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ForstaThread forstaThread = getForstaThread(threadId);
+
+    ContentValues values = new ContentValues();
+    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution) || !forstaThread.getRecipientIds().equals(recipientsList)) {
+      values.put(RECIPIENT_IDS, recipientsList);
+      values.put(DISTRIBUTION, distribution.universal);
+      values.put(PRETTY_EXPRESSION, distribution.pretty);
+    }
+    if (values.size() > 0) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+      notifyConversationListListeners();
+    }
+  }
+
+  public void updateForstaThread(long threadId, Recipients recipients, ForstaMessage message, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ForstaThread forstaThread = getForstaThread(threadId);
     ContentValues values = new ContentValues();
-    if (!TextUtils.equals(forstaThread.title, title)) {
-      values.put(TITLE, title);
+    if (!TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
+      values.put(TITLE, message.getThreadTitle());
     }
-    if (!TextUtils.isEmpty(distribution) && !distribution.equals(forstaThread.distribution)) {
+    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
       values.put(RECIPIENT_IDS, recipientsList);
-      values.put(DISTRIBUTION, distribution);
+      values.put(DISTRIBUTION, distribution.universal);
+      values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();

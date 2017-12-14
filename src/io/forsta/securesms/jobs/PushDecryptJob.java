@@ -221,8 +221,9 @@ public class PushDecryptJob extends ContextJob {
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
-    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    Recipients recipients = getDistributionRecipients(distribution);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
@@ -320,8 +321,9 @@ public class PushDecryptJob extends ContextJob {
     Recipients  sender = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
-    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    Recipients recipients = getDistributionRecipients(distribution);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     OutgoingExpirationUpdateMessage expirationUpdateMessage = new OutgoingExpirationUpdateMessage(recipients,
         message.getTimestamp(),
@@ -350,8 +352,9 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
     if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
-      Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
-      long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
+      ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+      Recipients recipients = getDistributionRecipients(distribution);
+      long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
       if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
         handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
@@ -403,6 +406,13 @@ public class PushDecryptJob extends ContextJob {
     throw new InvalidMessagePayloadException("No recipients found in message.");
   }
 
+  private Recipients getDistributionRecipients(ForstaDistribution distribution) throws InvalidMessagePayloadException {
+    if (distribution.hasRecipients()) {
+      return RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    }
+    throw new InvalidMessagePayloadException("No recipients found in message.");
+  }
+
   private void handleContentMessage(ForstaMessage forstaMessage,
                                     MasterSecretUnion masterSecret,
                                     SignalServiceDataMessage message,
@@ -418,10 +428,13 @@ public class PushDecryptJob extends ContextJob {
         message.getGroupInfo(),
         message.getAttachments());
 
-    Recipients recipients = getDistributionRecipients(forstaMessage.getUniversalExpression());
+
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
-    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage);
+    // Update the recipients cache?
+//    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
