@@ -33,6 +33,7 @@ import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
@@ -113,7 +114,12 @@ public class CcsmApi {
         cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
         while (cursor != null && cursor.moveToNext()) {
           String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
-          systemNumbers.add(number);
+          try {
+            number = Util.canonicalizeNumberE164(number);
+            systemNumbers.add(number);
+          } catch (InvalidNumberException e) {
+            e.printStackTrace();
+          }
         }
       } finally {
         if (cursor != null) {
@@ -127,13 +133,13 @@ public class CcsmApi {
           return;
         }
         knownContacts = parseUsers(context, knownUsers);
-      } else {
-        // See if we've already talked to some people.
-        Recipients recipients = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
-        List<String> addresses = recipients.getAddresses();
-        JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(addresses));
-        knownContacts = CcsmApi.parseUsers(context, otherUsers);
       }
+      // See if we've already talked to some people.
+      Recipients recipients = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+      List<String> addresses = recipients.getAddresses();
+      JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(addresses));
+      knownContacts = CcsmApi.parseUsers(context, otherUsers);
+
       syncForstaContactsDb(context, knownContacts, true);
     } else {
       JSONObject orgUsers = getOrgUsers(context);
