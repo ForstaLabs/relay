@@ -127,7 +127,7 @@ public class ThreadDatabase extends Database {
   private String getRecipientsAsString(long[] recipientIds) {
     StringBuilder sb = new StringBuilder();
     for (int i=0;i<recipientIds.length;i++) {
-      if (i != 0) sb.append(' ');
+      if (i != 0) sb.append(" ");
       sb.append(recipientIds[i]);
     }
 
@@ -583,7 +583,7 @@ public class ThreadDatabase extends Database {
       cursor = db.query(TABLE_NAME, new String[] {RECIPIENT_IDS}, null, null, null, null, null);
       while (cursor != null && cursor.moveToNext()) {
         String ids = cursor.getString(0);
-        String[] idsArray = ids.split(",");
+        String[] idsArray = ids.split(" ");
         for (int i=0; i<idsArray.length; i++) {
           recipients.add(idsArray[i]);
         }

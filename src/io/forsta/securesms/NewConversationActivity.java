@@ -16,7 +16,6 @@
  */
 package io.forsta.securesms;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -25,23 +24,25 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
+import android.util.Log;
+import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.components.SelectedRecipient;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -81,29 +82,25 @@ public class NewConversationActivity extends ContactSelectionActivity {
       public void onClick(View view) {
         showProgressBar();
         String searchText = toolbar.getSearchText();
-        if (!searchText.startsWith("@")) {
-          searchText = "@" + searchText;
+        // check to see if it is a phone number or email. If not, assume expression.
+        if (PhoneNumberUtils.isGlobalPhoneNumber(searchText)) {
+          Log.w(TAG, "Phone input");
+          try {
+            String e164Number = Util.canonicalizeNumberE164(searchText);
+            lookupUsersByPhone(e164Number);
+          } catch (InvalidNumberException e) {
+            Toast.makeText(NewConversationActivity.this, "Invalid phone", Toast.LENGTH_LONG).show();
+          }
+        } else if (Patterns.EMAIL_ADDRESS.matcher(searchText).matches()) {
+          Log.w(TAG, "Email input");
+          lookupUsersByEmail(searchText);
+        } else {
+          Log.w(TAG, "Expression input");
+          if (!searchText.startsWith("@")) {
+            searchText = "@" + searchText;
+          }
+          lookupUsersByExpression(searchText);
         }
-
-        new AsyncTask<String, Void, ForstaDistribution>() {
-          @Override
-          protected ForstaDistribution doInBackground(String... strings) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
-            if (distribution.hasRecipients()) {
-              DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
-            }
-            return distribution;
-          }
-
-          @Override
-          protected void onPostExecute(ForstaDistribution distribution) {
-            hideProgressBar();
-            if (distribution.hasWarnings()) {
-              Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
-            }
-            contactsFragment.setQueryFilter(toolbar.getSearchText());
-          }
-        }.execute(searchText);
       }
     });
 
@@ -308,5 +305,83 @@ public class NewConversationActivity extends ContactSelectionActivity {
     inflater.inflate(R.menu.new_conversation_activity, menu);
     super.onPrepareOptionsMenu(menu);
     return true;
+  }
+
+  private void lookupUsersByPhone(final String number) {
+    new AsyncTask<String, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(String... strings) {
+        String phone = strings[0];
+        Set<String> numbers = new HashSet<>();
+        numbers.add(phone);
+        List<ForstaUser> users = CcsmApi.getForstaUsersByPhone(NewConversationActivity.this, numbers);
+        List<String> results = new ArrayList<>();
+        for (ForstaUser user: users) {
+          results.add(user.getUid());
+        }
+        if (results.size() > 0) {
+          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, results);
+        }
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(Void aVoid) {
+        hideProgressBar();
+        toolbar.setSearchText("");
+        contactsFragment.setQueryFilter("");
+      }
+    }.execute(number);
+  }
+
+  private void lookupUsersByEmail(String email) {
+    new AsyncTask<String, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(String... strings) {
+        String email = strings[0];
+        Set<String> emails = new HashSet<>();
+        emails.add(email);
+        List<ForstaUser> users = CcsmApi.getForstaUsersByEmail(NewConversationActivity.this, emails);
+        List<String> results = new ArrayList<>();
+        for (ForstaUser user: users) {
+          results.add(user.getUid());
+        }
+        if (results.size() > 0) {
+          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, results);
+        }
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(Void aVoid) {
+        hideProgressBar();
+        toolbar.setSearchText("");
+        contactsFragment.setQueryFilter("");
+      }
+    }.execute(email);
+  }
+
+  private void lookupUsersByExpression(String expression) {
+    new AsyncTask<String, Void, ForstaDistribution>() {
+      @Override
+      protected ForstaDistribution doInBackground(String... strings) {
+        ForstaDistribution distribution = CcsmApi.getMessageDistribution(NewConversationActivity.this, strings[0]);
+        if (distribution.hasRecipients()) {
+          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, distribution.getRecipients(NewConversationActivity.this));
+        }
+        return distribution;
+      }
+
+      @Override
+      protected void onPostExecute(ForstaDistribution distribution) {
+        hideProgressBar();
+        if (distribution.hasWarnings()) {
+          Toast.makeText(NewConversationActivity.this, distribution.getWarnings(), Toast.LENGTH_LONG).show();
+        }
+        contactsFragment.setQueryFilter(toolbar.getSearchText());
+      }
+    }.execute(expression);
   }
 }
