@@ -68,6 +68,16 @@ public class CcsmApi {
   private CcsmApi() {
   }
 
+  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
+    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+  }
+
+  public static JSONObject createAccount(JSONObject jsonObject) {
+    String host = BuildConfig.FORSTA_API_URL;
+    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
+    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
+  }
+
   public static JSONObject forstaLogin(Context context, String authToken) {
     String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = new JSONObject();
@@ -99,6 +109,41 @@ public class CcsmApi {
   public static JSONObject forstaSendToken(Context context, String org, String username) {
     String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = NetworkUtils.apiFetch("GET", null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
+    return result;
+  }
+
+  public static boolean tokenNeedsRefresh(Context context) {
+    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
+    if (expireDate == null) {
+      return false;
+    }
+    Date current = new Date();
+    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
+    long expireDelta = EXPIRE_REFRESH_DELTA;
+    boolean expired = expiresIn < expireDelta;
+
+    Log.d(TAG, "Token expires in: " + expiresIn);
+    return expired;
+  }
+
+  public static JSONObject forstaRefreshToken(Context context) {
+    JSONObject result = new JSONObject();
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("token", ForstaPreferences.getRegisteredKey(context));
+      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
+      if (result.has("token")) {
+        Log.w(TAG, "Token refresh. New token issued.");
+        String token = result.getString("token");
+        ForstaPreferences.setRegisteredForsta(context, token);
+      } else {
+        Log.w(TAG, "Token refresh failed.");
+        ForstaPreferences.setRegisteredForsta(context, "");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "forstaRefreshToken failed");
+    }
     return result;
   }
 
@@ -155,13 +200,24 @@ public class CcsmApi {
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 
-  public static void syncForstaContacts(Context context, String ids) {
-    JSONObject response = getUserDirectory(context, ids);
-    if (isUnauthorizedResponse(response)) {
-      return;
-    }
+  public static void syncForstaContacts(Context context, List<String> addresses) {
+    JSONObject response = getUserDirectory(context, addresses);
     List<ForstaUser> forstaContacts = parseUsers(context, response);
     syncForstaContactsDb(context, forstaContacts, false);
+  }
+
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
+    ContactDb forstaDb = DbFactory.getContactDb(context);
+    forstaDb.updateUsers(contacts, removeExisting);
+  }
+
+  private static void syncOrgTags(Context context) {
+    JSONObject response = getTags(context);
+    List<ForstaTag> groups = parseTagGroups(response);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+    db.updateGroups(groups, activeNumbers);
   }
 
   private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
@@ -169,26 +225,8 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 
-  public static List<ForstaUser> getForstaUsersByPhone(Context context, Set<String> phoneNumbers) {
-    JSONObject jsonObject = getUsersByPhone(context, phoneNumbers);
-    return parseUsers(context, jsonObject);
-  }
-
   private static JSONObject getUsersByEmail(Context context, Set<String> emailAddresses) {
     String query = "?email_in=" + TextUtils.join(",", emailAddresses);
-    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
-  }
-
-  public static List<ForstaUser> getForstaUsersByEmail(Context context, Set<String> emailAddresses) {
-    JSONObject jsonObject = getUsersByEmail(context, emailAddresses);
-    return parseUsers(context, jsonObject);
-  }
-
-  public static JSONObject getUserDirectory(Context context, String ids) {
-    String query = "";
-    if (!TextUtils.isEmpty(ids)) {
-      query = "?id_in=" + ids;
-    }
     return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 
@@ -201,34 +239,33 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 
-  public static JSONObject getDomainDirectory(Context context) {
+  public static JSONObject getOrgDirectory(Context context) {
     return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
   }
 
-  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
-    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+  public static JSONObject getOrg(Context context) {
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    return getOrg(context, localAccount.org_id);
   }
 
-  public static JSONObject createAccount(JSONObject jsonObject) {
-    String host = BuildConfig.FORSTA_API_URL;
-    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
-    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
-  }
-
-  public static JSONObject getForstaUser(Context context) {
-    return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
-  }
-
-  public static JSONObject getUserPick(Context context) {
-    return fetchResource(context, "GET", API_USER_PICK);
+  public static JSONObject getOrg(Context context, String id) {
+    return fetchResource(context, "GET", API_ORG + id + "/");
   }
 
   public static JSONObject getOrgUsers(Context context) {
     return fetchResource(context, "GET", API_USER);
   }
 
+  public static JSONObject getForstaUser(Context context) {
+    return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
+  }
+
   public static JSONObject getTags(Context context) {
     return fetchResource(context, "GET", API_TAG);
+  }
+
+  public static JSONObject getUserPick(Context context) {
+    return fetchResource(context, "GET", API_USER_PICK);
   }
 
   public static JSONObject getTagPick(Context context) {
@@ -250,13 +287,17 @@ public class CcsmApi {
     return response;
   }
 
-  public static JSONObject getOrg(Context context) {
-    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
-    return getOrg(context, localAccount.org_id);
-  }
-
-  public static JSONObject getOrg(Context context, String id) {
-    return fetchResource(context, "GET", API_ORG + id + "/");
+  public static JSONObject searchUserDirectory(Context context, String searchText) {
+    JSONObject response = new JSONObject();
+    try {
+      String urlEncoded = TextUtils.isEmpty(searchText) ? "" : URLEncoder.encode(searchText, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?q=" + urlEncoded);
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return response;
   }
 
   private static JSONObject fetchResource(Context context, String method, String urn) {
@@ -275,6 +316,7 @@ public class CcsmApi {
     return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
   }
 
+  // Helper methods and mapper functions. Move these.
   public static String parseLoginToken(String authtoken) {
     if (authtoken.contains("/")) {
       String[] parts = authtoken.split("/");
@@ -338,22 +380,18 @@ public class CcsmApi {
   }
 
   public static ForstaDistribution getMessageDistribution(Context context, String expression) {
-    JSONObject response = CcsmApi.getDistribution(context, expression);
+    JSONObject response = getDistribution(context, expression);
     return ForstaDistribution.fromJson(response);
   }
 
-  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
-    ContactDb forstaDb = DbFactory.getContactDb(context);
-    forstaDb.updateUsers(contacts, removeExisting);
+  public static List<ForstaUser> getForstaUsersByPhone(Context context, Set<String> phoneNumbers) {
+    JSONObject jsonObject = getUsersByPhone(context, phoneNumbers);
+    return parseUsers(context, jsonObject);
   }
 
-  private static void syncOrgTags(Context context) {
-    JSONObject response = getTags(context);
-    List<ForstaTag> groups = parseTagGroups(response);
-    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    db.updateGroups(groups, activeNumbers);
+  public static List<ForstaUser> getForstaUsersByEmail(Context context, Set<String> emailAddresses) {
+    JSONObject jsonObject = getUsersByEmail(context, emailAddresses);
+    return parseUsers(context, jsonObject);
   }
 
   private static boolean isUnauthorizedResponse(JSONObject response) {
@@ -373,54 +411,6 @@ public class CcsmApi {
       }
     }
     return false;
-  }
-
-  public static boolean tokenNeedsRefresh(Context context) {
-    Date expireDate = ForstaPreferences.getTokenExpireDate(context);
-    if (expireDate == null) {
-      return false;
-    }
-    Date current = new Date();
-    long expiresIn = (expireDate.getTime() - current.getTime()) / (1000 * 60 * 60 * 24);
-    long expireDelta = EXPIRE_REFRESH_DELTA;
-    boolean expired = expiresIn < expireDelta;
-
-    Log.d(TAG, "Token expires in: " + expiresIn);
-    return expired;
-  }
-
-  public static JSONObject forstaRefreshToken(Context context) {
-    JSONObject result = new JSONObject();
-    try {
-      JSONObject obj = new JSONObject();
-      obj.put("token", ForstaPreferences.getRegisteredKey(context));
-      result = fetchResource(context, "POST", API_TOKEN_REFRESH, obj);
-      if (result.has("token")) {
-        Log.w(TAG, "Token refresh. New token issued.");
-        String token = result.getString("token");
-        ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.w(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      Log.e(TAG, "forstaRefreshToken failed");
-    }
-    return result;
-  }
-
-  public static JSONObject searchUserDirectory(Context context, String searchText) {
-    JSONObject response = new JSONObject();
-    try {
-      String urlEncoded = TextUtils.isEmpty(searchText) ? "" : URLEncoder.encode(searchText, "UTF-8");
-      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?q=" + urlEncoded);
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return response;
   }
 
   // XXX obsolete XXX

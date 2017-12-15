@@ -86,10 +86,8 @@ public class DirectoryHelper {
     try {
       List<String> addresses = recipients.toNumberStringList(false);
       if (addresses.size() > 0) {
-        String ids = TextUtils.join(",", addresses);
-        CcsmApi.syncForstaContacts(context, ids);
+        CcsmApi.syncForstaContacts(context, addresses);
         List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<>(addresses));
-
         if (details.size() > 0) {
           directory.setNumbers(details, new ArrayList<String>());
           contactsDb.setActiveForstaAddresses(details);
@@ -104,16 +102,17 @@ public class DirectoryHelper {
   public static void refreshDirectoryFor(Context context, MasterSecret masterSecret, List<String> addresses) {
     TextSecureDirectory           directory      = TextSecureDirectory.getInstance(context);
     ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
-    String ids = TextUtils.join(",", addresses);
-    CcsmApi.syncForstaContacts(context, ids);
 
     try {
-      List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
-      if (details.size() > 0) {
-        directory.setNumbers(details, new ArrayList<String>());
-        ContactDb contactsDb = DbFactory.getContactDb(context);
-        contactsDb.setActiveForstaAddresses(details);
-        notifyRefresh(context);
+      if (addresses.size() > 0) {
+        CcsmApi.syncForstaContacts(context, addresses);
+        List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<String>(addresses));
+        if (details.size() > 0) {
+          directory.setNumbers(details, new ArrayList<String>());
+          ContactDb contactsDb = DbFactory.getContactDb(context);
+          contactsDb.setActiveForstaAddresses(details);
+          notifyRefresh(context);
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
