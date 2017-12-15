@@ -139,7 +139,7 @@ public class CcsmApi {
       }
     }
 
-    if (!org.getSlug().equals("public") || !org.getSlug().equals("forsta")) {
+    if (!(org.getSlug().equals("public") || org.getSlug().equals("forsta"))) {
       JSONObject orgUsers = getOrgUsers(context);
       List<ForstaUser> orgContacts = parseUsers(context, orgUsers);
       for (ForstaUser user : orgContacts) {
@@ -147,10 +147,11 @@ public class CcsmApi {
           allContacts.add(user);
         }
       }
+      syncForstaContactsDb(context, allContacts, false);
+      CcsmApi.syncOrgTags(context);
+    } else {
+      syncForstaContactsDb(context, allContacts, true);
     }
-
-    syncForstaContactsDb(context, allContacts, false);
-    CcsmApi.syncOrgTags(context);
     ForstaPreferences.setForstaContactSync(context, new Date().getTime());
   }
 

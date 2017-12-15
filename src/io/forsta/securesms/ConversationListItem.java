@@ -311,12 +311,11 @@ public class ConversationListItem extends RelativeLayout
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
     } else {
-      if (!TextUtils.isEmpty(this.threadExpression)) {
+      if (!TextUtils.isEmpty(this.threadExpression) && !recipients.isSingleRecipient()) {
         this.fromView.setForstaTitle(this.threadExpression, read);
       } else {
         this.fromView.setText(recipients, read);
       }
-
     }
   }
 }
