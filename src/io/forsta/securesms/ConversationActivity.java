@@ -632,30 +632,33 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (isConnected) {
       if (thread == null) {
         // This should never happen.
-        new AsyncTask<Void, Void, ForstaThread>() {
+        new AsyncTask<Void, Void, ForstaDistribution>() {
           @Override
-          protected ForstaThread doInBackground(Void... voids) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, recipients.getRecipientExpression());
-            return DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
+          protected ForstaDistribution doInBackground(Void... voids) {
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, recipients.getRecipientExpression());
           }
 
           @Override
-          protected void onPostExecute(ForstaThread thread) {
-            threadId = thread.getThreadid();
-            forstaThread = thread;
+          protected void onPostExecute(ForstaDistribution distribution) {
+            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
+            threadId = updatedThread.getThreadid();
+            forstaThread = updatedThread;
           }
         }.execute();
       } else {
         // Update existing tag distribution users in thread.
-        new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, ForstaDistribution>() {
           @Override
-          protected Void doInBackground(Void... voids) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, forstaThread.getDistribution());
+          protected ForstaDistribution doInBackground(Void... voids) {
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, forstaThread.getDistribution());
+          }
+
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
             if (distribution != null) {
               recipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, distribution.getRecipients(ConversationActivity.this), false);
               DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
             }
-            return null;
           }
         }.execute();
       }

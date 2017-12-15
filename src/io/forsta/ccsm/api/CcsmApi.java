@@ -129,11 +129,13 @@ public class CcsmApi {
     // See if we've already talked to some people.
     Recipients recipients = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
     List<String> addresses = recipients.getAddresses();
-    JSONObject threadUsers = getUserDirectory(context, new ArrayList<String>(addresses));
-    List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
-    for (ForstaUser user : threadContacts) {
-      if (!allContacts.contains(user)) {
-        allContacts.add(user);
+    if (addresses.size() > 0) {
+      JSONObject threadUsers = getUserDirectory(context, new ArrayList<String>(addresses));
+      List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
+      for (ForstaUser user : threadContacts) {
+        if (!allContacts.contains(user)) {
+          allContacts.add(user);
+        }
       }
     }
 
@@ -145,22 +147,6 @@ public class CcsmApi {
           allContacts.add(user);
         }
       }
-
-//      Set<String> orgAddresses = new HashSet<>();
-//      for (ForstaUser user : allContacts) {
-//        orgAddresses.add(user.getUid());
-//      }
-
-//      Set<String> otherAddresses = DbFactory.getContactDb(context).getOtherAddresses(orgAddresses);
-//      if (otherAddresses.size() > 0) {
-//        JSONObject otherUsers = CcsmApi.getUserDirectory(context, new ArrayList<String>(otherAddresses));
-//        List<ForstaUser> otherContacts = CcsmApi.parseUsers(context, otherUsers);
-//        for (ForstaUser user : otherContacts) {
-//          if (!allContacts.contains(user)) {
-//            allContacts.add(user);
-//          }
-//        }
-//      }
     }
 
     syncForstaContactsDb(context, allContacts, false);

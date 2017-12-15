@@ -82,6 +82,7 @@ public class ThreadDatabase extends Database {
   public static final String TITLE = "title";
   public static final String UID = "uid";
   public static final String PRETTY_EXPRESSION = "pretty_expression";
+  public static final String PINNNED = "pinned";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -93,7 +94,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNNED + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -596,7 +597,11 @@ public class ThreadDatabase extends Database {
     long[] ids = new long[recipients.size()];
     int item = 0;
     for (String id : recipients) {
-      ids[item++] = Long.parseLong(id);
+      try {
+        ids[item++] = Long.parseLong(id);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     return RecipientFactory.getRecipientsForIds(context, ids, false);
   }
@@ -675,8 +680,8 @@ public class ThreadDatabase extends Database {
     if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution) || !forstaThread.getRecipientIds().equals(recipientsList)) {
       values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution.universal);
-      values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
+    values.put(PRETTY_EXPRESSION, distribution.pretty);
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
@@ -695,8 +700,8 @@ public class ThreadDatabase extends Database {
     if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
       values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution.universal);
-      values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
+    values.put(PRETTY_EXPRESSION, distribution.pretty);
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
@@ -813,10 +818,11 @@ public class ThreadDatabase extends Database {
       String threadUid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
       Uri snippetUri          = getSnippetUri(cursor);
       String color = cursor.getString(cursor.getColumnIndexOrThrow(ThreadPreferenceDatabase.COLOR));
+      String expression = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.PRETTY_EXPRESSION));
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid, color);
+                              expiresIn, distribution, title, threadUid, color, expression);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {

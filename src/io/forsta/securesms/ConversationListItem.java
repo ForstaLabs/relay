@@ -37,6 +37,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
@@ -101,6 +102,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private String forstaThreadTitle;
+  private String threadExpression;
   private MaterialColor threadColor;
 
   public ConversationListItem(Context context) {
@@ -141,6 +143,7 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
+    this.threadExpression = thread.getPrettyExpression();
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
     subjectView.setText(forstaMessage.getTextBody());
@@ -308,7 +311,12 @@ public class ConversationListItem extends RelativeLayout
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
     } else {
-      this.fromView.setText(recipients, read);
+      if (!TextUtils.isEmpty(this.threadExpression)) {
+        this.fromView.setForstaTitle(this.threadExpression, read);
+      } else {
+        this.fromView.setText(recipients, read);
+      }
+
     }
   }
 }
