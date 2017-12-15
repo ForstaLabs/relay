@@ -864,7 +864,7 @@ public class DatabaseFactory {
       }
 
       if (oldVersion < INTRODUCE_FORSTA_THREAD_PINNING) {
-        db.execSQL("ALTER TABLE thread ADD COLUMN pinned INTEGER DEFAULLT 0");
+        db.execSQL("ALTER TABLE thread ADD COLUMN pinned INTEGER DEFAULT 0");
       }
 
       db.setTransactionSuccessful();
