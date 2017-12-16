@@ -28,15 +28,12 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
-import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
-import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
@@ -47,7 +44,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.util.Util;
+
 import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.util.ArrayList;
@@ -83,7 +80,7 @@ public class ThreadDatabase extends Database {
   public static final String TITLE = "title";
   public static final String UID = "uid";
   public static final String PRETTY_EXPRESSION = "pretty_expression";
-  public static final String PINNNED = "pinned";
+  public static final String PINNED = "pinned";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -95,7 +92,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNNED + " INTEGER DEFAULT 0);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -353,7 +350,7 @@ public class ThreadDatabase extends Database {
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
 
-    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
+    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, PINNED + " DESC, " + DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -365,7 +362,7 @@ public class ThreadDatabase extends Database {
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, PINNED + " DESC, " + DATE + " DESC");
     setNotifyConverationListListeners(cursor);
     return cursor;
   }
@@ -616,6 +613,13 @@ public class ThreadDatabase extends Database {
     }
 
     return null;
+  }
+
+  public void updatePinned(long threadId, boolean pinned) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(PINNED, pinned);
+    db.update(TABLE_NAME, values, ID_WHERE, new String[] {String.valueOf(threadId)});
   }
 
   public void updateReadState(long threadId) {

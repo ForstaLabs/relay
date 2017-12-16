@@ -20,11 +20,14 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -84,6 +87,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private TextView forstaExpression;
   private ImageButton forstaSaveTitle;
   private Recipients recipients;
+  private CheckBox pinnedToggle;
   private MasterSecret masterSecret;
 
   @Override
@@ -147,6 +151,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     forstaExpression = (TextView) findViewById(R.id.forsta_thread_expression);
     forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
     forstaSaveTitle.setOnClickListener(new TitleSaveClickListener());
+    pinnedToggle = (CheckBox) findViewById(R.id.forsta_thread_pinned_toggle);
+
   }
 
   private void initializeThread() {
@@ -180,6 +186,14 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       }
     });
     title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
+
+    pinnedToggle.setActivated(thread.isPinned());
+    pinnedToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updatePinned(threadId, isChecked);
+      }
+    });
 
     if (BuildConfig.FLAVOR.equals("dev")) {
       forstaUid.setText(thread.uid);

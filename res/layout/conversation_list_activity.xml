@@ -22,15 +22,13 @@
                       android:layout_gravity="center_horizontal"/>
         </LinearLayout>
 
-
         <FrameLayout
             android:id="@+id/forsta_conversation_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="vertical" android:layout_above="@id/layout_container"/>
-
-
+            android:orientation="vertical"
+            android:layout_above="@id/layout_container"/>
 
     </RelativeLayout>
     <LinearLayout
