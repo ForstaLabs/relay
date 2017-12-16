@@ -338,7 +338,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue) {
         DatabaseFactory.getThreadDatabase(getActivity()).updatePinned(threadId, (Boolean)newValue);
-        return false;
+        return true;
       }
     }
 
