@@ -595,6 +595,7 @@ public class ThreadDatabase extends Database {
         cursor.close();
       }
     }
+
     return CanonicalAddressDatabase.getInstance(context).getCanonicalAddresses(new ArrayList<>(recipients));
   }
 

@@ -151,8 +151,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
   private void initializeThread() {
     recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
-    threadRecipients.setText(getRecipientData(recipients));
     final ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    threadRecipients.setText(thread.getPrettyExpression());
     if (!TextUtils.isEmpty(thread.getTitle())) {
       forstaTitle.setText(thread.getTitle());
     } else {

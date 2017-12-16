@@ -17,12 +17,14 @@ public class ForstaThread {
   public String title;
   public String distribution;
   private String recipientIds;
+  private String pretty;
 
-  public ForstaThread(long threadid, String uid, String title, String distribution) {
+  private ForstaThread(long threadid, String uid, String title, String distribution, String pretty) {
     this.threadid = threadid;
     this.uid = uid;
     this.title = title;
     this.distribution = distribution;
+    this.pretty = pretty;
   }
 
   public ForstaThread(Cursor cursor) {
@@ -31,6 +33,7 @@ public class ForstaThread {
     distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
     title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));
     recipientIds = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.RECIPIENT_IDS));
+    pretty = cursor.getString(cursor.getColumnIndex(ThreadDatabase.PRETTY_EXPRESSION));
   }
 
   public long getThreadid() {
@@ -51,5 +54,9 @@ public class ForstaThread {
 
   public String getRecipientIds() {
     return recipientIds;
+  }
+
+  public String getPrettyExpression() {
+    return pretty;
   }
 }
