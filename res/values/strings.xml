@@ -835,8 +835,10 @@
 
     <string name="thread_preferences__title">Conversation Title</string>
     <string name="thread_preferences__recipients">Recipients</string>
+    <string name="thread_preferences_pin_conversation">Pinned</string>
     <string name="thread_preferences__mute_conversation">Mute conversation</string>
     <string name="thread_preferences__disable_notifications_for_this_conversation">Disable notifications for this conversation</string>
+    <string name="thread_preferences__pin_for_this_conversation">Pin this conversation</string>
     <string name="thread_preferences__notification_sound">Notification sound</string>
     <string name="thread_preferences__vibrate">Vibrate</string>
     <string name="thread_preferences__block">Block</string>

@@ -2,6 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:app="http://schemas.android.com/apk/res-auto">
     <io.forsta.securesms.components.SwitchPreferenceCompat
+        android:key="pref_key_thread_pinned"
+        android:title="@string/thread_preferences_pin_conversation"
+        android:summary="@string/thread_preferences__pin_for_this_conversation"
+        android:defaultValue="false"
+        android:disableDependentsState="true"
+        android:persistent="false" />
+    <io.forsta.securesms.components.SwitchPreferenceCompat
         android:key="pref_key_thread_mute"
         android:title="@string/thread_preferences__mute_conversation"
         android:summary="@string/thread_preferences__disable_notifications_for_this_conversation"
