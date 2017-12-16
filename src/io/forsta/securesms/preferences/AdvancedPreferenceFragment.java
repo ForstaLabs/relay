@@ -47,7 +47,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
   private static final String PUSH_MESSAGING_PREF   = "pref_toggle_push_messaging";
   private static final String SUBMIT_DEBUG_LOG_PREF = "pref_submit_debug_logs";
   private static final String FORSTA_DASHBOARD_PREFERENCE = "preference_forsta_dashboard";
-  private static final String FORSTA_OTR_PREF   = "pref_forsta_otr";
   private static final int PICK_IDENTITY_CONTACT = 1;
 
   private MasterSecret masterSecret;
@@ -70,7 +69,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
-    initializeOffTheRecordToggle();
   }
 
   @Override
@@ -87,18 +85,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     if (resultCode == Activity.RESULT_OK && reqCode == PICK_IDENTITY_CONTACT) {
       handleIdentitySelection(data);
     }
-  }
-
-  private void initializeOffTheRecordToggle() {
-    CheckBoxPreference preference = (CheckBoxPreference)this.findPreference(FORSTA_OTR_PREF);
-    preference.setEnabled(false);
-    if (ForstaPreferences.getOffTheRecord(getActivity())) {
-      preference.setChecked(true);
-    } else {
-      preference.setChecked(false);
-    }
-
-    preference.setOnPreferenceChangeListener(new OffTheRecordClickListener());
   }
 
   private void initializeIdentitySelection() {
@@ -160,17 +146,6 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
       final Intent intent = new Intent(getActivity(), ForstaLogSubmitActivity.class);
       startActivity(intent);
       return true;
-    }
-  }
-
-  private class OffTheRecordClickListener implements Preference.OnPreferenceChangeListener {
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object o) {
-      boolean value = (boolean) o;
-      ForstaPreferences.setOffTheRecord(getActivity(), value);
-      initializeOffTheRecordToggle();
-      return value;
     }
   }
 

@@ -148,7 +148,6 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
-    ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
     Set<String> systemNumbers = new HashSet<>();
     Cursor cursor = null;
     try {
@@ -169,13 +168,17 @@ public class CcsmApi {
     }
     List<ForstaUser> allContacts = new ArrayList<>();
     if (systemNumbers.size() > 0) {
+      // This is not returning anything.
       allContacts = getForstaUsersByPhone(context, systemNumbers);
     }
     // See if we've already talked to some people.
-    Recipients recipients = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
-    List<String> addresses = recipients.getAddresses();
+    long time = System.currentTimeMillis();
+    Log.w(TAG, "Start: " + time);
+    List<String> addresses = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+    long total = System.currentTimeMillis() - time;
+    Log.w(TAG, "Stop. Total: " + total);
     if (addresses.size() > 0) {
-      JSONObject threadUsers = getUserDirectory(context, new ArrayList<String>(addresses));
+      JSONObject threadUsers = getUserDirectory(context, addresses);
       List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
       for (ForstaUser user : threadContacts) {
         if (!allContacts.contains(user)) {
@@ -184,6 +187,7 @@ public class CcsmApi {
       }
     }
 
+    ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
     if (!(org.getSlug().equals("public") || org.getSlug().equals("forsta"))) {
       JSONObject orgUsers = getOrgUsers(context);
       List<ForstaUser> orgContacts = parseUsers(context, orgUsers);

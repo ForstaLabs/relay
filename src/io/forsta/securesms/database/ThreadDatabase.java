@@ -50,6 +50,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.Util;
 import org.whispersystems.libsignal.InvalidMessageException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -576,7 +577,7 @@ public class ThreadDatabase extends Database {
     return -1;
   }
 
-  public Recipients getAllRecipients() {
+  public List<String> getAllRecipients() {
     Set<String> recipients = new HashSet<>();
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor = null;
@@ -594,16 +595,7 @@ public class ThreadDatabase extends Database {
         cursor.close();
       }
     }
-    long[] ids = new long[recipients.size()];
-    int item = 0;
-    for (String id : recipients) {
-      try {
-        ids[item++] = Long.parseLong(id);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-    return RecipientFactory.getRecipientsForIds(context, ids, false);
+    return CanonicalAddressDatabase.getInstance(context).getCanonicalAddresses(new ArrayList<>(recipients));
   }
 
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {

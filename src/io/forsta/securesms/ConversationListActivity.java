@@ -206,7 +206,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();            return true;
-      case R.id.menu_directory:         handleDirectoryRefresh();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:
         onSwitchToArchive();
@@ -253,11 +252,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
-  }
-
-  private void handleDirectoryRefresh() {
-    syncIndicator.setVisibility(View.VISIBLE);
-    ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext()));
   }
 
   private void handleDisplaySettings() {
