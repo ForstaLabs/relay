@@ -816,10 +816,11 @@ public class ThreadDatabase extends Database {
       Uri snippetUri          = getSnippetUri(cursor);
       String color = cursor.getString(cursor.getColumnIndexOrThrow(ThreadPreferenceDatabase.COLOR));
       String expression = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.PRETTY_EXPRESSION));
+      boolean pinned = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.PINNED)) != 0;
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid, color, expression);
+                              expiresIn, distribution, title, threadUid, color, expression, pinned);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {

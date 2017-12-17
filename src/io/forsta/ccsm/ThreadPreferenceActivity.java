@@ -337,7 +337,14 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     private class PinnedChangedListener implements Preference.OnPreferenceChangeListener {
       @Override
       public boolean onPreferenceChange(Preference preference, Object newValue) {
-        DatabaseFactory.getThreadDatabase(getActivity()).updatePinned(threadId, (Boolean)newValue);
+        final boolean pinned = (boolean) newValue;
+        new AsyncTask<Void, Void, Void>() {
+          @Override
+          protected Void doInBackground(Void... params) {
+            DatabaseFactory.getThreadDatabase(getActivity()).updatePinned(threadId, pinned);
+            return null;
+          }
+        }.execute();
         return true;
       }
     }

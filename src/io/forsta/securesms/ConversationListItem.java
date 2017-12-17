@@ -168,6 +168,7 @@ public class ConversationListItem extends RelativeLayout
     setBackground(thread);
     setRippleColor(threadColor);
     this.contactPhotoImage.setAvatar(recipients, threadColor);
+
   }
 
   @Override
@@ -229,6 +230,8 @@ public class ConversationListItem extends RelativeLayout
     } else if (thread.isPendingInsecureSmsFallback()) {
       deliveryStatusIndicator.setNone();
       alertView.setPendingApproval();
+    } else if (thread.isPinned()) {
+      alertView.setPinned();
     } else {
       alertView.setNone();
 
