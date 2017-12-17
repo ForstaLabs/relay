@@ -230,14 +230,15 @@ public class ConversationListItem extends RelativeLayout
     } else if (thread.isPendingInsecureSmsFallback()) {
       deliveryStatusIndicator.setNone();
       alertView.setPendingApproval();
-    } else if (thread.isPinned()) {
-      alertView.setPinned();
     } else {
       alertView.setNone();
-
       if (thread.isDelivered()) deliveryStatusIndicator.setDelivered();
       else if (thread.isPending()) deliveryStatusIndicator.setPending();
       else deliveryStatusIndicator.setSent();
+    }
+
+    if (thread.isPinned()) {
+      alertView.setPinned();
     }
   }
 
