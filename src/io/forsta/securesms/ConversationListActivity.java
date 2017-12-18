@@ -108,11 +108,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
 
-    // Force set enable thread trimming to 30 days.
-    if (!TextSecurePreferences.isThreadLengthTrimmingEnabled(getApplicationContext())) {
-      TextSecurePreferences.setThreadTrimEnabled(getApplicationContext(), true);
-    }
-
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       syncIndicator.setVisibility(View.VISIBLE);
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
