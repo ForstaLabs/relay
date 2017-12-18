@@ -60,7 +60,7 @@ public class CcsmApi {
   private static final String API_USER_TAG = "/v1/usertag/";
   private static final String API_ORG = "/v1/org/";
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
-  private static final String API_DIRECTORY_DOMAIN = "/v1/directory/domain/";
+  private static final String API_DIRECTORY_DOMAIN = "/v1/directory/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
@@ -149,6 +149,52 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
+    try {
+      ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
+      if (org.getSlug().equals("public") || org.getSlug().equals("forsta")) {
+        List<String> addresses = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+        List<ForstaUser> threadContacts = new ArrayList<>();
+        if (addresses.size() > 0) {
+          JSONObject threadUsers = getUserDirectory(context, addresses);
+          threadContacts = CcsmApi.parseUsers(context, threadUsers);
+        }
+        List<ForstaUser> knownLocalContacts = getKnownLocalContacts(context);
+        for (ForstaUser user : knownLocalContacts) {
+          if (!threadContacts.contains(user)) {
+            threadContacts.add(user);
+          }
+        }
+        syncForstaContactsDb(context, threadContacts, false);
+      } else {
+        JSONObject orgUsers = getOrgUsers(context);
+        List<ForstaUser> orgContacts = parseUsers(context, orgUsers);
+        List<String> addresses = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+        for (ForstaUser user : orgContacts) {
+          if (addresses.contains(user.getUid())) {
+            addresses.remove(user.getUid());
+          }
+        }
+        if (addresses.size() > 0) {
+          JSONObject threadUsers = getUserDirectory(context, addresses);
+          List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
+          orgContacts.addAll(threadContacts);
+        }
+        syncForstaContactsDb(context, orgContacts, false);
+        CcsmApi.syncOrgTags(context);
+      }
+      ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void syncForstaContacts(Context context, List<String> addresses) {
+    JSONObject response = getUserDirectory(context, addresses);
+    List<ForstaUser> forstaContacts = parseUsers(context, response);
+    syncForstaContactsDb(context, forstaContacts, false);
+  }
+
+  private static List<ForstaUser> getKnownLocalContacts(Context context) {
     Set<String> systemNumbers = new HashSet<>();
     Cursor cursor = null;
     try {
@@ -168,48 +214,7 @@ public class CcsmApi {
       }
     }
 
-    try {
-      List<ForstaUser> allContacts = new ArrayList<>();
-      if (systemNumbers.size() > 0) {
-        // This is not returning anything.
-        allContacts = getForstaUsersByPhone(context, systemNumbers);
-      }
-      // Sync contacts in existing threads.
-      List<String> addresses = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
-      if (addresses.size() > 0) {
-        JSONObject threadUsers = getUserDirectory(context, addresses);
-        List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
-        for (ForstaUser user : threadContacts) {
-          if (!allContacts.contains(user)) {
-            allContacts.add(user);
-          }
-        }
-      }
-
-      ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
-      if (!(org.getSlug().equals("public") || org.getSlug().equals("forsta"))) {
-        JSONObject orgUsers = getOrgUsers(context);
-        List<ForstaUser> orgContacts = parseUsers(context, orgUsers);
-        for (ForstaUser user : orgContacts) {
-          if (!allContacts.contains(user)) {
-            allContacts.add(user);
-          }
-        }
-        syncForstaContactsDb(context, allContacts, false);
-        CcsmApi.syncOrgTags(context);
-      } else {
-        syncForstaContactsDb(context, allContacts, true);
-      }
-      ForstaPreferences.setForstaContactSync(context, new Date().getTime());
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void syncForstaContacts(Context context, List<String> addresses) {
-    JSONObject response = getUserDirectory(context, addresses);
-    List<ForstaUser> forstaContacts = parseUsers(context, response);
-    syncForstaContactsDb(context, forstaContacts, false);
+    return getForstaUsersByPhone(context, systemNumbers);
   }
 
   private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
@@ -226,12 +231,22 @@ public class CcsmApi {
   }
 
   private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
-    String query = "?phone_in=" + TextUtils.join(",", phoneNumbers);
+    String query = "";
+    try {
+      query = "?phone_in=" + URLEncoder.encode(TextUtils.join(",", phoneNumbers), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 
   private static JSONObject getUsersByEmail(Context context, Set<String> emailAddresses) {
-    String query = "?email_in=" + TextUtils.join(",", emailAddresses);
+    String query = "";
+    try {
+      query = "?email_in=" + URLEncoder.encode(TextUtils.join(",", emailAddresses), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     return fetchResource(context, "GET", API_DIRECTORY_USER + query);
   }
 

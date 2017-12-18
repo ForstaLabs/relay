@@ -30,7 +30,7 @@ public class ForstaUser {
   public String phone;
   public String org_id;
   public String org_slug;
-  public boolean tsRegistered;
+  public boolean tsRegistered = false;
   public boolean isActive = true;
   public boolean isMonitor = false;
   public RecipientType type = RecipientType.PERSON;

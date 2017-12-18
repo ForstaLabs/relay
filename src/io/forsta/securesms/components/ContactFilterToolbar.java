@@ -90,9 +90,7 @@ public class ContactFilterToolbar extends Toolbar {
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        Log.w(TAG, "Text input: " + s.toString());
         if (debounceTimer != null) {
-          Log.w(TAG, "Cancelling timer...");
           debounceTimer.cancel();
         }
       }
@@ -100,11 +98,9 @@ public class ContactFilterToolbar extends Toolbar {
       @Override
       public void afterTextChanged(Editable s) {
         debounceTimer = new Timer();
-        Log.w(TAG, "Scheduling update");
         debounceTimer.schedule(new TimerTask() {
           @Override
           public void run() {
-            Log.w(TAG, "Updating...");
             if (handler != null) {
               handler.sendEmptyMessage(DEBOUNCE_MESSAGE);
             }
