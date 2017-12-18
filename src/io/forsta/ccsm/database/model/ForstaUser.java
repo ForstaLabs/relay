@@ -33,6 +33,12 @@ public class ForstaUser {
   public boolean tsRegistered;
   public boolean isActive = true;
   public boolean isMonitor = false;
+  public RecipientType type = RecipientType.PERSON;
+
+  public enum RecipientType {
+    PERSON,
+    BOT
+  }
 
   public ForstaUser() {
 
@@ -45,6 +51,17 @@ public class ForstaUser {
       }
       if (userObj.has("is_active")) {
         this.isActive = userObj.getBoolean("is_active");
+      }
+      if (userObj.has("user_type")) {
+        String userType = userObj.getString("user_type");
+        switch (userType) {
+          case "PERSON":
+            this.type = RecipientType.PERSON;
+            break;
+          case "BOT":
+            this.type = RecipientType.BOT;
+            break;
+        }
       }
       this.uid = userObj.getString("id");
       if (TextUtils.isEmpty(this.uid)) {

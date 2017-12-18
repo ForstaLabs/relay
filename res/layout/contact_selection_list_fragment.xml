@@ -3,14 +3,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-    <TextView android:id="@+id/contact_selection_empty"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:text="@string/contact_selection_activity__no_results"
-              android:padding="10dp"
-              android:textSize="16dp"
-              android:textAlignment="center"
-              android:visibility="gone"></TextView>
+    <LinearLayout
+        android:id="@+id/contact_selection_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
+        <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/contact_selection_activity__no_results"
+                  android:textSize="16dp"
+                  android:textAlignment="center"/>
+        <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/contact_selection_activity__no_results_search"
+                  android:textAlignment="center"/>
+    </LinearLayout>
+
     <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"

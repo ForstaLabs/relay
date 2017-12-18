@@ -18,8 +18,10 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaOrg;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.util.InvalidUserException;
 import io.forsta.securesms.BuildConfig;
 
 import java.io.UnsupportedEncodingException;
@@ -32,9 +34,12 @@ import java.util.Set;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.contacts.ContactsDatabase;
+import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -62,6 +67,16 @@ public class CcsmApi {
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
+  }
+
+  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
+    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+  }
+
+  public static JSONObject createAccount(JSONObject jsonObject) {
+    String host = BuildConfig.FORSTA_API_URL;
+    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
+    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
   public static JSONObject forstaLogin(Context context, String authToken) {
@@ -96,238 +111,6 @@ public class CcsmApi {
     String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = NetworkUtils.apiFetch("GET", null, host + API_SEND_TOKEN + org + "/" + username + "/", null);
     return result;
-  }
-
-  public static void syncForstaContacts(Context context) {
-    JSONObject response = getOrgUsers(context);
-    if (isUnauthorizedResponse(response)) {
-      return;
-    }
-    List<ForstaUser> forstaContacts = parseUsers(context, response);
-    List<ForstaUser> filteredContacts = new ArrayList<>();
-
-
-    Set<String> systemNumbers = new HashSet<>();
-    Cursor cursor = null;
-    try {
-      cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
-      while (cursor != null && cursor.moveToNext()) {
-        String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
-        systemNumbers.add(number);
-      }
-    } finally {
-      if (cursor != null) {
-        cursor.close();
-      }
-    }
-
-    for (int i=0; i< forstaContacts.size(); i++) {
-      if (systemNumbers.contains(forstaContacts.get(i).getPhone())) {
-        // forstaContacts.remove(i);
-        // For debugging, use another filtered list.
-        // This would restrict full directory sync to only people in local contacts db.
-        filteredContacts.add(forstaContacts.get(i));
-      }
-    }
-
-    List<ForstaUser> dbContacts = DbFactory.getContactDb(context).getUsers();
-    for (ForstaUser user : dbContacts) {
-      if (!forstaContacts.contains(user)) {
-        forstaContacts.add(user);
-      }
-    }
-
-    syncForstaContactsDb(context, forstaContacts, false);
-    CcsmApi.syncForstaGroups(context);
-    ForstaPreferences.setForstaContactSync(context, new Date().getTime());
-  }
-
-  public static void syncForstaContacts(Context context, String ids) {
-    JSONObject response = getUserDirectory(context, ids);
-    if (isUnauthorizedResponse(response)) {
-      return;
-    }
-    List<ForstaUser> forstaContacts = parseUsers(context, response);
-    syncForstaContactsDb(context, forstaContacts, false);
-  }
-
-  public static JSONObject getUserDirectory(Context context, String ids) {
-    String query = "";
-    if (!TextUtils.isEmpty(ids)) {
-      query = "?id_in=" + ids;
-    }
-    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
-  }
-
-  public static JSONObject getDomainDirectory(Context context) {
-    return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
-  }
-
-  public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
-    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
-  }
-
-  public static JSONObject createAccount(JSONObject jsonObject) {
-    String host = BuildConfig.FORSTA_API_URL;
-    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
-    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
-  }
-
-  public static JSONObject getForstaUser(Context context) {
-    return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
-  }
-
-  public static JSONObject getUserPick(Context context) {
-    return fetchResource(context, "GET", API_USER_PICK);
-  }
-
-  public static JSONObject getOrgUsers(Context context) {
-    return fetchResource(context, "GET", API_USER);
-  }
-
-  public static JSONObject getTags(Context context) {
-    return fetchResource(context, "GET", API_TAG);
-  }
-
-  public static JSONObject getTagPick(Context context) {
-    return fetchResource(context, "GET", API_TAG_PICK);
-  }
-
-  public static JSONObject getDistribution(Context context, String expression) {
-    JSONObject jsonObject = new JSONObject();
-    JSONObject response = new JSONObject();
-    try {
-      jsonObject.put("expression", expression);
-      String urlEncoded = TextUtils.isEmpty(expression) ? "" : URLEncoder.encode(expression, "UTF-8");
-      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + urlEncoded);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    return response;
-  }
-
-  public static JSONObject getOrg(Context context) {
-    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
-    return getOrg(context, localAccount.org_id);
-  }
-
-  public static JSONObject getOrg(Context context, String id) {
-    return fetchResource(context, "GET", API_ORG + id + "/");
-  }
-
-  private static JSONObject fetchResource(Context context, String method, String urn) {
-    return fetchResource(context, method, urn, null);
-  }
-
-  private static JSONObject fetchResource(Context context, String method, String urn, JSONObject body) {
-    String baseUrl = BuildConfig.FORSTA_API_URL;
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch(method, authKey, baseUrl + urn, body);
-  }
-
-  private static JSONObject hardFetchResource(Context context, String method, String urn, JSONObject body) throws Exception {
-    String baseUrl = BuildConfig.FORSTA_API_URL;
-    String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
-  }
-
-  public static String parseLoginToken(String authtoken) {
-    if (authtoken.contains("/")) {
-      String[] parts = authtoken.split("/");
-      authtoken = parts[parts.length - 1];
-    }
-    return authtoken;
-  }
-
-  public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
-    List<ForstaUser> users = new ArrayList<>();
-    try {
-      JSONArray results = jsonObject.getJSONArray("results");
-      for (int i = 0; i < results.length(); i++) {
-        JSONObject user = results.getJSONObject(i);
-        ForstaUser forstaUser = new ForstaUser(user);
-        users.add(forstaUser);
-      }
-    } catch (Exception e) {
-      Log.e(TAG, "parseUsers exception: " + e.getMessage());
-      e.printStackTrace();
-    }
-    return users;
-  }
-
-  public static List<ForstaGroup> parseTagGroups(JSONObject jsonObject) {
-    List<ForstaGroup> groups = new ArrayList<>();
-
-    try {
-      JSONArray results = jsonObject.getJSONArray("results");
-      for (int i = 0; i < results.length(); i++) {
-        JSONObject result = results.getJSONObject(i);
-        JSONArray users = result.getJSONArray("users");
-        // TODO Right now, not getting tags with no members. Leaves only.
-        Set<String> members = new HashSet<>();
-        boolean isGroup = false;
-        for (int j = 0; j < users.length(); j++) {
-          JSONObject userObj = users.getJSONObject(j);
-          String association = userObj.getString("association_type");
-
-          if (association.equals("MEMBEROF")) {
-            isGroup = true;
-            JSONObject user = userObj.getJSONObject("user");
-            String userId = user.getString("id");
-            members.add(userId);
-          }
-        }
-        if (isGroup) {
-          ForstaGroup group = new ForstaGroup(result);
-          group.addMembers(members);
-          groups.add(group);
-        }
-      }
-    } catch (JSONException e) {
-      Log.e(TAG, "parseTagGroups exception");
-      e.printStackTrace();
-    }
-    return groups;
-  }
-
-  public static ForstaDistribution getMessageDistribution(Context context, String expression) {
-    JSONObject response = CcsmApi.getDistribution(context, expression);
-    return ForstaDistribution.fromJson(response);
-  }
-
-  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
-    ContactDb forstaDb = DbFactory.getContactDb(context);
-    forstaDb.updateUsers(contacts, removeExisting);
-  }
-
-  private static void syncForstaGroups(Context context) {
-    JSONObject response = getTags(context);
-    List<ForstaGroup> groups = parseTagGroups(response);
-    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    db.updateGroups(groups, activeNumbers);
-  }
-
-  private static boolean isUnauthorizedResponse(JSONObject response) {
-    if (response == null) {
-      return true;
-    }
-    if (response.has("error")) {
-      try {
-        String error = response.getString("error");
-        Log.e(TAG, error);
-        if (error.equals("401")) {
-          Log.e(TAG, "CCSM API Unauthorized.");
-          return true;
-        }
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
-    }
-    return false;
   }
 
   public static boolean tokenNeedsRefresh(Context context) {
@@ -365,6 +148,150 @@ public class CcsmApi {
     return result;
   }
 
+  public static void syncForstaContacts(Context context) {
+    Set<String> systemNumbers = new HashSet<>();
+    Cursor cursor = null;
+    try {
+      cursor = DatabaseFactory.getContactsDatabase(context).querySystemContacts("");
+      while (cursor != null && cursor.moveToNext()) {
+        String number = cursor.getString(cursor.getColumnIndex(ContactsDatabase.NUMBER_COLUMN));
+        try {
+          number = Util.canonicalizeNumberE164(number);
+          systemNumbers.add(number);
+        } catch (InvalidNumberException e) {
+          e.printStackTrace();
+        }
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+
+    try {
+      List<ForstaUser> allContacts = new ArrayList<>();
+      if (systemNumbers.size() > 0) {
+        // This is not returning anything.
+        allContacts = getForstaUsersByPhone(context, systemNumbers);
+      }
+      // Sync contacts in existing threads.
+      List<String> addresses = DatabaseFactory.getThreadDatabase(context).getAllRecipients();
+      if (addresses.size() > 0) {
+        JSONObject threadUsers = getUserDirectory(context, addresses);
+        List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
+        for (ForstaUser user : threadContacts) {
+          if (!allContacts.contains(user)) {
+            allContacts.add(user);
+          }
+        }
+      }
+
+      ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
+      if (!(org.getSlug().equals("public") || org.getSlug().equals("forsta"))) {
+        JSONObject orgUsers = getOrgUsers(context);
+        List<ForstaUser> orgContacts = parseUsers(context, orgUsers);
+        for (ForstaUser user : orgContacts) {
+          if (!allContacts.contains(user)) {
+            allContacts.add(user);
+          }
+        }
+        syncForstaContactsDb(context, allContacts, false);
+        CcsmApi.syncOrgTags(context);
+      } else {
+        syncForstaContactsDb(context, allContacts, true);
+      }
+      ForstaPreferences.setForstaContactSync(context, new Date().getTime());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void syncForstaContacts(Context context, List<String> addresses) {
+    JSONObject response = getUserDirectory(context, addresses);
+    List<ForstaUser> forstaContacts = parseUsers(context, response);
+    syncForstaContactsDb(context, forstaContacts, false);
+  }
+
+  private static void syncForstaContactsDb(Context context, List<ForstaUser> contacts, boolean removeExisting) {
+    DbFactory.getContactDb(context).updateUsers(contacts, removeExisting);
+  }
+
+  private static void syncOrgTags(Context context) {
+    JSONObject response = getTags(context);
+    List<ForstaTag> groups = parseTagGroups(response);
+    GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
+    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
+    List<String> activeNumbers = dir.getActiveNumbers();
+    db.updateGroups(groups, activeNumbers);
+  }
+
+  private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
+    String query = "?phone_in=" + TextUtils.join(",", phoneNumbers);
+    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
+  }
+
+  private static JSONObject getUsersByEmail(Context context, Set<String> emailAddresses) {
+    String query = "?email_in=" + TextUtils.join(",", emailAddresses);
+    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
+  }
+
+  public static JSONObject getUserDirectory(Context context, List<String> addresses) {
+    String addressesString = TextUtils.join(",", addresses);
+    String query = "";
+    if (!TextUtils.isEmpty(addressesString)) {
+      query = "?id_in=" + addressesString;
+    }
+    return fetchResource(context, "GET", API_DIRECTORY_USER + query);
+  }
+
+  public static JSONObject getOrgDirectory(Context context) {
+    return fetchResource(context, "GET", API_DIRECTORY_DOMAIN);
+  }
+
+  public static JSONObject getOrg(Context context) {
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    return getOrg(context, localAccount.org_id);
+  }
+
+  public static JSONObject getOrg(Context context, String id) {
+    return fetchResource(context, "GET", API_ORG + id + "/");
+  }
+
+  public static JSONObject getOrgUsers(Context context) {
+    return fetchResource(context, "GET", API_USER);
+  }
+
+  public static JSONObject getForstaUser(Context context) {
+    return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
+  }
+
+  public static JSONObject getTags(Context context) {
+    return fetchResource(context, "GET", API_TAG);
+  }
+
+  public static JSONObject getUserPick(Context context) {
+    return fetchResource(context, "GET", API_USER_PICK);
+  }
+
+  public static JSONObject getTagPick(Context context) {
+    return fetchResource(context, "GET", API_TAG_PICK);
+  }
+
+  public static JSONObject getDistribution(Context context, String expression) {
+    JSONObject jsonObject = new JSONObject();
+    JSONObject response = new JSONObject();
+    try {
+      jsonObject.put("expression", expression);
+      String urlEncoded = TextUtils.isEmpty(expression) ? "" : URLEncoder.encode(expression, "UTF-8");
+      response = fetchResource(context, "GET", API_DIRECTORY_USER + "?expression=" + urlEncoded);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    return response;
+  }
+
   public static JSONObject searchUserDirectory(Context context, String searchText) {
     JSONObject response = new JSONObject();
     try {
@@ -376,6 +303,119 @@ public class CcsmApi {
       e.printStackTrace();
     }
     return response;
+  }
+
+  private static JSONObject fetchResource(Context context, String method, String urn) {
+    return fetchResource(context, method, urn, null);
+  }
+
+  private static JSONObject fetchResource(Context context, String method, String urn, JSONObject body) {
+    String baseUrl = BuildConfig.FORSTA_API_URL;
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch(method, authKey, baseUrl + urn, body);
+  }
+
+  private static JSONObject hardFetchResource(Context context, String method, String urn, JSONObject body) throws Exception {
+    String baseUrl = BuildConfig.FORSTA_API_URL;
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiHardFetch(method, authKey, baseUrl + urn, body);
+  }
+
+  // Helper methods and mapper functions. Move these.
+  public static String parseLoginToken(String authtoken) {
+    if (authtoken.contains("/")) {
+      String[] parts = authtoken.split("/");
+      authtoken = parts[parts.length - 1];
+    }
+    return authtoken;
+  }
+
+  public static List<ForstaUser> parseUsers(Context context, JSONObject jsonObject) {
+    List<ForstaUser> users = new ArrayList<>();
+    try {
+      JSONArray results = jsonObject.getJSONArray("results");
+      for (int i = 0; i < results.length(); i++) {
+        try {
+          JSONObject user = results.getJSONObject(i);
+          ForstaUser forstaUser = new ForstaUser(user);
+          users.add(forstaUser);
+        } catch (Exception e) {
+          Log.e(TAG, "parseUsers exception: " + e.getMessage());
+        }
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "No results array.");
+    }
+    return users;
+  }
+
+  public static List<ForstaTag> parseTagGroups(JSONObject jsonObject) {
+    List<ForstaTag> groups = new ArrayList<>();
+
+    try {
+      JSONArray results = jsonObject.getJSONArray("results");
+      for (int i = 0; i < results.length(); i++) {
+        JSONObject result = results.getJSONObject(i);
+        JSONArray users = result.getJSONArray("users");
+        // TODO Right now, not getting tags with no members. Leaves only.
+        Set<String> members = new HashSet<>();
+        boolean isGroup = false;
+        for (int j = 0; j < users.length(); j++) {
+          JSONObject userObj = users.getJSONObject(j);
+          String association = userObj.getString("association_type");
+
+          if (association.equals("MEMBEROF")) {
+            isGroup = true;
+            JSONObject user = userObj.getJSONObject("user");
+            String userId = user.getString("id");
+            members.add(userId);
+          }
+        }
+        if (isGroup) {
+          ForstaTag group = new ForstaTag(result);
+          group.addMembers(members);
+          groups.add(group);
+        }
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "parseTagGroups exception");
+      e.printStackTrace();
+    }
+    return groups;
+  }
+
+  public static ForstaDistribution getMessageDistribution(Context context, String expression) {
+    JSONObject response = getDistribution(context, expression);
+    return ForstaDistribution.fromJson(response);
+  }
+
+  public static List<ForstaUser> getForstaUsersByPhone(Context context, Set<String> phoneNumbers) {
+    JSONObject jsonObject = getUsersByPhone(context, phoneNumbers);
+    return parseUsers(context, jsonObject);
+  }
+
+  public static List<ForstaUser> getForstaUsersByEmail(Context context, Set<String> emailAddresses) {
+    JSONObject jsonObject = getUsersByEmail(context, emailAddresses);
+    return parseUsers(context, jsonObject);
+  }
+
+  private static boolean isUnauthorizedResponse(JSONObject response) {
+    if (response == null) {
+      return true;
+    }
+    if (response.has("error")) {
+      try {
+        String error = response.getString("error");
+        Log.e(TAG, error);
+        if (error.equals("401")) {
+          Log.e(TAG, "CCSM API Unauthorized.");
+          return true;
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+    return false;
   }
 
   // XXX obsolete XXX

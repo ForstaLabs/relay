@@ -1,13 +1,20 @@
 package io.forsta.ccsm.database.model;
 
+import android.content.Context;
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.util.InvalidUserException;
 
 /**
  * Created by jlewis on 9/21/17.
  */
 
 public class ForstaOrg {
+  private static final String TAG = ForstaOrg.class.getSimpleName();
   private String uid;
   private String name;
   private String slug;
@@ -51,5 +58,9 @@ public class ForstaOrg {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public static ForstaOrg getLocalForstaOrg(Context context) {
+    return fromJsonString(ForstaPreferences.getForstaOrg(context));
   }
 }

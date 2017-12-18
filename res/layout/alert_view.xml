@@ -21,4 +21,12 @@
         android:layout_gravity="center_vertical"
         android:contentDescription="@string/conversation_item_sent__pending_approval_description" />
 
+    <ImageView
+        android:id="@+id/pinned_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="?pinned_icon"
+        android:visibility="gone"
+        android:layout_gravity="center_vertical"/>
+
 </merge>

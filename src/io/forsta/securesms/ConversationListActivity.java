@@ -108,11 +108,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
 
-    // Force set enable thread trimming to 30 days.
-    if (!TextSecurePreferences.isThreadLengthTrimmingEnabled(getApplicationContext())) {
-      TextSecurePreferences.setThreadTrimEnabled(getApplicationContext(), true);
-    }
-
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       syncIndicator.setVisibility(View.VISIBLE);
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
@@ -206,7 +201,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();            return true;
-      case R.id.menu_directory:         handleDirectoryRefresh();       return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:
         onSwitchToArchive();
@@ -253,11 +247,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);
     startActivity(intent);
     finish();
-  }
-
-  private void handleDirectoryRefresh() {
-    syncIndicator.setVisibility(View.VISIBLE);
-    ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext()));
   }
 
   private void handleDisplaySettings() {
@@ -312,7 +301,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     public void onReceive(Context context, Intent intent) {
       Log.d(TAG, "Sync complete");
       syncIndicator.setVisibility(View.GONE);
-      RecipientFactory.clearCache(ConversationListActivity.this);
       fragment.getListAdapter().notifyDataSetChanged();
     }
   }

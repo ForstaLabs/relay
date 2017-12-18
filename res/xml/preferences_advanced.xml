@@ -4,12 +4,6 @@
     android:key="advanced_preferences_screen">
 
     <io.forsta.securesms.components.SwitchPreferenceCompat
-        android:defaultValue="false"
-        android:key="pref_forsta_otr"
-        android:title="@string/preferences__forsta_off_the_record"
-        android:summary="@string/preferences__forsta_off_the_record_summary"/>
-
-    <io.forsta.securesms.components.SwitchPreferenceCompat
                         android:defaultValue="false"
                         android:key="pref_enter_sends"
                         android:summary="@string/preferences__pressing_the_enter_key_will_send_text_messages"

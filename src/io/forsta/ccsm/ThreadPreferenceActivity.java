@@ -20,11 +20,14 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -63,6 +66,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   public static final String TAG = ThreadPreferenceActivity.class.getSimpleName();
   public static final String THREAD_ID_EXTRA = "thread_id";
 
+  private static final String PREFERENCE_PINNED    = "pref_key_thread_pinned";
   private static final String PREFERENCE_MUTED    = "pref_key_thread_mute";
   private static final String PREFERENCE_TONE     = "pref_key_thread_ringtone";
   private static final String PREFERENCE_VIBRATE  = "pref_key_thread_vibrate";
@@ -74,6 +78,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   private long threadId;
+  private ForstaThread threadDetail;
   private AvatarImageView avatar;
   private Toolbar           toolbar;
   private TextView          title;
@@ -151,10 +156,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
   private void initializeThread() {
     recipients = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getRecipientsForThreadId(threadId);
-    threadRecipients.setText(getRecipientData(recipients));
-    final ForstaThread thread = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
-    if (!TextUtils.isEmpty(thread.getTitle())) {
-      forstaTitle.setText(thread.getTitle());
+    threadDetail = DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).getForstaThread(threadId);
+    threadRecipients.setText(threadDetail.getPrettyExpression());
+    if (!TextUtils.isEmpty(threadDetail.getTitle())) {
+      forstaTitle.setText(threadDetail.getTitle());
     } else {
       forstaTitle.setHint("Add a Title");
     }
@@ -166,7 +171,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        String saved = thread.getTitle() != null ? thread.getTitle() : "";
+        String saved = threadDetail.getTitle() != null ? threadDetail.getTitle() : "";
         if (!saved.equals(s.toString())) {
           forstaSaveTitle.setVisibility(View.VISIBLE);
         } else {
@@ -179,11 +184,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       }
     });
-    title.setText(TextUtils.isEmpty(thread.title) ? recipients.toShortString() : thread.title);
+    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toShortString() : threadDetail.title);
 
     if (BuildConfig.FLAVOR.equals("dev")) {
-      forstaUid.setText(thread.uid);
-      forstaExpression.setText(thread.distribution);
+      forstaUid.setText(threadDetail.uid);
+      forstaExpression.setText(threadDetail.distribution);
       LinearLayout debugLayout = (LinearLayout) findViewById(R.id.forsta_thread_debug_details);
       debugLayout.setVisibility(View.VISIBLE);
     }
@@ -221,6 +226,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   public static class ThreadPreferenceFragment extends PreferenceFragment {
     private MasterSecret masterSecret;
     private long threadId;
+    private CheckBoxPreference pinnedPreference;
     private CheckBoxPreference mutePreference;
     private AdvancedRingtonePreference notificationPreference;
     private ListPreference vibratePreference;
@@ -237,6 +243,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       addPreferencesFromResource(R.xml.thread_preferences);
       initializePreferences();
 
+      this.findPreference(PREFERENCE_PINNED).setOnPreferenceChangeListener(new PinnedChangedListener());
       this.findPreference(PREFERENCE_MUTED)
           .setOnPreferenceClickListener(new MuteClickListener());
       this.findPreference(PREFERENCE_COLOR)
@@ -253,16 +260,20 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     private void initializePreferences() {
       ThreadPreferenceDatabase db = DatabaseFactory.getThreadPreferenceDatabase(getActivity());
       ThreadPreferenceDatabase.ThreadPreference threadPreference = db.getThreadPreferences(threadId);
+      ThreadDatabase threadDatabase = DatabaseFactory.getThreadDatabase(getActivity());
+      ForstaThread forstaThead = threadDatabase.getForstaThread(threadId);
 
+      pinnedPreference = (CheckBoxPreference) this.findPreference(PREFERENCE_PINNED);
       mutePreference = (CheckBoxPreference) this.findPreference(PREFERENCE_MUTED);
       colorPreference = (ColorPreference) this.findPreference(PREFERENCE_COLOR);
+
       colorPreference.setChoices(MaterialColors.CONVERSATION_PALETTE.asConversationColorArray(getActivity()));
+      colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
+      pinnedPreference.setChecked(forstaThead.isPinned());
       mutePreference.setChecked(threadPreference.isMuted());
       if (threadPreference.getColor() == null) {
         db.setColor(threadId, MaterialColors.getRandomConversationColor());
       }
-      colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
-
 //      notificationPreference = (AdvancedRingtonePreference) this.findPreference(PREFERENCE_TONE);
 //      notificationPreference.setSummary(R.string.preferences__default);
 //      vibratePreference = (ListPreference) this.findPreference(PREFERENCE_VIBRATE);
@@ -323,6 +334,21 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       }
     }
 
+    private class PinnedChangedListener implements Preference.OnPreferenceChangeListener {
+      @Override
+      public boolean onPreferenceChange(Preference preference, Object newValue) {
+        final boolean pinned = (boolean) newValue;
+        new AsyncTask<Void, Void, Void>() {
+          @Override
+          protected Void doInBackground(Void... params) {
+            DatabaseFactory.getThreadDatabase(getActivity()).updatePinned(threadId, pinned);
+            return null;
+          }
+        }.execute();
+        return true;
+      }
+    }
+
     private class MuteClickListener implements Preference.OnPreferenceClickListener {
 
       @Override
@@ -353,10 +379,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
             }
           });
         }
-
-
-
-
         return false;
       }
     }

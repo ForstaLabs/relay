@@ -187,7 +187,7 @@ public class Util {
       return number;
     }
     String localNumber = TextSecurePreferences.getLocalNumber(context);
-    return PhoneNumberFormatter.formatNumber(number, localNumber);
+    return PhoneNumberFormatter.formatNumber(number, "+12081234567");
   }
 
   public static String canonicalizeNumberOrGroup(@NonNull Context context, @NonNull String number)

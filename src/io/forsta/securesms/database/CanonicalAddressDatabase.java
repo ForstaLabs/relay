@@ -177,6 +177,25 @@ public class CanonicalAddressDatabase {
     return addressList;
   }
 
+  public @NonNull List<String> getCanonicalAddresses(@NonNull List<String> ids) {
+    List<String> addressList = new LinkedList<>();
+    Cursor cursor = null;
+    try {
+      SQLiteDatabase db = databaseHelper.getReadableDatabase();
+      String values = TextUtils.join(",", ids);
+      String query = ID_COLUMN + " IN (" + values + ")";
+      cursor = db.query(TABLE, null, query, null, null, null, null);
+      while (cursor != null && cursor.moveToNext()) {
+        addressList.add(cursor.getString(cursor.getColumnIndex(ADDRESS_COLUMN)));
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+    return addressList;
+  }
+
   private long getCanonicalAddressFromCache(String address) {
     Long cachedAddress = addressCache.get(address);
     return cachedAddress == null ? -1L : cachedAddress;

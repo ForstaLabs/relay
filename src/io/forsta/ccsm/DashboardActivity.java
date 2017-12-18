@@ -30,7 +30,7 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaGroup;
+import io.forsta.ccsm.database.model.ForstaTag;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
@@ -255,33 +255,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       @Override
       public void onClick(View v) {
         ForstaPreferences.setCCSMDebug(DashboardActivity.this, mToggleSyncMessages.isChecked());
-      }
-    });
-    EditText search = (EditText) findViewById(R.id.search_directory);
-    search.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-      }
-
-      @Override
-      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        if (charSequence.length() > 2) {
-          new AsyncTask<String, Void, Void>() {
-            @Override
-            protected Void doInBackground(String[] objects) {
-              JSONObject response = CcsmApi.searchUserDirectory(DashboardActivity.this, objects[0]);
-              List<ForstaUser> users = CcsmApi.parseUsers(DashboardActivity.this, response);
-              Log.w(TAG, "Getting response");
-              return null;
-            }
-          }.execute(charSequence.toString());
-        }
-      }
-
-      @Override
-      public void afterTextChanged(Editable editable) {
-
       }
     });
     printLoginInformation();
@@ -718,10 +691,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      List<ForstaGroup> groups = CcsmApi.parseTagGroups(jsonObject);
+      List<ForstaTag> groups = CcsmApi.parseTagGroups(jsonObject);
 
       StringBuilder sb = new StringBuilder();
-      for (ForstaGroup group : groups) {
+      for (ForstaTag group : groups) {
         String groupId = group.id;
         sb.append(groupId).append("\n");
         String encoded = GroupUtil.getEncodedId(groupId.getBytes());
@@ -769,7 +742,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      return CcsmApi.getUserDirectory(DashboardActivity.this, null);
+      return CcsmApi.getUserDirectory(DashboardActivity.this, new ArrayList<String>());
     }
 
     @Override

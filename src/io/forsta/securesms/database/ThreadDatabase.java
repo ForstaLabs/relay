@@ -32,10 +32,8 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.R;
-import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
-import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
@@ -46,9 +44,10 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.util.Util;
+
 import org.whispersystems.libsignal.InvalidMessageException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -80,6 +79,8 @@ public class ThreadDatabase extends Database {
   public static final String DISTRIBUTION = "distribution";
   public static final String TITLE = "title";
   public static final String UID = "uid";
+  public static final String PRETTY_EXPRESSION = "pretty_expression";
+  public static final String PINNED = "pinned";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -91,7 +92,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -125,7 +126,7 @@ public class ThreadDatabase extends Database {
   private String getRecipientsAsString(long[] recipientIds) {
     StringBuilder sb = new StringBuilder();
     for (int i=0;i<recipientIds.length;i++) {
-      if (i != 0) sb.append(' ');
+      if (i != 0) sb.append(" ");
       sb.append(recipientIds[i]);
     }
 
@@ -349,7 +350,7 @@ public class ThreadDatabase extends Database {
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
 
-    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, DATE + " DESC"));
+    cursors.add(builder.query(db, null, titleSelection, new String[] {filterQuery}, null, null, PINNED + " DESC, " + DATE + " DESC"));
 
     Cursor cursor = cursors.size() > 1 ? new MergeCursor(cursors.toArray(new Cursor[cursors.size()])) : cursors.get(0);
     setNotifyConverationListListeners(cursor);
@@ -361,7 +362,7 @@ public class ThreadDatabase extends Database {
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
         " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, DATE + " DESC");
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, PINNED + " DESC, " + DATE + " DESC");
     setNotifyConverationListListeners(cursor);
     return cursor;
   }
@@ -516,6 +517,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, UUID.randomUUID().toString());
     contentValues.put(DISTRIBUTION, distribution.universal);
+    contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
@@ -524,7 +526,7 @@ public class ThreadDatabase extends Database {
     return getForstaThread(threadId);
   }
 
-  public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+  public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues contentValues = new ContentValues(5);
@@ -535,6 +537,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
     contentValues.put(UID, forstaMessage.getThreadUId());
     contentValues.put(DISTRIBUTION, forstaMessage.getUniversalExpression());
+    contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
 
@@ -544,13 +547,13 @@ public class ThreadDatabase extends Database {
     return threadId;
   }
 
-  public long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage) {
+  public long getOrAllocateThreadId(Recipients recipients, ForstaMessage forstaMessage, ForstaDistribution distribution) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     long threadId = getThreadIdForUid(forstaMessage.getThreadUId());
     if (threadId == -1) {
-      threadId = allocateThreadId(recipients, forstaMessage);
+      threadId = allocateThreadId(recipients, forstaMessage, distribution);
     } else {
-      updateForstaThread(threadId, recipients, forstaMessage.getUniversalExpression(), forstaMessage.getThreadTitle());
+      updateForstaThread(threadId, recipients, forstaMessage, distribution);
     }
     return threadId;
   }
@@ -571,6 +574,28 @@ public class ThreadDatabase extends Database {
     return -1;
   }
 
+  public List<String> getAllRecipients() {
+    Set<String> recipients = new HashSet<>();
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = db.query(TABLE_NAME, new String[] {RECIPIENT_IDS}, null, null, null, null, null);
+      while (cursor != null && cursor.moveToNext()) {
+        String ids = cursor.getString(0);
+        String[] idsArray = ids.split(" ");
+        for (int i=0; i<idsArray.length; i++) {
+          recipients.add(idsArray[i]);
+        }
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+
+    return CanonicalAddressDatabase.getInstance(context).getCanonicalAddresses(new ArrayList<>(recipients));
+  }
+
   public @Nullable Recipients getRecipientsForThreadId(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;
@@ -588,6 +613,13 @@ public class ThreadDatabase extends Database {
     }
 
     return null;
+  }
+
+  public void updatePinned(long threadId, boolean pinned) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(PINNED, pinned);
+    db.update(TABLE_NAME, values, ID_WHERE, new String[] {String.valueOf(threadId)});
   }
 
   public void updateReadState(long threadId) {
@@ -635,18 +667,38 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public void updateForstaThread(long threadId, Recipients recipients, String distribution, String title) {
+  public void updateForstaThread(long threadId, ForstaDistribution distribution) {
+    Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
+    long[] recipientIds    = getRecipientIds(recipients);
+    String recipientsList  = getRecipientsAsString(recipientIds);
+    ForstaThread forstaThread = getForstaThread(threadId);
+
+    ContentValues values = new ContentValues();
+    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution) || !forstaThread.getRecipientIds().equals(recipientsList)) {
+      values.put(RECIPIENT_IDS, recipientsList);
+      values.put(DISTRIBUTION, distribution.universal);
+    }
+    values.put(PRETTY_EXPRESSION, distribution.pretty);
+    if (values.size() > 0) {
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+      notifyConversationListListeners();
+    }
+  }
+
+  public void updateForstaThread(long threadId, Recipients recipients, ForstaMessage message, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ForstaThread forstaThread = getForstaThread(threadId);
     ContentValues values = new ContentValues();
-    if (!TextUtils.equals(forstaThread.title, title)) {
-      values.put(TITLE, title);
+    if (!TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
+      values.put(TITLE, message.getThreadTitle());
     }
-    if (!TextUtils.isEmpty(distribution) && !distribution.equals(forstaThread.distribution)) {
+    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
       values.put(RECIPIENT_IDS, recipientsList);
-      values.put(DISTRIBUTION, distribution);
+      values.put(DISTRIBUTION, distribution.universal);
     }
+    values.put(PRETTY_EXPRESSION, distribution.pretty);
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
@@ -763,10 +815,12 @@ public class ThreadDatabase extends Database {
       String threadUid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
       Uri snippetUri          = getSnippetUri(cursor);
       String color = cursor.getString(cursor.getColumnIndexOrThrow(ThreadPreferenceDatabase.COLOR));
+      String expression = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.PRETTY_EXPRESSION));
+      boolean pinned = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.PINNED)) != 0;
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid, color);
+                              expiresIn, distribution, title, threadUid, color, expression, pinned);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {

@@ -37,6 +37,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
@@ -53,6 +54,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.ResUtil;
@@ -100,6 +102,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private String forstaThreadTitle;
+  private String threadExpression;
   private MaterialColor threadColor;
 
   public ConversationListItem(Context context) {
@@ -140,6 +143,7 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
+    this.threadExpression = thread.getPrettyExpression();
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
     subjectView.setText(forstaMessage.getTextBody());
@@ -164,6 +168,7 @@ public class ConversationListItem extends RelativeLayout
     setBackground(thread);
     setRippleColor(threadColor);
     this.contactPhotoImage.setAvatar(recipients, threadColor);
+
   }
 
   @Override
@@ -227,10 +232,13 @@ public class ConversationListItem extends RelativeLayout
       alertView.setPendingApproval();
     } else {
       alertView.setNone();
-
       if (thread.isDelivered()) deliveryStatusIndicator.setDelivered();
       else if (thread.isPending()) deliveryStatusIndicator.setPending();
       else deliveryStatusIndicator.setSent();
+    }
+
+    if (thread.isPinned()) {
+      alertView.setPinned();
     }
   }
 
@@ -304,11 +312,14 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setForstaThreadTitle() {
-
     if (!TextUtils.isEmpty(forstaThreadTitle)) {
       this.fromView.setForstaTitle(forstaThreadTitle, read);
     } else {
-      this.fromView.setText(recipients, read);
+      if (!TextUtils.isEmpty(this.threadExpression) && !recipients.isSingleRecipient()) {
+        this.fromView.setForstaTitle(this.threadExpression, read);
+      } else {
+        this.fromView.setText(recipients, read);
+      }
     }
   }
 }

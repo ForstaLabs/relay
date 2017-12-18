@@ -29,6 +29,8 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -214,6 +216,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private Recipients recipients;
   private long       threadId;
+  private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText = true;
@@ -246,7 +249,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeResources();
     initializeSecurity();
     initializeDraft();
-    initializeDirectory();
+//    initializeDirectory();
   }
 
   @Override
@@ -268,7 +271,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeResources();
     initializeSecurity();
     initializeDraft();
-    initializeDirectory();
+//    initializeDirectory();
 
     if (fragment != null) {
       fragment.onNewIntent();
@@ -622,23 +625,44 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void checkThreadState() {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-    if (thread == null) {
-      // This should never happen.
-      new AsyncTask<Void, Void, ForstaThread>() {
-        @Override
-        protected ForstaThread doInBackground(Void... voids) {
-          ForstaDistribution distribution = CcsmApi.getMessageDistribution(ConversationActivity.this, recipients.getRecipientExpression());
-          return DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
-        }
+    forstaThread = thread;
+    ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+    boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    if (isConnected) {
+      if (thread == null) {
+        // This should never happen.
+        new AsyncTask<Void, Void, ForstaDistribution>() {
+          @Override
+          protected ForstaDistribution doInBackground(Void... voids) {
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, recipients.getRecipientExpression());
+          }
 
-        @Override
-        protected void onPostExecute(ForstaThread thread) {
-          threadId = thread.getThreadid();
-        }
-      }.execute();
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
+            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
+            threadId = updatedThread.getThreadid();
+            forstaThread = updatedThread;
+          }
+        }.execute();
+      } else {
+        // Update existing tag distribution users in thread.
+        new AsyncTask<Void, Void, ForstaDistribution>() {
+          @Override
+          protected ForstaDistribution doInBackground(Void... voids) {
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, forstaThread.getDistribution());
+          }
+
+          @Override
+          protected void onPostExecute(ForstaDistribution distribution) {
+            if (distribution != null) {
+              recipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, distribution.getRecipients(ConversationActivity.this), false);
+              DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
+            }
+          }
+        }.execute();
+      }
     }
-
-
   }
 
   private void initThread() {
@@ -730,25 +754,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Boolean doInBackground(Recipients... params) {
         try {
           Context           context      = ConversationActivity.this;
-          Recipients        recipients   = params[0];
-
-          UserCapabilities capabilities = DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          RecipientFactory.clearCache(context);
-          recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-          if (capabilities.getTextCapability() == Capability.SUPPORTED) {
-            return true;
-          }
+          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
         } catch (Exception e) {
-          Log.w(TAG, e);
+          e.printStackTrace();
         }
-        return false;
-      }
-
-      @Override
-      protected void onPostExecute(Boolean result) {
-        if (!result) {
-          initializeEnabled(false);
-        }
+        return true;
       }
     }.execute(recipients);
 

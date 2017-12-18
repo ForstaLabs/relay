@@ -97,9 +97,9 @@ public class ForstaMessageManager {
     try {
       forstaMessage = fromMessagBodyString(messageBody);
     } catch (InvalidMessagePayloadException e) {
-      Log.e(TAG, "Invalid message payload: " + e.getMessage());
+      Log.e(TAG, "Invalid message payload!");
       Log.e(TAG, messageBody);
-      forstaMessage.setTextBody("Invalid message body:" + messageBody);
+      forstaMessage.setTextBody(messageBody);
     }
     return forstaMessage;
   }
