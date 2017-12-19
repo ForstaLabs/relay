@@ -49,12 +49,20 @@ import java.util.Set;
 public class DirectoryHelper {
   private static final String TAG = DirectoryHelper.class.getSimpleName();
 
+  public static void resetDirectory(Context context) throws IOException {
+    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), true);
+  }
+
   public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret) throws IOException {
-    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context));
+    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), false);
   }
 
   public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber) throws IOException {
-    CcsmApi.syncForstaContacts(context);
+    refreshDirectory(context, accountManager, localNumber, false);
+  }
+
+  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber, boolean resetDirectory) throws IOException {
+    CcsmApi.syncForstaContacts(context, resetDirectory);
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
     // Two devices had crashes because of a null UID value in the contactsDb

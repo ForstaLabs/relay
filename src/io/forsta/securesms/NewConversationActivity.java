@@ -283,6 +283,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     switch (item.getItemId()) {
     case android.R.id.home:   super.onBackPressed(); return true;
     case R.id.menu_refresh:   handleManualRefresh(); return true;
+      case R.id.menu_reset:   handleReset(); return true;
     case R.id.menu_new_group: handleCreateGroup();   return true;
     }
 
@@ -292,6 +293,11 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private void handleManualRefresh() {
     contactsFragment.setRefreshing(true);
     onRefresh();
+  }
+
+  private void handleReset() {
+    contactsFragment.setRefreshing(true);
+    resetDirectory();
   }
 
   private void handleCreateGroup() {

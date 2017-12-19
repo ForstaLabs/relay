@@ -1223,6 +1223,7 @@
 
     <!-- new_conversation_activity -->
     <string name="new_conversation_activity__refresh">Refresh</string>
+    <string name="new_conversation_activity__reset">Reset Directory</string>
     <!-- redphone_audio_popup_menu -->
     <string name="redphone_audio_popup_menu__handset">Handset</string>
     <string name="redphone_audio_popup_menu__headset">Headset</string>
