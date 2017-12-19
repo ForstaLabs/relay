@@ -75,7 +75,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private LinearLayout syncIndicator;
 
   private MasterSecret masterSecret;
-  private ForstaUser localUser;
 
   @Override
   protected void onPreCreate() {
@@ -90,10 +89,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
   @Override
   protected void onCreate(Bundle savedState, @NonNull MasterSecret masterSecret) {
-    localUser = ForstaUser.getLocalForstaUser(ConversationListActivity.this);
-    Log.w(TAG, "User: " + localUser.getFullTag());
-    Log.w(TAG, "ID: " + localUser.getUid() + " Device ID: " + TextSecurePreferences.getLocalDeviceId(ConversationListActivity.this));
-
     this.masterSecret = masterSecret;
     setContentView(R.layout.conversation_list_activity);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);

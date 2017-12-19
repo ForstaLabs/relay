@@ -11,7 +11,9 @@ import org.json.JSONObject;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.database.ContactDb;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidUserException;
+import io.forsta.securesms.recipients.Recipient;
 
 /**
  * Created by jlewis on 3/2/17.
@@ -30,7 +32,7 @@ public class ForstaUser {
   public String phone;
   public String org_id;
   public String org_slug;
-  public boolean tsRegistered;
+  public boolean tsRegistered = false;
   public boolean isActive = true;
   public boolean isMonitor = false;
   public RecipientType type = RecipientType.PERSON;
@@ -182,7 +184,14 @@ public class ForstaUser {
   }
 
   @Override
+  public int hashCode() {
+    return 31 + uid.hashCode();
+  }
+
+  @Override
   public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || !(o instanceof ForstaUser)) return false;
     ForstaUser other = (ForstaUser)o;
     return this.uid.equals(other.uid);
   }

@@ -260,7 +260,6 @@ public class ContactDb extends DbBase {
         values.put(ContactDb.NUMBER, user.phone);
         values.put(ContactDb.USERNAME, user.username);
         values.put(ContactDb.EMAIL, user.email);
-        values.put(ContactDb.TSREGISTERED, user.tsRegistered);
         values.put(ContactDb.ISACTIVE, user.isActive);
         values.put(ContactDb.ISMONITOR, user.isMonitor);
         values.put(ContactDb.USERTYPE, user.type.toString());

@@ -99,7 +99,6 @@ public class ContactsCursorLoader extends CursorLoader {
         cursorList.add(newNumberCursor);
       }
     } else {
-      Log.w(TAG, "Loading filter: " + filter);
       MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
       // XXX Remove self from list of recipients
       String localUid = TextSecurePreferences.getLocalNumber(getContext());

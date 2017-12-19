@@ -57,7 +57,6 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
       } catch (IOException e) {
         e.printStackTrace();
       }
-      getContext().sendBroadcast(new Intent(FORSTA_SYNC_COMPLETE));
     }
   }
 
