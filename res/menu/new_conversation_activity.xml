@@ -6,6 +6,10 @@
           android:id="@+id/menu_refresh"
           app:showAsAction="never" />
 
+    <item android:title="@string/new_conversation_activity__reset"
+          android:id="@+id/menu_reset"
+          app:showAsAction="never" />
+
     <item android:title="@string/text_secure_normal__menu_new_group"
         android:id="@+id/menu_new_group" android:visible="false" />
 

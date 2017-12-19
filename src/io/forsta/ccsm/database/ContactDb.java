@@ -286,6 +286,7 @@ public class ContactDb extends DbBase {
       db.endTransaction();
     }
     if (removeExisting) {
+      Log.w(TAG, "Reseting directory. Removing " + uids.size() + " entries.");
       db.beginTransaction();
       try {
         // Now remove entries that are no longer valid.

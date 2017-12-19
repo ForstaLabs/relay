@@ -136,7 +136,11 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onRefresh() {
-    new RefreshDirectoryTask(this).execute(getApplicationContext());
+    new RefreshDirectoryTask(this, false).execute(ContactSelectionActivity.this);
+  }
+
+  public void resetDirectory() {
+    new RefreshDirectoryTask(this, true).execute(ContactSelectionActivity.this);
   }
 
   @Override
@@ -159,17 +163,24 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     private final WeakReference<ContactSelectionActivity> activity;
     private final MasterSecret masterSecret;
+    private final boolean reset;
 
-    private RefreshDirectoryTask(ContactSelectionActivity activity) {
+    private RefreshDirectoryTask(ContactSelectionActivity activity, boolean reset) {
       this.activity     = new WeakReference<>(activity);
       this.masterSecret = activity.masterSecret;
+      this.reset = reset;
     }
 
 
     @Override
     protected Void doInBackground(Context... params) {
       try {
-        DirectoryHelper.refreshDirectory(params[0], masterSecret);
+        if (reset) {
+          DirectoryHelper.resetDirectory(params[0]);
+        } else {
+          DirectoryHelper.refreshDirectory(params[0], masterSecret);
+        }
+
       } catch (IOException e) {
         e.printStackTrace();
       }

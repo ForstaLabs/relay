@@ -149,6 +149,10 @@ public class CcsmApi {
   }
 
   public static void syncForstaContacts(Context context) {
+    syncForstaContacts(context, false);
+  }
+
+  public static void syncForstaContacts(Context context, boolean removeInvalidUsers) {
     try {
       ForstaOrg org = ForstaOrg.getLocalForstaOrg(context);
       if (org.getSlug().equals("public") || org.getSlug().equals("forsta")) {
@@ -164,7 +168,7 @@ public class CcsmApi {
             threadContacts.add(user);
           }
         }
-        syncForstaContactsDb(context, threadContacts, false);
+        syncForstaContactsDb(context, threadContacts, removeInvalidUsers);
       } else {
         JSONObject orgUsers = getOrgUsers(context);
         List<ForstaUser> orgContacts = parseUsers(context, orgUsers);
@@ -179,7 +183,7 @@ public class CcsmApi {
           List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
           orgContacts.addAll(threadContacts);
         }
-        syncForstaContactsDb(context, orgContacts, false);
+        syncForstaContactsDb(context, orgContacts, removeInvalidUsers);
         CcsmApi.syncOrgTags(context);
       }
       ForstaPreferences.setForstaContactSync(context, new Date().getTime());
