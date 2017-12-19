@@ -291,7 +291,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
-    initThread();
     threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
@@ -893,6 +892,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     // These are here as integrity checks on bad state. No recipients. Invalid recipients. No thread data.
     checkInvalidRecipients();
     checkThreadState();
+    initThread();
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       LinearLayout conversationContainer = ViewUtil.findById(this, R.id.conversation_container);
