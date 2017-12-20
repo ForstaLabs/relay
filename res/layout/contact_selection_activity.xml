@@ -12,6 +12,26 @@
             android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
+    <RadioGroup
+        android:id="@+id/new_conversation_thread_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Conversation"
+            android:checked="true"
+            android:background="@drawable/new_conversation_thread_type"
+            android:layout_gravity="center"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Announcement"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@drawable/new_conversation_thread_type"
+            />
+    </RadioGroup>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

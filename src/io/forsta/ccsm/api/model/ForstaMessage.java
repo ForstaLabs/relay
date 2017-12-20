@@ -53,7 +53,13 @@ public class ForstaMessage {
   private String threadTitle;
   private MessageType messageType = MessageType.CONTENT;
   private ControlType controlType = ControlType.NONE;
+  private ThreadType threadType = ThreadType.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
+
+  public enum ThreadType {
+    CONVERSATION,
+    ANNOUNCEMENT
+  }
 
   public enum ControlType {
     NONE,
@@ -118,8 +124,20 @@ public class ForstaMessage {
     return controlType;
   }
 
+  public ThreadType getThreadType() {
+    return threadType;
+  }
+
   public void setControlType(ControlType controlType) {
     this.controlType = controlType;
+  }
+
+  public void setMessageType(MessageType messageType) {
+    this.messageType = messageType;
+  }
+
+  public void setThreadType(ThreadType threadType) {
+    this.threadType = threadType;
   }
 
   public void setHtmlBody(Spanned htmlBody) {
@@ -130,9 +148,7 @@ public class ForstaMessage {
     this.messageId = messageId;
   }
 
-  public void setMessageType(MessageType messageType) {
-    this.messageType = messageType;
-  }
+
 
   public void setTextBody(String textBody) {
     this.textBody = textBody;
