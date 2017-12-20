@@ -21,12 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 
 import io.forsta.ccsm.api.ForstaSyncAdapter;
 import io.forsta.ccsm.components.FlowLayout;
@@ -63,6 +65,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
   protected ContactFilterToolbar toolbar;
   protected ProgressBar progressBar;
   protected FlowLayout expressionElements;
+  protected RadioGroup threadType;
 
   @Override
   protected void onPreCreate() {
@@ -88,6 +91,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
     progressBar = (ProgressBar) findViewById(R.id.contact_search_progress);
     expressionElements = (FlowLayout) findViewById(R.id.contact_expression_elements);
+    threadType = (RadioGroup) findViewById(R.id.new_conversation_thread_type);
 
     initializeToolbar();
     initializeResources();

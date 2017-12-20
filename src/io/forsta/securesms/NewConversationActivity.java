@@ -20,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.telephony.PhoneNumberUtils;
@@ -30,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -111,6 +113,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     });
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
+    threadType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+        Log.w(TAG, "Checked: " + checkedId);
+      }
+    });
   }
 
   private class RemoveRecipientClickListener implements View.OnClickListener {

@@ -18,17 +18,29 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         <RadioButton
+            android:id="@+id/new_conversation_button_conversation"
+            android:checked="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="Conversation"
-            android:checked="true"
             android:background="@drawable/new_conversation_thread_type"
+            android:button="@color/transparent"
             android:layout_gravity="center"
+            android:padding="5dp"
+            android:paddingBottom="10dp"
+            android:textColor="@drawable/new_conversation_thread_type_text_colors"
+            android:textAlignment="center"
             android:layout_weight="1"/>
         <RadioButton
+            android:id="@+id/new_conversation_button_announcement"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="Announcement"
             android:layout_gravity="center"
             android:layout_weight="1"
+            android:button="@color/transparent"
+            android:padding="5dp"
+            android:paddingBottom="10dp"
+            android:textColor="@drawable/new_conversation_thread_type_text_colors"
+            android:textAlignment="center"
             android:background="@drawable/new_conversation_thread_type"
             />
     </RadioGroup>
