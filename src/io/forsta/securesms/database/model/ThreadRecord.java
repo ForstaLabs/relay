@@ -55,11 +55,12 @@ public class ThreadRecord extends DisplayRecord {
   private final String threadUid;
   private final String color;
   private final boolean pinned;
+  private final int threadType;
 
   public ThreadRecord(@NonNull Context context, @NonNull Body body, @Nullable Uri snippetUri,
                       @NonNull Recipients recipients, long date, long count, boolean read,
                       long threadId, int receiptCount, int status, long snippetType,
-                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid, String color, String expression, boolean pinned)
+                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid, String color, String expression, boolean pinned, int threadType)
   {
     super(context, body, recipients, date, date, threadId, status, receiptCount, snippetType);
     this.context          = context.getApplicationContext();
@@ -75,6 +76,7 @@ public class ThreadRecord extends DisplayRecord {
     this.color = color;
     this.expression = expression;
     this.pinned = pinned;
+    this.threadType = threadType;
   }
 
   public @Nullable Uri getSnippetUri() {
@@ -187,5 +189,9 @@ public class ThreadRecord extends DisplayRecord {
 
   public boolean isPinned() {
     return pinned;
+  }
+
+  public int getThreadType() {
+    return threadType;
   }
 }

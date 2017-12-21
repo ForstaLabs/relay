@@ -19,6 +19,7 @@ public class ForstaThread {
   private String recipientIds;
   private String pretty;
   private boolean pinned;
+  private int threadType;
 
   private ForstaThread(long threadid, String uid, String title, String distribution, String pretty) {
     this.threadid = threadid;
@@ -37,6 +38,7 @@ public class ForstaThread {
     recipientIds = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.RECIPIENT_IDS));
     pretty = cursor.getString(cursor.getColumnIndex(ThreadDatabase.PRETTY_EXPRESSION));
     pinned = cursor.getInt(cursor.getColumnIndex(ThreadDatabase.PINNED)) != 0;
+    threadType = cursor.getInt(cursor.getColumnIndex(ThreadDatabase.THREAD_TYPE));
   }
 
   public long getThreadid() {
@@ -65,5 +67,9 @@ public class ForstaThread {
 
   public boolean isPinned() {
     return pinned;
+  }
+
+  public int getThreadType() {
+    return threadType;
   }
 }

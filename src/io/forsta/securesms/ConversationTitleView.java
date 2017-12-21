@@ -39,10 +39,10 @@ public class ConversationTitleView extends LinearLayout {
     ViewUtil.setTextViewGravityStart(this.subtitle, getContext());
   }
 
-  public void setTitle(@Nullable Recipients recipients) {
+  public void setTitle(@Nullable Recipients recipients, int threadType) {
     if      (recipients == null)             setComposeTitle();
-    else if (recipients.isSingleRecipient()) setRecipientTitle(recipients.getPrimaryRecipient());
-    else                                     setRecipientsTitle(recipients);
+    else if (recipients.isSingleRecipient()) setRecipientTitle(recipients.getPrimaryRecipient(), threadType);
+    else                                     setRecipientsTitle(recipients, threadType);
 
     if (recipients != null && recipients.isBlocked()) {
       title.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_block_white_18dp, 0, 0, 0);
@@ -59,7 +59,7 @@ public class ConversationTitleView extends LinearLayout {
     this.subtitle.setVisibility(View.GONE);
   }
 
-  private void setRecipientTitle(Recipient recipient) {
+  private void setRecipientTitle(Recipient recipient, int threadType) {
     if (!recipient.isGroupRecipient()) {
       if (TextUtils.isEmpty(recipient.getName())) {
         this.title.setText(recipient.getNumber());
@@ -80,18 +80,28 @@ public class ConversationTitleView extends LinearLayout {
       this.subtitle.setText(null);
       this.subtitle.setVisibility(View.GONE);
     }
+    if (threadType == 1) {
+      this.subtitle.setVisibility(VISIBLE);
+      this.subtitle.setText("Announcment");
+    }
   }
 
-  private void setRecipientsTitle(Recipients recipients) {
+  private void setRecipientsTitle(Recipients recipients, int threadType) {
     int size = recipients.getRecipientsList().size();
 
     title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
     subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
     subtitle.setVisibility(View.VISIBLE);
+    if (threadType == 1) {
+      this.subtitle.setText("Announcment");
+    }
   }
 
-  public void setForstaTitle(String forstaTitle) {
+  public void setForstaTitle(String forstaTitle, int threadType) {
     title.setText(forstaTitle);
+    if (threadType == 1) {
+      this.subtitle.setVisibility(VISIBLE);
+      subtitle.setText("Announcement");
+    }
   }
-
 }

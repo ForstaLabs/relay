@@ -202,6 +202,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   private void handleCreateConversation() {
     final ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+    final int type = threadType.getCheckedRadioButtonId() == R.id.new_conversation_button_announcement ? 1 : 0;
     if (localUser == null) {
       Toast.makeText(NewConversationActivity.this, "Unable to retrieve local user information.", Toast.LENGTH_LONG).show();
       return;
@@ -236,7 +237,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
           final Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
           final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
           if (forstaThread == null) {
-            createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+            createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution, type), recipients);
           } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
             builder.setTitle("New Conversation")
@@ -244,7 +245,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
                 .setPositiveButton("New", new DialogInterface.OnClickListener() {
                   @Override
                   public void onClick(DialogInterface dialogInterface, int i) {
-                    createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+                    createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution, type), recipients);
                   }
                 })
                 .setNegativeButton("Existing", new DialogInterface.OnClickListener() {

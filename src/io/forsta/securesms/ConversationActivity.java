@@ -639,7 +639,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           @Override
           protected void onPostExecute(ForstaDistribution distribution) {
-            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
+            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution, 0);
             threadId = updatedThread.getThreadid();
             forstaThread = updatedThread;
           }
@@ -668,9 +668,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
 
     if (!TextUtils.isEmpty(thread.getTitle())) {
-      titleView.setForstaTitle(thread.getTitle());
+      titleView.setForstaTitle(thread.getTitle(), thread.getThreadType());
     } else {
-      titleView.setTitle(recipients);
+      titleView.setTitle(recipients, thread.getThreadType());
     }
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);

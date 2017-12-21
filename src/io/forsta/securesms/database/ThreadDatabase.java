@@ -81,6 +81,7 @@ public class ThreadDatabase extends Database {
   public static final String UID = "uid";
   public static final String PRETTY_EXPRESSION = "pretty_expression";
   public static final String PINNED = "pinned";
+  public static final String THREAD_TYPE = "thread_type";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -92,7 +93,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -506,7 +507,7 @@ public class ThreadDatabase extends Database {
     return null;
   }
 
-  public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution) {
+  public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution, int threadType) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues contentValues = new ContentValues(5);
@@ -519,6 +520,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(DISTRIBUTION, distribution.universal);
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(THREAD_TYPE, threadType);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
@@ -540,6 +542,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(THREAD_TYPE, forstaMessage.getThreadType());
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
@@ -817,10 +820,11 @@ public class ThreadDatabase extends Database {
       String color = cursor.getString(cursor.getColumnIndexOrThrow(ThreadPreferenceDatabase.COLOR));
       String expression = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.PRETTY_EXPRESSION));
       boolean pinned = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.PINNED)) != 0;
+      int threadType = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.THREAD_TYPE));
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid, color, expression, pinned);
+                              expiresIn, distribution, title, threadUid, color, expression, pinned, threadType);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {
