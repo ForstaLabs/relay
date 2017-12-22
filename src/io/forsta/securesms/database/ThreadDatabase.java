@@ -757,6 +757,14 @@ public class ThreadDatabase extends Database {
     notifyConversationListeners(threadId);
   }
 
+  public void updateThread(long threadId, ContentValues values) {
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+
+    db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+    notifyConversationListListeners();
+    notifyConversationListeners(threadId);
+  }
+
   private @Nullable Uri getAttachmentUriFor(MessageRecord record) {
     if (!record.isMms() || record.isMmsNotification() || record.isGroupAction()) return null;
 

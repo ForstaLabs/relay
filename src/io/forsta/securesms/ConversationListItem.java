@@ -240,6 +240,10 @@ public class ConversationListItem extends RelativeLayout
     if (thread.isPinned()) {
       alertView.setPinned();
     }
+
+    if (thread.getThreadType() == 1) {
+      alertView.setAnnouncement();
+    }
   }
 
   private void setBackground(ThreadRecord thread) {
