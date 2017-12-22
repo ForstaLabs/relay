@@ -95,6 +95,10 @@ public class ForstaMessage {
     return threadUid;
   }
 
+  public String getSenderId() {
+    return senderId;
+  }
+
   public String getThreadTitle() {
     return threadTitle;
   }

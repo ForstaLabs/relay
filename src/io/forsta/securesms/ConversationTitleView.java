@@ -81,8 +81,8 @@ public class ConversationTitleView extends LinearLayout {
       this.subtitle.setVisibility(View.GONE);
     }
     if (threadType == 1) {
-      this.subtitle.setVisibility(VISIBLE);
-      this.subtitle.setText("Announcment");
+      this.title.setVisibility(VISIBLE);
+      this.title.setText("Announcment");
     }
   }
 

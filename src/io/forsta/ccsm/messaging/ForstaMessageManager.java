@@ -206,22 +206,18 @@ public class ForstaMessageManager {
   }
 
   public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.getDistribution(), forstaThread.getTitle(), forstaThread.getUid(), ForstaMessage.MessageType.CONTROL);
-  }
-
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients) {
-    return createForstaMessageBody(context, richTextMessage, messageRecipients, new ArrayList<Attachment>(), "", "", "", ForstaMessage.MessageType.CONTENT);
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageType.CONTROL);
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread.getDistribution(), forstaThread.getTitle(), forstaThread.getUid(), ForstaMessage.MessageType.CONTENT);
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageType.CONTENT);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, String universalExpression, String threadTitle, String threadUid, ForstaMessage.MessageType type) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, ForstaMessage.MessageType type) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
-
+    String title = forstaThread.getTitle();
     try {
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
@@ -230,18 +226,18 @@ public class ForstaMessageManager {
         messageType = "control";
         data.put("control", "threadUpdate");
         JSONObject threadUpdates = new JSONObject();
-        threadUpdates.put("threadTitle", threadTitle);
-        threadUpdates.put("threadId", threadUid);
+        threadUpdates.put("threadTitle", title);
+        threadUpdates.put("threadId", forstaThread.getUid());
         data.put("threadUpdates", threadUpdates);
       }
 
-      String threadType = "conversation";
+      String threadType = forstaThread.getThreadType() == 1 ? "announcement" : "conversation";
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
       JSONArray attachments = new JSONArray();
 
-      String threadId = !TextUtils.isEmpty(threadUid) ? threadUid : "";
+      String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
 
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
       sender.put("tagId", user.tag_id);
@@ -256,7 +252,7 @@ public class ForstaMessageManager {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
           String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
-          threadTitle = group.getTitle();
+          title = group.getTitle();
           recipientList = group.getMembers();
         } catch (IOException e) {
           Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
@@ -288,7 +284,7 @@ public class ForstaMessageManager {
         userIds.put(r.uuid);
       }
       recipients.put("userIds", userIds);
-      recipients.put("expression", universalExpression);
+      recipients.put("expression", forstaThread.getDistribution());
 
       JSONObject bodyHtml = new JSONObject();
       bodyHtml.put("type", "text/html");
@@ -308,7 +304,7 @@ public class ForstaMessageManager {
       version1.put("messageId", UUID.randomUUID().toString());
       version1.put("messageType", messageType);
       version1.put("threadId", threadId);
-      version1.put("threadTitle", threadTitle);
+      version1.put("threadTitle", title);
       version1.put("threadType", threadType);
       version1.put("sendTime", ForstaUtils.formatDateISOUTC(new Date()));
       version1.put("data", data);
@@ -318,7 +314,7 @@ public class ForstaMessageManager {
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
       Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getNumber());
-      Log.e(TAG, "Thread: "+ threadUid);
+      Log.e(TAG, "Thread: "+ forstaThread.getUid());
       e.printStackTrace();
       // Something failed. Return original message body
       return richTextMessage;
