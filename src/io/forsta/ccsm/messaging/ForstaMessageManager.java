@@ -122,12 +122,19 @@ public class ForstaMessageManager {
     try {
       forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
       JSONObject data = jsonBody.getJSONObject("data");
+      JSONObject distribution = jsonBody.getJSONObject("distribution");
+      forstaMessage.setUniversalExpression(distribution.getString("expression"));
+      if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
+        throw new InvalidMessagePayloadException("No universal expression");
+      }
+
       forstaMessage.setControlType(data.getString("control"));
       JSONObject threadUpdates = data.getJSONObject("threadUpdates");
       forstaMessage.setThreadUid(threadUpdates.getString("threadId"));
       if (threadUpdates.has("threadTitle")) {
         forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
       }
+
     } catch (JSONException e) {
       throw new InvalidMessagePayloadException(e.getMessage());
     }
