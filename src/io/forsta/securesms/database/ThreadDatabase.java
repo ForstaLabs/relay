@@ -542,7 +542,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
-    contentValues.put(THREAD_TYPE, forstaMessage.getThreadType());
+    contentValues.put(THREAD_TYPE, forstaMessage.getThreadType().equals(ThreadTypes.ANNOUNCEMENT) ? 1 : 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);

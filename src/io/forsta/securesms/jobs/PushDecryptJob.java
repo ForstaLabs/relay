@@ -351,7 +351,7 @@ public class PushDecryptJob extends ContextJob {
     Recipients            sender   = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
-    if (forstaMessage.getMessageType() == ForstaMessage.MessageTypes.CONTENT) {
+    if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
       long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);

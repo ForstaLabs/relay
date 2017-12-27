@@ -149,9 +149,15 @@ public class ForstaMessageManager {
       if (jsonBody.has("threadTitle")) {
         forstaMessage.setThreadTitle(jsonBody.getString("threadTitle"));
       }
+
       if (jsonBody.has("threadType")) {
-        forstaMessage.setThreadType(jsonBody.getString("threadType").equals("announcement") ? 1 : 0);
+        forstaMessage.setThreadType(jsonBody.getString("threadType"));
       }
+
+      if (jsonBody.has("messageType")) {
+        forstaMessage.setMessageType(jsonBody.getString("messageType"));
+      }
+
       JSONObject distribution = jsonBody.getJSONObject("distribution");
       forstaMessage.setUniversalExpression(distribution.getString("expression"));
       if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
