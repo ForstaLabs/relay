@@ -80,7 +80,8 @@ public class DatabaseFactory {
   private static final int INTRODUCE_FORSTA_THEAD_PREFERENCES = 33;
   private static final int INTRODUCE_FORSTA_THREAD_PRETTY_EXPRESSION = 34;
   private static final int INTRODUCE_FORSTA_THREAD_PINNING = 35;
-  private static final int DATABASE_VERSION                                = 35;
+  private static final int INTRODUCE_FORSTA_THREAD_TYPE = 36;
+  private static final int DATABASE_VERSION                                = 36;
 
 
   private static final String DATABASE_NAME    = "messages.db";
@@ -865,6 +866,10 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCE_FORSTA_THREAD_PINNING) {
         db.execSQL("ALTER TABLE thread ADD COLUMN pinned INTEGER DEFAULT 0");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_THREAD_TYPE) {
+        db.execSQL("ALTER TABLE thread ADD COLUMN thread_type INTEGER DEFAULT 0");
       }
 
       db.setTransactionSuccessful();
