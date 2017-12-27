@@ -81,6 +81,7 @@ public class ThreadDatabase extends Database {
   public static final String UID = "uid";
   public static final String PRETTY_EXPRESSION = "pretty_expression";
   public static final String PINNED = "pinned";
+  public static final String THREAD_TYPE = "thread_type";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -92,7 +93,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
