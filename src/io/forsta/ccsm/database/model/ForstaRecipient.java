@@ -13,7 +13,7 @@ import io.forsta.ccsm.database.ContactDb;
  */
 
 
-// TODO Complete this object. This is used to store recipient information during new and existing conversations.
+// TODO Remove this.
 public class ForstaRecipient {
   public String uuid;
   public String org;
@@ -29,6 +29,6 @@ public class ForstaRecipient {
     this.number = number;
     this.slug = slug;
     this.uuid = id;
-    this.org = orgId; //TODO Change to org slug when endpoint is ready.
+    this.org = orgId;
   }
 }

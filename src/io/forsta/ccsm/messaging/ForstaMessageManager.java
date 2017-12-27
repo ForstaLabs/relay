@@ -18,8 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import io.forsta.ccsm.ThreadPreferenceActivity;
-import io.forsta.ccsm.api.model.ForstaControlMessage;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
@@ -68,7 +66,7 @@ public class ForstaMessageManager {
   }
 
   private static boolean isContentType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.getString("messageType").equals("content")) {
+    if (jsonBody.getString("messageType").equals(ForstaMessage.MessageTypes.CONTENT)) {
       return true;
     }
     return false;
@@ -76,7 +74,7 @@ public class ForstaMessageManager {
 
   private static boolean isControlType(JSONObject jsonBody) throws JSONException {
     if (jsonBody.has("messageType")) {
-      if (jsonBody.getString("messageType").equals("control")) {
+      if (jsonBody.getString("messageType").equals(ForstaMessage.MessageTypes.CONTROL)) {
         return true;
       }
     }
@@ -122,15 +120,13 @@ public class ForstaMessageManager {
   private static ForstaMessage handleControlType(JSONObject jsonBody) throws InvalidMessagePayloadException {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
-      forstaMessage.setMessageType(ForstaMessage.MessageType.CONTROL);
+      forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
       JSONObject data = jsonBody.getJSONObject("data");
-      if (data.getString("control").equals("threadUpdate")) {
-        forstaMessage.setControlType(ForstaMessage.ControlType.THREAD_UPDATE);
-        JSONObject threadUpdates = data.getJSONObject("threadUpdates");
-        forstaMessage.setThreadUid(threadUpdates.getString("threadId"));
-        if (threadUpdates.has("threadTitle")) {
-          forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
-        }
+      forstaMessage.setControlType(data.getString("control"));
+      JSONObject threadUpdates = data.getJSONObject("threadUpdates");
+      forstaMessage.setThreadUid(threadUpdates.getString("threadId"));
+      if (threadUpdates.has("threadTitle")) {
+        forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
       }
     } catch (JSONException e) {
       throw new InvalidMessagePayloadException(e.getMessage());
@@ -206,14 +202,14 @@ public class ForstaMessageManager {
   }
 
   public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageType.CONTROL);
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageType.CONTENT);
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, ForstaMessage.MessageType type) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -222,7 +218,7 @@ public class ForstaMessageManager {
       JSONObject data = new JSONObject();
       JSONArray body = new JSONArray();
       String messageType = "content";
-      if (type == ForstaMessage.MessageType.CONTROL) {
+      if (type.equals(ForstaMessage.MessageTypes.CONTROL)) {
         messageType = "control";
         data.put("control", "threadUpdate");
         JSONObject threadUpdates = new JSONObject();
@@ -278,11 +274,11 @@ public class ForstaMessageManager {
         }
       }
 
-      List<ForstaRecipient> forstaRecipients = contactDb.getRecipientsFromNumbers(recipientList);
-
-      for (ForstaRecipient r : forstaRecipients) {
-        userIds.put(r.uuid);
+      List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
+      for (ForstaUser x : forstaUsers) {
+        userIds.put(x.getUid());
       }
+
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
 

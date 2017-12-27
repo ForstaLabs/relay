@@ -623,12 +623,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void checkThreadState() {
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-    forstaThread = thread;
     ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     if (isConnected) {
+      final ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
       if (thread == null) {
         // This should never happen.
         new AsyncTask<Void, Void, ForstaDistribution>() {
@@ -649,7 +648,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         new AsyncTask<Void, Void, ForstaDistribution>() {
           @Override
           protected ForstaDistribution doInBackground(Void... voids) {
-            return CcsmApi.getMessageDistribution(ConversationActivity.this, forstaThread.getDistribution());
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, thread.getDistribution());
           }
 
           @Override
@@ -665,12 +664,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initThread() {
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-
-    if (!TextUtils.isEmpty(thread.getTitle())) {
-      titleView.setForstaTitle(thread.getTitle(), thread.getThreadType());
+    forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+    if (!TextUtils.isEmpty(forstaThread.getTitle())) {
+      titleView.setForstaTitle(forstaThread.getTitle(), forstaThread.getThreadType());
     } else {
-      titleView.setTitle(recipients, thread.getThreadType());
+      titleView.setTitle(recipients, forstaThread.getThreadType());
     }
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
@@ -680,6 +678,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
     setActionBarColor(threadPreference.getColor());
+    if (forstaThread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT) {
+      inputPanel.setVisibility(View.GONE);
+    }
   }
 
   private void initializeDraft() {

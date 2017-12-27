@@ -51,28 +51,28 @@ public class ForstaMessage {
   private String universalExpression;
   private String threadUid;
   private String threadTitle;
-  private MessageType messageType = MessageType.CONTENT;
-  private ControlType controlType = ControlType.NONE;
+  private String messageType = MessageTypes.CONTENT;
+  private String controlType = ControlTypes.NONE;
   private int threadType = 0;
   private List<ForstaAttachment> attachments = new ArrayList<>();
 
-  public enum ControlType {
-    NONE,
-    THREAD_UPDATE,
-    THREAD_CLEAR,
-    THREAD_CLOSE,
-    THREAD_DELETE,
-    SNOOZE,
-    PROVISION_REQUEST,
-    SYNC_REQUEST,
-    SYNC_RESPONSE,
-    DISCOVER,
-    DISCOVER_RESPONSE
+  public static class ControlTypes {
+    public static final String NONE = "none";
+    public static final String THREAD_UPDATE = "threadUpdate";
+    public static final String THREAD_CLEAR = "threadClear";
+    public static final String THREAD_CLOSE = "threadClose";
+    public static final String THREAD_DELETE = "threadDelete";
+    public static final String SNOOZE = "snooze";
+    public static final String PROVISION_REQUEST = "provisionRequest";
+    public static final String SYNC_REQUEST = "syncRequest";
+    public static final String SYNC_RESPONSE = "syncResponse";
+    public static final String DISCOVER = "discover";
+    public static final String DISCOVER_RESPONSE = "discoverResponse";
   }
 
-  public enum MessageType {
-    CONTENT,
-    CONTROL
+  public static class MessageTypes {
+    public static final String CONTENT = "content";
+    public static final String CONTROL = "control";
   }
 
   public ForstaMessage() {
@@ -115,11 +115,11 @@ public class ForstaMessage {
     return htmlBody != null;
   }
 
-  public MessageType getMessageType() {
+  public String getMessageType() {
     return messageType;
   }
 
-  public ControlType getControlType() {
+  public String getControlType() {
     return controlType;
   }
 
@@ -127,11 +127,11 @@ public class ForstaMessage {
     return threadType;
   }
 
-  public void setControlType(ControlType controlType) {
+  public void setControlType(String controlType) {
     this.controlType = controlType;
   }
 
-  public void setMessageType(MessageType messageType) {
+  public void setMessageType(String messageType) {
     this.messageType = messageType;
   }
 

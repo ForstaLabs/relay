@@ -789,6 +789,11 @@ public class ThreadDatabase extends Database {
     public static final int ARCHIVE      = 3;
   }
 
+  public static class ThreadTypes {
+    public static final int CONVERSATION = 0;
+    public static final int ANNOUNCEMENT = 1;
+  }
+
   public class Reader {
 
     private final Cursor       cursor;
