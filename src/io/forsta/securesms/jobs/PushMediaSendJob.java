@@ -5,7 +5,10 @@ import android.util.Log;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -74,14 +77,13 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
   @Override
   public void onSend(MasterSecret masterSecret)
       throws RetryLaterException, MmsException, IOException, NoSuchMessageException,
-             UndeliverableMessageException
-  {
+      UndeliverableMessageException, InvalidMessagePayloadException {
+
     ExpiringMessageManager expirationManager = ApplicationContext.getInstance(context).getExpiringMessageManager();
     MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
-    long threadId = database.getThreadIdForMessage(messageId);
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-    String distributionUniversal = thread.getDistribution();
+    ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(outgoingMessage.getBody());
+    String distributionUniversal = forstaMessage.getUniversalExpression();
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, distributionUniversal);
     // This could potentially have new userIds because of tag updates. Update the thread recipients?
 

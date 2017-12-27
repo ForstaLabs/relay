@@ -124,6 +124,12 @@ public class ForstaMessageManager {
     try {
       forstaMessage.setMessageType(ForstaMessage.MessageType.CONTROL);
       JSONObject data = jsonBody.getJSONObject("data");
+      JSONObject distribution = jsonBody.getJSONObject("distribution");
+      forstaMessage.setUniversalExpression(distribution.getString("expression"));
+      if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
+        throw new InvalidMessagePayloadException("No universal expression");
+      }
+
       if (data.getString("control").equals("threadUpdate")) {
         forstaMessage.setControlType(ForstaMessage.ControlType.THREAD_UPDATE);
         JSONObject threadUpdates = data.getJSONObject("threadUpdates");
