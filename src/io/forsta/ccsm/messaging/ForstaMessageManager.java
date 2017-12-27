@@ -21,7 +21,6 @@ import java.util.UUID;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
@@ -104,45 +103,10 @@ public class ForstaMessageManager {
 
   public static ForstaMessage fromMessagBodyString(String messageBody) throws InvalidMessagePayloadException {
     JSONObject jsonBody = getMessageVersion(1, messageBody);
-    try {
-      if (isContentType(jsonBody)) {
-        return handleContentType(jsonBody);
-      } else if (isControlType(jsonBody)) {
-        return handleControlType(jsonBody);
-      } else {
-        throw new InvalidMessagePayloadException("Unsupported messageType");
-      }
-    } catch (JSONException e) {
-      throw new InvalidMessagePayloadException(e.getMessage());
-    }
+    return parseMessageBody(jsonBody);
   }
 
-  private static ForstaMessage handleControlType(JSONObject jsonBody) throws InvalidMessagePayloadException {
-    ForstaMessage forstaMessage = new ForstaMessage();
-    try {
-      forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
-      JSONObject data = jsonBody.getJSONObject("data");
-      JSONObject distribution = jsonBody.getJSONObject("distribution");
-      forstaMessage.setUniversalExpression(distribution.getString("expression"));
-      if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
-        throw new InvalidMessagePayloadException("No universal expression");
-      }
-
-      forstaMessage.setControlType(data.getString("control"));
-      JSONObject threadUpdates = data.getJSONObject("threadUpdates");
-      forstaMessage.setThreadUid(threadUpdates.getString("threadId"));
-      if (threadUpdates.has("threadTitle")) {
-        forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
-      }
-
-    } catch (JSONException e) {
-      throw new InvalidMessagePayloadException(e.getMessage());
-    }
-
-    return forstaMessage;
-  }
-
-  private static ForstaMessage handleContentType(JSONObject jsonBody) throws InvalidMessagePayloadException {
+  private static ForstaMessage parseMessageBody(JSONObject jsonBody) throws InvalidMessagePayloadException {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
       forstaMessage.setThreadUid(jsonBody.getString("threadId"));
@@ -188,6 +152,24 @@ public class ForstaMessageManager {
             String type = object.getString("type");
             long size = object.getLong("size");
             forstaMessage.addAttachment(name, type, size);
+          }
+        }
+
+        if (data.has("control")) {
+          forstaMessage.setControlType(data.getString("control"));
+          Log.w(TAG, "Control message: " + forstaMessage.getControlType());
+
+          switch (forstaMessage.getControlType()) {
+            case ForstaMessage.ControlTypes.THREAD_UPDATE:
+              Log.w(TAG, "Thread update: ");
+              JSONObject threadUpdates = data.getJSONObject("threadUpdates");
+              if (threadUpdates.has("threadTitle")) {
+                forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
+                Log.w(TAG, "New thread title: " + forstaMessage.getThreadTitle());
+              }
+              break;
+            default:
+              Log.w(TAG, "Not a control message");
           }
         }
       }
