@@ -188,7 +188,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     @Override
     public void onClick(View view) {
       DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
-      toolbar.setTitle(forstaTitle.getText().toString());
+      title.setText(forstaTitle.getText().toString());
       forstaSaveTitle.setVisibility(View.GONE);
       Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
 
