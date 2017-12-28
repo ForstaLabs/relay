@@ -1,6 +1,5 @@
 package io.forsta.securesms.database;
 
-
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,10 +10,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import io.forsta.ccsm.database.model.ForstaTag;
-import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -28,19 +25,15 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPoin
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class GroupDatabase extends Database {
-
-  public static final String DATABASE_UPDATE_ACTION = "GroupDatabase.UPDATE";
-
   private static final String TAG = GroupDatabase.class.getSimpleName();
+  public static final String DATABASE_UPDATE_ACTION = "GroupDatabase.UPDATE";
 
   private static final String TABLE_NAME          = "groups";
   public static final String ID                  = "_id";
@@ -418,12 +411,6 @@ public class GroupDatabase extends Database {
   }
 
   public byte[] allocateGroupId() {
-//    try {
-//      byte[] groupId = new byte[16];
-//      SecureRandom.getInstance("SHA1PRNG").nextBytes(groupId);
-//    } catch (NoSuchAlgorithmException e) {
-//      throw new AssertionError(e);
-//    }
     UUID uid = UUID.randomUUID();
     byte[] groupId = uid.toString().getBytes();
     return groupId;
@@ -567,70 +554,5 @@ public class GroupDatabase extends Database {
       sb.append(getFullTag());
       return sb.toString();
     }
-  }
-
-
-  //TODO Remove these.
-  public Set<String> getGroupMembers(byte[] groupId) {
-    Set<String> numbers = new HashSet<>();
-    List<String>    members     = getCurrentMembers(groupId);
-    numbers.addAll(members);
-    return numbers;
-  }
-
-  public List<ForstaRecipient> getForstaGroupRecipients() {
-    List<ForstaRecipient> recipients = new ArrayList<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
-    while (cursor != null && cursor.moveToNext()) {
-      String uuid = "";
-      try {
-        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
-        uuid = new String(id);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
-      recipients.add(new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
-    }
-    cursor.close();
-    return recipients;
-  }
-
-  public Map<String, ForstaRecipient> getForstaRecipients(String localOrgSlug) {
-    Map<String, ForstaRecipient> recipients = new HashMap<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
-    while (cursor != null && cursor.moveToNext()) {
-      String uuid = "";
-      try {
-        byte[] id = GroupUtil.getDecodedId(cursor.getString(cursor.getColumnIndex(GROUP_ID)));
-        uuid = new String(id);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
-      String slug = cursor.getString(cursor.getColumnIndex(SLUG));
-      String orgSlug = cursor.getString(cursor.getColumnIndex(ORG_SLUG));
-      if (!TextUtils.equals(orgSlug, localOrgSlug)) {
-        slug += ":" + orgSlug;
-      }
-
-      recipients.put(slug, new ForstaRecipient(cursor.getString(cursor.getColumnIndex(TITLE)), cursor.getString(cursor.getColumnIndex(GROUP_ID)), cursor.getString(cursor.getColumnIndex(SLUG)), uuid, cursor.getString(cursor.getColumnIndex(ORG_SLUG))));
-    }
-    cursor.close();
-    return recipients;
-  }
-
-  public Cursor getForstaGroup(byte[] groupId) {
-    return databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_ID + " = ?", new String[] {GroupUtil.getEncodedId(groupId)}, null, null, null);
-  }
-
-  public Map<String, String> getGroupSlugs() {
-    Map<String, String> groups = new HashMap<>();
-    Cursor cursor = databaseHelper.getReadableDatabase().query(TABLE_NAME, null, GROUP_DISTRIBUTION + " = 0 AND " + SLUG + " IS NOT NULL", null, null, null, null);
-    while (cursor != null && cursor.moveToNext()) {
-      groups.put(cursor.getString(cursor.getColumnIndex(SLUG)), cursor.getString(cursor.getColumnIndex(GROUP_ID)));
-    }
-    cursor.close();
-    return groups;
   }
 }

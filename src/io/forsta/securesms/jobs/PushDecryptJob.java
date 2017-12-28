@@ -432,8 +432,8 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
-    // Update the recipients cache?
-//    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+    // Update the recipients cache? //Unknown Recipient is showing in Notification for new recipients.
+    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {

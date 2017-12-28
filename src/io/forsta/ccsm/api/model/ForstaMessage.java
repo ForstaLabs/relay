@@ -1,42 +1,10 @@
 package io.forsta.ccsm.api.model;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.database.ContactDb;
-import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaRecipient;
-import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.ccsm.util.ForstaUtils;
-import io.forsta.ccsm.util.InvalidMessagePayloadException;
-import io.forsta.securesms.attachments.Attachment;
-import io.forsta.securesms.attachments.DatabaseAttachment;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.mms.AttachmentManager;
-import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.util.GroupUtil;
-import io.forsta.securesms.util.Util;
 
 /**
  * Created by jlewis on 9/6/17.

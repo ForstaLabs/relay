@@ -3,7 +3,6 @@ package io.forsta.ccsm.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.Log;
@@ -17,11 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import io.forsta.ccsm.database.model.ForstaRecipient;
 import io.forsta.ccsm.database.model.ForstaUser;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by jlewis on 3/23/17.
@@ -174,6 +169,15 @@ public class ContactDb extends DbBase {
       e.printStackTrace();
     }
     return users;
+  }
+
+  public void updateUser(ForstaUser user) {
+    ContentValues values = new ContentValues();
+    values.put(NAME, user.name);
+    values.put(NUMBER, user.phone);
+    values.put(TSREGISTERED, user.tsRegistered);
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
   }
 
   public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
@@ -356,125 +360,6 @@ public class ContactDb extends DbBase {
   @Override
   public int remove(String id) {
     return removeRecord(TABLE_NAME, id);
-  }
-
-
-  // TODO Remove these.
-  public void updateUser(ForstaUser user) {
-    ContentValues values = new ContentValues();
-    values.put(NAME, user.name);
-    values.put(NUMBER, user.phone);
-    values.put(TSREGISTERED, user.tsRegistered);
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
-  }
-
-  public Set<String> getOtherAddresses(Set<String> apiAddresses) {
-    Set<String> addresses = new HashSet<>();
-    String stringAddresses = TextUtils.join(",", apiAddresses);
-    try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, UID + " not in (?)", new String[] {  }, UID);
-      while (c.moveToNext()) {
-        addresses.add(c.getString(c.getColumnIndex(UID)));
-      }
-      c.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return addresses;
-  }
-
-  public List<ForstaRecipient> getRecipients() {
-    List<ForstaRecipient> recipients = new ArrayList<>();
-    try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, NAME);
-      while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
-        recipients.add(recipient);
-      }
-      c.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return recipients;
-  }
-
-  public HashMap<String, ForstaRecipient> getContactRecipients(String localOrgSlug) {
-    HashMap<String, ForstaRecipient> contacts = new HashMap<>();
-    try {
-      Cursor c = getRecords(TABLE_NAME, null, TSREGISTERED + "=1", null, USERNAME);
-      while (c.moveToNext()) {
-        String slug = c.getString(c.getColumnIndex(SLUG));
-        String orgSlug = c.getString(c.getColumnIndex(ContactDb.ORGSLUG));
-        if (!TextUtils.equals(orgSlug, localOrgSlug)) {
-          slug += ":" + orgSlug;
-        }
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
-
-        contacts.put(slug, recipient);
-      }
-      c.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return contacts;
-  }
-
-  public HashMap<String, String> getContactSlugs() {
-    HashMap<String, String> contacts = new HashMap<>();
-    try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, TSREGISTERED + "=1", null, USERNAME);
-      while (c.moveToNext()) {
-        contacts.put(c.getString(c.getColumnIndex(UID)), c.getString(c.getColumnIndex(SLUG)) + ":" + c.getString(c.getColumnIndex(ORGSLUG)));
-      }
-      c.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return contacts;
-  }
-
-  public Cursor filterActiveRecipients(String slugPart) {
-    String selection = TSREGISTERED + " = 1";
-    String[] selectionValues = null;
-    if (slugPart.length() > 0) {
-      selection += " AND (" + SLUG + " LIKE ? OR " + NAME + " LIKE ?)";
-      selectionValues = new String[] { "%" + slugPart + "%", "%" + slugPart + "%" };
-    }
-    try {
-      return getRecords(TABLE_NAME, allColumns, selection, selectionValues, NAME);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  public Cursor getInactiveRecipients() {
-    try {
-      return getRecords(TABLE_NAME, allColumns, TSREGISTERED + " = 0", null, NAME);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  public List<ForstaRecipient> getRecipientsFromNumbers(List<String> numbers) {
-    List<ForstaRecipient> recipients = new ArrayList<>();
-
-    String query = "";
-    String queryNumbers = TextUtils.join("','", numbers);
-    query = UID + " IN ('" + queryNumbers + "')";
-    try {
-      Cursor c = getRecords(TABLE_NAME, allColumns, query, null, ORGID + ", " + NAME);
-      while (c.moveToNext()) {
-        ForstaRecipient recipient = new ForstaRecipient(c.getString(c.getColumnIndex(ContactDb.NAME)), c.getString(c.getColumnIndex(ContactDb.NUMBER)), c.getString(c.getColumnIndex(ContactDb.USERNAME)), c.getString(c.getColumnIndex(ContactDb.UID)), c.getString(c.getColumnIndex(ContactDb.ORGSLUG)));
-        recipients.add(recipient);
-      }
-      c.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return recipients;
   }
 
 }
