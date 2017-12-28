@@ -678,9 +678,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
     setActionBarColor(threadPreference.getColor());
-    if (forstaThread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT) {
-      inputPanel.setVisibility(View.GONE);
-    }
   }
 
   private void initializeDraft() {

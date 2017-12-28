@@ -80,10 +80,6 @@ public class ConversationTitleView extends LinearLayout {
       this.subtitle.setText(null);
       this.subtitle.setVisibility(View.GONE);
     }
-    if (threadType == 1) {
-      this.title.setVisibility(VISIBLE);
-      this.title.setText("Announcment");
-    }
   }
 
   private void setRecipientsTitle(Recipients recipients, int threadType) {
@@ -92,16 +88,9 @@ public class ConversationTitleView extends LinearLayout {
     title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
     subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
     subtitle.setVisibility(View.VISIBLE);
-    if (threadType == 1) {
-      this.subtitle.setText("Announcment");
-    }
   }
 
   public void setForstaTitle(String forstaTitle, int threadType) {
     title.setText(forstaTitle);
-    if (threadType == 1) {
-      this.subtitle.setVisibility(VISIBLE);
-      subtitle.setText("Announcement");
-    }
   }
 }
