@@ -83,9 +83,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(outgoingMessage.getBody());
-    String distributionUniversal = forstaMessage.getUniversalExpression();
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, distributionUniversal);
-    // This could potentially have new userIds because of tag updates. Update the thread recipients?
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
 
     List<OutgoingMediaMessage> messageQueue = new ArrayList<>();
     messageQueue.add(outgoingMessage);

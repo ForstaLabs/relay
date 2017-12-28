@@ -308,16 +308,11 @@ public class ConversationItem extends LinearLayout
       bodyText.setVisibility(View.GONE);
     } else {
 
-      try {
-        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
-        if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-          bodyText.setText(forstaMessage.getHtmlBody());
-        } else {
-          bodyText.setText(forstaMessage.getTextBody());
-        }
-      } catch (InvalidMessagePayloadException e) {
-        Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
-        bodyText.setText("Invalid message format.");
+      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(messageRecord.getDisplayBody().toString());
+      if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
+        bodyText.setText(forstaMessage.getHtmlBody());
+      } else {
+        bodyText.setText(forstaMessage.getTextBody());
       }
       bodyText.setVisibility(View.VISIBLE);
     }
