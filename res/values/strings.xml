@@ -1241,6 +1241,7 @@
     <string name="title_activity_thread_preference">ThreadPreferenceActivity</string>
     <string name="SaveAttachmentTask_open_directory">Open Directory</string>
     <string name="DocumentView_unknown_file">Unknown file</string>
+    <string name="title_activity_recipient_details">RecipientDetailsActivity</string>
 
     <!-- EOF -->
 

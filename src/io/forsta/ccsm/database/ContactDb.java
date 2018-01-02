@@ -281,8 +281,8 @@ public class ContactDb extends DbBase {
           org = parts[1];
         }
       }
-      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ?)";
-      queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + org + "%"};
+      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ? OR " + NUMBER + " LIKE ? OR " + EMAIL + " LIKE ?)";
+      queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + org + "%", "%" + user + "%", "%" + user + "%" };
     }
 
     try {
