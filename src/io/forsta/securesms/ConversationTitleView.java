@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -18,6 +19,7 @@ public class ConversationTitleView extends LinearLayout {
 
   private TextView  title;
   private TextView  subtitle;
+  private ImageView announcement;
 
   public ConversationTitleView(Context context) {
     this(context, null);
@@ -34,15 +36,16 @@ public class ConversationTitleView extends LinearLayout {
 
     this.title    = (TextView) findViewById(R.id.title);
     this.subtitle = (TextView) findViewById(R.id.subtitle);
+    this.announcement = (ImageView) findViewById(R.id.conversation_title_announcement_indicator);
 
     ViewUtil.setTextViewGravityStart(this.title, getContext());
     ViewUtil.setTextViewGravityStart(this.subtitle, getContext());
   }
 
-  public void setTitle(@Nullable Recipients recipients, int threadType) {
+  public void setTitle(@Nullable Recipients recipients) {
     if      (recipients == null)             setComposeTitle();
-    else if (recipients.isSingleRecipient()) setRecipientTitle(recipients.getPrimaryRecipient(), threadType);
-    else                                     setRecipientsTitle(recipients, threadType);
+    else if (recipients.isSingleRecipient()) setRecipientTitle(recipients.getPrimaryRecipient());
+    else                                     setRecipientsTitle(recipients);
 
     if (recipients != null && recipients.isBlocked()) {
       title.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_block_white_18dp, 0, 0, 0);
@@ -59,7 +62,7 @@ public class ConversationTitleView extends LinearLayout {
     this.subtitle.setVisibility(View.GONE);
   }
 
-  private void setRecipientTitle(Recipient recipient, int threadType) {
+  private void setRecipientTitle(Recipient recipient) {
     if (!recipient.isGroupRecipient()) {
       if (TextUtils.isEmpty(recipient.getName())) {
         this.title.setText(recipient.getNumber());
@@ -82,7 +85,7 @@ public class ConversationTitleView extends LinearLayout {
     }
   }
 
-  private void setRecipientsTitle(Recipients recipients, int threadType) {
+  private void setRecipientsTitle(Recipients recipients) {
     int size = recipients.getRecipientsList().size();
 
     title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
@@ -90,7 +93,11 @@ public class ConversationTitleView extends LinearLayout {
     subtitle.setVisibility(View.VISIBLE);
   }
 
-  public void setForstaTitle(String forstaTitle, int threadType) {
+  public void setForstaTitle(String forstaTitle) {
     title.setText(forstaTitle);
+  }
+
+  public void showAnnouncement() {
+    announcement.setVisibility(VISIBLE);
   }
 }

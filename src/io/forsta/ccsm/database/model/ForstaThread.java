@@ -72,4 +72,8 @@ public class ForstaThread {
   public int getThreadType() {
     return threadType;
   }
+
+  public boolean isAnnouncement() {
+    return threadType == 1;
+  }
 }

@@ -70,7 +70,6 @@ import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -94,7 +93,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
-import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
 import io.forsta.securesms.database.NotInDirectoryException;
@@ -118,7 +116,6 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.RecipientFormattingException;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.service.KeyCachingService;
@@ -126,8 +123,6 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.DirectoryHelper.UserCapabilities;
-import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
@@ -667,9 +662,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void initThread() {
     forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
     if (!TextUtils.isEmpty(forstaThread.getTitle())) {
-      titleView.setForstaTitle(forstaThread.getTitle(), forstaThread.getThreadType());
+      titleView.setForstaTitle(forstaThread.getTitle());
     } else {
-      titleView.setTitle(recipients, forstaThread.getThreadType());
+      titleView.setTitle(recipients);
     }
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
