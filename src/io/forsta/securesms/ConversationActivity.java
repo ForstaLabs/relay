@@ -69,7 +69,6 @@ import com.google.protobuf.ByteString;
 import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
-import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
@@ -680,10 +679,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
     setActionBarColor(threadPreference.getColor());
-
-    if (forstaThread.getThreadType() == 1) {
-      inputPanel.setVisibility(View.GONE);
-    }
   }
 
   private void initializeDraft() {
