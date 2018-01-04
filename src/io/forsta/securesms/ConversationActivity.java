@@ -286,12 +286,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
-    initThread();
+    initializeThread();
     threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
         invalidateOptionsMenu();
-        initThread();
+        initializeThread();
       }
     };
 
@@ -393,25 +393,23 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-    if (isSecureText) {
-      int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
-      if (expireMessages > 0) {
-        inflater.inflate(R.menu.conversation_expiring_on, menu);
+    int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
+    if (expireMessages > 0) {
+      inflater.inflate(R.menu.conversation_expiring_on, menu);
 
-        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
-        final View     actionView = MenuItemCompat.getActionView(item);
-        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+      final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
+      final View     actionView = MenuItemCompat.getActionView(item);
+      final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
 
-        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, expireMessages));
-        actionView.setOnClickListener(new OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            onOptionsItemSelected(item);
-          }
-        });
-      } else {
-        inflater.inflate(R.menu.conversation_expiring_off, menu);
-      }
+      badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, expireMessages));
+      actionView.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          onOptionsItemSelected(item);
+        }
+      });
+    } else {
+      inflater.inflate(R.menu.conversation_expiring_off, menu);
     }
 
     if (isGroupConversation()) {
@@ -574,14 +572,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeSecurity() {
-    boolean isMediaMessage = true;
-
-    sendButton.resetAvailableTransports(isMediaMessage);
     sendButton.disableTransport(Type.SMS);
     sendButton.setDefaultTransport(Type.TEXTSECURE);
     calculateCharactersRemaining();
     supportInvalidateOptionsMenu();
-    initializeEnabled(true);
   }
 
   ///// Initializers
@@ -659,13 +653,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void initThread() {
+  private void initializeThread() {
     forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-    if (!TextUtils.isEmpty(forstaThread.getTitle())) {
-      titleView.setForstaTitle(forstaThread.getTitle());
-    } else {
-      titleView.setTitle(recipients);
-    }
+    titleView.setTitle(recipients, forstaThread);
+
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
     // May have preferences prior to color preference addition
@@ -691,8 +682,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void initializeEnabled(boolean value) {
-    boolean enabled = value;
+  private void setEnabled(boolean enabled) {
     inputPanel.setEnabled(enabled);
     sendButton.setEnabled(enabled);
     attachButton.setEnabled(enabled);
@@ -736,50 +726,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateToggleButtonState();
       }
     }.execute();
-  }
-
-  private ListenableFuture<Boolean> initializeDirectory()
-  {
-    final SettableFuture<Boolean> future = new SettableFuture<>();
-
-    new AsyncTask<Recipients, Void, Boolean>() {
-      @Override
-      protected Boolean doInBackground(Recipients... params) {
-        try {
-          Context           context      = ConversationActivity.this;
-          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        return true;
-      }
-    }.execute(recipients);
-
-    return future;
-  }
-
-  protected void updateInviteReminder(boolean seenInvite) {
-    Log.w(TAG, "updateInviteReminder(" + seenInvite+")");
-    if (TextSecurePreferences.isPushRegistered(this) &&
-        !isSecureText                                &&
-        !seenInvite                                  &&
-        recipients.isSingleRecipient()               &&
-        recipients.getPrimaryRecipient() != null     &&
-        recipients.getPrimaryRecipient().getContactUri() != null)
-    {
-      InviteReminder reminder = new InviteReminder(this, recipients);
-      reminder.setOkListener(new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          handleInviteLink();
-          reminderView.requestDismiss();
-        }
-      });
-      reminderView.showReminder(reminder);
-    } else {
-      reminderView.hide();
-    }
   }
 
   private void initializeViews() {
@@ -1208,7 +1154,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
       buttonToggle.display(attachButton);
@@ -1457,6 +1402,29 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   // XXX obsolete methods
 // Group updates are no longer supported by other clients.
   // Review and remove if not used for other purposes.
+  protected void updateInviteReminder(boolean seenInvite) {
+    Log.w(TAG, "updateInviteReminder(" + seenInvite+")");
+    if (TextSecurePreferences.isPushRegistered(this) &&
+        !isSecureText                                &&
+        !seenInvite                                  &&
+        recipients.isSingleRecipient()               &&
+        recipients.getPrimaryRecipient() != null     &&
+        recipients.getPrimaryRecipient().getContactUri() != null)
+    {
+      InviteReminder reminder = new InviteReminder(this, recipients);
+      reminder.setOkListener(new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          handleInviteLink();
+          reminderView.requestDismiss();
+        }
+      });
+      reminderView.showReminder(reminder);
+    } else {
+      reminderView.hide();
+    }
+  }
+
   private void handleLeavePushGroup() {
     if (getRecipients() == null) {
       Toast.makeText(this, getString(R.string.ConversationActivity_invalid_recipient),
@@ -1587,4 +1555,26 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     builder.setNegativeButton(android.R.string.cancel, null);
     builder.show();
   }
+
+  private ListenableFuture<Boolean> initializeDirectory()
+  {
+    final SettableFuture<Boolean> future = new SettableFuture<>();
+
+    new AsyncTask<Recipients, Void, Boolean>() {
+      @Override
+      protected Boolean doInBackground(Recipients... params) {
+        try {
+          Context           context      = ConversationActivity.this;
+          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        return true;
+      }
+    }.execute(recipients);
+
+    return future;
+  }
+
 }
