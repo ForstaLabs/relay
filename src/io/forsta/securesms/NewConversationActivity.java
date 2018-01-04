@@ -235,7 +235,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
         if (distribution.hasRecipients()) {
           final Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
-          final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+          final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal, type);
           if (forstaThread == null) {
             createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution, type), recipients);
           } else {

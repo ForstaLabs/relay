@@ -491,11 +491,11 @@ public class ThreadDatabase extends Database {
     }
   }
 
-  public ForstaThread getThreadForDistribution(String distribution) {
+  public ForstaThread getThreadForDistribution(String distribution, int type) {
     SQLiteDatabase db      = databaseHelper.getReadableDatabase();
     Cursor cursor          = null;
     try {
-      cursor = db.query(TABLE_NAME, null, DISTRIBUTION + " = ? ", new String[]{distribution + ""}, null, null, null);
+      cursor = db.query(TABLE_NAME, null, DISTRIBUTION + " = ? AND " + THREAD_TYPE + " = ? ", new String[]{distribution + "", type + ""}, null, null, null);
 
       if (cursor != null && cursor.moveToFirst()) {
         return new ForstaThread(cursor);
