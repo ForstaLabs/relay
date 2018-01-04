@@ -587,7 +587,9 @@ public class ThreadDatabase extends Database {
         String ids = cursor.getString(0);
         String[] idsArray = ids.split(" ");
         for (int i=0; i<idsArray.length; i++) {
-          recipients.add(idsArray[i]);
+          if (!TextUtils.isEmpty(idsArray[i])) {
+            recipients.add(idsArray[i]);
+          }
         }
       }
     } finally {

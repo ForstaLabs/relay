@@ -451,6 +451,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       }
       sb.append("\n");
     }
+    cursor.close();
     return sb.toString();
   }
 
