@@ -19,9 +19,13 @@ package io.forsta.securesms.database.model;
 import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
@@ -90,35 +94,31 @@ public abstract class MessageRecord extends DisplayRecord {
     return MmsSmsColumns.Types.isAsymmetricEncryption(type);
   }
 
+  public String getPlainTextBody() {
+    try {
+      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      return forstaBody.getTextBody();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return "Invalid message body";
+  }
+
   @Override
   public SpannableString getDisplayBody() {
-    if (isGroupUpdate() && isOutgoing()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_updated_group));
-    } else if (isGroupUpdate()) {
-      return emphasisAdded(GroupUtil.getDescription(context, getBody().getBody()).toString());
-    } else if (isGroupQuit() && isOutgoing()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_left_group));
-    } else if (isGroupQuit()) {
-      return emphasisAdded(context.getString(R.string.ConversationItem_group_action_left, getIndividualRecipient().toShortString()));
-    } else if (isIncomingCall()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_s_called_you, getIndividualRecipient().toShortString()));
-    } else if (isOutgoingCall()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_called_s, getIndividualRecipient().toShortString()));
-    } else if (isMissedCall()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_missed_call_from, getIndividualRecipient().toShortString()));
-    } else if (isJoined()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_s_is_on_signal_say_hey, getIndividualRecipient().toShortString()));
-    } else if (isExpirationTimerUpdate()) {
+    String body = getBody().getBody();
+    try {
+      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody().toString() : forstaBody.getTextBody();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    if (isExpirationTimerUpdate()) {
       String sender = isOutgoing() ? context.getString(R.string.MessageRecord_you) : getIndividualRecipient().toShortString();
       String time   = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.MessageRecord_s_set_disappearing_message_time_to_s, sender, time));
-    } else if (isIdentityUpdate()) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_your_safety_numbers_with_s_have_changed, getIndividualRecipient().toShortString()));
-//    } else if (getBody().getBody().length() > MAX_DISPLAY_LENGTH) {
-//      return new SpannableString(getBody().getBody().substring(0, MAX_DISPLAY_LENGTH));
     }
-
-    return new SpannableString(getBody().getBody());
+    return new SpannableString(body);
   }
 
   public long getId() {

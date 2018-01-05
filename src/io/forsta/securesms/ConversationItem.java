@@ -308,12 +308,13 @@ public class ConversationItem extends LinearLayout
       bodyText.setVisibility(View.GONE);
     } else {
 
-      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(messageRecord.getDisplayBody().toString());
-      if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-        bodyText.setText(forstaMessage.getHtmlBody());
-      } else {
-        bodyText.setText(forstaMessage.getTextBody());
-      }
+//      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(messageRecord.getDisplayBody().toString());
+//      if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
+//        bodyText.setText(forstaMessage.getHtmlBody());
+//      } else {
+//        bodyText.setText(forstaMessage.getTextBody());
+//      }
+      bodyText.setText(messageRecord.getDisplayBody());
       bodyText.setVisibility(View.VISIBLE);
     }
   }

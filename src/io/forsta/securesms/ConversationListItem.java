@@ -141,8 +141,9 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.threadColor = thread.getColor();
 
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
-    subjectView.setText(forstaMessage.getTextBody());
+//    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
+//    subjectView.setText(forstaMessage.getTextBody());
+    subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
