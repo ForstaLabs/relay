@@ -19,7 +19,6 @@ public class AlertView extends LinearLayout {
   private ImageView approvalIndicator;
   private ImageView failedIndicator;
   private ImageView pinnedIndicator;
-  private ImageView announcementIndicator;
 
   public AlertView(Context context) {
     this(context, null);
@@ -42,7 +41,6 @@ public class AlertView extends LinearLayout {
     approvalIndicator = (ImageView) findViewById(R.id.pending_approval_indicator);
     failedIndicator   = (ImageView) findViewById(R.id.sms_failed_indicator);
     pinnedIndicator = (ImageView) findViewById(R.id.pinned_indicator);
-    announcementIndicator = (ImageView) findViewById(R.id.announcement_indicator);
 
     if (attrs != null) {
       TypedArray typedArray = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.AlertView, 0, 0);
@@ -63,7 +61,6 @@ public class AlertView extends LinearLayout {
     this.setVisibility(View.VISIBLE);
     failedIndicator.setVisibility(View.GONE);
     pinnedIndicator.setVisibility(GONE);
-    announcementIndicator.setVisibility(GONE);
     approvalIndicator.setVisibility(View.VISIBLE);
   }
 
@@ -71,7 +68,6 @@ public class AlertView extends LinearLayout {
     this.setVisibility(View.VISIBLE);
     approvalIndicator.setVisibility(View.GONE);
     pinnedIndicator.setVisibility(GONE);
-    announcementIndicator.setVisibility(GONE);
     failedIndicator.setVisibility(View.VISIBLE);
   }
 
@@ -80,13 +76,5 @@ public class AlertView extends LinearLayout {
     approvalIndicator.setVisibility(View.GONE);
     failedIndicator.setVisibility(View.GONE);
     pinnedIndicator.setVisibility(VISIBLE);
-  }
-
-  public void setAnnouncement() {
-    this.setVisibility(View.VISIBLE);
-    approvalIndicator.setVisibility(View.GONE);
-    failedIndicator.setVisibility(View.GONE);
-    pinnedIndicator.setVisibility(GONE);
-    announcementIndicator.setVisibility(VISIBLE);
   }
 }

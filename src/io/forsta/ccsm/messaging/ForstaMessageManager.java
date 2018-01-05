@@ -137,7 +137,7 @@ public class ForstaMessageManager {
           for (int j=0; j<body.length(); j++) {
             JSONObject object = body.getJSONObject(j);
             if (object.getString("type").equals("text/html")) {
-              forstaMessage.setHtmlBody(Html.fromHtml(object.getString("value")));
+              forstaMessage.setHtmlBody(object.getString("value"));
             }
             if (object.getString("type").equals("text/plain")) {
               forstaMessage.setTextBody(object.getString("value"));

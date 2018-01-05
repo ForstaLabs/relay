@@ -102,6 +102,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private MaterialColor threadColor;
+  private boolean isAnnouncement = false;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -140,9 +141,8 @@ public class ConversationListItem extends RelativeLayout
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
     this.threadColor = thread.getColor();
+    isAnnouncement = thread.getThreadType() == 1;
 
-//    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
-//    subjectView.setText(forstaMessage.getTextBody());
     subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
@@ -158,13 +158,13 @@ public class ConversationListItem extends RelativeLayout
       this.archivedView.setVisibility(View.GONE);
     }
 
-    fromView.setText(recipients, read);
+    setFromView(recipients, read);
     setStatusIcons(thread);
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
     setRippleColor(threadColor);
-    this.contactPhotoImage.setAvatar(recipients, threadColor);
+    setAvatarImage();
   }
 
   @Override
@@ -236,10 +236,6 @@ public class ConversationListItem extends RelativeLayout
     if (thread.isPinned()) {
       alertView.setPinned();
     }
-
-    if (thread.getThreadType() == 1) {
-      alertView.setAnnouncement();
-    }
   }
 
   private void setBackground(ThreadRecord thread) {
@@ -268,11 +264,27 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        fromView.setText(recipients, read);
+        setFromView(recipients, read);
         setRippleColor(threadColor);
-        contactPhotoImage.setAvatar(recipients, threadColor);
+        setAvatarImage();
       }
     });
+  }
+
+  private void setAvatarImage() {
+    if (isAnnouncement) {
+      contactPhotoImage.setAnnouncement();
+    } else {
+      contactPhotoImage.setAvatar(recipients, threadColor);
+    }
+  }
+
+  private void setFromView(Recipients recipients, boolean read) {
+    if (isAnnouncement) {
+      fromView.setText(R.string.ConversationActivity_announcement);
+    } else {
+      fromView.setText(recipients, read);
+    }
   }
 
   private static class ThumbnailPositioner implements Runnable {

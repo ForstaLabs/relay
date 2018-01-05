@@ -17,11 +17,15 @@
 package io.forsta.securesms.database.model;
 
 import android.content.Context;
+import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
+
+import org.w3c.dom.Text;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
@@ -104,12 +108,24 @@ public abstract class MessageRecord extends DisplayRecord {
     return "Invalid message body";
   }
 
+  public Spanned getHtmlBody() {
+    try {
+      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      if (!TextUtils.isEmpty(forstaBody.getHtmlBody())) {
+        return Html.fromHtml(forstaBody.getHtmlBody());
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
   @Override
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
     try {
       ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
-      body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody().toString() : forstaBody.getTextBody();
+      body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
     }

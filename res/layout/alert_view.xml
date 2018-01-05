@@ -28,13 +28,4 @@
         android:src="?pinned_icon"
         android:visibility="gone"
         android:layout_gravity="center_vertical"/>
-
-    <ImageView
-        android:id="@+id/announcement_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="?announcement_icon"
-        android:visibility="gone"
-        android:layout_gravity="center_vertical"/>
-
 </merge>

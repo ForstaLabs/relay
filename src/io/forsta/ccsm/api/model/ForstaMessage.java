@@ -13,7 +13,7 @@ import java.util.List;
 public class ForstaMessage {
   private static final String TAG = ForstaMessage.class.getSimpleName();
   private String textBody = "";
-  private Spanned htmlBody;
+  private String htmlBody;
   private String messageId;
   private String senderId;
   private String universalExpression;
@@ -80,7 +80,7 @@ public class ForstaMessage {
     return textBody;
   }
 
-  public Spanned getHtmlBody() {
+  public String getHtmlBody() {
     return htmlBody;
   }
 
@@ -112,7 +112,7 @@ public class ForstaMessage {
     this.threadType = threadType;
   }
 
-  public void setHtmlBody(Spanned htmlBody) {
+  public void setHtmlBody(String htmlBody) {
     this.htmlBody = htmlBody;
   }
 

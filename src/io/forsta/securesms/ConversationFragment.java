@@ -326,11 +326,10 @@ public class ConversationFragment extends Fragment
   }
 
   private String getMessageBody(MessageRecord messageRecord) {
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(messageRecord.getDisplayBody().toString());
-    if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-      return forstaMessage.getHtmlBody().toString();
+    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+      return messageRecord.getHtmlBody().toString();
     }
-    return forstaMessage.getTextBody();
+    return messageRecord.getPlainTextBody();
   }
 
   private void handleForwardMessage(MessageRecord message) {
