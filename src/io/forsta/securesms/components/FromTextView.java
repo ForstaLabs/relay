@@ -76,11 +76,7 @@ public class FromTextView extends EmojiTextView {
     else                             setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
   }
 
-  public void setTitle(Recipients recipient, boolean read, ThreadRecord thread) {
-
-  }
-
-  public void setForstaTitle(String title, boolean read) {
+  public void setText(String title, boolean read) {
     int typeface;
     if (!read) {
       typeface = Typeface.BOLD;

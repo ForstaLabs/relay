@@ -102,6 +102,7 @@ public class ConversationListItem extends RelativeLayout
   private final Handler handler = new Handler();
   private int distributionType;
   private MaterialColor threadColor;
+  private String threadTitle;
   private boolean isAnnouncement = false;
 
   public ConversationListItem(Context context) {
@@ -142,6 +143,7 @@ public class ConversationListItem extends RelativeLayout
     this.recipients.addListener(this);
     this.threadColor = thread.getColor();
     isAnnouncement = thread.getThreadType() == 1;
+    threadTitle = thread.getTitle();
 
     subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
@@ -282,6 +284,8 @@ public class ConversationListItem extends RelativeLayout
   private void setFromView(Recipients recipients, boolean read) {
     if (isAnnouncement) {
       fromView.setText(R.string.ConversationActivity_announcement);
+    } else if (!TextUtils.isEmpty(threadTitle)) {
+      fromView.setText(threadTitle, read);
     } else {
       fromView.setText(recipients, read);
     }
