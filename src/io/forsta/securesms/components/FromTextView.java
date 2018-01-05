@@ -14,6 +14,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiTextView;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
+import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -73,6 +74,10 @@ public class FromTextView extends EmojiTextView {
     if      (recipients.isBlocked()) setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_block_grey600_18dp, 0, 0, 0);
     else if (recipients.isMuted())   setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_volume_off_grey600_18dp, 0, 0, 0);
     else                             setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+  }
+
+  public void setTitle(Recipients recipient, boolean read, ThreadRecord thread) {
+
   }
 
   public void setForstaTitle(String title, boolean read) {

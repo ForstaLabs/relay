@@ -101,8 +101,6 @@ public class ConversationListItem extends RelativeLayout
 
   private final Handler handler = new Handler();
   private int distributionType;
-  private String forstaThreadTitle;
-  private String threadExpression;
   private MaterialColor threadColor;
 
   public ConversationListItem(Context context) {
@@ -141,9 +139,7 @@ public class ConversationListItem extends RelativeLayout
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
-    this.forstaThreadTitle = thread.getTitle();
     this.threadColor = thread.getColor();
-    this.threadExpression = thread.getPrettyExpression();
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
     subjectView.setText(forstaMessage.getTextBody());
@@ -161,14 +157,13 @@ public class ConversationListItem extends RelativeLayout
       this.archivedView.setVisibility(View.GONE);
     }
 
-    setForstaThreadTitle();
+    fromView.setText(recipients, read);
     setStatusIcons(thread);
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
     setRippleColor(threadColor);
     this.contactPhotoImage.setAvatar(recipients, threadColor);
-
   }
 
   @Override
@@ -272,7 +267,7 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        setForstaThreadTitle();
+        fromView.setText(recipients, read);
         setRippleColor(threadColor);
         contactPhotoImage.setAvatar(recipients, threadColor);
       }
@@ -280,7 +275,6 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private static class ThumbnailPositioner implements Runnable {
-
     private final View thumbnailView;
     private final View archivedView;
     private final View deliveryStatusView;
@@ -312,18 +306,6 @@ public class ConversationListItem extends RelativeLayout
       }
 
       thumbnailView.setLayoutParams(thumbnailParams);
-    }
-  }
-
-  private void setForstaThreadTitle() {
-    if (!TextUtils.isEmpty(forstaThreadTitle)) {
-      this.fromView.setForstaTitle(forstaThreadTitle, read);
-    } else {
-      if (!TextUtils.isEmpty(this.threadExpression) && !recipients.isSingleRecipient()) {
-        this.fromView.setForstaTitle(this.threadExpression, read);
-      } else {
-        this.fromView.setText(recipients, read);
-      }
     }
   }
 }
