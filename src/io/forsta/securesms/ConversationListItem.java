@@ -282,10 +282,10 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setFromView(Recipients recipients, boolean read) {
-    if (isAnnouncement) {
-      fromView.setText(R.string.ConversationActivity_announcement);
-    } else if (!TextUtils.isEmpty(threadTitle)) {
+    if (!TextUtils.isEmpty(threadTitle)) {
       fromView.setText(threadTitle, read);
+    } else if (isAnnouncement) {
+      fromView.setText(R.string.ConversationActivity_announcement);
     } else {
       fromView.setText(recipients, read);
     }
