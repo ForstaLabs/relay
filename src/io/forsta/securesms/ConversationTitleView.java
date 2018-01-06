@@ -104,9 +104,10 @@ public class ConversationTitleView extends LinearLayout {
         subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
         subtitle.setVisibility(View.VISIBLE);
       }
-      if (!TextUtils.isEmpty(thread.getTitle())) {
-        title.setText(thread.getTitle());
-      }
+    }
+    // Always show thread title, if available
+    if (!TextUtils.isEmpty(thread.getTitle())) {
+      title.setText(thread.getTitle());
     }
   }
 
