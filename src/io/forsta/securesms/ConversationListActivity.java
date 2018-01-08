@@ -36,9 +36,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.apache.http.impl.execchain.ServiceUnavailableRetryExec;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.forsta.ccsm.DrawerFragment;
@@ -58,6 +62,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
@@ -115,6 +120,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
   }
 
   @Override
