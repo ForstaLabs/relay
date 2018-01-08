@@ -306,7 +306,7 @@ public class PushDecryptJob extends ContextJob {
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
 
-    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
+    if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
       handleControlMessage(forstaMessage, message.getBody().get());
@@ -351,7 +351,7 @@ public class PushDecryptJob extends ContextJob {
     Recipients            sender   = getSyncMessageDestination(message);
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
-    if (forstaMessage.getMessageType() == ForstaMessage.MessageType.CONTENT) {
+    if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
       long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
@@ -432,8 +432,8 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
-    // Update the recipients cache?
-//    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+    // Update the recipients cache? //Unknown Recipient is showing in Notification for new recipients.
+    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
@@ -456,8 +456,8 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody) {
     try {
       Log.w(TAG, "Got control message: " + messageBody);
-      Log.w(TAG, "Control Type: " + forstaMessage.getControlType().name());
-      if (forstaMessage.getControlType() == ForstaMessage.ControlType.THREAD_UPDATE) {
+      Log.w(TAG, "Control Type: " + forstaMessage.getControlType());
+      if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.THREAD_UPDATE)) {
         ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
         ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 

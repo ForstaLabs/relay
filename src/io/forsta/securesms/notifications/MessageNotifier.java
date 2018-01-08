@@ -386,9 +386,7 @@ public class MessageNotifier {
       Recipient    recipient        = record.getIndividualRecipient();
       Recipients   recipients       = record.getRecipients();
       long         threadId         = record.getThreadId();
-      CharSequence body             = record.getDisplayBody();
-      ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(body.toString());
-      body = forstaMessage.getTextBody();
+      CharSequence body             = record.getPlainTextBody();
       Recipients   threadRecipients = null;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();

@@ -159,6 +159,7 @@
         <item name="dialog_info_icon">@drawable/ic_info_outline_light</item>
         <item name="dialog_alert_icon">@drawable/ic_warning_light</item>
         <item name="pinned_icon">@drawable/ic_forsta_pin_dark</item>
+        <item name="announcement_icon">@drawable/ic_forsta_announcements_dark</item>
 
         <item name="device_link_item_card_background">@color/device_link_item_background_light</item>
 
@@ -243,6 +244,7 @@
         <item name="dialog_info_icon">@drawable/ic_info_outline_dark</item>
         <item name="dialog_alert_icon">@drawable/ic_warning_dark</item>
         <item name="pinned_icon">@drawable/ic_forsta_pin_light</item>
+        <item name="announcement_icon">@drawable/ic_forsta_announcements_light</item>
 
         <item name="device_link_item_card_background">@color/device_link_item_background_dark</item>
 

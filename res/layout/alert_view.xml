@@ -28,5 +28,4 @@
         android:src="?pinned_icon"
         android:visibility="gone"
         android:layout_gravity="center_vertical"/>
-
 </merge>

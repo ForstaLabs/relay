@@ -20,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.telephony.PhoneNumberUtils;
@@ -30,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -111,6 +113,12 @@ public class NewConversationActivity extends ContactSelectionActivity {
       }
     });
     selectedRecipientRemoveListener = new RemoveRecipientClickListener();
+    threadType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+        Log.w(TAG, "Checked: " + checkedId);
+      }
+    });
   }
 
   private class RemoveRecipientClickListener implements View.OnClickListener {
@@ -194,6 +202,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
   private void handleCreateConversation() {
     final ForstaUser localUser = ForstaUser.getLocalForstaUser(NewConversationActivity.this);
+    final int type = threadType.getCheckedRadioButtonId() == R.id.new_conversation_button_announcement ? 1 : 0;
     if (localUser == null) {
       Toast.makeText(NewConversationActivity.this, "Unable to retrieve local user information.", Toast.LENGTH_LONG).show();
       return;
@@ -226,9 +235,9 @@ public class NewConversationActivity extends ContactSelectionActivity {
 
         if (distribution.hasRecipients()) {
           final Recipients recipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, distribution.getRecipients(NewConversationActivity.this), false);
-          final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal);
+          final ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(NewConversationActivity.this).getThreadForDistribution(distribution.universal, type);
           if (forstaThread == null) {
-            createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+            createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution, type), recipients);
           } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(NewConversationActivity.this);
             builder.setTitle("New Conversation")
@@ -236,7 +245,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
                 .setPositiveButton("New", new DialogInterface.OnClickListener() {
                   @Override
                   public void onClick(DialogInterface dialogInterface, int i) {
-                    createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution), recipients);
+                    createConversation(DatabaseFactory.getThreadDatabase(NewConversationActivity.this).allocateThread(recipients, distribution, type), recipients);
                   }
                 })
                 .setNegativeButton("Existing", new DialogInterface.OnClickListener() {

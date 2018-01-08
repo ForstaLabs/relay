@@ -14,6 +14,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiTextView;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
+import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -48,7 +49,7 @@ public class FromTextView extends EmojiTextView {
     if (isUnnamedGroup) {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
     } else {
-      fromString = recipients.toShortString();
+      fromString = recipients.toCondensedString(getContext());
     }
 
     int typeface;
@@ -75,7 +76,7 @@ public class FromTextView extends EmojiTextView {
     else                             setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
   }
 
-  public void setForstaTitle(String title, boolean read) {
+  public void setText(String title, boolean read) {
     int typeface;
     if (!read) {
       typeface = Typeface.BOLD;

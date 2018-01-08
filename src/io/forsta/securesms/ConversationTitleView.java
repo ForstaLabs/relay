@@ -5,9 +5,11 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ViewUtil;
@@ -18,6 +20,7 @@ public class ConversationTitleView extends LinearLayout {
 
   private TextView  title;
   private TextView  subtitle;
+  private ImageView announcement;
 
   public ConversationTitleView(Context context) {
     this(context, null);
@@ -34,15 +37,15 @@ public class ConversationTitleView extends LinearLayout {
 
     this.title    = (TextView) findViewById(R.id.title);
     this.subtitle = (TextView) findViewById(R.id.subtitle);
+    this.announcement = (ImageView) findViewById(R.id.conversation_title_announcement_indicator);
 
     ViewUtil.setTextViewGravityStart(this.title, getContext());
     ViewUtil.setTextViewGravityStart(this.subtitle, getContext());
   }
 
-  public void setTitle(@Nullable Recipients recipients) {
+  public void setTitle(@Nullable Recipients recipients, ForstaThread thread) {
     if      (recipients == null)             setComposeTitle();
-    else if (recipients.isSingleRecipient()) setRecipientTitle(recipients.getPrimaryRecipient());
-    else                                     setRecipientsTitle(recipients);
+    else                                     setRecipientsTitle(recipients, thread);
 
     if (recipients != null && recipients.isBlocked()) {
       title.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_block_white_18dp, 0, 0, 0);
@@ -59,7 +62,7 @@ public class ConversationTitleView extends LinearLayout {
     this.subtitle.setVisibility(View.GONE);
   }
 
-  private void setRecipientTitle(Recipient recipient) {
+  private void setRecipientTitle(Recipient recipient, ForstaThread thread) {
     if (!recipient.isGroupRecipient()) {
       if (TextUtils.isEmpty(recipient.getName())) {
         this.title.setText(recipient.getNumber());
@@ -82,16 +85,29 @@ public class ConversationTitleView extends LinearLayout {
     }
   }
 
-  private void setRecipientsTitle(Recipients recipients) {
+  private void setRecipientsTitle(Recipients recipients, ForstaThread thread) {
     int size = recipients.getRecipientsList().size();
+    Recipient recipient = recipients.getPrimaryRecipient();
 
-    title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
-    subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
-    subtitle.setVisibility(View.VISIBLE);
+    if (thread.isAnnouncement()) {
+      title.setText(getContext().getString(R.string.ConversationActivity_announcement));
+      this.subtitle.setText(recipient.getName());
+      subtitle.setVisibility(View.VISIBLE);
+      announcement.setVisibility(VISIBLE);
+    } else {
+      if (recipients.isSingleRecipient()) {
+        this.title.setText(recipient.getName());
+        this.subtitle.setText(null);
+        this.subtitle.setVisibility(View.GONE);
+      } else {
+        title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
+        subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
+        subtitle.setVisibility(View.VISIBLE);
+      }
+    }
+    // Always show thread title, if available
+    if (!TextUtils.isEmpty(thread.getTitle())) {
+      title.setText(thread.getTitle());
+    }
   }
-
-  public void setForstaTitle(String forstaTitle) {
-    title.setText(forstaTitle);
-  }
-
 }

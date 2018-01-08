@@ -85,8 +85,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private TextView          blockedIndicator;
   private TextView threadRecipients;
   private EditText forstaTitle;
-  private TextView forstaUid;
-  private TextView forstaExpression;
   private ImageButton forstaSaveTitle;
   private Recipients recipients;
   private MasterSecret masterSecret;
@@ -148,8 +146,6 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     title = (TextView) toolbar.findViewById(R.id.name);
     threadRecipients = (TextView) findViewById(R.id.forsta_thread_recipients);
     forstaTitle = (EditText) findViewById(R.id.forsta_thread_title);
-    forstaUid = (TextView) findViewById(R.id.forsta_thread_uid);
-    forstaExpression = (TextView) findViewById(R.id.forsta_thread_expression);
     forstaSaveTitle = (ImageButton) findViewById(R.id.forsta_title_save_button);
     forstaSaveTitle.setOnClickListener(new TitleSaveClickListener());
   }
@@ -184,24 +180,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       }
     });
-    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toShortString() : threadDetail.title);
-
-    if (BuildConfig.FLAVOR.equals("dev")) {
-      forstaUid.setText(threadDetail.uid);
-      forstaExpression.setText(threadDetail.distribution);
-      LinearLayout debugLayout = (LinearLayout) findViewById(R.id.forsta_thread_debug_details);
-      debugLayout.setVisibility(View.VISIBLE);
-    }
-  }
-
-  private String getRecipientData(Recipients recipients) {
-    List<String> contacts = new ArrayList();
-    for (Recipient recipient : recipients) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(recipient.getName()).append("(").append(recipient.getFullTag()).append(")");
-      contacts.add(sb.toString());
-    }
-    return TextUtils.join("\n", contacts);
+    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toCondensedString(ThreadPreferenceActivity.this) : threadDetail.title);
   }
 
   private class TitleSaveClickListener implements View.OnClickListener {
@@ -209,7 +188,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     @Override
     public void onClick(View view) {
       DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
-      toolbar.setTitle(forstaTitle.getText().toString());
+      title.setText(forstaTitle.getText().toString());
       forstaSaveTitle.setVisibility(View.GONE);
       Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
 

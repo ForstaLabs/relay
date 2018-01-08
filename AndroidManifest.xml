@@ -578,6 +578,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ConversationActivity"/>
         </activity>
+        <activity
+            android:name="io.forsta.ccsm.RecipientDetailsActivity"
+            android:label="@string/title_activity_recipient_details">
+        </activity>
     </application>
 
 </manifest>

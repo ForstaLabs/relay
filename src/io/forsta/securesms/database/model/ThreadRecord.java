@@ -26,6 +26,9 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.database.MmsSmsColumns;
@@ -55,11 +58,12 @@ public class ThreadRecord extends DisplayRecord {
   private final String threadUid;
   private final String color;
   private final boolean pinned;
+  private final int threadType;
 
   public ThreadRecord(@NonNull Context context, @NonNull Body body, @Nullable Uri snippetUri,
                       @NonNull Recipients recipients, long date, long count, boolean read,
                       long threadId, int receiptCount, int status, long snippetType,
-                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid, String color, String expression, boolean pinned)
+                      int distributionType, boolean archived, long expiresIn, String distribution, String title, String threadUid, String color, String expression, boolean pinned, int threadType)
   {
     super(context, body, recipients, date, date, threadId, status, receiptCount, snippetType);
     this.context          = context.getApplicationContext();
@@ -75,6 +79,7 @@ public class ThreadRecord extends DisplayRecord {
     this.color = color;
     this.expression = expression;
     this.pinned = pinned;
+    this.threadType = threadType;
   }
 
   public @Nullable Uri getSnippetUri() {
@@ -83,46 +88,44 @@ public class ThreadRecord extends DisplayRecord {
 
   @Override
   public SpannableString getDisplayBody() {
-    if (SmsDatabase.Types.isDecryptInProgressType(type)) {
-      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_decrypting_please_wait));
-    } else if (isGroupUpdate()) {
-      return emphasisAdded(GroupUtil.getDescription(context, getBody().getBody()).toString());
-    } else if (isGroupQuit()) {
-      return emphasisAdded(context.getString(R.string.ThreadRecord_left_the_group));
-    } else if (isKeyExchange()) {
-      return emphasisAdded(context.getString(R.string.ConversationListItem_key_exchange_message));
-    } else if (SmsDatabase.Types.isFailedDecryptType(type)) {
-      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_bad_encrypted_message));
-    } else if (SmsDatabase.Types.isNoRemoteSessionType(type)) {
-      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_message_encrypted_for_non_existing_session));
-    } else if (!getBody().isPlaintext()) {
-      return emphasisAdded(context.getString(R.string.MessageNotifier_locked_message));
-    } else if (SmsDatabase.Types.isEndSessionType(type)) {
-      return emphasisAdded(context.getString(R.string.ThreadRecord_secure_session_reset));
-    } else if (MmsSmsColumns.Types.isLegacyType(type)) {
-      return emphasisAdded(context.getString(R.string.MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported));
-    } else if (MmsSmsColumns.Types.isDraftMessageType(type)) {
-      return new SpannableString(getBody().getBody());
-    } else if (SmsDatabase.Types.isOutgoingCall(type)) {
-      return emphasisAdded(context.getString(io.forsta.securesms.R.string.ThreadRecord_called));
-    } else if (SmsDatabase.Types.isIncomingCall(type)) {
-      return emphasisAdded(context.getString(io.forsta.securesms.R.string.ThreadRecord_called_you));
-    } else if (SmsDatabase.Types.isMissedCall(type)) {
-      return emphasisAdded(context.getString(io.forsta.securesms.R.string.ThreadRecord_missed_call));
-    } else if (SmsDatabase.Types.isJoinedType(type)) {
-      return emphasisAdded(context.getString(R.string.ThreadRecord_s_is_on_signal_say_hey, getRecipients().getPrimaryRecipient().toShortString()));
-    } else if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
+//    if (SmsDatabase.Types.isDecryptInProgressType(type)) {
+//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_decrypting_please_wait));
+//    } else if (isKeyExchange()) {
+//      return emphasisAdded(context.getString(R.string.ConversationListItem_key_exchange_message));
+//    } else if (SmsDatabase.Types.isFailedDecryptType(type)) {
+//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_bad_encrypted_message));
+//    } else if (SmsDatabase.Types.isNoRemoteSessionType(type)) {
+//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_message_encrypted_for_non_existing_session));
+//    } else if (!getBody().isPlaintext()) {
+//      return emphasisAdded(context.getString(R.string.MessageNotifier_locked_message));
+//    } else if (SmsDatabase.Types.isEndSessionType(type)) {
+//      return emphasisAdded(context.getString(R.string.ThreadRecord_secure_session_reset));
+//    } else if (MmsSmsColumns.Types.isLegacyType(type)) {
+//      return emphasisAdded(context.getString(R.string.MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported));
+//    } else if (MmsSmsColumns.Types.isDraftMessageType(type)) {
+//      return new SpannableString(getBody().getBody());
+//    } else if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
+//      String time = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
+//      return emphasisAdded(context.getString(R.string.ThreadRecord_disappearing_message_time_updated_to_s, time));
+//    } else {
+//      if (TextUtils.isEmpty(getBody().getBody())) {
+//        return new SpannableString(emphasisAdded(context.getString(R.string.ThreadRecord_media_message)));
+//      } else {
+//        return new SpannableString(getBody().getBody());
+//      }
+//    }
+    String body = getBody().getBody();
+    try {
+      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      body = forstaBody.getTextBody();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
       String time = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.ThreadRecord_disappearing_message_time_updated_to_s, time));
-    } else if (SmsDatabase.Types.isIdentityUpdate(type)) {
-      return emphasisAdded(context.getString(R.string.ThreadRecord_your_safety_numbers_with_s_have_changed, getRecipients().getPrimaryRecipient().toShortString()));
-    } else {
-      if (TextUtils.isEmpty(getBody().getBody())) {
-        return new SpannableString(emphasisAdded(context.getString(R.string.ThreadRecord_media_message)));
-      } else {
-        return new SpannableString(getBody().getBody());
-      }
     }
+    return new SpannableString(body);
   }
 
   private SpannableString emphasisAdded(String sequence) {
@@ -187,5 +190,9 @@ public class ThreadRecord extends DisplayRecord {
 
   public boolean isPinned() {
     return pinned;
+  }
+
+  public int getThreadType() {
+    return threadType;
   }
 }

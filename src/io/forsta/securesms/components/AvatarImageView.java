@@ -16,6 +16,7 @@ import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.ResUtil;
 
 public class AvatarImageView extends ImageView {
 
@@ -60,6 +61,10 @@ public class AvatarImageView extends ImageView {
 
   public void setAvatar(@Nullable Recipient recipient, boolean quickContactEnabled) {
     setAvatar(RecipientFactory.getRecipientsFor(getContext(), recipient, true), quickContactEnabled);
+  }
+
+  public void setAnnouncement() {
+    setImageDrawable(ResUtil.getDrawable(getContext(), R.attr.announcement_icon));
   }
 
   private void setAvatarClickHandler(final Recipients recipients, boolean quickContactEnabled) {

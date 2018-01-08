@@ -52,6 +52,7 @@ import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
@@ -101,9 +102,9 @@ public class ConversationListItem extends RelativeLayout
 
   private final Handler handler = new Handler();
   private int distributionType;
-  private String forstaThreadTitle;
-  private String threadExpression;
   private MaterialColor threadColor;
+  private String threadTitle;
+  private boolean isAnnouncement = false;
 
   public ConversationListItem(Context context) {
     this(context, null);
@@ -141,12 +142,16 @@ public class ConversationListItem extends RelativeLayout
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
-    this.forstaThreadTitle = thread.getTitle();
-    this.threadColor = thread.getColor();
-    this.threadExpression = thread.getPrettyExpression();
+    if (thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT) {
+      this.threadColor = MaterialColor.ANNOUNCEMENT;
+    } else {
+      this.threadColor = thread.getColor();
+    }
 
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(thread.getDisplayBody().toString());
-    subjectView.setText(forstaMessage.getTextBody());
+    isAnnouncement = thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT;
+    threadTitle = thread.getTitle();
+
+    subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
@@ -161,14 +166,13 @@ public class ConversationListItem extends RelativeLayout
       this.archivedView.setVisibility(View.GONE);
     }
 
-    setForstaThreadTitle();
+    setFromView(recipients, read);
     setStatusIcons(thread);
     setThumbnailSnippet(masterSecret, thread);
     setBatchState(batchMode);
     setBackground(thread);
     setRippleColor(threadColor);
-    this.contactPhotoImage.setAvatar(recipients, threadColor);
-
+    setAvatarImage();
   }
 
   @Override
@@ -268,15 +272,32 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        setForstaThreadTitle();
+        setFromView(recipients, read);
         setRippleColor(threadColor);
-        contactPhotoImage.setAvatar(recipients, threadColor);
+        setAvatarImage();
       }
     });
   }
 
-  private static class ThumbnailPositioner implements Runnable {
+  private void setAvatarImage() {
+    if (isAnnouncement) {
+      contactPhotoImage.setAnnouncement();
+    } else {
+      contactPhotoImage.setAvatar(recipients, threadColor);
+    }
+  }
 
+  private void setFromView(Recipients recipients, boolean read) {
+    if (!TextUtils.isEmpty(threadTitle)) {
+      fromView.setText(threadTitle, read);
+    } else if (isAnnouncement) {
+      fromView.setText(R.string.ConversationActivity_announcement);
+    } else {
+      fromView.setText(recipients, read);
+    }
+  }
+
+  private static class ThumbnailPositioner implements Runnable {
     private final View thumbnailView;
     private final View archivedView;
     private final View deliveryStatusView;
@@ -308,18 +329,6 @@ public class ConversationListItem extends RelativeLayout
       }
 
       thumbnailView.setLayoutParams(thumbnailParams);
-    }
-  }
-
-  private void setForstaThreadTitle() {
-    if (!TextUtils.isEmpty(forstaThreadTitle)) {
-      this.fromView.setForstaTitle(forstaThreadTitle, read);
-    } else {
-      if (!TextUtils.isEmpty(this.threadExpression) && !recipients.isSingleRecipient()) {
-        this.fromView.setForstaTitle(this.threadExpression, read);
-      } else {
-        this.fromView.setText(recipients, read);
-      }
     }
   }
 }

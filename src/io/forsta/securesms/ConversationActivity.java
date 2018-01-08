@@ -56,7 +56,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -70,7 +72,6 @@ import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -94,7 +95,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
-import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
 import io.forsta.securesms.database.NotInDirectoryException;
@@ -118,7 +118,6 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.RecipientFormattingException;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.service.KeyCachingService;
@@ -126,13 +125,12 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.DirectoryHelper.UserCapabilities;
-import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.ViewUtil;
@@ -220,6 +218,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText = true;
+  private boolean isAnnouncement = false;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -291,11 +290,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
+    initializeThread();
     threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
         invalidateOptionsMenu();
-        initThread();
+        initializeThread();
       }
     };
 
@@ -397,7 +397,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-    if (isSecureText) {
+    if (!forstaThread.isAnnouncement()) {
       int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
       if (expireMessages > 0) {
         inflater.inflate(R.menu.conversation_expiring_on, menu);
@@ -416,13 +416,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       } else {
         inflater.inflate(R.menu.conversation_expiring_off, menu);
       }
+
+      inflater.inflate(R.menu.conversation, menu);
     }
 
     if (isGroupConversation()) {
       inflater.inflate(R.menu.conversation_group_options, menu);
     }
-
-    inflater.inflate(R.menu.conversation, menu);
 
     super.onPrepareOptionsMenu(menu);
     return true;
@@ -578,14 +578,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeSecurity() {
-    boolean isMediaMessage = true;
-
-    sendButton.resetAvailableTransports(isMediaMessage);
     sendButton.disableTransport(Type.SMS);
     sendButton.setDefaultTransport(Type.TEXTSECURE);
     calculateCharactersRemaining();
     supportInvalidateOptionsMenu();
-    initializeEnabled(true);
   }
 
   ///// Initializers
@@ -623,12 +619,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void checkThreadState() {
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-    forstaThread = thread;
     ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     if (isConnected) {
+      final ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
       if (thread == null) {
         // This should never happen.
         new AsyncTask<Void, Void, ForstaDistribution>() {
@@ -639,7 +634,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           @Override
           protected void onPostExecute(ForstaDistribution distribution) {
-            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution);
+            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution, 0);
             threadId = updatedThread.getThreadid();
             forstaThread = updatedThread;
           }
@@ -649,7 +644,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         new AsyncTask<Void, Void, ForstaDistribution>() {
           @Override
           protected ForstaDistribution doInBackground(Void... voids) {
-            return CcsmApi.getMessageDistribution(ConversationActivity.this, forstaThread.getDistribution());
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, thread.getDistribution());
           }
 
           @Override
@@ -664,14 +659,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void initThread() {
-    ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+  private void initializeThread() {
+    forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+    titleView.setTitle(recipients, forstaThread);
 
-    if (!TextUtils.isEmpty(thread.getTitle())) {
-      titleView.setForstaTitle(thread.getTitle());
-    } else {
-      titleView.setTitle(recipients);
-    }
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
     // May have preferences prior to color preference addition
@@ -680,6 +671,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
     setActionBarColor(threadPreference.getColor());
+
+    if (forstaThread.isAnnouncement()) {
+      setActionBarColor(MaterialColor.ANNOUNCEMENT);
+      if (!forstaThread.getThreadCreator().equals(TextSecurePreferences.getLocalNumber(ConversationActivity.this))) {
+        inputPanel.setVisibility(View.GONE);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+      }
+    }
   }
 
   private void initializeDraft() {
@@ -697,8 +696,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void initializeEnabled(boolean value) {
-    boolean enabled = value;
+  private void setEnabled(boolean enabled) {
     inputPanel.setEnabled(enabled);
     sendButton.setEnabled(enabled);
     attachButton.setEnabled(enabled);
@@ -742,50 +740,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateToggleButtonState();
       }
     }.execute();
-  }
-
-  private ListenableFuture<Boolean> initializeDirectory()
-  {
-    final SettableFuture<Boolean> future = new SettableFuture<>();
-
-    new AsyncTask<Recipients, Void, Boolean>() {
-      @Override
-      protected Boolean doInBackground(Recipients... params) {
-        try {
-          Context           context      = ConversationActivity.this;
-          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
-          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        return true;
-      }
-    }.execute(recipients);
-
-    return future;
-  }
-
-  protected void updateInviteReminder(boolean seenInvite) {
-    Log.w(TAG, "updateInviteReminder(" + seenInvite+")");
-    if (TextSecurePreferences.isPushRegistered(this) &&
-        !isSecureText                                &&
-        !seenInvite                                  &&
-        recipients.isSingleRecipient()               &&
-        recipients.getPrimaryRecipient() != null     &&
-        recipients.getPrimaryRecipient().getContactUri() != null)
-    {
-      InviteReminder reminder = new InviteReminder(this, recipients);
-      reminder.setOkListener(new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          handleInviteLink();
-          reminderView.requestDismiss();
-        }
-      });
-      reminderView.showReminder(reminder);
-    } else {
-      reminderView.hide();
-    }
   }
 
   private void initializeViews() {
@@ -892,7 +846,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     // These are here as integrity checks on bad state. No recipients. Invalid recipients. No thread data.
     checkInvalidRecipients();
     checkThreadState();
-    initThread();
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       LinearLayout conversationContainer = ViewUtil.findById(this, R.id.conversation_container);
@@ -1215,7 +1168,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-
   private void updateToggleButtonState() {
     if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
       buttonToggle.display(attachButton);
@@ -1460,10 +1412,32 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     updateToggleButtonState();
   }
 
-
   // XXX obsolete methods
 // Group updates are no longer supported by other clients.
   // Review and remove if not used for other purposes.
+  protected void updateInviteReminder(boolean seenInvite) {
+    Log.w(TAG, "updateInviteReminder(" + seenInvite+")");
+    if (TextSecurePreferences.isPushRegistered(this) &&
+        !isSecureText                                &&
+        !seenInvite                                  &&
+        recipients.isSingleRecipient()               &&
+        recipients.getPrimaryRecipient() != null     &&
+        recipients.getPrimaryRecipient().getContactUri() != null)
+    {
+      InviteReminder reminder = new InviteReminder(this, recipients);
+      reminder.setOkListener(new OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          handleInviteLink();
+          reminderView.requestDismiss();
+        }
+      });
+      reminderView.showReminder(reminder);
+    } else {
+      reminderView.hide();
+    }
+  }
+
   private void handleLeavePushGroup() {
     if (getRecipients() == null) {
       Toast.makeText(this, getString(R.string.ConversationActivity_invalid_recipient),
@@ -1594,4 +1568,26 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     builder.setNegativeButton(android.R.string.cancel, null);
     builder.show();
   }
+
+  private ListenableFuture<Boolean> initializeDirectory()
+  {
+    final SettableFuture<Boolean> future = new SettableFuture<>();
+
+    new AsyncTask<Recipients, Void, Boolean>() {
+      @Override
+      protected Boolean doInBackground(Recipients... params) {
+        try {
+          Context           context      = ConversationActivity.this;
+          DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+          RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        return true;
+      }
+    }.execute(recipients);
+
+    return future;
+  }
+
 }

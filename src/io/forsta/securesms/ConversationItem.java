@@ -27,9 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
@@ -42,10 +40,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.util.ForstaUtils;
-import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
@@ -70,7 +64,6 @@ import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
-import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -303,24 +296,12 @@ public class ConversationItem extends LinearLayout
   private void setBodyText(MessageRecord messageRecord) {
     bodyText.setClickable(false);
     bodyText.setFocusable(false);
-
-    if (isCaptionlessMms(messageRecord)) {
-      bodyText.setVisibility(View.GONE);
+    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+      bodyText.setText(messageRecord.getHtmlBody());
     } else {
-
-      try {
-        ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(messageRecord.getDisplayBody().toString());
-        if (!TextUtils.isEmpty(forstaMessage.getHtmlBody())) {
-          bodyText.setText(forstaMessage.getHtmlBody());
-        } else {
-          bodyText.setText(forstaMessage.getTextBody());
-        }
-      } catch (InvalidMessagePayloadException e) {
-        Log.w(TAG, "Invalid message payload in conversation: " + e.getMessage());
-        bodyText.setText("Invalid message format.");
-      }
-      bodyText.setVisibility(View.VISIBLE);
+      bodyText.setText(messageRecord.getPlainTextBody());
     }
+    bodyText.setVisibility(View.VISIBLE);
   }
 
   private void setMediaAttributes(MessageRecord messageRecord) {

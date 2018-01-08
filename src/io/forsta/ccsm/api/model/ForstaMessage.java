@@ -1,42 +1,10 @@
 package io.forsta.ccsm.api.model;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import io.forsta.ccsm.ForstaPreferences;
-import io.forsta.ccsm.database.ContactDb;
-import io.forsta.ccsm.database.DbFactory;
-import io.forsta.ccsm.database.model.ForstaRecipient;
-import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.ccsm.util.ForstaUtils;
-import io.forsta.ccsm.util.InvalidMessagePayloadException;
-import io.forsta.securesms.attachments.Attachment;
-import io.forsta.securesms.attachments.DatabaseAttachment;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.mms.AttachmentManager;
-import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.util.GroupUtil;
-import io.forsta.securesms.util.Util;
 
 /**
  * Created by jlewis on 9/6/17.
@@ -45,33 +13,39 @@ import io.forsta.securesms.util.Util;
 public class ForstaMessage {
   private static final String TAG = ForstaMessage.class.getSimpleName();
   private String textBody = "";
-  private Spanned htmlBody;
+  private String htmlBody;
   private String messageId;
   private String senderId;
   private String universalExpression;
   private String threadUid;
   private String threadTitle;
-  private MessageType messageType = MessageType.CONTENT;
-  private ControlType controlType = ControlType.NONE;
+  private String messageType = MessageTypes.CONTENT;
+  private String controlType = ControlTypes.NONE;
+  private String threadType = ThreadTypes.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
 
-  public enum ControlType {
-    NONE,
-    THREAD_UPDATE,
-    THREAD_CLEAR,
-    THREAD_CLOSE,
-    THREAD_DELETE,
-    SNOOZE,
-    PROVISION_REQUEST,
-    SYNC_REQUEST,
-    SYNC_RESPONSE,
-    DISCOVER,
-    DISCOVER_RESPONSE
+  public static class ControlTypes {
+    public static final String NONE = "none";
+    public static final String THREAD_UPDATE = "threadUpdate";
+    public static final String THREAD_CLEAR = "threadClear";
+    public static final String THREAD_CLOSE = "threadClose";
+    public static final String THREAD_DELETE = "threadDelete";
+    public static final String SNOOZE = "snooze";
+    public static final String PROVISION_REQUEST = "provisionRequest";
+    public static final String SYNC_REQUEST = "syncRequest";
+    public static final String SYNC_RESPONSE = "syncResponse";
+    public static final String DISCOVER = "discover";
+    public static final String DISCOVER_RESPONSE = "discoverResponse";
   }
 
-  public enum MessageType {
-    CONTENT,
-    CONTROL
+  public static class MessageTypes {
+    public static final String CONTENT = "content";
+    public static final String CONTROL = "control";
+  }
+
+  public static class ThreadTypes {
+    public static final String CONVERSATION = "conversation";
+    public static final String ANNOUNCEMENT = "announcement";
   }
 
   public ForstaMessage() {
@@ -94,6 +68,10 @@ public class ForstaMessage {
     return threadUid;
   }
 
+  public String getSenderId() {
+    return senderId;
+  }
+
   public String getThreadTitle() {
     return threadTitle;
   }
@@ -102,7 +80,7 @@ public class ForstaMessage {
     return textBody;
   }
 
-  public Spanned getHtmlBody() {
+  public String getHtmlBody() {
     return htmlBody;
   }
 
@@ -110,28 +88,36 @@ public class ForstaMessage {
     return htmlBody != null;
   }
 
-  public MessageType getMessageType() {
+  public String getMessageType() {
     return messageType;
   }
 
-  public ControlType getControlType() {
+  public String getControlType() {
     return controlType;
   }
 
-  public void setControlType(ControlType controlType) {
+  public String getThreadType() {
+    return threadType;
+  }
+
+  public void setControlType(String controlType) {
     this.controlType = controlType;
   }
 
-  public void setHtmlBody(Spanned htmlBody) {
+  public void setMessageType(String messageType) {
+    this.messageType = messageType;
+  }
+
+  public void setThreadType(String threadType) {
+    this.threadType = threadType;
+  }
+
+  public void setHtmlBody(String htmlBody) {
     this.htmlBody = htmlBody;
   }
 
   public void setMessageId(String messageId) {
     this.messageId = messageId;
-  }
-
-  public void setMessageType(MessageType messageType) {
-    this.messageType = messageType;
   }
 
   public void setTextBody(String textBody) {

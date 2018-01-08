@@ -12,6 +12,37 @@
             android:minHeight="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="?attr/actionBarStyle" />
+    <RadioGroup
+        android:id="@+id/new_conversation_thread_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/new_conversation_button_conversation"
+            android:checked="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Conversation"
+            android:background="@drawable/new_conversation_thread_type"
+            android:button="@color/transparent"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="15dp"
+            android:textColor="@drawable/new_conversation_thread_type_text_colors"
+            android:textAlignment="center"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:id="@+id/new_conversation_button_announcement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Announcement"
+            android:layout_gravity="center"
+            android:button="@color/transparent"
+            android:paddingTop="5dp"
+            android:paddingBottom="15dp"
+            android:textColor="@drawable/new_conversation_thread_type_text_colors"
+            android:textAlignment="center"
+            android:background="@drawable/new_conversation_thread_type"
+            android:layout_weight="1"/>
+    </RadioGroup>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

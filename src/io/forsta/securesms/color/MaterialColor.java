@@ -29,7 +29,11 @@ public enum MaterialColor {
 
   GROUP      (GREY.conversationColorLight, R.color.textsecure_primary, R.color.textsecure_primary_dark,
               GREY.conversationColorDark, R.color.gray95, R.color.black,
-              "group_color");
+              "group_color"),
+
+  ANNOUNCEMENT      (GREY.conversationColorLight, R.color.textsecure_primary, R.color.textsecure_primary_dark,
+              GREY.conversationColorDark, R.color.gray95, R.color.black,
+              "announcement_color");
 
   private final int conversationColorLight;
   private final int actionBarColorLight;

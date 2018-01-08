@@ -66,7 +66,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_margin="20dp"
+    android:layout_marginTop="20dp"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"
     android:layout_marginBottom="0dp">
     <TextView style="@style/TextAppearance.AppCompat.Subhead"
               android:layout_width="match_parent"
@@ -95,20 +97,6 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content" android:text="@string/thread_preferences__recipients"/>
     <TextView android:id="@+id/forsta_thread_recipients" android:layout_width="match_parent" android:layout_height="wrap_content"></TextView>
-    <LinearLayout
-        android:id="@+id/forsta_thread_debug_details"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:orientation="vertical"
-        android:visibility="gone">
-        <TextView style="@style/TextAppearance.AppCompat.Subhead"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content" android:text="UID"/>
-        <TextView android:id="@+id/forsta_thread_uid" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10sp"></TextView>
-        <TextView style="@style/TextAppearance.AppCompat.Subhead"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content" android:text="Expression"/>
-        <TextView android:id="@+id/forsta_thread_expression" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10sp"></TextView>
-    </LinearLayout>
 
 </LinearLayout>
 
