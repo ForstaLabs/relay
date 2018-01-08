@@ -110,12 +110,4 @@ public class ConversationTitleView extends LinearLayout {
       title.setText(thread.getTitle());
     }
   }
-
-  public void setForstaTitle(String forstaTitle) {
-    title.setText(forstaTitle);
-  }
-
-  public void showAnnouncement() {
-    announcement.setVisibility(VISIBLE);
-  }
 }

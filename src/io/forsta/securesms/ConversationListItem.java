@@ -52,6 +52,7 @@ import io.forsta.securesms.components.FromTextView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
@@ -141,8 +142,13 @@ public class ConversationListItem extends RelativeLayout
     this.read             = thread.isRead();
     this.distributionType = thread.getDistributionType();
     this.recipients.addListener(this);
-    this.threadColor = thread.getColor();
-    isAnnouncement = thread.getThreadType() == 1;
+    if (thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT) {
+      this.threadColor = MaterialColor.ANNOUNCEMENT;
+    } else {
+      this.threadColor = thread.getColor();
+    }
+
+    isAnnouncement = thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT;
     threadTitle = thread.getTitle();
 
     subjectView.setText(thread.getDisplayBody());

@@ -12,7 +12,7 @@
         android:id="@+id/conversation_title_announcement_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_forsta_announcements_light"
+        android:src="@drawable/ic_forsta_announce"
         android:visibility="gone"
         android:layout_gravity="center_vertical"
         android:layout_marginRight="10dp"/>

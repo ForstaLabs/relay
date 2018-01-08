@@ -56,6 +56,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -396,30 +397,32 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
 
-    int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
-    if (expireMessages > 0) {
-      inflater.inflate(R.menu.conversation_expiring_on, menu);
+    if (!forstaThread.isAnnouncement()) {
+      int expireMessages = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId);
+      if (expireMessages > 0) {
+        inflater.inflate(R.menu.conversation_expiring_on, menu);
 
-      final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
-      final View     actionView = MenuItemCompat.getActionView(item);
-      final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
+        final MenuItem item       = menu.findItem(R.id.menu_expiring_messages);
+        final View     actionView = MenuItemCompat.getActionView(item);
+        final TextView badgeView  = (TextView)actionView.findViewById(R.id.expiration_badge);
 
-      badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, expireMessages));
-      actionView.setOnClickListener(new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          onOptionsItemSelected(item);
-        }
-      });
-    } else {
-      inflater.inflate(R.menu.conversation_expiring_off, menu);
+        badgeView.setText(ExpirationUtil.getExpirationAbbreviatedDisplayValue(this, expireMessages));
+        actionView.setOnClickListener(new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            onOptionsItemSelected(item);
+          }
+        });
+      } else {
+        inflater.inflate(R.menu.conversation_expiring_off, menu);
+      }
+
+      inflater.inflate(R.menu.conversation, menu);
     }
 
     if (isGroupConversation()) {
       inflater.inflate(R.menu.conversation_group_options, menu);
     }
-
-    inflater.inflate(R.menu.conversation, menu);
 
     super.onPrepareOptionsMenu(menu);
     return true;
@@ -670,9 +673,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     setActionBarColor(threadPreference.getColor());
 
     if (forstaThread.isAnnouncement()) {
-      setActionBarColor(MaterialColor.BLUE_GREY);
+      setActionBarColor(MaterialColor.ANNOUNCEMENT);
       if (!forstaThread.getThreadCreator().equals(TextSecurePreferences.getLocalNumber(ConversationActivity.this))) {
         inputPanel.setVisibility(View.GONE);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
       }
     }
   }
