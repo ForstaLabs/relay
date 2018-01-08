@@ -16,9 +16,11 @@
  */
 package io.forsta.securesms.recipients;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 
@@ -32,6 +34,7 @@ import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.NumberUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
 import java.util.ArrayList;
@@ -230,10 +233,6 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getNumber());
   }
 
-  public boolean isForstaGroup() {
-    return this.recipients.size() > 1;
-  }
-
   public String getRecipientExpression() {
     StringBuilder sb = new StringBuilder();
     for (Recipient recipient : recipients) {
@@ -345,10 +344,29 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return results;
   }
 
+  public String toCondensedString(Context context) {
+    StringBuilder sb = new StringBuilder();
+    List<String> addresses = new ArrayList<>();
+
+    for (int i=0; i<recipients.size(); i++) {
+      String address = recipients.get(i).getNumber();
+      if (!address.equals(TextSecurePreferences.getLocalNumber(context))) {
+        addresses.add(recipients.get(i).getName());
+      }
+    }
+
+    if(addresses.size() > 2) {
+      return addresses.get(0) + " and " + addresses.size() + " others";
+    } else {
+      return TextUtils.join(", ", addresses);
+    }
+  }
+
   public String toShortString() {
     String fromString = "";
 
     for (int i=0;i<recipients.size();i++) {
+
       fromString += recipients.get(i).toShortString();
 
       if (i != recipients.size() -1 )

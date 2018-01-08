@@ -49,7 +49,7 @@ public class FromTextView extends EmojiTextView {
     if (isUnnamedGroup) {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
     } else {
-      fromString = recipients.toShortString();
+      fromString = recipients.toCondensedString(getContext());
     }
 
     int typeface;

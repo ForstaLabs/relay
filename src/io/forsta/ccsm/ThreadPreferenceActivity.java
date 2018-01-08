@@ -180,7 +180,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       }
     });
-    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toShortString() : threadDetail.title);
+    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toCondensedString(ThreadPreferenceActivity.this) : threadDetail.title);
   }
 
   private class TitleSaveClickListener implements View.OnClickListener {
