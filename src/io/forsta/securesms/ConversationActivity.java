@@ -57,6 +57,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -128,6 +129,7 @@ import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.ViewUtil;
@@ -215,6 +217,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private int        distributionType;
   private boolean    archived;
   private boolean    isSecureText = true;
+  private boolean isAnnouncement = false;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -665,6 +668,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
     setActionBarColor(threadPreference.getColor());
+
+    if (forstaThread.isAnnouncement()) {
+      setActionBarColor(MaterialColor.BLUE_GREY);
+      if (!forstaThread.getThreadCreator().equals(TextSecurePreferences.getLocalNumber(ConversationActivity.this))) {
+        inputPanel.setVisibility(View.GONE);
+      }
+    }
   }
 
   private void initializeDraft() {
@@ -1397,7 +1407,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void onAttachmentChanged() {
     updateToggleButtonState();
   }
-
 
   // XXX obsolete methods
 // Group updates are no longer supported by other clients.

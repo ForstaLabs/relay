@@ -44,6 +44,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.whispersystems.libsignal.InvalidMessageException;
 
@@ -82,6 +83,7 @@ public class ThreadDatabase extends Database {
   public static final String PRETTY_EXPRESSION = "pretty_expression";
   public static final String PINNED = "pinned";
   public static final String THREAD_TYPE = "thread_type";
+  public static final String THREAD_CREATOR = "thread_creator";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -93,7 +95,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0, " + THREAD_CREATOR + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -521,6 +523,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
     contentValues.put(THREAD_TYPE, threadType);
+    contentValues.put(THREAD_CREATOR, TextSecurePreferences.getLocalNumber(context));
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
@@ -542,6 +545,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(TITLE, forstaMessage.getThreadTitle());
     contentValues.put(MESSAGE_COUNT, 0);
+    contentValues.put(THREAD_CREATOR, forstaMessage.getSenderId());
     contentValues.put(THREAD_TYPE, forstaMessage.getThreadType().equals(ForstaMessage.ThreadTypes.ANNOUNCEMENT) ? 1 : 0);
 
     SQLiteDatabase db = databaseHelper.getWritableDatabase();

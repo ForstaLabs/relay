@@ -20,15 +20,7 @@ public class ForstaThread {
   private String pretty;
   private boolean pinned;
   private int threadType;
-
-  private ForstaThread(long threadid, String uid, String title, String distribution, String pretty) {
-    this.threadid = threadid;
-    this.uid = uid;
-    this.title = title;
-    this.distribution = distribution;
-    this.pretty = pretty;
-    this.pinned = false;
-  }
+  private String threadCreator;
 
   public ForstaThread(Cursor cursor) {
     threadid = cursor.getLong(cursor.getColumnIndex(ThreadDatabase.ID));
@@ -39,6 +31,7 @@ public class ForstaThread {
     pretty = cursor.getString(cursor.getColumnIndex(ThreadDatabase.PRETTY_EXPRESSION));
     pinned = cursor.getInt(cursor.getColumnIndex(ThreadDatabase.PINNED)) != 0;
     threadType = cursor.getInt(cursor.getColumnIndex(ThreadDatabase.THREAD_TYPE));
+    threadCreator = cursor.getString(cursor.getColumnIndex(ThreadDatabase.THREAD_CREATOR));
   }
 
   public long getThreadid() {
@@ -75,5 +68,9 @@ public class ForstaThread {
 
   public boolean isAnnouncement() {
     return threadType == 1;
+  }
+
+  public String getThreadCreator() {
+    return !TextUtils.isEmpty(threadCreator) ? threadCreator : "";
   }
 }
