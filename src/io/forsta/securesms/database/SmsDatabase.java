@@ -28,8 +28,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.IdentityKeyMismatchList;
@@ -429,7 +427,7 @@ public class SmsDatabase extends MessagingDatabase {
 
     ContentValues contentValues = new ContentValues();
     contentValues.put(TYPE, (record.getType() & ~Types.BASE_TYPE_MASK) | Types.BASE_INBOX_TYPE);
-    contentValues.put(ADDRESS, record.getIndividualRecipient().getNumber());
+    contentValues.put(ADDRESS, record.getIndividualRecipient().getAddress());
     contentValues.put(ADDRESS_DEVICE_ID, record.getRecipientDeviceId());
     contentValues.put(DATE_RECEIVED, System.currentTimeMillis());
     contentValues.put(DATE_SENT, record.getDateSent());
@@ -583,7 +581,7 @@ public class SmsDatabase extends MessagingDatabase {
     if      (forceSms)                  type |= Types.MESSAGE_FORCE_SMS_BIT;
 
     // Only one on one messages go through this method, so only one recipient.
-    String address = PhoneNumberUtils.formatNumber(message.getRecipients().getPrimaryRecipient().getNumber());
+    String address = PhoneNumberUtils.formatNumber(message.getRecipients().getPrimaryRecipient().getAddress());
 
     ContentValues contentValues = new ContentValues(6);
     contentValues.put(ADDRESS, address);
@@ -632,7 +630,7 @@ public class SmsDatabase extends MessagingDatabase {
   public Cursor getEncryptedRogueMessages(Recipient recipient) {
     String selection  = TYPE + " & " + Types.ENCRYPTION_REMOTE_NO_SESSION_BIT + " != 0" +
                         " AND PHONE_NUMBERS_EQUAL(" + ADDRESS + ", ?)";
-    String[] args     = {recipient.getNumber()};
+    String[] args     = {recipient.getAddress()};
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     return db.query(TABLE_NAME, MESSAGE_PROJECTION, selection, args, null, null, null);
   }

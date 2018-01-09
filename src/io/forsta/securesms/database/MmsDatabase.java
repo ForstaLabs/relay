@@ -30,8 +30,6 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -660,7 +658,7 @@ public class MmsDatabase extends MessagingDatabase {
     try {
       OutgoingMediaMessage request = getOutgoingMessage(masterSecret, messageId);
       ContentValues contentValues = new ContentValues();
-      contentValues.put(ADDRESS, request.getRecipients().getPrimaryRecipient().getNumber());
+      contentValues.put(ADDRESS, request.getRecipients().getPrimaryRecipient().getAddress());
       contentValues.put(DATE_SENT, request.getSentTimeMillis());
       contentValues.put(MESSAGE_BOX, Types.BASE_INBOX_TYPE | Types.SECURE_MESSAGE_BIT | Types.ENCRYPTION_SYMMETRIC_BIT);
       contentValues.put(THREAD_ID, getThreadIdForMessage(messageId));
@@ -894,7 +892,7 @@ public class MmsDatabase extends MessagingDatabase {
     for (Recipient recipient : message.getRecipients()) {
       try {
         contentValues.put(RECEIPT_COUNT, earlyReceiptCache.remove(message.getSentTimeMillis(),
-            Util.canonicalizeNumber(context, recipient.getNumber())));
+            Util.canonicalizeNumber(context, recipient.getAddress())));
       } catch (InvalidNumberException e) {
         Log.w(TAG, e);
       }

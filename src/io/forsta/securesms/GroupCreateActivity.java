@@ -171,7 +171,7 @@ public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
   private static boolean isActiveInDirectory(Context context, Recipient recipient) {
     try {
       return TextSecureDirectory.getInstance(context)
-                                .isSecureTextSupported(Util.canonicalizeNumber(context, recipient.getNumber()));
+                                .isSecureTextSupported(Util.canonicalizeNumber(context, recipient.getAddress()));
     } catch (NotInDirectoryException | InvalidNumberException e) {
       return false;
     }
@@ -210,7 +210,7 @@ public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeExistingGroup() {
     final String encodedGroupId = RecipientFactory.getRecipientForId(this, getIntent().getLongExtra(GROUP_RECIPIENT_EXTRA, -1), true)
-                                                  .getNumber();
+                                                  .getAddress();
     byte[] groupId;
     try {
       groupId = GroupUtil.getDecodedId(encodedGroupId);
@@ -505,12 +505,12 @@ public class  GroupCreateActivity extends PassphraseRequiredActionBarActivity
         boolean isPush        = isActiveInDirectory(activity, recipient);
         String  recipientE164 = null;
         try {
-          recipientE164 = Util.canonicalizeNumber(activity, recipient.getNumber());
+          recipientE164 = Util.canonicalizeNumber(activity, recipient.getAddress());
         } catch (InvalidNumberException ine) { /* do nothing */ }
 
         if (failIfNotPush && !isPush) {
           results.add(new Result(null, false, activity.getString(R.string.GroupCreateActivity_cannot_add_non_push_to_existing_group,
-                                                                 recipient.getNumber())));
+                                                                 recipient.getAddress())));
         } else if (TextUtils.equals(TextSecurePreferences.getLocalNumber(activity), recipientE164)) {
           results.add(new Result(null, false, activity.getString(R.string.GroupCreateActivity_youre_already_in_the_group)));
         } else {

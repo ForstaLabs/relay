@@ -89,7 +89,7 @@ public class MultiDeviceContactUpdateJob extends MasterSecretJob implements Inje
       DeviceContactsOutputStream out       = new DeviceContactsOutputStream(new FileOutputStream(contactDataFile));
       Recipient recipient = RecipientFactory.getRecipientForId(context, recipientId, false);
 
-      out.write(new DeviceContact(recipient.getNumber(),
+      out.write(new DeviceContact(recipient.getAddress(),
                                   Optional.fromNullable(recipient.getName()),
                                   getAvatar(recipient.getContactUri()),
                                   Optional.fromNullable(recipient.getColor().serialize())));

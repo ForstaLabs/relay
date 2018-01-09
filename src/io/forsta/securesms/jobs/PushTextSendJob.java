@@ -15,7 +15,6 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
 
@@ -107,7 +106,7 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       throws UntrustedIdentityException, InsecureFallbackApprovalException, RetryLaterException
   {
     try {
-      SignalServiceAddress       address           = getPushAddress(message.getIndividualRecipient().getNumber());
+      SignalServiceAddress       address           = getPushAddress(message.getIndividualRecipient().getAddress());
       Log.d(TAG, "Sending message...");
       Log.d(TAG, address.getNumber());
       Log.d(TAG, address.getRelay().toString());

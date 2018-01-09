@@ -8,8 +8,6 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,7 +17,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -492,7 +489,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       Recipients trecipients = trecord.getRecipients();
 
       if (trecipients.isGroupRecipient()) {
-        String groupId = trecipients.getPrimaryRecipient().getNumber();
+        String groupId = trecipients.getPrimaryRecipient().getAddress();
         sb.append("Group Recipients").append("\n");
         sb.append("Group ID: ").append(groupId).append("\n");
         try {
@@ -506,7 +503,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
             List<Recipient> groupRecipients = rec.getRecipientsList();
             for (Recipient recipient : groupRecipients) {
-              sb.append(recipient.getNumber()).append("\n");
+              sb.append(recipient.getAddress()).append("\n");
             }
           } else {
             sb.append("No Group Found.").append("\n");
@@ -520,7 +517,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       } else {
         sb.append("Recipients").append("\n");
         for (Recipient rec : trecipients.getRecipientsList()) {
-          sb.append(rec.getNumber()).append("\n");
+          sb.append(rec.getAddress()).append("\n");
         }
       }
 
@@ -544,11 +541,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append("\n");
         sb.append("Message Recipients: ").append("\n");
         for (Recipient r : recipList) {
-          sb.append(r.getNumber()).append(" ");
+          sb.append(r.getAddress()).append(" ");
         }
         sb.append("\n");
         sb.append("Primary Recipient: ");
-        sb.append(recipients.getPrimaryRecipient().getNumber());
+        sb.append(recipients.getPrimaryRecipient().getAddress());
         sb.append("\n");
         sb.append("Date: ");
         sb.append(dt.toString());
@@ -593,7 +590,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
         sb.append(formatter.format(sent)).append("\n");
         sb.append("To: ");
         for (Recipient r : rlist) {
-          sb.append(r.getNumber()).append(" ");
+          sb.append(r.getAddress()).append(" ");
           sb.append("ID: ");
           sb.append(r.getRecipientId()).append(" ");
         }
@@ -641,7 +638,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       StringBuilder sb = new StringBuilder();
 
       for (Recipient item : list) {
-        sb.append("Number: ").append(item.getNumber()).append(" ID: ").append(item.getRecipientId());
+        sb.append("Number: ").append(item.getAddress()).append(" ID: ").append(item.getRecipientId());
         sb.append(" Name: ").append(item.getName());
         sb.append("\n");
       }

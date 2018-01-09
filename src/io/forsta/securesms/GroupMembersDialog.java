@@ -40,7 +40,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
   @Override
   protected Recipients doInBackground(Void... params) {
     try {
-      String groupId = recipients.getPrimaryRecipient().getNumber();
+      String groupId = recipients.getPrimaryRecipient().getAddress();
       return DatabaseFactory.getGroupDatabase(context)
                             .getGroupMembers(GroupUtil.getDecodedId(groupId), true);
     } catch (IOException e) {
@@ -86,7 +86,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
                                                        ContactsContract.QuickContact.MODE_LARGE, null);
       } else {
         final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-        intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipient.getNumber());
+        intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipient.getAddress());
         intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
         context.startActivity(intent);
       }
@@ -137,7 +137,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
     private boolean isLocalNumber(Recipient recipient) {
       try {
         String localNumber = TextSecurePreferences.getLocalNumber(context);
-        String e164Number  = Util.canonicalizeNumber(context, recipient.getNumber());
+        String e164Number  = Util.canonicalizeNumber(context, recipient.getAddress());
 
         return e164Number != null && e164Number.equals(localNumber);
       } catch (InvalidNumberException e) {

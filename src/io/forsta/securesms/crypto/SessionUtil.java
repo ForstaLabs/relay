@@ -7,14 +7,13 @@ import io.forsta.securesms.crypto.storage.TextSecureSessionStore;
 import io.forsta.securesms.recipients.Recipient;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.SessionStore;
-import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.util.List;
 
 public class SessionUtil {
 
   public static boolean hasSession(Context context, MasterSecret masterSecret, Recipient recipient) {
-    return hasSession(context, masterSecret, recipient.getNumber());
+    return hasSession(context, masterSecret, recipient.getAddress());
   }
 
   public static boolean hasSession(Context context, MasterSecret masterSecret, @NonNull String addr) {

@@ -58,7 +58,6 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -130,7 +129,6 @@ import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
-import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.ViewUtil;
@@ -418,6 +416,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
 
       inflater.inflate(R.menu.conversation, menu);
+      if (recipients.isSingleRecipient()) {
+        Recipient recipient = recipients.getPrimaryRecipient();
+        if (!TextUtils.isEmpty(recipient.getPhone())) {
+          final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+          callItem.setVisible(true);
+        }
+      }
     }
 
     if (isGroupConversation()) {
@@ -441,6 +446,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
+      case R.id.menu_call_recipient:         handleCallRecipient();                   return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -595,7 +601,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     List<Recipient> invalidRecipients = new ArrayList<>();
     for (Recipient recipient : recipients) {
       try {
-        if (!directory.isSecureTextSupported(recipient.getNumber())) {
+        if (!directory.isSecureTextSupported(recipient.getAddress())) {
           invalidRecipients.add(recipient);
         }
       } catch (NotInDirectoryException e) {
@@ -1403,7 +1409,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleCallRecipient () {
-    String number = recipients.getPrimaryRecipient().getNumber();
+    String number = recipients.getPrimaryRecipient().getPhone();
     Intent intent = new Intent(Intent.ACTION_CALL);
     intent.setData(Uri.parse("tel:" + number));
     startActivity(intent);
@@ -1462,7 +1468,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       public void onClick(DialogInterface dialog, int which) {
         Context self = ConversationActivity.this;
         try {
-          byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
+          byte[] groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getAddress());
           DatabaseFactory.getGroupDatabase(self).setActive(groupId, false);
 
           GroupContext context = GroupContext.newBuilder()
@@ -1493,15 +1499,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void handleAddToContacts() {
     try {
       final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-      intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getNumber());
+      intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
       intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
       startActivityForResult(intent, ADD_CONTACT);
     } catch (ActivityNotFoundException e) {
       Log.w(TAG, e);
     }
   }
-
-
 
   private boolean isSingleConversation() {
     return getRecipients() != null && getRecipients().isSingleRecipient() && !getRecipients().isGroupRecipient();
@@ -1510,10 +1514,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean isActiveGroup() {
     if (!isGroupConversation()) return false;
 
-    if (!GroupUtil.isEncodedGroup(getRecipients().getPrimaryRecipient().getNumber())) return false;
+    if (!GroupUtil.isEncodedGroup(getRecipients().getPrimaryRecipient().getAddress())) return false;
 
     try {
-      byte[]      groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getNumber());
+      byte[]      groupId = GroupUtil.getDecodedId(getRecipients().getPrimaryRecipient().getAddress());
       GroupRecord record  = DatabaseFactory.getGroupDatabase(this).getGroup(groupId);
 
       return record != null && record.isActive();
@@ -1528,7 +1532,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (!recipients.isSingleRecipient())                     return false;
     if (recipients.getPrimaryRecipient().isGroupRecipient()) return false;
 
-    return Util.isOwnNumber(this, recipients.getPrimaryRecipient().getNumber());
+    return Util.isOwnNumber(this, recipients.getPrimaryRecipient().getAddress());
   }
 
   private boolean isPushGroupConversation() {

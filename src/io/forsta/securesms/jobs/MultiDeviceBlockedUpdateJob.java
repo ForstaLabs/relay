@@ -54,7 +54,7 @@ public class MultiDeviceBlockedUpdateJob extends MasterSecretJob implements Inje
 
     while ((recipients = reader.getNext()) != null) {
       if (recipients.isSingleRecipient()) {
-        blocked.add(recipients.getPrimaryRecipient().getNumber());
+        blocked.add(recipients.getPrimaryRecipient().getAddress());
       }
     }
 

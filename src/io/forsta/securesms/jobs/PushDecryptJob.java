@@ -196,7 +196,7 @@ public class PushDecryptJob extends ContextJob {
     Log.w(TAG, "Auto handling untrusted identity");
     Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
     long recipientId = recipients.getPrimaryRecipient().getRecipientId();
-    Log.w(TAG, "From recipient: " + recipients.getPrimaryRecipient().getNumber() + " " + recipients.getPrimaryRecipient().getName());
+    Log.w(TAG, "From recipient: " + recipients.getPrimaryRecipient().getAddress() + " " + recipients.getPrimaryRecipient().getName());
     byte[] encryptedContent = (!envelope.hasLegacyMessage() && envelope.hasContent()) ? envelope.getContent() : envelope.getLegacyMessage();
     PreKeySignalMessage whisperMessage = new PreKeySignalMessage(encryptedContent);
     IdentityKey identityKey = whisperMessage.getIdentityKey();

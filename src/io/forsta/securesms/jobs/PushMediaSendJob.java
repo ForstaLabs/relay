@@ -6,7 +6,6 @@ import android.util.Log;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
@@ -25,7 +24,6 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.RecipientFormattingException;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
-import io.forsta.securesms.transport.InsecureFallbackApprovalException;
 import io.forsta.securesms.transport.RetryLaterException;
 import io.forsta.securesms.transport.UndeliverableMessageException;
 
@@ -40,7 +38,6 @@ import org.whispersystems.signalservice.api.push.exceptions.NetworkFailureExcept
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -175,7 +172,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
       throws IOException, RecipientFormattingException, InvalidNumberException,
       EncapsulatedExceptions, UndeliverableMessageException
   {
-    if (recipients == null || recipients.getPrimaryRecipient() == null || recipients.getPrimaryRecipient().getNumber() == null) {
+    if (recipients == null || recipients.getPrimaryRecipient() == null || recipients.getPrimaryRecipient().getAddress() == null) {
       throw new UndeliverableMessageException("No destination address.");
     }
 
@@ -213,8 +210,8 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
     for (Recipient recipient : recipients.getRecipientsList()) {
       String localUid = TextSecurePreferences.getLocalNumber(context);
-      if (!localUid.equals(recipient.getNumber())) {
-        addresses.add(getPushAddress(recipient.getNumber()));
+      if (!localUid.equals(recipient.getAddress())) {
+        addresses.add(getPushAddress(recipient.getAddress()));
       }
     }
 

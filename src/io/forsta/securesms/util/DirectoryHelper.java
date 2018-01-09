@@ -10,7 +10,6 @@ import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -149,7 +148,7 @@ public class DirectoryHelper {
       if (!recipients.isSingleRecipient()) {
         boolean isSecure = false;
         for (Recipient recipient : recipients) {
-          isSecure  = TextSecureDirectory.getInstance(context).isSecureTextSupported(recipient.getNumber());
+          isSecure  = TextSecureDirectory.getInstance(context).isSecureTextSupported(recipient.getAddress());
         }
         if (isSecure) {
           return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
@@ -161,7 +160,7 @@ public class DirectoryHelper {
         return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
       }
 
-      final String number = recipients.getPrimaryRecipient().getNumber();
+      final String number = recipients.getPrimaryRecipient().getAddress();
 
       if (number == null) {
         return UserCapabilities.UNSUPPORTED;
