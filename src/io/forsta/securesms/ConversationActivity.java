@@ -1402,6 +1402,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     public void onFocusChange(View v, boolean hasFocus) {}
   }
 
+  private void handleCallRecipient () {
+    String number = recipients.getPrimaryRecipient().getNumber();
+    Intent intent = new Intent(Intent.ACTION_CALL);
+    intent.setData(Uri.parse("tel:" + number));
+    startActivity(intent);
+  }
+
   @Override
   public void setThreadId(long threadId) {
     this.threadId = threadId;
@@ -1494,13 +1501,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void handleCallRecipient () {
-    TextView subtitle = (TextView) titleView.findViewById(R.id.subtitle);
-    String number = subtitle.getText().toString();
-    Intent intent = new Intent(Intent.ACTION_CALL);
-    intent.setData(Uri.parse("tel:" + number));
-    startActivity(intent);
-  }
+
 
   private boolean isSingleConversation() {
     return getRecipients() != null && getRecipients().isSingleRecipient() && !getRecipients().isGroupRecipient();
