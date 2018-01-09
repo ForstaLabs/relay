@@ -89,7 +89,6 @@ public class ConversationListFragment extends Fragment
   private MasterSecret masterSecret;
   private ActionMode           actionMode;
   private RecyclerView         list;
-  private ReminderView reminderView;
   private FloatingActionButton fab;
   private Locale               locale;
   private String               queryFilter  = "";
@@ -107,19 +106,11 @@ public class ConversationListFragment extends Fragment
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
     final View view = inflater.inflate(R.layout.conversation_list_fragment, container, false);
 
-    reminderView = ViewUtil.findById(view, R.id.reminder);
     list         = ViewUtil.findById(view, R.id.list);
     fab          = ViewUtil.findById(view, R.id.fab);
 
     if (archive) fab.setVisibility(View.GONE);
     else         fab.setVisibility(View.VISIBLE);
-
-    reminderView.setOnDismissListener(new ReminderView.OnDismissListener() {
-      @Override
-      public void onDismiss() {
-        updateReminders();
-      }
-    });
 
     list.setHasFixedSize(true);
     LinearLayoutManager lm = new LinearLayoutManager(getActivity());
@@ -147,8 +138,6 @@ public class ConversationListFragment extends Fragment
   @Override
   public void onResume() {
     super.onResume();
-
-    // updateReminders();
     list.getAdapter().notifyDataSetChanged();
   }
 
@@ -165,36 +154,6 @@ public class ConversationListFragment extends Fragment
     if (!TextUtils.isEmpty(this.queryFilter)) {
       setQueryFilter("");
     }
-  }
-
-  private void updateReminders() {
-    reminderView.hide();
-    new AsyncTask<Context, Void, Optional<? extends Reminder>>() {
-      @Override protected Optional<? extends Reminder> doInBackground(Context... params) {
-        final Context context = params[0];
-        if (ExpiredBuildReminder.isEligible()) {
-          return Optional.of(new ExpiredBuildReminder(context));
-        } else if (OutdatedBuildReminder.isEligible()) {
-          return Optional.of(new OutdatedBuildReminder(context));
-        } else if (DefaultSmsReminder.isEligible(context)) {
-          return Optional.of(new DefaultSmsReminder(context));
-        } else if (Util.isDefaultSmsProvider(context) && SystemSmsImportReminder.isEligible(context)) {
-          return Optional.of((new SystemSmsImportReminder(context, masterSecret)));
-        } else if (PushRegistrationReminder.isEligible(context)) {
-          return Optional.of((new PushRegistrationReminder(context, masterSecret)));
-        } else if (ShareReminder.isEligible(context)) {
-          return Optional.of(new ShareReminder(context));
-        } else {
-          return Optional.absent();
-        }
-      }
-
-      @Override protected void onPostExecute(Optional<? extends Reminder> reminder) {
-        if (reminder.isPresent() && getActivity() != null && !isRemoving()) {
-          reminderView.showReminder(reminder.get());
-        }
-      }
-    }.execute(getActivity());
   }
 
   private void initializeListAdapter() {
