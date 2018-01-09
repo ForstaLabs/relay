@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 
+import io.forsta.ccsm.RecipientDetailsDialog;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.contacts.avatars.ContactColors;
@@ -52,7 +53,7 @@ public class AvatarImageView extends ImageView {
     if (recipients != null) {
       MaterialColor backgroundColor = recipients.getColor();
       setImageDrawable(recipients.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-      setAvatarClickHandler(recipients, false);
+      setAvatarClickHandler(recipients, quickContactEnabled);
     } else {
       setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
       setOnClickListener(null);
@@ -73,15 +74,7 @@ public class AvatarImageView extends ImageView {
         @Override
         public void onClick(View v) {
           Recipient recipient = recipients.getPrimaryRecipient();
-
-          if (recipient != null && recipient.getContactUri() != null) {
-            ContactsContract.QuickContact.showQuickContact(getContext(), AvatarImageView.this, recipient.getContactUri(), ContactsContract.QuickContact.MODE_LARGE, null);
-          } else if (recipient != null) {
-            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipient.getAddress());
-            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-            getContext().startActivity(intent);
-          }
+          RecipientDetailsDialog.show(getContext(), recipient);
         }
       });
     } else {
