@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.DrawableRequestBuilder;
 import com.bumptech.glide.GenericRequestBuilder;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -137,6 +138,11 @@ public class ThumbnailView extends FrameLayout {
          .crossFade()
          .transform(new RoundedCorners(getContext(), true, radius, backgroundColorHint))
          .into(image);
+  }
+
+  public void setImageGiphy(@NonNull Uri uri) {
+    Glide.with(getContext()).load(uri)
+        .into(image);
   }
 
   public void setThumbnailClickListener(SlideClickListener listener) {

@@ -349,10 +349,19 @@ public class ConversationItem extends LinearLayout
                                       showControls);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     } else {
-      mediaThumbnail.setVisibility(View.GONE);
-      audioView.setVisibility(View.GONE);
-      documentView.setVisibility(GONE);
-      bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+      String giphy = messageRecord.getGiphy();
+      if (!TextUtils.isEmpty(giphy)) {
+        mediaThumbnail.setVisibility(View.VISIBLE);
+        audioView.setVisibility(View.GONE);
+        documentView.setVisibility(GONE);
+        mediaThumbnail.setImageGiphy(Uri.parse("https://media.giphy.com/media/" + giphy + "/giphy.gif"));
+        bodyText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+      } else {
+        mediaThumbnail.setVisibility(View.GONE);
+        audioView.setVisibility(View.GONE);
+        documentView.setVisibility(GONE);
+        bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+      }
     }
   }
 

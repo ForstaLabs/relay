@@ -120,6 +120,16 @@ public abstract class MessageRecord extends DisplayRecord {
     return null;
   }
 
+  public String getGiphy() {
+    try {
+      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      return forstaBody.getGiphyUrl();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
   @Override
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
