@@ -301,9 +301,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         if (forstaOrg != null) {
           TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
           title.setText(forstaOrg.getName().toLowerCase());
-          if (forstaOrg.getOffTheRecord()) {
-            ForstaPreferences.setOffTheRecord(ConversationListActivity.this, true);
-          }
         }
       }
     }

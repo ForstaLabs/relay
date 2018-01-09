@@ -174,6 +174,7 @@ public class ForstaMessageManager {
         }
       }
     } catch (JSONException e) {
+      Log.e(TAG, jsonBody.toString());
       throw new InvalidMessagePayloadException(e.getMessage());
     }
 
