@@ -306,7 +306,7 @@ public class LoginActivity extends BaseActionBarActivity {
         try {
           String username = jsonObject.getString("username");
           ForstaPreferences.setForstaUsername(LoginActivity.this, username);
-          ForstaPreferences.setForstaOrgName(LoginActivity.this, "public");
+          ForstaPreferences.setForstaOrgName(LoginActivity.this, "forsta");
           showVerifyForm();
         } catch (JSONException e) {
           hideProgressBar();

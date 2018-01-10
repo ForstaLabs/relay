@@ -111,9 +111,7 @@ public class ForstaMessage {
           String src = html.substring(startIndex);
           int endIndex = src.indexOf("\"");
           src = src.substring(0, endIndex);
-          Uri uri = Uri.parse(src);
-          List<String> segments = uri.getPathSegments();
-          return segments.get(1);
+          return src;
         }
       } catch (Exception e) {
         e.printStackTrace();
