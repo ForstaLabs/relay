@@ -79,17 +79,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
     @Override
     public void onClick(DialogInterface dialogInterface, int item) {
       Recipient recipient = groupMembers.get(item);
-
-      if (recipient.getContactUri() != null) {
-        ContactsContract.QuickContact.showQuickContact(context, new Rect(0,0,0,0),
-                                                       recipient.getContactUri(),
-                                                       ContactsContract.QuickContact.MODE_LARGE, null);
-      } else {
-        final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-        intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipient.getAddress());
-        intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-        context.startActivity(intent);
-      }
+      //TODO implement.
     }
   }
 

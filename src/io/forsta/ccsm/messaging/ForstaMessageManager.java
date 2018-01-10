@@ -60,6 +60,7 @@ public class ForstaMessageManager {
       }
     } catch (JSONException e) {
       Log.w(TAG, e);
+      Log.w(TAG, body);
     }
     throw new InvalidMessagePayloadException(body);
   }
