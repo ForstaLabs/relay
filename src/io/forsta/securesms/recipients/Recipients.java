@@ -351,7 +351,11 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     for (int i=0; i<recipients.size(); i++) {
       String address = recipients.get(i).getAddress();
       if (!address.equals(TextSecurePreferences.getLocalNumber(context))) {
-        addresses.add(recipients.get(i).getName());
+        String name = recipients.get(i).getName();
+        if (TextUtils.isEmpty(name)) {
+          name = "Unknown Recipient";
+        }
+        addresses.add(name);
       }
     }
 
