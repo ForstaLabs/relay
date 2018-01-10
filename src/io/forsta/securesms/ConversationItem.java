@@ -578,10 +578,6 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  private void downloadAttachment() {
-
-  }
-
   private class ThumbnailClickListener implements SlideClickListener {
     private void fireIntent(Slide slide) {
       Log.w(TAG, "Clicked: " + slide.getUri() + " , " + slide.getContentType());
