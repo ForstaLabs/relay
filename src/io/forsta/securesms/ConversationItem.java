@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -39,6 +40,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
@@ -75,6 +77,7 @@ import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
+import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.HashSet;
@@ -121,6 +124,7 @@ public class ConversationItem extends LinearLayout
   private @NonNull  TextView            mmsDownloadingLabel;
   private @NonNull
   ExpirationTimerView expirationTimer;
+  private VideoView videoView;
 
   private int defaultBubbleColor;
 
@@ -164,6 +168,7 @@ public class ConversationItem extends LinearLayout
     this.audioView               = (AudioView)          findViewById(R.id.audio_view);
     this.documentView               = (DocumentView)          findViewById(R.id.document_view);
     this.expirationTimer         = (ExpirationTimerView) findViewById(R.id.expiration_indicator);
+    videoView = (VideoView) findViewById(R.id.item_video_view);
 
     setOnClickListener(new ClickListener(null));
     PassthroughClickListener        passthroughClickListener = new PassthroughClickListener();
@@ -289,6 +294,10 @@ public class ConversationItem extends LinearLayout
            ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getThumbnailSlide() != null;
   }
 
+  private boolean hasGiphy(MessageRecord messageRecord) {
+    return !TextUtils.isEmpty(messageRecord.getGiphy());
+  }
+
   private boolean hasDocument(MessageRecord messageRecord) {
     return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
   }
@@ -311,6 +320,7 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(GONE);
+      videoView.setVisibility(GONE);
 
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
       setNotificationMmsAttributes((NotificationMmsMessageRecord) messageRecord);
@@ -318,6 +328,7 @@ public class ConversationItem extends LinearLayout
       audioView.setVisibility(View.VISIBLE);
       mediaThumbnail.setVisibility(View.GONE);
       documentView.setVisibility(GONE);
+      videoView.setVisibility(GONE);
 
       //noinspection ConstantConditions
       audioView.setAudio(masterSecret, ((MediaMmsMessageRecord) messageRecord).getSlideDeck().getAudioSlide(), showControls);
@@ -326,6 +337,7 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(VISIBLE);
+      videoView.setVisibility(GONE);
 
       String attachmentFileName = ((MediaMmsMessageRecord)messageRecord).getDocumentAttachmentFileName();
       DocumentSlide documentSlide = ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide();
@@ -337,6 +349,7 @@ public class ConversationItem extends LinearLayout
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(GONE);
       mediaThumbnail.hideVideoPlayButton();
+      videoView.setVisibility(GONE);
 
       if (hasVideo(messageRecord)) {
         mediaThumbnail.showVideoPlayButton();
@@ -348,11 +361,22 @@ public class ConversationItem extends LinearLayout
                                       ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getThumbnailSlide(),
                                       showControls);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-    } else {
+    } else if (hasGiphy(messageRecord)){
       String giphy = messageRecord.getGiphy();
-      if (!TextUtils.isEmpty(giphy)) {
-        Log.w(TAG, "Giphy URL : " + giphy);
-      }
+      mediaThumbnail.setVisibility(View.GONE);
+      audioView.setVisibility(View.GONE);
+      documentView.setVisibility(GONE);
+      videoView.setVisibility(VISIBLE);
+      bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+      videoView.setVideoURI(Uri.parse(giphy));
+      videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        @Override
+        public void onPrepared(MediaPlayer mediaPlayer) {
+          videoView.start();
+        }
+      });
+    } else {
+      videoView.setVisibility(GONE);
       mediaThumbnail.setVisibility(View.GONE);
       audioView.setVisibility(View.GONE);
       documentView.setVisibility(GONE);
