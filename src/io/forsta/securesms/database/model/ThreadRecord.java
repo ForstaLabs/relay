@@ -88,32 +88,6 @@ public class ThreadRecord extends DisplayRecord {
 
   @Override
   public SpannableString getDisplayBody() {
-//    if (SmsDatabase.Types.isDecryptInProgressType(type)) {
-//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_decrypting_please_wait));
-//    } else if (isKeyExchange()) {
-//      return emphasisAdded(context.getString(R.string.ConversationListItem_key_exchange_message));
-//    } else if (SmsDatabase.Types.isFailedDecryptType(type)) {
-//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_bad_encrypted_message));
-//    } else if (SmsDatabase.Types.isNoRemoteSessionType(type)) {
-//      return emphasisAdded(context.getString(R.string.MessageDisplayHelper_message_encrypted_for_non_existing_session));
-//    } else if (!getBody().isPlaintext()) {
-//      return emphasisAdded(context.getString(R.string.MessageNotifier_locked_message));
-//    } else if (SmsDatabase.Types.isEndSessionType(type)) {
-//      return emphasisAdded(context.getString(R.string.ThreadRecord_secure_session_reset));
-//    } else if (MmsSmsColumns.Types.isLegacyType(type)) {
-//      return emphasisAdded(context.getString(R.string.MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported));
-//    } else if (MmsSmsColumns.Types.isDraftMessageType(type)) {
-//      return new SpannableString(getBody().getBody());
-//    } else if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
-//      String time = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
-//      return emphasisAdded(context.getString(R.string.ThreadRecord_disappearing_message_time_updated_to_s, time));
-//    } else {
-//      if (TextUtils.isEmpty(getBody().getBody())) {
-//        return new SpannableString(emphasisAdded(context.getString(R.string.ThreadRecord_media_message)));
-//      } else {
-//        return new SpannableString(getBody().getBody());
-//      }
-//    }
     String body = getBody().getBody();
     try {
       ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
