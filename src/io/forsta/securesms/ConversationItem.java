@@ -38,6 +38,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -125,6 +126,7 @@ public class ConversationItem extends LinearLayout
   private @NonNull
   ExpirationTimerView expirationTimer;
   private VideoView videoView;
+  private int giphyLoopCounter = 0;
 
   private int defaultBubbleColor;
 
