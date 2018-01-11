@@ -14,7 +14,6 @@ import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.SessionRecord;
 import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class IdentityUtil {
       @Override
       protected Optional<IdentityKey> doInBackground(Recipient... recipient) {
         SessionStore sessionStore = new TextSecureSessionStore(context, masterSecret);
-        String addr = recipient[0].getNumber();
+        String addr = recipient[0].getAddress();
         List<Integer> devices = sessionStore.getDeviceSessions(addr);
         for (int device : devices) {
           SessionRecord record = sessionStore.loadSession(new SignalProtocolAddress(addr, device));

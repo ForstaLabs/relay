@@ -65,12 +65,12 @@ public class ConversationTitleView extends LinearLayout {
   private void setRecipientTitle(Recipient recipient, ForstaThread thread) {
     if (!recipient.isGroupRecipient()) {
       if (TextUtils.isEmpty(recipient.getName())) {
-        this.title.setText(recipient.getNumber());
+        this.title.setText(recipient.getAddress());
         this.subtitle.setText(null);
         this.subtitle.setVisibility(View.GONE);
       } else {
         this.title.setText(recipient.getName());
-        this.subtitle.setText(recipient.getNumber());
+        this.subtitle.setText(recipient.getAddress());
         // Remove subtitle phone from actionbar display
         this.subtitle.setVisibility(View.GONE);
       }

@@ -32,7 +32,7 @@ public class IdentityUpdateJob extends MasterSecretJob {
   public void onRun(MasterSecret masterSecret) throws Exception {
     Recipient            recipient      = RecipientFactory.getRecipientForId(context, recipientId, true);
     Recipients           recipients     = RecipientFactory.getRecipientsFor(context, recipient, true);
-    String               number         = recipient.getNumber();
+    String               number         = recipient.getAddress();
     long                 time           = System.currentTimeMillis();
     SmsDatabase smsDatabase    = DatabaseFactory.getSmsDatabase(context);
     ThreadDatabase       threadDatabase = DatabaseFactory.getThreadDatabase(context);

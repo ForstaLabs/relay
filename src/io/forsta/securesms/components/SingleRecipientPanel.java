@@ -79,7 +79,7 @@ public class SingleRecipientPanel extends RelativeLayout implements Recipients.R
 
     while (iterator.hasNext()) {
       Recipient recipient = iterator.next();
-      addRecipient(recipient.getName(), recipient.getNumber());
+      addRecipient(recipient.getName(), recipient.getAddress());
     }
   }
 

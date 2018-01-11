@@ -355,7 +355,7 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
         recipients = intermediaryRecipients;
       } else {
         try {
-          String groupId = intermediaryRecipients.getPrimaryRecipient().getNumber();
+          String groupId = intermediaryRecipients.getPrimaryRecipient().getAddress();
           recipients = DatabaseFactory.getGroupDatabase(context)
                                       .getGroupMembers(GroupUtil.getDecodedId(groupId), false);
         } catch (IOException e) {

@@ -578,10 +578,6 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  private void downloadAttachment() {
-
-  }
-
   private class ThumbnailClickListener implements SlideClickListener {
     private void fireIntent(Slide slide) {
       Log.w(TAG, "Clicked: " + slide.getUri() + " , " + slide.getContentType());
@@ -740,7 +736,7 @@ public class ConversationItem extends LinearLayout
           ApplicationContext.getInstance(context)
                             .getJobManager()
                             .add(new SmsSendJob(context, messageRecord.getId(),
-                                                messageRecord.getIndividualRecipient().getNumber()));
+                                                messageRecord.getIndividualRecipient().getAddress()));
         }
       }
     });

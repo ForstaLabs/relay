@@ -20,7 +20,6 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -217,12 +216,12 @@ public class MessageSender {
 
   private static void sendTextPush(Context context, Recipients recipients, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushTextSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber()));
+    jobManager.add(new PushTextSendJob(context, messageId, recipients.getPrimaryRecipient().getAddress()));
   }
 
   private static void sendMediaPush(Context context, Recipients recipients, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushMediaSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber()));
+    jobManager.add(new PushMediaSendJob(context, messageId, recipients.getPrimaryRecipient().getAddress()));
   }
 
   // Keep for sending invitations.
@@ -234,7 +233,7 @@ public class MessageSender {
   // No longer valid.
   private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getNumber(), filterRecipientId));
+    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getAddress(), filterRecipientId));
   }
 
   // No longer valid
@@ -254,7 +253,7 @@ public class MessageSender {
       }
 
       Recipient recipient   = recipients.getPrimaryRecipient();
-      String    destination = Util.canonicalizeNumber(context, recipient.getNumber());
+      String    destination = Util.canonicalizeNumber(context, recipient.getAddress());
 
       return isPushDestination(context, destination);
     } catch (InvalidNumberException e) {
@@ -274,7 +273,7 @@ public class MessageSender {
       }
 
       Recipient recipient   = recipients.getPrimaryRecipient();
-      String    destination = Util.canonicalizeNumber(context, recipient.getNumber());
+      String    destination = Util.canonicalizeNumber(context, recipient.getAddress());
 
       return isPushDestination(context, destination);
     } catch (InvalidNumberException e) {
@@ -284,7 +283,7 @@ public class MessageSender {
   }
 
   private static boolean isGroupPushSend(Recipients recipients) {
-    return GroupUtil.isEncodedGroup(recipients.getPrimaryRecipient().getNumber());
+    return GroupUtil.isEncodedGroup(recipients.getPrimaryRecipient().getAddress());
   }
 
   private static boolean isSelfSend(Context context, Recipients recipients) {
@@ -300,7 +299,7 @@ public class MessageSender {
       return false;
     }
 
-    return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getNumber());
+    return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
   }
 
   private static boolean isPushDestination(Context context, String destination) {

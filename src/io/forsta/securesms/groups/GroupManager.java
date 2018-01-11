@@ -25,7 +25,6 @@ import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
-import org.whispersystems.signalservice.api.messages.SignalServiceAttachmentPointer;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
@@ -86,7 +85,7 @@ public class GroupManager {
   {
     final Set<String> results = new HashSet<>();
     for (Recipient recipient : recipients) {
-      results.add(Util.canonicalizeNumber(context, recipient.getNumber()));
+      results.add(Util.canonicalizeNumber(context, recipient.getAddress()));
     }
 
     return results;

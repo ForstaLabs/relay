@@ -679,15 +679,21 @@ public class ThreadDatabase extends Database {
   public void updateForstaThread(long threadId, ForstaDistribution distribution) {
     Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, distribution.getRecipients(context), false);
     long[] recipientIds    = getRecipientIds(recipients);
-    String recipientsList  = getRecipientsAsString(recipientIds);
+    String recipientsString  = getRecipientsAsString(recipientIds);
     ForstaThread forstaThread = getForstaThread(threadId);
 
+    Log.w(TAG, "Thread update: " + distribution.universal);
+    Log.w(TAG, "Recipients: " + TextUtils.join(", ", distribution.getRecipients(context)));
+
     ContentValues values = new ContentValues();
-    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution) || !forstaThread.getRecipientIds().equals(recipientsList)) {
-      values.put(RECIPIENT_IDS, recipientsList);
+    if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
       values.put(DISTRIBUTION, distribution.universal);
+      values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
-    values.put(PRETTY_EXPRESSION, distribution.pretty);
+    // Distribution may be the same, but tag members may have changed.
+    if (!forstaThread.getRecipientIds().equals(recipientsString)) {
+      values.put(RECIPIENT_IDS, recipientsString);
+    }
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
@@ -697,17 +703,24 @@ public class ThreadDatabase extends Database {
 
   public void updateForstaThread(long threadId, Recipients recipients, ForstaMessage message, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
-    String recipientsList  = getRecipientsAsString(recipientIds);
+    String recipientsString  = getRecipientsAsString(recipientIds);
     ForstaThread forstaThread = getForstaThread(threadId);
     ContentValues values = new ContentValues();
+
+    Log.w(TAG, "Thread update: " + distribution.universal);
+    Log.w(TAG, "Recipients: " + TextUtils.join(", ", distribution.getRecipients(context)));
+
     if (!TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
       values.put(TITLE, message.getThreadTitle());
     }
     if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
-      values.put(RECIPIENT_IDS, recipientsList);
       values.put(DISTRIBUTION, distribution.universal);
+      values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
-    values.put(PRETTY_EXPRESSION, distribution.pretty);
+    // Distribution may be the same, but tag members may have changed.
+    if (!forstaThread.getRecipientIds().equals(recipientsString)) {
+      values.put(RECIPIENT_IDS, recipientsString);
+    }
     if (values.size() > 0) {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
