@@ -193,7 +193,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     }
     if (selectedRecipients == null || selectedRecipients.getRecipient(number) == null) {
       SelectedRecipient recipientChip = new SelectedRecipient(this);
-      recipientChip.setAddress(newRecipients.getPrimaryRecipient().getNumber());
+      recipientChip.setAddress(newRecipients.getPrimaryRecipient().getAddress());
       recipientChip.setText(newRecipients.getPrimaryRecipient().getName());
       recipientChip.setOnClickListener(selectedRecipientRemoveListener);
       expressionElements.addView(recipientChip);

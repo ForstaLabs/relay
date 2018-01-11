@@ -76,7 +76,7 @@ public class RecipientProvider {
   private static final Map<String, RecipientDetails> STATIC_DETAILS = new HashMap<String, RecipientDetails>() {{
     put("262966", new RecipientDetails("Amazon", "262966", null,
                                        ContactPhotoFactory.getResourceContactPhoto(R.drawable.ic_amazon),
-                                       ContactColors.UNKNOWN_COLOR, null, null, false, "PERSON"));
+                                       ContactColors.UNKNOWN_COLOR, null, null, null, null, false, "PERSON"));
   }};
 
   @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
@@ -158,6 +158,8 @@ public class RecipientProvider {
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
           ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
           boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.ISACTIVE)) != 0;
+          String email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
+          String phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
           String userType= cursor.getString(cursor.getColumnIndex(ContactDb.USERTYPE));
           if (avatarUrl != null) {
             Bitmap gravatar = getContactGravatar(avatarUrl);
@@ -165,7 +167,7 @@ public class RecipientProvider {
               contactPhoto = new BitmapContactPhoto(gravatar);
             }
           }
-          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug, orgSlug, isActive, userType);
+          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug, orgSlug, email, phone, isActive, userType);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -177,7 +179,7 @@ public class RecipientProvider {
         cursor.close();
     }
 
-    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null, null, false, "PERSON");
+    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null, null, null, null, false, "PERSON");
   }
 
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
@@ -187,13 +189,13 @@ public class RecipientProvider {
 
       if (record != null) {
         ContactPhoto contactPhoto = ContactPhotoFactory.getGroupContactPhoto(record.getAvatar());
-        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getTag(), record.getOrgTag(), true, "TAG");
+        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getTag(), record.getOrgTag(), null, null, true, "TAG");
       }
 
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, false, "TAG");
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, null, null, false, "TAG");
     } catch (IOException e) {
       Log.w("RecipientProvider", e);
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, false, "TAG");
+      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, null, null, false, "TAG");
     }
   }
 
@@ -222,6 +224,8 @@ public class RecipientProvider {
     @NonNull  public final ContactPhoto  avatar;
     @Nullable public final String slug;
     @Nullable public final String orgSlug;
+    @Nullable public final String email;
+    @Nullable public final String phone;
     public final boolean isActive;
     public final String userType;
     @Nullable public final Uri           contactUri;
@@ -229,7 +233,7 @@ public class RecipientProvider {
 
     public RecipientDetails(@Nullable String name, @NonNull String number,
                             @Nullable Uri contactUri, @NonNull ContactPhoto avatar,
-                            @Nullable MaterialColor color, @Nullable String slug, @Nullable String orgSlug, boolean isActive, String userType)
+                            @Nullable MaterialColor color, @Nullable String slug, @Nullable String orgSlug, @Nullable String email, @Nullable String phone, boolean isActive, String userType)
     {
       this.name       = name;
       this.number     = number;
@@ -238,6 +242,8 @@ public class RecipientProvider {
       this.color      = color;
       this.slug = slug;
       this.orgSlug = orgSlug;
+      this.email = email;
+      this.phone = phone;
       this.isActive = isActive;
       this.userType = userType;
     }

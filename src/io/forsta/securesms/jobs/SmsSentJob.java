@@ -82,7 +82,7 @@ public class SmsSentJob extends MasterSecretJob {
           Log.w(TAG, "Service connectivity problem, requeuing...");
           ApplicationContext.getInstance(context)
               .getJobManager()
-              .add(new SmsSendJob(context, messageId, record.getIndividualRecipient().getNumber()));
+              .add(new SmsSendJob(context, messageId, record.getIndividualRecipient().getAddress()));
           break;
         default:
           database.markAsSentFailed(messageId);

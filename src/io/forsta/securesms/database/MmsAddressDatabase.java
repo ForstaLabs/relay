@@ -30,6 +30,7 @@ import io.forsta.securesms.recipients.Recipients;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.forsta.securesms.util.TextSecurePreferences;
 import ws.com.google.android.mms.pdu.PduHeaders;
 
 public class MmsAddressDatabase extends Database {
@@ -129,7 +130,7 @@ public class MmsAddressDatabase extends Database {
     List<Recipient> results = new LinkedList<>();
 
     for (String number : numbers) {
-      if (!PduHeaders.FROM_INSERT_ADDRESS_TOKEN_STR.equals(number)) {
+      if (!PduHeaders.FROM_INSERT_ADDRESS_TOKEN_STR.equals(number) && !TextSecurePreferences.getLocalNumber(context).equals(number)) {
         results.add(RecipientFactory.getRecipientsFromString(context, number, false)
                                     .getPrimaryRecipient());
       }

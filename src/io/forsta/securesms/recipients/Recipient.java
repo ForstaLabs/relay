@@ -47,9 +47,10 @@ public class Recipient {
   private @Nullable String  name;
   private @Nullable String slug;
   private @Nullable String orgSlug;
+  private @Nullable String email;
+  private @Nullable String phone;
   private boolean isActive;
   private String userType;
-  private String email;
   private boolean stale;
 
   private ContactPhoto contactPhoto;
@@ -74,6 +75,8 @@ public class Recipient {
       this.color        = stale.color;
       this.slug = stale.slug;
       this.orgSlug = stale.orgSlug;
+      this.email = stale.email;
+      this.phone = stale.phone;
       this.isActive = stale.isActive;
       this.userType = stale.userType;
     }
@@ -90,6 +93,8 @@ public class Recipient {
             Recipient.this.color        = result.color;
             Recipient.this.slug = result.slug;
             Recipient.this.orgSlug = result.orgSlug;
+            Recipient.this.email = result.email;
+            Recipient.this.phone = result.phone;
             Recipient.this.isActive = result.isActive;
             Recipient.this.userType = result.userType;
           }
@@ -114,8 +119,14 @@ public class Recipient {
     this.color        = details.color;
     this.slug = details.slug;
     this.orgSlug = details.orgSlug;
+    this.email = details.email;
+    this.phone = details.phone;
     this.isActive = details.isActive;
     this.userType = details.userType;
+  }
+
+  public synchronized @NonNull String getAddress() {
+    return number;
   }
 
   public synchronized @Nullable Uri getContactUri() {
@@ -156,8 +167,12 @@ public class Recipient {
     notifyListeners();
   }
 
-  public @NonNull String getNumber() {
-    return number;
+  public synchronized String getPhone() {
+    return phone;
+  }
+
+  public synchronized String getEmail() {
+    return email;
   }
 
   public String getFullTag() {
@@ -194,7 +209,7 @@ public class Recipient {
 
   public static Recipient getUnknownRecipient() {
     return new Recipient(-1, new RecipientDetails("Unknown", "Unknown", null,
-                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null, false, "PERSON"));
+                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null, null, null, false, "PERSON"));
   }
 
   @Override

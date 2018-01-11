@@ -222,7 +222,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
 
   public boolean isEmailRecipient() {
     for (Recipient recipient : recipients) {
-      if (NumberUtil.isValidEmail(recipient.getNumber()))
+      if (NumberUtil.isValidEmail(recipient.getAddress()))
         return true;
     }
 
@@ -230,7 +230,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   }
 
   public boolean isGroupRecipient() {
-    return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getNumber());
+    return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getAddress());
   }
 
   public String getRecipientExpression() {
@@ -270,7 +270,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
 
   public Recipient getRecipient(String address) {
     for (Recipient recipient : recipients) {
-      if (recipient.getNumber().equals(address)) {
+      if (recipient.getAddress().equals(address)) {
         return recipient;
       }
     }
@@ -292,7 +292,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   public List<String> getAddresses() {
     List<String> addresses = new ArrayList<>();
     for (Recipient recipient : recipients) {
-      addresses.add(recipient.getNumber());
+      addresses.add(recipient.getAddress());
     }
     return addresses;
   }
@@ -322,7 +322,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     int i                        = 0;
 
     while (iterator.hasNext()) {
-      String number = iterator.next().getNumber();
+      String number = iterator.next().getAddress();
 
       if (scrub && number != null &&
           !Patterns.EMAIL_ADDRESS.matcher(number).matches() &&
@@ -349,9 +349,13 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     List<String> addresses = new ArrayList<>();
 
     for (int i=0; i<recipients.size(); i++) {
-      String address = recipients.get(i).getNumber();
+      String address = recipients.get(i).getAddress();
       if (!address.equals(TextSecurePreferences.getLocalNumber(context))) {
-        addresses.add(recipients.get(i).getName());
+        String name = recipients.get(i).getName();
+        if (TextUtils.isEmpty(name)) {
+          name = "Unknown Recipient";
+        }
+        addresses.add(name);
       }
     }
 

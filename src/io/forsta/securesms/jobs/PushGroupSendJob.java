@@ -143,7 +143,7 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
       EncapsulatedExceptions, UndeliverableMessageException
   {
     SignalServiceMessageSender    messageSender     = messageSenderFactory.create();
-    byte[]                        groupId           = GroupUtil.getDecodedId(message.getRecipients().getPrimaryRecipient().getNumber());
+    byte[]                        groupId           = GroupUtil.getDecodedId(message.getRecipients().getPrimaryRecipient().getAddress());
     Recipients                    recipients        = DatabaseFactory.getGroupDatabase(context).getGroupMembers(groupId, false);
     List<Attachment>              scaledAttachments = scaleAttachments(masterSecret, MediaConstraints.PUSH_CONSTRAINTS, message.getAttachments());
     List<SignalServiceAttachment> attachmentStreams = getAttachmentsFor(masterSecret, scaledAttachments);
@@ -176,7 +176,7 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = new LinkedList<>();
 
     for (Recipient recipient : recipients.getRecipientsList()) {
-      addresses.add(getPushAddress(recipient.getNumber()));
+      addresses.add(getPushAddress(recipient.getAddress()));
     }
 
     return addresses;
@@ -184,7 +184,7 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
 
   private List<SignalServiceAddress> getPushAddresses(long filterRecipientId) throws InvalidNumberException {
     List<SignalServiceAddress> addresses = new LinkedList<>();
-    addresses.add(getPushAddress(RecipientFactory.getRecipientForId(context, filterRecipientId, false).getNumber()));
+    addresses.add(getPushAddress(RecipientFactory.getRecipientForId(context, filterRecipientId, false).getAddress()));
     return addresses;
   }
 

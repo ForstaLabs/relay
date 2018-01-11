@@ -15,7 +15,6 @@ import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.state.SessionRecord;
 import org.whispersystems.libsignal.state.SessionState;
 import org.whispersystems.libsignal.state.SessionStore;
-import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -233,7 +232,7 @@ public class TextSecureSessionStore implements SessionStore {
         deviceId = 1; // Legacy session entry without device ID is 1
       }
 
-      return new SignalProtocolAddress(recipient.getNumber(), deviceId);
+      return new SignalProtocolAddress(recipient.getAddress(), deviceId);
     } catch (NumberFormatException e) {
       Log.w(TAG, e);
       return null;

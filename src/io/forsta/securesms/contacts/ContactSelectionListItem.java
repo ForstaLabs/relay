@@ -69,7 +69,7 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
 
     this.nameView.setTextColor(color);
     this.numberView.setTextColor(color);
-    this.contactPhotoImage.setAvatar(recipients, false);
+    this.contactPhotoImage.setAvatar(recipients, true);
 
     setText(type, name, number, label);
 
@@ -128,7 +128,7 @@ public class ContactSelectionListItem extends LinearLayout implements Recipients
       this.contactPhotoImage.post(new Runnable() {
         @Override
         public void run() {
-          contactPhotoImage.setAvatar(recipients, false);
+          contactPhotoImage.setAvatar(recipients, true);
 //          nameView.setText(recipients.toShortString());
         }
       });

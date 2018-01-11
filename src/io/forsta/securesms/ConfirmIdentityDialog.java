@@ -167,7 +167,7 @@ public class ConfirmIdentityDialog extends AlertDialog {
                                                  mismatch.getIdentityKey());
 
             SignalServiceEnvelope envelope = new SignalServiceEnvelope(SignalServiceProtos.Envelope.Type.PREKEY_BUNDLE_VALUE,
-                                                                       messageRecord.getIndividualRecipient().getNumber(),
+                                                                       messageRecord.getIndividualRecipient().getAddress(),
                                                                        messageRecord.getRecipientDeviceId(), "",
                                                                        messageRecord.getDateSent(),
                                                                        Base64.decode(messageRecord.getBody().getBody()),
@@ -178,7 +178,7 @@ public class ConfirmIdentityDialog extends AlertDialog {
             ApplicationContext.getInstance(getContext())
                               .getJobManager()
                               .add(new PushDecryptJob(getContext(), pushId, messageRecord.getId(),
-                                                      messageRecord.getIndividualRecipient().getNumber()));
+                                                      messageRecord.getIndividualRecipient().getAddress()));
           } catch (IOException e) {
             throw new AssertionError(e);
           }

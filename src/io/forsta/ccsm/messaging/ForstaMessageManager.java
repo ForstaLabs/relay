@@ -60,6 +60,7 @@ public class ForstaMessageManager {
       }
     } catch (JSONException e) {
       Log.w(TAG, e);
+      Log.w(TAG, body);
     }
     throw new InvalidMessagePayloadException(body);
   }
@@ -174,6 +175,7 @@ public class ForstaMessageManager {
         }
       }
     } catch (JSONException e) {
+      Log.e(TAG, jsonBody.toString());
       throw new InvalidMessagePayloadException(e.getMessage());
     }
 
@@ -241,7 +243,7 @@ public class ForstaMessageManager {
         Log.e(TAG, "ERROR: Group message received!!!!");
         try {
           GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getNumber();
+          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getAddress();
           GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
           title = group.getTitle();
           recipientList = group.getMembers();
@@ -304,7 +306,7 @@ public class ForstaMessageManager {
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
-      Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getNumber());
+      Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getAddress());
       Log.e(TAG, "Thread: "+ forstaThread.getUid());
       e.printStackTrace();
       // Something failed. Return original message body

@@ -1,5 +1,6 @@
 package io.forsta.ccsm.api.model;
 
+import android.net.Uri;
 import android.text.Spanned;
 import android.text.TextUtils;
 
@@ -98,6 +99,25 @@ public class ForstaMessage {
 
   public String getThreadType() {
     return threadType;
+  }
+
+  public String getGiphyUrl() {
+    String html = getHtmlBody();
+    if (!TextUtils.isEmpty(html)) {
+      try {
+        int startIndex = html.indexOf("src=");
+        if (startIndex > 0) {
+          startIndex += 5;
+          String src = html.substring(startIndex);
+          int endIndex = src.indexOf("\"");
+          src = src.substring(0, endIndex);
+          return src;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return "";
   }
 
   public void setControlType(String controlType) {

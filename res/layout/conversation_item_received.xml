@@ -78,6 +78,11 @@
                     android:visibility="gone"
                     app:tintColor="@color/white"
                     tools:visibility="visible"/>
+            <VideoView
+                android:layout_width="210dp"
+                android:layout_height="210dp"
+                android:id="@+id/item_video_view"
+                android:visibility="gone"/>
 
             <io.forsta.securesms.components.emoji.EmojiTextView
                     android:id="@+id/conversation_item_body"
