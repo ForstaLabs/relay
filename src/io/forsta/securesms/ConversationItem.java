@@ -217,6 +217,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
+    giphyLoopCounter = 0;
   }
 
   private void initializeAttributes() {
@@ -375,6 +376,16 @@ public class ConversationItem extends LinearLayout
         @Override
         public void onPrepared(MediaPlayer mediaPlayer) {
           videoView.start();
+        }
+      });
+      videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mediaPlayer) {
+          Log.w(TAG, "Giphy Loop" + giphyLoopCounter);
+          if (giphyLoopCounter < 3) {
+            videoView.start();
+          }
+          giphyLoopCounter++;
         }
       });
     } else {
