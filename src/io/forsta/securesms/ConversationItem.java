@@ -33,6 +33,7 @@ import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -206,6 +207,7 @@ public class ConversationItem extends LinearLayout
 
     this.recipient.addListener(this);
     this.conversationRecipients.addListener(this);
+    giphyLoopCounter = 0;
 
     setInteractionState(messageRecord);
     setBodyText(messageRecord);
@@ -217,7 +219,6 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    giphyLoopCounter = 0;
   }
 
   private void initializeAttributes() {
@@ -237,6 +238,7 @@ public class ConversationItem extends LinearLayout
     }
 
     this.expirationTimer.stopAnimation();
+    videoView.stopPlayback();
   }
 
   public MessageRecord getMessageRecord() {
@@ -381,11 +383,12 @@ public class ConversationItem extends LinearLayout
       videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mediaPlayer) {
-          Log.w(TAG, "Giphy Loop" + giphyLoopCounter);
-          if (giphyLoopCounter < 3) {
+          if (giphyLoopCounter < 4) {
             videoView.start();
+            giphyLoopCounter++;
+          } else {
+            giphyLoopCounter = 0;
           }
-          giphyLoopCounter++;
         }
       });
     } else {
@@ -723,6 +726,9 @@ public class ConversationItem extends LinearLayout
     }
 
     public void onClick(View v) {
+      if (videoView != null && !videoView.isPlaying()) {
+        videoView.start();
+      }
       if (!shouldInterceptClicks(messageRecord) && parent != null) {
         parent.onClick(v);
       } else if (messageRecord.isFailed()) {
