@@ -244,7 +244,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeActionBar();
     initializeViews();
     initializeResources();
-    initializeSecurity();
     initializeDraft();
   }
 
@@ -265,9 +264,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     setIntent(intent);
     initializeResources();
-    initializeSecurity();
     initializeDraft();
-//    initializeDirectory();
+    supportInvalidateOptionsMenu();
 
     if (fragment != null) {
       fragment.onNewIntent();
@@ -575,10 +573,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void handleDisplayGroupRecipients() {
     new GroupMembersDialog(this, getRecipients()).display();
-  }
-
-  private void initializeSecurity() {
-    supportInvalidateOptionsMenu();
   }
 
   ///// Initializers
