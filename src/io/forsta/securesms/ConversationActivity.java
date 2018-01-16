@@ -246,7 +246,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeResources();
     initializeSecurity();
     initializeDraft();
-//    initializeDirectory();
   }
 
   @Override
@@ -282,10 +281,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     dynamicLanguage.onResume(this);
     quickAttachmentDrawer.onResume();
 
-    composeText.setTransport(sendButton.getSelectedTransport());
-
-    calculateCharactersRemaining();
-
     MessageNotifier.setVisibleThread(threadId);
     markThreadAsRead();
     initializeThread();
@@ -316,7 +311,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void onConfigurationChanged(Configuration newConfig) {
     Log.w(TAG, "onConfigurationChanged(" + newConfig.orientation + ")");
     super.onConfigurationChanged(newConfig);
-    composeText.setTransport(sendButton.getSelectedTransport());
     quickAttachmentDrawer.onConfigurationChanged();
     if (container.getCurrentInput() == emojiDrawer) container.hideAttachedInput(true);
   }
@@ -584,9 +578,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeSecurity() {
-    sendButton.disableTransport(Type.SMS);
-    sendButton.setDefaultTransport(Type.TEXTSECURE);
-    calculateCharactersRemaining();
     supportInvalidateOptionsMenu();
   }
 
@@ -789,17 +780,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     attachButton.setOnLongClickListener(new AttachButtonLongClickListener());
     sendButton.setOnClickListener(sendButtonListener);
     sendButton.setEnabled(true);
-    sendButton.addOnTransportChangedListener(new TransportOptions.OnTransportChangedListener() {
-      @Override
-      public void onChange(TransportOption newTransport, boolean manuallySelected) {
-        calculateCharactersRemaining();
-        composeText.setTransport(newTransport);
-        buttonToggle.getBackground().setColorFilter(newTransport.getBackgroundColor(), Mode.MULTIPLY);
-        buttonToggle.getBackground().invalidateSelf();
-        if (manuallySelected) recordSubscriptionIdPreference(newTransport.getSimSubscriptionId());
-      }
-    });
-
     titleView.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -1038,20 +1018,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void calculateCharactersRemaining() {
-    String          messageBody     = composeText.getText().toString();
-    TransportOption transportOption = sendButton.getSelectedTransport();
-    CharacterCalculator.CharacterState characterState  = transportOption.calculateCharacters(messageBody);
-
-    if (characterState.charactersRemaining <= 15 || characterState.messagesSpent > 1) {
-      charactersLeft.setText(characterState.charactersRemaining + "/" + characterState.maxMessageSize
-                                 + " (" + characterState.messagesSpent + ")");
-      charactersLeft.setVisibility(View.VISIBLE);
-    } else {
-      charactersLeft.setVisibility(View.GONE);
-    }
-  }
-
   private boolean isGroupConversation() {
     return getRecipients() != null &&
         (!getRecipients().isSingleRecipient() || getRecipients().isGroupRecipient());
@@ -1075,9 +1041,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private MediaConstraints getCurrentMediaConstraints() {
-    return sendButton.getSelectedTransport().getType() == Type.TEXTSECURE
-           ? MediaConstraints.PUSH_CONSTRAINTS
-           : MediaConstraints.MMS_CONSTRAINTS;
+    return MediaConstraints.PUSH_CONSTRAINTS;
   }
 
   private void markThreadAsRead() {
@@ -1115,8 +1079,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void sendMessage() {
     try {
       Recipients recipients     = getRecipients();
-      boolean    forceSms       = sendButton.isManualSelection() && sendButton.getSelectedTransport().isSms();
-      int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
+      boolean    forceSms       = false;
+      int        subscriptionId = -1;
       long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
 
       if (recipients == null) {
@@ -1247,8 +1211,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void onSuccess(final @NonNull Pair<Uri, Long> result) {
         try {
-          boolean    forceSms       = sendButton.isManualSelection() && sendButton.getSelectedTransport().isSms();
-          int        subscriptionId = sendButton.getSelectedTransport().getSimSubscriptionId().or(-1);
+          boolean    forceSms       = false;
+          int        subscriptionId = -1;
           long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
           AudioSlide audioSlide     = new AudioSlide(ConversationActivity.this, result.first, result.second, ContentType.AUDIO_AAC);
           SlideDeck  slideDeck      = new SlideDeck();
@@ -1389,8 +1353,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     @Override
     public void afterTextChanged(Editable s) {
-      calculateCharactersRemaining();
-
       if (composeText.getText().length() == 0 || beforeLength == 0) {
         composeText.postDelayed(new Runnable() {
           @Override
