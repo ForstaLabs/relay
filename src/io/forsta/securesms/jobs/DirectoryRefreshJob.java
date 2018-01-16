@@ -56,7 +56,6 @@ public class DirectoryRefreshJob extends ContextJob {
       } else {
         DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       }
-      SecurityEvent.broadcastSecurityUpdateEvent(context);
     } finally {
       if (wakeLock.isHeld()) wakeLock.release();
     }

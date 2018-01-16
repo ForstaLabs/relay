@@ -203,7 +203,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver      securityUpdateReceiver;
   private   BroadcastReceiver      recipientsStaleReceiver;
   private   EmojiDrawer            emojiDrawer;
   protected HidingLinearLayout quickAttachmentToggle;
@@ -317,7 +316,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected void onDestroy() {
     saveDraft();
     if (recipients != null)              recipients.removeListener(this);
-    if (securityUpdateReceiver != null)  unregisterReceiver(securityUpdateReceiver);
     if (recipientsStaleReceiver != null) unregisterReceiver(recipientsStaleReceiver);
 
     super.onDestroy();
@@ -687,12 +685,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void setEnabled(boolean enabled) {
-    inputPanel.setEnabled(enabled);
-    sendButton.setEnabled(enabled);
-    attachButton.setEnabled(enabled);
-  }
-
   private void initializeDraftFromDatabase() {
     new AsyncTask<Void, Void, List<DraftDatabase.Draft>>() {
       @Override
@@ -843,13 +835,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void initializeReceivers() {
 
-    securityUpdateReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        //calculateCharactersRemaining();
-      }
-    };
-
     recipientsStaleReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -868,10 +853,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     IntentFilter staleFilter = new IntentFilter();
 //    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
     staleFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
-
-    registerReceiver(securityUpdateReceiver,
-                     new IntentFilter(SecurityEvent.SECURITY_UPDATE_EVENT),
-                     KeyCachingService.KEY_PERMISSION, null);
 
     registerReceiver(recipientsStaleReceiver, staleFilter);
   }
@@ -1551,4 +1532,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
+  private void setEnabled(boolean enabled) {
+    inputPanel.setEnabled(enabled);
+    sendButton.setEnabled(enabled);
+    attachButton.setEnabled(enabled);
+  }
 }
