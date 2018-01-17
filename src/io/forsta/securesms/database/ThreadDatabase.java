@@ -370,6 +370,16 @@ public class ThreadDatabase extends Database {
     return cursor;
   }
 
+  public Cursor getConversationListWithoutAnnouncements() {
+    SQLiteDatabase db     = databaseHelper.getReadableDatabase();
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ? AND " + THREAD_TYPE + " = ?", new String[] {"0", "0"}, null, null, PINNED + " DESC, " + DATE + " DESC");
+    setNotifyConverationListListeners(cursor);
+    return cursor;
+  }
+
   public Cursor getArchivedConversationList() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();

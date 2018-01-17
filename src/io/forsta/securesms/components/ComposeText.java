@@ -29,6 +29,7 @@ public class ComposeText extends EmojiEditText {
 
   public ComposeText(Context context, AttributeSet attrs) {
     super(context, attrs);
+    initialize();
   }
 
   public ComposeText(Context context, AttributeSet attrs, int defStyleAttr) {
