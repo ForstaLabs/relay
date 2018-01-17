@@ -130,6 +130,10 @@ public abstract class MessageRecord extends DisplayRecord {
     return "";
   }
 
+  public String getMessagePayloadBody() {
+    return getBody().getBody();
+  }
+
   @Override
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
