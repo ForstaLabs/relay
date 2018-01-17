@@ -15,7 +15,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 
-public class NotificationItem implements Recipients.RecipientsModifiedListener {
+public class NotificationItem {
 
   private final @NonNull
   Recipients recipients;
@@ -77,10 +77,5 @@ public class NotificationItem implements Recipients.RecipientsModifiedListener {
     return TaskStackBuilder.create(context)
                            .addNextIntentWithParentStack(intent)
                            .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-  }
-
-  @Override
-  public void onModified(Recipients recipient) {
-    Log.w("NotificationItem", "Recipients modified");
   }
 }
