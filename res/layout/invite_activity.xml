@@ -27,13 +27,14 @@
                       android:layout_height="wrap_content"
                       android:textColor="@color/white"
                       android:textSize="20sp"
-                      android:text="@string/InviteActivity_friends_dont_let_friends_text_unencrypted"
+                      android:text="@string/InviteActivity_invite_a_friend"
                       android:gravity="center_horizontal"
                       android:layout_marginBottom="30dp"
                       android:layout_marginTop="18dp"
                       android:fontFamily="sans-serif-light"
                       android:paddingLeft="10dp"
-                      android:paddingStart="10dp"/>
+                      android:paddingStart="10dp"
+                android:visibility="gone"/>
 
             <EditText android:id="@+id/invite_text"
                       android:layout_width="match_parent"

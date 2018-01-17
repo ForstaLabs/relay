@@ -39,8 +39,6 @@ public class ComposeText extends EmojiEditText {
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
 
-    initialize();
-
     if (!TextUtils.isEmpty(hint)) {
       if (!TextUtils.isEmpty(subHint)) {
         setHint(new SpannableStringBuilder().append(ellipsizeToWidth(hint))

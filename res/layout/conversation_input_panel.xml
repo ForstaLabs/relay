@@ -46,7 +46,6 @@
                     android:layout_weight="1"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
-                    android:visibility="visible"
                     tools:visibility="visible"
                     tools:hint="Send TextSecure message" >
                     <requestFocus />
