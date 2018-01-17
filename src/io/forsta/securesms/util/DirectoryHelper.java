@@ -127,7 +127,6 @@ public class DirectoryHelper {
   }
 
   private static void notifyRefresh(Context context) {
-    RecipientFactory.clearCache(context);
     context.sendBroadcast(new Intent(ForstaSyncAdapter.FORSTA_SYNC_COMPLETE));
   }
 

@@ -15,7 +15,6 @@ import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 
 import io.forsta.securesms.R;
-import io.forsta.securesms.TransportOption;
 import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.util.TextSecurePreferences;
 

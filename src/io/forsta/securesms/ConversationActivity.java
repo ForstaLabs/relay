@@ -27,7 +27,6 @@ import android.content.res.TypedArray;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -65,7 +64,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
-import com.google.protobuf.ByteString;
 
 import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
@@ -86,12 +84,10 @@ import io.forsta.securesms.components.SendButton;
 import io.forsta.securesms.components.camera.QuickAttachmentDrawer;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.location.SignalPlace;
-import io.forsta.securesms.components.reminder.InviteReminder;
 import io.forsta.securesms.components.reminder.ReminderView;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
@@ -107,7 +103,6 @@ import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingGroupMediaMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
@@ -119,15 +114,11 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
-import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.sms.OutgoingEndSessionMessage;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -147,12 +138,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
-import io.forsta.securesms.util.CharacterCalculator;
 import ws.com.google.android.mms.ContentType;
-
-import static io.forsta.securesms.TransportOption.Type;
-import static io.forsta.securesms.database.GroupDatabase.GroupRecord;
-import static org.whispersystems.signalservice.internal.push.SignalServiceProtos.GroupContext;
 
 /**
  * Activity for displaying a message thread, as well as
@@ -203,7 +189,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver      recipientsStaleReceiver;
+  private   BroadcastReceiver recipientsClearReceiver;
   private   EmojiDrawer            emojiDrawer;
   protected HidingLinearLayout quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
@@ -214,8 +200,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
-  private boolean    isSecureText = true;
-  private boolean isAnnouncement = false;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -316,7 +300,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected void onDestroy() {
     saveDraft();
     if (recipients != null)              recipients.removeListener(this);
-    if (recipientsStaleReceiver != null) unregisterReceiver(recipientsStaleReceiver);
+    if (recipientsClearReceiver != null) unregisterReceiver(recipientsClearReceiver);
 
     super.onDestroy();
   }
@@ -564,9 +548,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleAddAttachment() {
-    if (isSecureText) {
-      attachmentTypeSelector.show(this, attachButton);
-    }
+    attachmentTypeSelector.show(this, attachButton);
   }
 
   private void handleDisplayGroupRecipients() {
@@ -761,7 +743,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     ComposeKeyPressedListener composeKeyPressedListener = new ComposeKeyPressedListener();
 
     emojiDrawer.setEmojiEventListener(inputPanel);
-    composeText.setOnEditorActionListener(sendButtonListener);
     attachButton.setOnClickListener(new AttachButtonListener());
     attachButton.setOnLongClickListener(new AttachButtonLongClickListener());
     sendButton.setOnClickListener(sendButtonListener);
@@ -839,27 +820,16 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeReceivers() {
-
-    recipientsStaleReceiver = new BroadcastReceiver() {
+    recipientsClearReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-//        Log.w(TAG, "Group update received...");
-//        if (recipients != null) {
-//          long[] ids = recipients.getIds();
-//          Log.w(TAG, "Looking up new recipients...");
-//          recipients = RecipientFactory.getRecipientsForIds(context, ids, true);
-//          recipients.addListener(ConversationActivity.this);
-//          onModified(recipients);
-//          fragment.reloadList();
-//        }
+        Log.w(TAG, "Clear cache received.");
       }
     };
 
-    IntentFilter staleFilter = new IntentFilter();
-//    staleFilter.addAction(GroupDatabase.DATABASE_UPDATE_ACTION);
-    staleFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
-
-    registerReceiver(recipientsStaleReceiver, staleFilter);
+    IntentFilter clearFilter = new IntentFilter();
+    clearFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
+    registerReceiver(recipientsClearReceiver, clearFilter);
   }
 
   //////// Helper Methods

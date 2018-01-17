@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
@@ -14,7 +15,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 
-public class NotificationItem {
+public class NotificationItem implements Recipients.RecipientsModifiedListener {
 
   private final @NonNull
   Recipients recipients;
@@ -78,5 +79,8 @@ public class NotificationItem {
                            .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
   }
 
-
+  @Override
+  public void onModified(Recipients recipient) {
+    Log.w("NotificationItem", "Recipients modified");
+  }
 }

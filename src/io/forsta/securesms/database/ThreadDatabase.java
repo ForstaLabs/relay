@@ -551,6 +551,7 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     long threadId = db.insert(TABLE_NAME, null, contentValues);
     DatabaseFactory.getThreadPreferenceDatabase(context).setColor(threadId, MaterialColors.getRandomConversationColor());
+    RecipientFactory.clearCache(context);
     return threadId;
   }
 
@@ -698,6 +699,7 @@ public class ThreadDatabase extends Database {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
       notifyConversationListListeners();
+      RecipientFactory.clearCache(context);
     }
   }
 
@@ -725,6 +727,7 @@ public class ThreadDatabase extends Database {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
       notifyConversationListListeners();
+      RecipientFactory.clearCache(context);
     }
   }
 

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.securesms.recipients.RecipientFactory;
 
 /**
  * Created by jlewis on 3/23/17.
@@ -178,6 +179,7 @@ public class ContactDb extends DbBase {
     values.put(TSREGISTERED, user.tsRegistered);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.update(TABLE_NAME, values, ID + "=?", new String[] { user.id });
+    RecipientFactory.clearCache(context);
   }
 
   public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
@@ -220,6 +222,8 @@ public class ContactDb extends DbBase {
         uids.remove(user.uid);
       }
       db.setTransactionSuccessful();
+      RecipientFactory.clearCache(context);
+
     }
     finally {
       db.endTransaction();

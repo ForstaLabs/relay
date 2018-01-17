@@ -200,6 +200,7 @@ public class GroupDatabase extends Database {
         }
       }
       db.setTransactionSuccessful();
+      RecipientFactory.clearCache(context);
       notifyDatabaseListeners();
     }
     finally {
@@ -240,6 +241,7 @@ public class GroupDatabase extends Database {
     contentValues.put(ACTIVE, 1);
 
     databaseHelper.getWritableDatabase().insert(TABLE_NAME, null, contentValues);
+    RecipientFactory.clearCache(context);
     notifyDatabaseListeners();
   }
 
