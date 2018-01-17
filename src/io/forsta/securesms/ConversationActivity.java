@@ -831,6 +831,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void onModified(final Recipients recipients) {
     Log.w(TAG, "Recipients modified.");
+    supportInvalidateOptionsMenu();
+    // Make up of thread can be modified by receipt of message in PushDecrypytJob.
+    // this.recipients = recipients;
+    // upstate forstaThread reference
+    // initializeThread();
   }
 
   private void initializeReceivers() {
