@@ -847,13 +847,6 @@
     <string name="thread_preferences__color">Color</string>
     <string name="thread_preferences__color_for_this_conversation">Color for this conversation</string>
 
-    <!--- redphone_call_controls -->
-    <string name="redphone_call_card__signal_call">Forsta Call</string>
-    <string name="redphone_call_controls__end_call">end call</string>
-    <string name="redphone_call_controls__audio">Audio</string>
-    <string name="redphone_call_controls__mute">Mute</string>
-    <string name="redphone_call_controls__signal_call">Forsta Call</string>
-
     <!-- registration_problems -->
     <string name="registration_problems__some_possible_problems_include">Some possible problems
         include:
@@ -1226,10 +1219,6 @@
     <!-- new_conversation_activity -->
     <string name="new_conversation_activity__refresh">Refresh</string>
     <string name="new_conversation_activity__reset">Reset Directory</string>
-    <!-- redphone_audio_popup_menu -->
-    <string name="redphone_audio_popup_menu__handset">Handset</string>
-    <string name="redphone_audio_popup_menu__headset">Headset</string>
-    <string name="redphone_audio_popup_menu__speaker">Speaker</string>
 
     <!-- Trimmer -->
     <string name="trimmer__deleting">Deleting</string>
