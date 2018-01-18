@@ -102,6 +102,22 @@ public class ThreadDatabase extends Database {
     "CREATE INDEX IF NOT EXISTS archived_index ON " + TABLE_NAME + " (" + ARCHIVED + ");",
   };
 
+  private String[] ConversationListColumns = {
+      ID,
+      DATE,
+      MESSAGE_COUNT,
+      RECIPIENT_IDS,
+      SNIPPET,
+      SNIPPET_CHARSET,
+      READ,
+      TYPE,
+      ERROR,
+      SNIPPET_TYPE,
+      SNIPPET_URI,
+      ARCHIVED,
+
+  };
+
   public ThreadDatabase(Context context, SQLiteOpenHelper databaseHelper) {
     super(context, databaseHelper);
   }
@@ -361,6 +377,16 @@ public class ThreadDatabase extends Database {
   }
 
   public Cursor getConversationList() {
+    SQLiteDatabase db     = databaseHelper.getReadableDatabase();
+    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
+    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
+        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
+    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, PINNED + " DESC, " + DATE + " DESC");
+    setNotifyConverationListListeners(cursor);
+    return cursor;
+  }
+
+  public Cursor getConversationListTest() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
     builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
@@ -844,7 +870,7 @@ public class ThreadDatabase extends Database {
     }
 
     public ThreadRecord getCurrent() {
-      long       threadId    = cursor.getLong(cursor.getColumnIndexOrThrow(ThreadDatabase.ID));
+      long       threadId    = cursor.getLong(0);
       String     recipientId = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.RECIPIENT_IDS));
       Recipients recipients  = RecipientFactory.getRecipientsForIds(context, recipientId, true);
 

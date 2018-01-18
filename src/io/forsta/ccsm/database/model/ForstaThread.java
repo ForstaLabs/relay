@@ -1,5 +1,6 @@
 package io.forsta.ccsm.database.model;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.text.TextUtils;
 
@@ -23,7 +24,7 @@ public class ForstaThread {
   private String threadCreator;
 
   public ForstaThread(Cursor cursor) {
-    threadid = cursor.getLong(cursor.getColumnIndex(ThreadDatabase.ID));
+    threadid = cursor.getLong(0);
     uid = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.UID));
     distribution = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.DISTRIBUTION));
     title = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.TITLE));

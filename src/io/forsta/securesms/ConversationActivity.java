@@ -228,6 +228,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeViews();
     initializeResources();
     initializeDraft();
+    updateDistribution();
   }
 
   @Override
@@ -263,15 +264,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     quickAttachmentDrawer.onResume();
 
     MessageNotifier.setVisibleThread(threadId);
-    markThreadAsRead();
+
     initializeThread();
-    threadObserver = new ContentObserver(handler) {
-      @Override
-      public void onChange(boolean selfChange) {
-        invalidateOptionsMenu();
-        initializeThread();
-      }
-    };
+    markThreadAsRead();
 
     getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.CONVERSATION_URI + threadId), true, threadObserver);
   }
@@ -557,7 +552,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   ///// Initializers
 
-  private void checkInvalidRecipients() {
+  private void warnInvalidRecipients() {
     if (recipients == null || recipients.isEmpty()) {
       recipients = RecipientFactory.getRecipientsFromString(ConversationActivity.this, TextSecurePreferences.getLocalNumber(ConversationActivity.this), false);
     }
@@ -589,58 +584,53 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void checkThreadState() {
+  private void updateDistribution() {
     ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
     boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     if (isConnected) {
-      final ForstaThread thread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-      if (thread == null) {
-        // This should never happen.
-        new AsyncTask<Void, Void, ForstaDistribution>() {
-          @Override
-          protected ForstaDistribution doInBackground(Void... voids) {
-            return CcsmApi.getMessageDistribution(ConversationActivity.this, recipients.getRecipientExpression());
+      new AsyncTask<Void, Void, ForstaDistribution>() {
+        @Override
+        protected ForstaDistribution doInBackground(Void... voids) {
+          try {
+            ForstaThread currentThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+            return CcsmApi.getMessageDistribution(ConversationActivity.this, currentThread.getDistribution());
+          } catch (Exception e) {
+            e.printStackTrace();
           }
+          return null;
+        }
 
-          @Override
-          protected void onPostExecute(ForstaDistribution distribution) {
-            ForstaThread updatedThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).allocateThread(recipients, distribution, 0);
-            threadId = updatedThread.getThreadid();
-            forstaThread = updatedThread;
+        @Override
+        protected void onPostExecute(ForstaDistribution distribution) {
+          if (distribution != null) {
+            DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
           }
-        }.execute();
-      } else {
-        // Update existing tag distribution users in thread.
-        new AsyncTask<Void, Void, ForstaDistribution>() {
-          @Override
-          protected ForstaDistribution doInBackground(Void... voids) {
-            return CcsmApi.getMessageDistribution(ConversationActivity.this, thread.getDistribution());
-          }
-
-          @Override
-          protected void onPostExecute(ForstaDistribution distribution) {
-            if (distribution != null) {
-              recipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, distribution.getRecipients(ConversationActivity.this), false);
-              DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
-            }
-          }
-        }.execute();
-      }
+        }
+      }.execute();
     }
   }
 
   private void initializeThread() {
-    forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-    titleView.setTitle(recipients, forstaThread);
-
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
+    forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+    if (recipients != null) {
+      recipients.removeListener(this);
+    }
+    recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), false);
+    recipients.addListener(this);
+
+    if (recipients == null || recipients.isEmpty()) {
+      inputPanel.setVisibility(View.GONE);
+    }
+
     // May have preferences prior to color preference addition
     if (threadPreference.getColor() == null) {
       threadDb.setColor(threadId, MaterialColors.getRandomConversationColor());
       threadPreference = threadDb.getThreadPreferences(threadId);
     }
+    titleView.setTitle(recipients, forstaThread);
     setActionBarColor(threadPreference.getColor());
 
     if (forstaThread.isAnnouncement()) {
@@ -789,24 +779,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeResources() {
-    if (recipients != null) recipients.removeListener(this);
-
-    recipients       = RecipientFactory.getRecipientsForIds(this, getIntent().getLongArrayExtra(RECIPIENTS_EXTRA), true);
-    threadId         = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
-    archived         = getIntent().getBooleanExtra(IS_ARCHIVED_EXTRA, false);
+    threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
+    archived = getIntent().getBooleanExtra(IS_ARCHIVED_EXTRA, false);
     distributionType = getIntent().getIntExtra(DISTRIBUTION_TYPE_EXTRA, ThreadDatabase.DistributionTypes.DEFAULT);
-
-    // These are here as integrity checks on bad state. No recipients. Invalid recipients. No thread data.
-    checkInvalidRecipients();
-    checkThreadState();
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       LinearLayout conversationContainer = ViewUtil.findById(this, R.id.conversation_container);
       conversationContainer.setClipChildren(true);
       conversationContainer.setClipToPadding(true);
     }
-
-    recipients.addListener(this);
   }
 
   @Override
@@ -830,6 +811,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     IntentFilter clearFilter = new IntentFilter();
     clearFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
     registerReceiver(recipientsClearReceiver, clearFilter);
+
+    threadObserver = new ContentObserver(handler) {
+      @Override
+      public void onChange(boolean selfChange) {
+        // This will listen for changes in the distribution from messages received in PushDecryptJob.
+        supportInvalidateOptionsMenu();
+        initializeThread();
+      }
+    };
   }
 
   //////// Helper Methods
