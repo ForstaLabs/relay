@@ -21,7 +21,8 @@
                        android:layout_height="wrap_content"
                        android:layout_gravity="center_horizontal"
                        android:contentDescription="@string/InviteActivity_heart_content_description"
-                       android:src="@drawable/love_heart" />
+                       android:src="@drawable/lockscreen_watermark_dark"
+                android:layout_marginBottom="50dp"/>
 
             <TextView android:layout_width="match_parent"
                       android:layout_height="wrap_content"
