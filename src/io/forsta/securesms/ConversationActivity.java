@@ -791,9 +791,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   @Override
-  public void onModified(final Recipients recipients) {
-    Log.w(TAG, "Recipients modified.");
-    supportInvalidateOptionsMenu();
+  public void onModified(final Recipients modifiedRecipients) {
+    Log.w(TAG, "Recipients modified. From: " + TextUtils.join(",", recipients.getAddresses()) + " To: " + TextUtils.join(",", modifiedRecipients.getAddresses()));
+
+//    supportInvalidateOptionsMenu();
     // Make up of thread can be modified by receipt of message in PushDecrypytJob.
     // this.recipients = recipients;
     // upstate forstaThread reference
@@ -816,8 +817,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       public void onChange(boolean selfChange) {
         // This will listen for changes in the distribution from messages received in PushDecryptJob.
-        supportInvalidateOptionsMenu();
-        initializeThread();
+        ForstaThread threadUpdate = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
+        if (!forstaThread.getRecipientIds().equals(threadUpdate.getRecipientIds())) {
+          Log.w(TAG, "Thread Observer. Recipients for thread have changed. From: " + forstaThread.getRecipientIds() + "To: " + threadUpdate.getRecipientIds());
+          supportInvalidateOptionsMenu();
+          initializeThread();
+        }
       }
     };
   }
@@ -1000,16 +1005,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   protected void sendComplete(long threadId) {
-    boolean refreshFragment = (threadId != this.threadId);
-    this.threadId = threadId;
-
     if (fragment == null || !fragment.isVisible() || isFinishing()) {
       return;
-    }
-
-    if (refreshFragment) {
-      fragment.reload(recipients, threadId);
-      MessageNotifier.setVisibleThread(threadId);
     }
 
     fragment.scrollToBottom();
@@ -1018,7 +1015,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void sendMessage() {
     try {
-      Recipients recipients     = getRecipients();
       boolean    forceSms       = false;
       int        subscriptionId = -1;
       long       expiresIn      = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).getExpireMessages(threadId) * 1000;
@@ -1062,9 +1058,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
-        ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-        message.setForstaJsonBody(context, threadData);
-
+        message.setForstaJsonBody(context, forstaThread);
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 

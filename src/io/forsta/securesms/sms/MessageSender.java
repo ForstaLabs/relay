@@ -91,7 +91,6 @@ public class MessageSender {
                           final boolean forceSms)
   {
     try {
-      ThreadDatabase threadDatabase = DatabaseFactory.getThreadDatabase(context);
       MmsDatabase    database       = DatabaseFactory.getMmsDatabase(context);
 
       if (threadId == -1) {
@@ -102,7 +101,6 @@ public class MessageSender {
 
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
-      return threadId;
     } catch (MmsException e) {
       Log.w(TAG, e);
     } catch (Exception e) {
