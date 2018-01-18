@@ -274,28 +274,11 @@ public class ThreadDatabase extends Database {
     try {
       cursor = DatabaseFactory.getMmsSmsDatabase(context).getConversation(threadId);
 
-      // Forsta message trimming.
-      if (cursor != null && length > 0) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -30);
-        long cutOffDate = cal.getTimeInMillis();
-
-        DatabaseFactory.getSmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, cutOffDate);
-        DatabaseFactory.getMmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, cutOffDate);
-
-        update(threadId, false);
-        notifyConversationListeners(threadId);
-      }
-
       if (cursor != null && length > 0 && cursor.getCount() > length) {
         Log.w("ThreadDatabase", "Cursor count is greater than length!");
         cursor.moveToPosition(length - 1);
 
         long lastTweetDate = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.NORMALIZED_DATE_RECEIVED));
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -30);
-        long cutOffDate = cal.getTimeInMillis();
 
         Log.w("ThreadDatabase", "Cut off tweet date: " + lastTweetDate);
 
