@@ -268,7 +268,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     initializeThread();
     markThreadAsRead();
 
-    getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.CONVERSATION_URI + threadId), true, threadObserver);
+    getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.THREAD_URI + threadId), true, threadObserver);
   }
 
   @Override
@@ -618,7 +618,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (recipients != null) {
       recipients.removeListener(this);
     }
-    recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), false);
+    recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), true);
     recipients.addListener(this);
 
     if (recipients == null || recipients.isEmpty()) {
@@ -816,13 +816,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     threadObserver = new ContentObserver(handler) {
       @Override
       public void onChange(boolean selfChange) {
-        // This will listen for changes in the distribution from messages received in PushDecryptJob.
-        ForstaThread threadUpdate = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-        if (!forstaThread.getRecipientIds().equals(threadUpdate.getRecipientIds())) {
-          Log.w(TAG, "Thread Observer. Recipients for thread have changed. From: " + forstaThread.getRecipientIds() + "To: " + threadUpdate.getRecipientIds());
-          supportInvalidateOptionsMenu();
-          initializeThread();
-        }
+        supportInvalidateOptionsMenu();
+        initializeThread();
+        markThreadAsRead();
       }
     };
   }
@@ -1058,6 +1054,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       @Override
       protected Long doInBackground(OutgoingMediaMessage... messages) {
         OutgoingMediaMessage message = messages[0];
+        // TODO is using forstaThread and threadId inside async task a problem?
         message.setForstaJsonBody(context, forstaThread);
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }

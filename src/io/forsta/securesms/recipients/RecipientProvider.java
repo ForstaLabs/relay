@@ -321,7 +321,9 @@ public class RecipientProvider {
       is.close();
       return d;
     } catch (Exception e) {
-      return null;
+      Log.w(TAG, "Gravatar Exception");
+      e.printStackTrace();
     }
+    return null;
   }
 }

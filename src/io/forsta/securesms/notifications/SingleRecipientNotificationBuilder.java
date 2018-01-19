@@ -57,7 +57,6 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
 
   public void setThread(@NonNull Recipients recipients) {
     if (privacy.isDisplayContact()) {
-      String title = recipients.toCondensedString(context);
       setContentTitle(recipients.toCondensedString(context));
 
       if (recipients.isSingleRecipient() && recipients.getPrimaryRecipient().getContactUri() != null) {

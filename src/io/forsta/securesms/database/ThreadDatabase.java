@@ -718,6 +718,7 @@ public class ThreadDatabase extends Database {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
       notifyConversationListListeners();
+      notifyThreadListeners(threadId);
       RecipientFactory.clearCache(context);
     }
   }
@@ -746,6 +747,7 @@ public class ThreadDatabase extends Database {
       SQLiteDatabase db = databaseHelper.getWritableDatabase();
       db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
       notifyConversationListListeners();
+      notifyThreadListeners(threadId);
       RecipientFactory.clearCache(context);
     }
   }
@@ -794,8 +796,7 @@ public class ThreadDatabase extends Database {
     values.put(TITLE, title);
 
     db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
-    notifyConversationListListeners();
-    notifyConversationListeners(threadId);
+    notifyThreadListeners(threadId);
   }
 
   public void updateThread(long threadId, ContentValues values) {

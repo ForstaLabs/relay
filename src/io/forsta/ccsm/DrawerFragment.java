@@ -45,23 +45,11 @@ public class DrawerFragment extends Fragment {
     orgTag = (TextView) view.findViewById(R.id.drawer_org_tag);
     contactPhotoImage = (AvatarImageView) view.findViewById(R.id.drawer_photo_image);
     final ForstaUser user = ForstaUser.getLocalForstaUser(getActivity());
-
-    new AsyncTask<Void, Void, Recipients>() {
-
-      @Override
-      protected Recipients doInBackground(Void... voids) {
-        return RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), false);
-      }
-
-      @Override
-      protected void onPostExecute(Recipients recipients) {
-        userName.setText(user.getName());
-        orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-        contactPhotoImage.setAvatar(recipients, true);
-        orgName.setText(user.getOrgTag());
-      }
-    }.execute();
-
+    userName.setText(user.getName());
+    orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
+    orgName.setText(user.getOrgTag());
+    Recipients recipients = RecipientFactory.getRecipientsFromString(getActivity(), user.getUid(), true);
+    contactPhotoImage.setAvatar(recipients, true);
     return view;
   }
 
