@@ -210,18 +210,22 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     public void onClick(View view) {
-      DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
-      forstaSaveTitle.setVisibility(View.GONE);
-      Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
 
-      new AsyncTask<Void, Void, Void>() {
+      new AsyncTask<String, Void, Void>() {
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Void doInBackground(String... params) {
+          DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, params[0]);
           ForstaMessageManager.sendThreadUpdate(ThreadPreferenceActivity.this, masterSecret, recipients, threadId);
-          initializeThread();
           return null;
         }
-      }.execute();
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+          forstaSaveTitle.setVisibility(View.GONE);
+          initializeThread();
+          Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+        }
+      }.execute(forstaTitle.getText().toString());
     }
   }
 
