@@ -39,6 +39,7 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
@@ -83,6 +84,7 @@ public class MessageNotifier {
   private static final long ALARM_DEBOUNCE_TIME = 3000L;
   public static final int NOTIFICATION_ID = 1338;
 
+  private volatile static long notificationThreadId;
   private volatile static long visibleThread = -1;
   private volatile static long lastUpdate = 0L;
 
@@ -136,6 +138,7 @@ public class MessageNotifier {
                                         long      threadId,
                                         boolean   signal)
   {
+    notificationThreadId = threadId;
     boolean    isVisible  = visibleThread == threadId;
 
     ThreadDatabase threads    = DatabaseFactory.getThreadDatabase(context);
@@ -223,8 +226,9 @@ public class MessageNotifier {
     SingleRecipientNotificationBuilder builder       = new SingleRecipientNotificationBuilder(context, masterSecret, TextSecurePreferences.getNotificationPrivacy(context));
     List<NotificationItem>             notifications = notificationState.getNotifications();
     Recipients                         recipients    = notifications.get(0).getRecipients();
+    ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(context).getForstaThread(notificationThreadId);
 
-    builder.setThread(notifications.get(0).getRecipients());
+    builder.setThread(notifications.get(0).getRecipients(), forstaThread != null ? forstaThread.getTitle() : "");
     builder.setMessageCount(notificationState.getMessageCount());
     builder.setPrimaryMessageBody(recipients, notifications.get(0).getIndividualRecipient(),
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());

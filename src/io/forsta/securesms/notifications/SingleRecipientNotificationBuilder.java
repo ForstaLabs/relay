@@ -14,6 +14,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.app.RemoteInput;
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
 
@@ -55,9 +56,13 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
     setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(MessageNotifier.DeleteReceiver.DELETE_REMINDER_ACTION), 0));
   }
 
-  public void setThread(@NonNull Recipients recipients) {
+  public void setThread(@NonNull Recipients recipients, String title) {
     if (privacy.isDisplayContact()) {
-      setContentTitle(recipients.toCondensedString(context));
+      if (!TextUtils.isEmpty(title)) {
+        setContentTitle(title);
+      } else {
+        setContentTitle(recipients.toCondensedString(context));
+      }
 
       if (recipients.isSingleRecipient() && recipients.getPrimaryRecipient().getContactUri() != null) {
         addPerson(recipients.getPrimaryRecipient().getContactUri().toString());
