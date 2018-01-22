@@ -46,7 +46,7 @@
                     android:layout_weight="1"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
-                    tools:visibility="invisible"
+                    tools:visibility="visible"
                     tools:hint="Send TextSecure message" >
                     <requestFocus />
                 </io.forsta.securesms.components.ComposeText>
@@ -163,7 +163,7 @@
                 android:layout_height="match_parent"
                 android:contentDescription="@string/conversation_activity__send"
                 android:nextFocusLeft="@+id/embedded_text_editor"
-                android:src="?conversation_transport_sms_indicator"
+                android:src="@drawable/ic_send_push_white_24dp"
                 android:background="@drawable/circle_touch_highlight_background" />
 
         </io.forsta.securesms.components.AnimatingToggle>

@@ -73,15 +73,11 @@ public class RecipientProvider {
     PhoneLookup.NUMBER
   };
 
-  private static final Map<String, RecipientDetails> STATIC_DETAILS = new HashMap<String, RecipientDetails>() {{
-    put("262966", new RecipientDetails("Amazon", "262966", null,
-                                       ContactPhotoFactory.getResourceContactPhoto(R.drawable.ic_amazon),
-                                       ContactColors.UNKNOWN_COLOR, null, null, null, null, false, "PERSON"));
-  }};
-
   @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
     Recipient cachedRecipient = recipientCache.get(recipientId);
-    if (cachedRecipient != null && !cachedRecipient.isStale()) return cachedRecipient;
+    if (cachedRecipient != null && !cachedRecipient.isStale() && !TextUtils.isEmpty(cachedRecipient.getSlug())) {
+      return cachedRecipient;
+    }
 
     String number = CanonicalAddressDatabase.getInstance(context).getAddressFromId(recipientId);
 
@@ -323,7 +319,9 @@ public class RecipientProvider {
       is.close();
       return d;
     } catch (Exception e) {
-      return null;
+      Log.w(TAG, "Gravatar Exception");
+      e.printStackTrace();
     }
+    return null;
   }
 }

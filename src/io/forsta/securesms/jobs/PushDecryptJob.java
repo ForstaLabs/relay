@@ -432,8 +432,6 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
-    // Update the recipients cache? //Unknown Recipient is showing in Notification for new recipients.
-    RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
@@ -462,11 +460,14 @@ public class PushDecryptJob extends ContextJob {
         ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
         if (threadData != null) {
+          // TODO Need to handle in UI before allowing full thread updates here.
+//          ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+//          Recipients recipients = getDistributionRecipients(distribution);
+//          threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
           String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
           if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
             threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
             threadDb.setThreadUnread(threadData.getThreadid());
-            // Display notification.
           }
         }
       }

@@ -1,11 +1,13 @@
 package io.forsta.ccsm;
 
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -88,6 +90,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
   private ImageButton forstaSaveTitle;
   private Recipients recipients;
   private MasterSecret masterSecret;
+  private Handler handler = new Handler();
+  private ContentObserver threadObserver;
 
   @Override
   public void onPreCreate() {
@@ -102,10 +106,18 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     threadId = getIntent().getLongExtra(THREAD_ID_EXTRA, -1);
     initializeToolbar();
     initializeThread();
+    initializeListeners();
 
     Bundle bundle = new Bundle();
     bundle.putLong(THREAD_ID_EXTRA, threadId);
     initFragment(R.id.thread_preference_fragment, new ThreadPreferenceFragment(), masterSecret, null, bundle);
+
+    threadObserver = new ContentObserver(handler) {
+      @Override
+      public void onChange(boolean selfChange) {
+        initializeThread();
+      }
+    };
   }
 
   @Override
@@ -113,6 +125,14 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     super.onResume();
     dynamicTheme.onResume(this);
     dynamicLanguage.onResume(this);
+
+    getContentResolver().registerContentObserver(Uri.parse(ThreadDatabase.THREAD_URI + threadId), true, threadObserver);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    getContentResolver().unregisterContentObserver(threadObserver);
   }
 
   @Override
@@ -159,6 +179,10 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
     } else {
       forstaTitle.setHint("Add a Title");
     }
+    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toCondensedString(ThreadPreferenceActivity.this) : threadDetail.title);
+  }
+
+  private void initializeListeners() {
     forstaTitle.addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -180,25 +204,28 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 
       }
     });
-    title.setText(TextUtils.isEmpty(threadDetail.title) ? recipients.toCondensedString(ThreadPreferenceActivity.this) : threadDetail.title);
   }
 
   private class TitleSaveClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-      DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, forstaTitle.getText().toString());
-      title.setText(forstaTitle.getText().toString());
-      forstaSaveTitle.setVisibility(View.GONE);
-      Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
 
-      new AsyncTask<Void, Void, Void>() {
+      new AsyncTask<String, Void, Void>() {
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Void doInBackground(String... params) {
+          DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, params[0]);
           ForstaMessageManager.sendThreadUpdate(ThreadPreferenceActivity.this, masterSecret, recipients, threadId);
           return null;
         }
-      }.execute();
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+          forstaSaveTitle.setVisibility(View.GONE);
+          initializeThread();
+          Toast.makeText(ThreadPreferenceActivity.this, "Conversation title saved", Toast.LENGTH_LONG).show();
+        }
+      }.execute(forstaTitle.getText().toString());
     }
   }
 

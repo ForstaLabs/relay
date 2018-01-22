@@ -17,43 +17,29 @@ public class ConversationListLoader extends AbstractCursorLoader {
 
   private final String filter;
   private final boolean archived;
+  private final boolean showAnnouncements;
 
-  public ConversationListLoader(Context context, String filter, boolean archived) {
+  public ConversationListLoader(Context context, String filter, boolean archived, boolean showAnnouncements) {
     super(context);
     this.filter   = filter;
     this.archived = archived;
+    this.showAnnouncements = showAnnouncements;
   }
 
   @Override
   public Cursor getCursor() {
     if      (filter != null && filter.trim().length() != 0) return getFilteredConversationList(filter);
-    else if (!archived)                                     return getUnarchivedConversationList();
+    else if (!showAnnouncements) return getConversationListWithoutAnnouncements();
+    else if (!archived)                                     return getConversationList();
     else                                                    return getArchivedConversationList();
   }
 
-  private Cursor getUnarchivedConversationList() {
-    List<Cursor> cursorList = new LinkedList<>();
-    cursorList.add(DatabaseFactory.getThreadDatabase(context).getConversationList());
+  private Cursor getConversationListWithoutAnnouncements() {
+    return DatabaseFactory.getThreadDatabase(context).getConversationListWithoutAnnouncements();
+  }
 
-    int archivedCount = DatabaseFactory.getThreadDatabase(context)
-                                       .getArchivedConversationListCount();
-
-    if (archivedCount > 0) {
-      MatrixCursor switchToArchiveCursor = new MatrixCursor(new String[] {
-          ThreadDatabase.ID, ThreadDatabase.DATE, ThreadDatabase.MESSAGE_COUNT,
-          ThreadDatabase.RECIPIENT_IDS, ThreadDatabase.SNIPPET, ThreadDatabase.READ,
-          ThreadDatabase.TYPE, ThreadDatabase.SNIPPET_TYPE, ThreadDatabase.SNIPPET_URI,
-          ThreadDatabase.ARCHIVED, ThreadDatabase.STATUS, ThreadDatabase.RECEIPT_COUNT,
-          ThreadDatabase.EXPIRES_IN}, 1);
-
-      switchToArchiveCursor.addRow(new Object[] {-1L, System.currentTimeMillis(), archivedCount,
-                                                 "-1", null, 1, ThreadDatabase.DistributionTypes.ARCHIVE,
-                                                 0, null, 0, -1, 0, 0});
-      
-//      cursorList.add(switchToArchiveCursor);
-    }
-
-    return new MergeCursor(cursorList.toArray(new Cursor[0]));
+  private Cursor getConversationList() {
+    return DatabaseFactory.getThreadDatabase(context).getConversationList();
   }
 
   private Cursor getArchivedConversationList() {

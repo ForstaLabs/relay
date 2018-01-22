@@ -15,7 +15,6 @@ import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 
 import io.forsta.securesms.R;
-import io.forsta.securesms.TransportOption;
 import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -30,6 +29,7 @@ public class ComposeText extends EmojiEditText {
 
   public ComposeText(Context context, AttributeSet attrs) {
     super(context, attrs);
+    initialize();
   }
 
   public ComposeText(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -91,33 +91,30 @@ public class ComposeText extends EmojiEditText {
     return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
   }
 
-  public void setTransport(TransportOption transport) {
+  private void initialize() {
     final boolean enterSends     = TextSecurePreferences.isEnterSendsEnabled(getContext());
     final boolean useSystemEmoji = TextSecurePreferences.isSystemEmojiPreferred(getContext());
 
     int imeOptions = (getImeOptions() & ~EditorInfo.IME_MASK_ACTION) | EditorInfo.IME_ACTION_SEND;
     int inputType  = getInputType();
 
-    if (isLandscape()) setImeActionLabel(transport.getComposeHint(), EditorInfo.IME_ACTION_SEND);
-    else               setImeActionLabel(null, 0);
+    if (isLandscape()) setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), EditorInfo.IME_ACTION_SEND);
+    else               setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), 0);
 
     if (useSystemEmoji) {
       inputType = (inputType & ~InputType.TYPE_MASK_VARIATION) | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE;
     }
 
     inputType  = !isLandscape() && enterSends
-               ? inputType & ~InputType.TYPE_TEXT_FLAG_MULTI_LINE
-               : inputType | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+        ? inputType & ~InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        : inputType | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
 
     imeOptions = enterSends
-               ? imeOptions & ~EditorInfo.IME_FLAG_NO_ENTER_ACTION
-               : imeOptions | EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+        ? imeOptions & ~EditorInfo.IME_FLAG_NO_ENTER_ACTION
+        : imeOptions | EditorInfo.IME_FLAG_NO_ENTER_ACTION;
 
     setInputType(inputType);
     setImeOptions(imeOptions);
-    setHint(transport.getComposeHint(),
-            transport.getSimName().isPresent()
-                ? getContext().getString(R.string.conversation_activity__from_sim_name, transport.getSimName().get())
-                : null);
+    setHint(getContext().getString(R.string.conversation_activity__type_message_push), null);
   }
 }

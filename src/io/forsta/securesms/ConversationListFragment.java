@@ -270,7 +270,7 @@ public class ConversationListFragment extends Fragment
 
   @Override
   public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-    return new ConversationListLoader(getActivity(), queryFilter, archive);
+    return new ConversationListLoader(getActivity(), queryFilter, archive, true);
   }
 
   @Override

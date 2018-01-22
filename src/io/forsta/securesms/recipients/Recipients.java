@@ -233,6 +233,15 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getAddress());
   }
 
+  public boolean includesSelf(Context context) {
+    for (Recipient recipient: recipients) {
+      if (recipient.getAddress().equals(TextSecurePreferences.getLocalNumber(context))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public String getRecipientExpression() {
     StringBuilder sb = new StringBuilder();
     for (Recipient recipient : recipients) {

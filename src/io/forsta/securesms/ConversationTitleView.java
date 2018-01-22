@@ -95,6 +95,7 @@ public class ConversationTitleView extends LinearLayout {
       subtitle.setVisibility(View.VISIBLE);
       announcement.setVisibility(VISIBLE);
     } else {
+      announcement.setVisibility(GONE);
       if (recipients.isSingleRecipient()) {
         this.title.setText(recipient.getName());
         this.subtitle.setText(null);

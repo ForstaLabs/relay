@@ -13,9 +13,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public abstract class DbBase {
   protected SQLiteOpenHelper mDbHelper;
+  protected Context context;
 
   protected DbBase(Context context, DbHelper dbHelper) {
-    mDbHelper = dbHelper;
+    this.mDbHelper = dbHelper;
+    this.context = context;
   }
 
   public abstract Cursor get();

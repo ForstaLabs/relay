@@ -391,6 +391,12 @@ public class ConversationItem extends LinearLayout
           }
         }
       });
+      videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+        @Override
+        public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+          return true;
+        }
+      });
     } else {
       videoView.setVisibility(GONE);
       mediaThumbnail.setVisibility(View.GONE);
