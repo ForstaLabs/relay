@@ -76,7 +76,6 @@ public class RecipientProvider {
   @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
     Recipient cachedRecipient = recipientCache.get(recipientId);
     if (cachedRecipient != null && !cachedRecipient.isStale() && !TextUtils.isEmpty(cachedRecipient.getSlug())) {
-      Log.w(TAG, "Cache hit. Returning: " + cachedRecipient.getAddress() + ": "  + cachedRecipient.getFullTag());
       return cachedRecipient;
     }
 
@@ -135,7 +134,6 @@ public class RecipientProvider {
   }
 
   private @NonNull RecipientDetails getRecipientDetailsSync(Context context, long recipientId, @NonNull String number) {
-    Log.w(TAG, "Cache miss. Get details for: " + number);
     if (GroupUtil.isEncodedGroup(number)) return getGroupRecipientDetails(context, number);
     else                                  return getIndividualRecipientDetails(context, recipientId, number);
   }
