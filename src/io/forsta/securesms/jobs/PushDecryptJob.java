@@ -455,22 +455,28 @@ public class PushDecryptJob extends ContextJob {
     try {
       Log.w(TAG, "Got control message: " + messageBody);
       Log.w(TAG, "Control Type: " + forstaMessage.getControlType());
-      if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.THREAD_UPDATE)) {
-        ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-        ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
+      switch (forstaMessage.getControlType()) {
+        case ForstaMessage.ControlTypes.THREAD_UPDATE:
+          ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+          ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
-        if (threadData != null) {
-          // TODO Need to handle in UI before allowing full thread updates here.
+          if (threadData != null) {
+            // TODO Need to handle in UI before allowing full thread updates here.
 //          ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
 //          Recipients recipients = getDistributionRecipients(distribution);
 //          threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
-          String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
-          if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
-            threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
-            threadDb.setThreadUnread(threadData.getThreadid());
+            String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
+            if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
+              threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+              threadDb.setThreadUnread(threadData.getThreadid());
+            }
           }
-        }
+          break;
+        case ForstaMessage.ControlTypes.PROVISION_REQUEST:
+          Log.w(TAG, "Provision Request...");
+          break;
       }
+
     } catch (Exception e) {
       Log.e(TAG, "Control message excption: " + e.getMessage());
       e.printStackTrace();

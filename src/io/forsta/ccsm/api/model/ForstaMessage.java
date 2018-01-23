@@ -24,6 +24,7 @@ public class ForstaMessage {
   private String controlType = ControlTypes.NONE;
   private String threadType = ThreadTypes.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
+  private ForstaProvisionRequest provisionRequest;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -51,6 +52,10 @@ public class ForstaMessage {
 
   public ForstaMessage() {
 
+  }
+
+  public boolean isControlMessage() {
+    return messageType.equals(MessageTypes.CONTROL);
   }
 
   public boolean hasThreadUid() {
@@ -165,8 +170,15 @@ public class ForstaMessage {
   }
 
   public void addAttachment(String name, String type, long size) {
-    ForstaAttachment attachment = new ForstaAttachment(name, type, size);
-    attachments.add(attachment);
+    attachments.add(new ForstaAttachment(name, type, size));
+  }
+
+  public void setProvisionRequest(String uuid, String key) {
+    this.provisionRequest = new ForstaProvisionRequest(uuid, key);
+  }
+
+  public ForstaProvisionRequest getProvisionRequest() {
+    return provisionRequest;
   }
 
   public class ForstaAttachment {
@@ -190,6 +202,24 @@ public class ForstaMessage {
 
     public long getSize() {
       return size;
+    }
+  }
+
+  public class ForstaProvisionRequest {
+    private String uuid;
+    private String key;
+
+    public ForstaProvisionRequest(String uuid, String key) {
+      this.uuid = uuid;
+      this.key = key;
+    }
+
+    public String getUuid() {
+      return uuid;
+    }
+
+    public String getKey() {
+      return key;
     }
   }
 }
