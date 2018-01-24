@@ -2,6 +2,7 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -10,8 +11,10 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.DeviceActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -34,6 +37,7 @@ import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -49,6 +53,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
+import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -56,6 +61,8 @@ import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.libsignal.LegacyMessageException;
 import org.whispersystems.libsignal.NoSessionException;
 import org.whispersystems.libsignal.UntrustedIdentityException;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
 import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.libsignal.state.SignalProtocolStore;
@@ -71,7 +78,10 @@ import org.whispersystems.signalservice.api.messages.multidevice.RequestMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
+import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
+import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -473,7 +483,32 @@ public class PushDecryptJob extends ContextJob {
           }
           break;
         case ForstaMessage.ControlTypes.PROVISION_REQUEST:
-          Log.w(TAG, "Provision Request...");
+          Log.w(TAG, "Got Provision Request...");
+          ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
+          try {
+            ForstaServiceAccountManager accountManager   = TextSecureCommunicationFactory.createManager(context);
+            String                      verificationCode = accountManager.getNewDeviceVerificationCode();
+            String                      ephemeralId      = request.getUuid();
+            String                      publicKeyEncoded = request.getKey();
+
+            if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
+              Log.w(TAG, "UUID or Key is empty!");
+            }
+
+            ECPublicKey publicKey        = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
+            IdentityKeyPair identityKeyPair  = IdentityKeyUtil.getIdentityKeyPair(context);
+
+            accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
+            TextSecurePreferences.setMultiDevice(context, true);
+          } catch (NotFoundException e) {
+            Log.w(TAG, e);
+          } catch (DeviceLimitExceededException e) {
+            Log.w(TAG, e);
+          } catch (IOException e) {
+            Log.w(TAG, e);
+          } catch (InvalidKeyException e) {
+            Log.w(TAG, e);
+          }
           break;
       }
 
