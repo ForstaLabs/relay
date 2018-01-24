@@ -154,6 +154,7 @@ public class ConversationListItem extends RelativeLayout
 
     isAnnouncement = thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT;
     threadTitle = thread.getTitle();
+    subjectView.setText(thread.getDisplayBody());
 
     String sender = thread.getSenderAddress();
     if (!TextUtils.isEmpty(sender)) {
@@ -161,9 +162,6 @@ public class ConversationListItem extends RelativeLayout
       senderAddress.add(sender);
       Recipients senderRecipients = RecipientFactory.getRecipientsFromStrings(getContext(), senderAddress, true);
       String senderName = TextSecurePreferences.getLocalNumber(getContext()).equals(sender) ? "Me" : senderRecipients.getPrimaryRecipient().getName();
-      subjectView.setText(senderName + ": " + thread.getDisplayBody());
-    } else {
-      subjectView.setText(thread.getDisplayBody());
     }
 
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
