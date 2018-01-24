@@ -488,35 +488,23 @@ public class PushDecryptJob extends ContextJob {
           // Check to see that message request was sent by superman.
           String sender = forstaMessage.getSenderId();
           if (!sender.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
-            Log.w(TAG, "Received provision request from unknown sender.");
-            return;
+            throw new Exception("Received provision request from unknown sender.");
           }
           ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
-          try {
-            ForstaServiceAccountManager accountManager   = TextSecureCommunicationFactory.createManager(context);
-            String                      verificationCode = accountManager.getNewDeviceVerificationCode();
-            String                      ephemeralId      = request.getUuid();
-            String                      publicKeyEncoded = request.getKey();
+          ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
+          String verificationCode = accountManager.getNewDeviceVerificationCode();
+          String ephemeralId = request.getUuid();
+          String publicKeyEncoded = request.getKey();
 
-            if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
-              Log.w(TAG, "UUID or Key is empty!");
-              return;
-            }
-
-            ECPublicKey publicKey        = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
-            IdentityKeyPair identityKeyPair  = IdentityKeyUtil.getIdentityKeyPair(context);
-
-            accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
-            TextSecurePreferences.setMultiDevice(context, true);
-          } catch (NotFoundException e) {
-            Log.w(TAG, e);
-          } catch (DeviceLimitExceededException e) {
-            Log.w(TAG, e);
-          } catch (IOException e) {
-            Log.w(TAG, e);
-          } catch (InvalidKeyException e) {
-            Log.w(TAG, e);
+          if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
+            throw new Exception("UUID or Key is empty!");
           }
+
+          ECPublicKey publicKey = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
+          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+
+          accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
+          TextSecurePreferences.setMultiDevice(context, true);
           break;
       }
 
