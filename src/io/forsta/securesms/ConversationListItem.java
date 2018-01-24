@@ -27,6 +27,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -79,7 +80,7 @@ import static io.forsta.securesms.util.SpanUtil.color;
  */
 
 public class ConversationListItem extends RelativeLayout
-                                  implements Recipients.RecipientsModifiedListener,
+                                  implements Recipients.RecipientsModifiedListener, Recipient.RecipientModifiedListener,
                                              BindableConversationListItem, Unbindable
 {
   private final static String TAG = ConversationListItem.class.getSimpleName();
@@ -89,6 +90,7 @@ public class ConversationListItem extends RelativeLayout
 
   private Set<Long>          selectedThreads;
   private Recipients         recipients;
+  private Recipient sender;
   private long               threadId;
   private TextView           subjectView;
   private FromTextView       fromView;
@@ -108,6 +110,7 @@ public class ConversationListItem extends RelativeLayout
   private int distributionType;
   private MaterialColor threadColor;
   private String threadTitle;
+  private SpannableString threadDisplayBody;
   private boolean isAnnouncement = false;
 
   public ConversationListItem(Context context) {
@@ -154,7 +157,16 @@ public class ConversationListItem extends RelativeLayout
 
     isAnnouncement = thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT;
     threadTitle = thread.getTitle();
-    subjectView.setText(thread.getDisplayBody());
+    threadDisplayBody = thread.getDisplayBody();
+    String senderAddress = thread.getSenderAddress();
+    sender = RecipientFactory.getRecipientsFromString(getContext(), senderAddress, true).getPrimaryRecipient();
+    if (sender != null) {
+      sender.addListener(this);
+      setSubjectView(sender, threadDisplayBody, read);
+    } else {
+      subjectView.setText(threadDisplayBody);
+    }
+
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {
@@ -181,6 +193,7 @@ public class ConversationListItem extends RelativeLayout
   @Override
   public void unbind() {
     if (this.recipients != null) this.recipients.removeListener(this);
+    if (this.sender != null) this.sender.removeListener(this);
   }
 
   private void setBatchState(boolean batch) {
@@ -298,6 +311,25 @@ public class ConversationListItem extends RelativeLayout
     } else {
       fromView.setText(recipients, read);
     }
+  }
+
+  private void setSubjectView(Recipient recipient, SpannableString body, boolean read) {
+    String name = TextSecurePreferences.getLocalNumber(getContext()).equals(recipient.getAddress()) ? "" : recipient.getName();
+    if (!TextUtils.isEmpty(name) && !read) {
+      subjectView.setText(name + ": " + body);
+    } else {
+      subjectView.setText(body);
+    }
+  }
+
+  @Override
+  public void onModified(final Recipient recipient) {
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        setSubjectView(recipient, threadDisplayBody, read);
+      }
+    });
   }
 
   private static class ThumbnailPositioner implements Runnable {
