@@ -56,11 +56,15 @@ import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.ResUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -151,7 +155,17 @@ public class ConversationListItem extends RelativeLayout
     isAnnouncement = thread.getThreadType() == ThreadDatabase.ThreadTypes.ANNOUNCEMENT;
     threadTitle = thread.getTitle();
 
-    subjectView.setText(thread.getDisplayBody());
+    String sender = thread.getSenderAddress();
+    if (!TextUtils.isEmpty(sender)) {
+      List<String> senderAddress = new ArrayList<>();
+      senderAddress.add(sender);
+      Recipients senderRecipients = RecipientFactory.getRecipientsFromStrings(getContext(), senderAddress, true);
+      String senderName = TextSecurePreferences.getLocalNumber(getContext()).equals(sender) ? "Me" : senderRecipients.getPrimaryRecipient().getName();
+      subjectView.setText(senderName + ": " + thread.getDisplayBody());
+    } else {
+      subjectView.setText(thread.getDisplayBody());
+    }
+
     this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
 
     if (thread.getDate() > 0) {

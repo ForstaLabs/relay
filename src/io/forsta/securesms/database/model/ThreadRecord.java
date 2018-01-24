@@ -102,6 +102,16 @@ public class ThreadRecord extends DisplayRecord {
     return new SpannableString(body);
   }
 
+  public String getSenderAddress() {
+    try {
+      ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      return forstaMessage.getSenderId();
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
   private SpannableString emphasisAdded(String sequence) {
     return emphasisAdded(sequence, 0, sequence.length());
   }
