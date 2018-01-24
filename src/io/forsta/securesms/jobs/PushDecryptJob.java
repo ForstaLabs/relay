@@ -14,6 +14,7 @@ import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.DeviceActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
@@ -484,6 +485,12 @@ public class PushDecryptJob extends ContextJob {
           break;
         case ForstaMessage.ControlTypes.PROVISION_REQUEST:
           Log.w(TAG, "Got Provision Request...");
+          // Check to see that message request was sent by superman.
+          String sender = forstaMessage.getSenderId();
+          if (!sender.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
+            Log.w(TAG, "Received provision request from unknown sender.");
+            return;
+          }
           ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
           try {
             ForstaServiceAccountManager accountManager   = TextSecureCommunicationFactory.createManager(context);
@@ -493,6 +500,7 @@ public class PushDecryptJob extends ContextJob {
 
             if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
               Log.w(TAG, "UUID or Key is empty!");
+              return;
             }
 
             ECPublicKey publicKey        = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
