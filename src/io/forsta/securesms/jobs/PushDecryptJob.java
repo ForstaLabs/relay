@@ -365,6 +365,9 @@ public class PushDecryptJob extends ContextJob {
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
+      DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+      recipients.setStale();
+      recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
       long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
       if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
@@ -443,6 +446,8 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+    recipients.setStale();
+    recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {

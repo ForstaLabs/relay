@@ -162,7 +162,7 @@ public class ConversationListItem extends RelativeLayout
     sender = RecipientFactory.getRecipientsFromString(getContext(), senderAddress, true).getPrimaryRecipient();
     if (sender != null) {
       sender.addListener(this);
-      setSubjectView(sender, threadDisplayBody, read);
+      setSubjectView(recipients, sender, threadDisplayBody, read);
     } else {
       subjectView.setText(threadDisplayBody);
     }
@@ -313,9 +313,9 @@ public class ConversationListItem extends RelativeLayout
     }
   }
 
-  private void setSubjectView(Recipient recipient, SpannableString body, boolean read) {
-    String name = TextSecurePreferences.getLocalNumber(getContext()).equals(recipient.getAddress()) ? "" : recipient.getName();
-    if (!TextUtils.isEmpty(name) && !read) {
+  private void setSubjectView(Recipients recipients, Recipient sender, SpannableString body, boolean read) {
+    String name = TextSecurePreferences.getLocalNumber(getContext()).equals(sender.getAddress()) ? "" : sender.getName();
+    if (!TextUtils.isEmpty(name) && recipients.getRecipientsList().size() > 1 && !read) {
       subjectView.setText(name + ": " + body);
     } else {
       subjectView.setText(body);
@@ -327,7 +327,7 @@ public class ConversationListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        setSubjectView(recipient, threadDisplayBody, read);
+        setSubjectView(recipients, recipient, threadDisplayBody, read);
       }
     });
   }

@@ -31,9 +31,6 @@ public abstract class PushReceivedJob extends ContextJob {
       contactTokenDetails.setNumber(envelope.getSource());
 
       directory.setNumber(contactTokenDetails, true);
-
-      Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
-      ApplicationContext.getInstance(context).getJobManager().add(new DirectoryRefreshJob(context, KeyCachingService.getMasterSecret(context), recipients));
     }
 
     if (envelope.isReceipt()) {

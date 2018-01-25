@@ -45,6 +45,9 @@ import android.widget.Toast;
 import org.apache.http.impl.execchain.ServiceUnavailableRetryExec;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
@@ -60,6 +63,7 @@ import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
+import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ServiceUtil;
@@ -269,6 +273,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     @Override
     protected JSONObject doInBackground(Void... voids) {
       CcsmApi.forstaRefreshToken(ConversationListActivity.this);
+      ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
 
       JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
