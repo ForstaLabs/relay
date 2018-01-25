@@ -415,7 +415,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return stale;
   }
 
-  void setStale() {
+  public void setStale() {
     this.stale = true;
   }
 

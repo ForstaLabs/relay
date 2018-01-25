@@ -2,6 +2,7 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
@@ -10,8 +11,11 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.DeviceActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -34,6 +38,7 @@ import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -49,6 +54,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
+import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -56,6 +62,8 @@ import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.libsignal.LegacyMessageException;
 import org.whispersystems.libsignal.NoSessionException;
 import org.whispersystems.libsignal.UntrustedIdentityException;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
 import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.libsignal.state.SignalProtocolStore;
@@ -71,7 +79,10 @@ import org.whispersystems.signalservice.api.messages.multidevice.RequestMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
+import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
+import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -354,6 +365,9 @@ public class PushDecryptJob extends ContextJob {
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
+      DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+      recipients.setStale();
+      recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
       long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
       if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
@@ -432,6 +446,8 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
+    recipients.setStale();
+    recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
     long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
@@ -455,22 +471,48 @@ public class PushDecryptJob extends ContextJob {
     try {
       Log.w(TAG, "Got control message: " + messageBody);
       Log.w(TAG, "Control Type: " + forstaMessage.getControlType());
-      if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.THREAD_UPDATE)) {
-        ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-        ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
+      switch (forstaMessage.getControlType()) {
+        case ForstaMessage.ControlTypes.THREAD_UPDATE:
+          ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
+          ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
-        if (threadData != null) {
-          // TODO Need to handle in UI before allowing full thread updates here.
+          if (threadData != null) {
+            // TODO Need to handle in UI before allowing full thread updates here.
 //          ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
 //          Recipients recipients = getDistributionRecipients(distribution);
 //          threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
-          String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
-          if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
-            threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
-            threadDb.setThreadUnread(threadData.getThreadid());
+            String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
+            if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
+              threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+              threadDb.setThreadUnread(threadData.getThreadid());
+            }
           }
-        }
+          break;
+        case ForstaMessage.ControlTypes.PROVISION_REQUEST:
+          Log.w(TAG, "Got Provision Request...");
+          // Check to see that message request was sent by superman.
+          String sender = forstaMessage.getSenderId();
+          if (!sender.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
+            throw new Exception("Received provision request from unknown sender.");
+          }
+          ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
+          ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
+          String verificationCode = accountManager.getNewDeviceVerificationCode();
+          String ephemeralId = request.getUuid();
+          String publicKeyEncoded = request.getKey();
+
+          if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
+            throw new Exception("UUID or Key is empty!");
+          }
+
+          ECPublicKey publicKey = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
+          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+
+          accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
+          TextSecurePreferences.setMultiDevice(context, true);
+          break;
       }
+
     } catch (Exception e) {
       Log.e(TAG, "Control message excption: " + e.getMessage());
       e.printStackTrace();

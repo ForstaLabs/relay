@@ -123,14 +123,15 @@ public class ForstaMessageManager {
         forstaMessage.setMessageType(jsonBody.getString("messageType"));
       }
 
-      JSONObject distribution = jsonBody.getJSONObject("distribution");
-      forstaMessage.setUniversalExpression(distribution.getString("expression"));
-      if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
-        throw new InvalidMessagePayloadException("No universal expression");
-      }
       JSONObject sender = jsonBody.getJSONObject("sender");
       forstaMessage.setSenderId(sender.getString("userId"));
       forstaMessage.setMessageId(jsonBody.getString("messageId"));
+
+      JSONObject distribution = jsonBody.getJSONObject("distribution");
+      if (distribution.has("expression")) {
+        forstaMessage.setUniversalExpression(distribution.getString("expression"));
+      }
+
       if (jsonBody.has("data")) {
         JSONObject data = jsonBody.getJSONObject("data");
         if (data.has("body")) {
@@ -158,22 +159,34 @@ public class ForstaMessageManager {
 
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
-          Log.w(TAG, "Control message: " + forstaMessage.getControlType());
 
           switch (forstaMessage.getControlType()) {
             case ForstaMessage.ControlTypes.THREAD_UPDATE:
-              Log.w(TAG, "Thread update: ");
+              if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
+                throw new InvalidMessagePayloadException("Thread update. No universal expression.");
+              }
               JSONObject threadUpdates = data.getJSONObject("threadUpdates");
               if (threadUpdates.has("threadTitle")) {
                 forstaMessage.setThreadTitle(threadUpdates.getString("threadTitle"));
-                Log.w(TAG, "New thread title: " + forstaMessage.getThreadTitle());
               }
+              break;
+            case ForstaMessage.ControlTypes.PROVISION_REQUEST:
+              String uuid = data.getString("uuid");
+              String key = data.getString("key");
+              forstaMessage.setProvisionRequest(uuid, key);
               break;
             default:
               Log.w(TAG, "Not a control message");
           }
         }
       }
+
+      if (!forstaMessage.isControlMessage()) {
+        if (TextUtils.isEmpty(forstaMessage.getUniversalExpression())) {
+          throw new InvalidMessagePayloadException("Content message. No universal expression.");
+        }
+      }
+
     } catch (JSONException e) {
       Log.e(TAG, jsonBody.toString());
       throw new InvalidMessagePayloadException(e.getMessage());
