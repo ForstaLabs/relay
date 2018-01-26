@@ -64,9 +64,17 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
+  private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
+  private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
+  }
+
+  public static JSONObject getDevices(Context context) {
+    String host = BuildConfig.FORSTA_API_URL;
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    return NetworkUtils.apiFetch("GET", authKey, host + API_PROVISION_ACCOUNT, null);
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {

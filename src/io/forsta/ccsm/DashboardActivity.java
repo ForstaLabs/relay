@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.accounts.AccountManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,7 +24,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -32,6 +36,7 @@ import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
@@ -54,6 +59,7 @@ import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -93,6 +99,35 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
+    new AsyncTask<Void, Void, JSONObject>() {
+      @Override
+      protected JSONObject doInBackground(Void... voids) {
+        JSONObject deviceObject = CcsmApi.getDevices(DashboardActivity.this);
+        return deviceObject;
+      }
+
+      @Override
+      protected void onPostExecute(JSONObject response) {
+        StringBuilder sb = new StringBuilder();
+
+        if (response.has("devices")) {
+          try {
+            JSONArray devices = response.getJSONArray("devices");
+            for (int i=0; i<devices.length(); i++) {
+              JSONObject device = devices.getJSONObject(i);
+              sb.append(device.getString("id") + ": " + device.getString("name") + "\n");
+            }
+
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
+        }
+
+        showScrollView();
+        mDebugText.setText(sb.toString());
+      }
+    }.execute();
+
     initSocket();
   }
 
