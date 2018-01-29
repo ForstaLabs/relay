@@ -6,6 +6,7 @@ import android.os.Message;
 import android.util.Log;
 
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.util.TextSecurePreferences;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -26,7 +27,7 @@ public class WebSocketUtils {
   private final String TAG = WebSocketUtils.class.getSimpleName();
   private WebSocket socket;
   private OkHttpClient client;
-  private final String uri;
+  private String url;
   private final String authKey;
   private MessageCallback callback;
   public boolean socketOpen = false;
@@ -34,17 +35,18 @@ public class WebSocketUtils {
   private static WebSocketUtils instance;
   private static final Object lock = new Object();
 
-  private WebSocketUtils(Context context, MessageCallback callback) {
+  private WebSocketUtils(Context context, String url, MessageCallback callback) {
     this.authKey = ForstaPreferences.getRegisteredKey(context);
-    this.uri = BuildConfig.FORSTA_API_URL + "/ccsm/" + authKey + "/";
+    this.url = TextSecurePreferences.getServer(context) + url;
+    this.url = this.url.replace("https", "wss");
     this.callback = callback;
     client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
   }
 
-  public static WebSocketUtils getInstance(Context context, MessageCallback callback) {
+  public static WebSocketUtils getInstance(Context context, String url, MessageCallback callback) {
     synchronized (lock) {
       if (instance == null)
-        instance = new WebSocketUtils(context, callback);
+        instance = new WebSocketUtils(context, url, callback);
 
       return instance;
     }
@@ -52,7 +54,8 @@ public class WebSocketUtils {
 
   public void connect() {
     Request.Builder request = new Request.Builder();
-    request.url(uri);
+    request.url(url);
+//    request.addHeader("Authorization", "JWT " + authKey);
     socket = client.newWebSocket(request.build(), new SocketListener());
     messageHandler = new Handler(new Handler.Callback() {
       @Override

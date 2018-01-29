@@ -99,34 +99,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
-    new AsyncTask<Void, Void, JSONObject>() {
-      @Override
-      protected JSONObject doInBackground(Void... voids) {
-        JSONObject deviceObject = CcsmApi.getDevices(DashboardActivity.this);
-        return deviceObject;
-      }
 
-      @Override
-      protected void onPostExecute(JSONObject response) {
-        StringBuilder sb = new StringBuilder();
-
-        if (response.has("devices")) {
-          try {
-            JSONArray devices = response.getJSONArray("devices");
-            for (int i=0; i<devices.length(); i++) {
-              JSONObject device = devices.getJSONObject(i);
-              sb.append(device.getString("id") + ": " + device.getString("name") + "\n");
-            }
-
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
-        }
-
-        showScrollView();
-        mDebugText.setText(sb.toString());
-      }
-    }.execute();
 
     initSocket();
   }
@@ -178,23 +151,57 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   }
 
   private void initSocket() {
-    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, this);
-  }
-
-  private void initView() {
+    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, "/v1/websocket/provisioning/", this);
     socketTester = (Button) findViewById(R.id.socket_tester);
     socketTester.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (!socketUtils.socketOpen) {
-          socketUtils.connect();
-          socketTester.setText("Close Socket");
+          mockLogin();
         } else {
           socketUtils.disconnect();
           socketTester.setText("Open Socket");
         }
       }
     });
+  }
+
+  private void mockLogin() {
+    showScrollView();
+    new AsyncTask<Void, Void, JSONObject>() {
+      @Override
+      protected JSONObject doInBackground(Void... voids) {
+        JSONObject deviceObject = CcsmApi.getDevices(DashboardActivity.this);
+        return deviceObject;
+      }
+
+      @Override
+      protected void onPostExecute(JSONObject response) {
+        StringBuilder sb = new StringBuilder();
+
+        if (response.has("devices")) {
+          try {
+            JSONArray devices = response.getJSONArray("devices");
+            for (int i=0; i<devices.length(); i++) {
+
+              if (devices.length() > 0) {
+                mDebugText.setText("Found existing devices: " + devices.length() + "\n");
+                socketTester.setText("Close Socket\n");
+                socketUtils.connect();
+
+                mDebugText.append("Send provision request...\n");
+              }
+            }
+
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }.execute();
+  }
+
+  private void initView() {
     mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
@@ -647,7 +654,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   @Override
   public void onMessage(String message) {
     showScrollView();
-    mDebugText.setText(message);
+    mDebugText.append(message + "\n");
   }
 
   @Override
