@@ -80,7 +80,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
-public class DashboardActivity extends PassphraseRequiredActionBarActivity implements WebSocketUtils.MessageCallback{
+public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private static final String TAG = DashboardActivity.class.getSimpleName();
   private TextView mDebugText;
   private TextView mLoginInfo;
@@ -153,7 +153,43 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   }
 
   private void initSocket() {
-    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, "/v1/websocket/provisioning/", this);
+    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, "/v1/websocket/provisioning/", new WebSocketUtils.MessageCallback() {
+
+      @Override
+      public void onSocketMessage(WebSocketProtos.WebSocketMessage message) {
+        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
+          WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
+          String path = request.getPath();
+          String verb = request.getVerb();
+          com.google.protobuf.ByteString requestBytes = request.getBody();
+          // Now decode with ProvisionUuid.proto. Add to libsignal-service.
+          showScrollView();
+          mDebugText.append(requestBytes.toStringUtf8() + "\n");
+          if (path.equals("/v1/address") && verb.equals("PUT")) {
+            Log.w(TAG, "Received address");
+          } else if (path.equals("/v1/message") && verb.equals("PUT")) {
+            Log.w(TAG, "Received message");
+          }
+        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
+          Log.w(TAG, "Received message response");
+        }
+      }
+
+      @Override
+      public void onMessage(String message) {
+        showScrollView();
+        mDebugText.append(message + "\n");
+      }
+
+      @Override
+      public void onStatusChanged(boolean connected) {
+        if (!connected) {
+          socketTester.setText("Open socket");
+        } else {
+          socketTester.setText("Close socket");
+        }
+      }
+    });
     socketTester = (Button) findViewById(R.id.socket_tester);
     socketTester.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -170,6 +206,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
 
   private void mockLogin() {
     showScrollView();
+    // This can move to RegistrationService. Won't need async wrapper.
     new AsyncTask<Void, Void, JSONObject>() {
       @Override
       protected JSONObject doInBackground(Void... voids) {
@@ -190,8 +227,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
                 mDebugText.setText("Found existing devices: " + devices.length() + "\n");
                 socketTester.setText("Close Socket\n");
                 socketUtils.connect();
-
-
                 mDebugText.append("Send provision request...\n");
               }
             }
@@ -652,41 +687,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       return sb.toString();
     }
     return "MasterSecret NULL";
-  }
-
-  @Override
-  public void onMessage(String message) {
-    showScrollView();
-    mDebugText.append(message + "\n");
-  }
-
-  @Override
-  public void onSocketMessage(WebSocketProtos.WebSocketMessage message) {
-    if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
-      WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
-      String path = request.getPath();
-      String verb = request.getVerb();
-      com.google.protobuf.ByteString requestBytes = request.getBody();
-      // Now decode with ProvisionUuid.proto. Add to libsignal-service.
-      showScrollView();
-      mDebugText.append(requestBytes.toStringUtf8() + "\n");
-      if (path.equals("/v1/address") && verb.equals("PUT")) {
-        Log.w(TAG, "Received address");
-      } else if (path.equals("/v1/message") && verb.equals("PUT")) {
-        Log.w(TAG, "Received message");
-      }
-    } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
-      Log.w(TAG, "Received message response");
-    }
-  }
-
-  @Override
-  public void onStatusChanged(boolean connected) {
-    if (!connected) {
-      socketTester.setText("Open socket");
-    } else {
-      socketTester.setText("Close socket");
-    }
   }
 
   private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
