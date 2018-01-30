@@ -29,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
+import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -657,6 +658,26 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   public void onMessage(String message) {
     showScrollView();
     mDebugText.append(message + "\n");
+  }
+
+  @Override
+  public void onSocketMessage(WebSocketProtos.WebSocketMessage message) {
+    if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
+      WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
+      String path = request.getPath();
+      String verb = request.getVerb();
+      com.google.protobuf.ByteString requestBytes = request.getBody();
+      // Now decode with ProvisionUuid.proto. Add to libsignal-service.
+      showScrollView();
+      mDebugText.append(requestBytes.toStringUtf8() + "\n");
+      if (path.equals("/v1/address") && verb.equals("PUT")) {
+        Log.w(TAG, "Received address");
+      } else if (path.equals("/v1/message") && verb.equals("PUT")) {
+        Log.w(TAG, "Received message");
+      }
+    } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
+      Log.w(TAG, "Received message response");
+    }
   }
 
   @Override

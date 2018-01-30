@@ -63,7 +63,11 @@ public class WebSocketUtils {
     messageHandler = new Handler(new Handler.Callback() {
       @Override
       public boolean handleMessage(Message message) {
-        callback.onMessage((String)message.obj);
+        if (message.what == 1) {
+          callback.onSocketMessage((WebSocketProtos.WebSocketMessage) message.obj);
+        } else {
+          callback.onMessage((String)message.obj);
+        }
         callback.onStatusChanged(socketOpen);
         return true;
       }
@@ -81,6 +85,11 @@ public class WebSocketUtils {
 
   private void handleMessage(String text) {
     Message message = messageHandler.obtainMessage(0, text);
+    messageHandler.sendMessage(message);
+  }
+
+  private void handleMessage(WebSocketProtos.WebSocketMessage socketMessage) {
+    Message message = messageHandler.obtainMessage(1, socketMessage);
     messageHandler.sendMessage(message);
   }
 
@@ -103,22 +112,10 @@ public class WebSocketUtils {
       Log.d(TAG, "New byte stream: " + bytes.size());
       try {
         WebSocketProtos.WebSocketMessage message = WebSocketProtos.WebSocketMessage.parseFrom(bytes.toByteArray());
-        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
-          WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
-          String path = request.getPath();
-          String verb = request.getVerb();
-          com.google.protobuf.ByteString requestBytes = request.getBody();
-          // Now decode with ProvisionUuid.proto. Add to libsignal-service.
-          if (path.equals("/v1/address") && verb.equals("PUT")) {
-            
-          }
-        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
-
-        }
+        handleMessage(message);
       } catch (InvalidProtocolBufferException e) {
         e.printStackTrace();
       }
-      handleMessage(bytes.utf8());
     }
 
     @Override
@@ -137,6 +134,7 @@ public class WebSocketUtils {
   }
 
   public interface MessageCallback {
+    void onSocketMessage(WebSocketProtos.WebSocketMessage message);
     void onMessage(String message);
     void onStatusChanged(boolean connected);
   }
