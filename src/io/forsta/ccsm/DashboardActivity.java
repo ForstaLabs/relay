@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
+import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -188,6 +189,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
                 mDebugText.setText("Found existing devices: " + devices.length() + "\n");
                 socketTester.setText("Close Socket\n");
                 socketUtils.connect();
+
 
                 mDebugText.append("Send provision request...\n");
               }

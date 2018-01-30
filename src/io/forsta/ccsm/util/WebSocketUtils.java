@@ -5,6 +5,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
+
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
 import okhttp3.OkHttpClient;
@@ -55,7 +59,6 @@ public class WebSocketUtils {
   public void connect() {
     Request.Builder request = new Request.Builder();
     request.url(url);
-//    request.addHeader("Authorization", "JWT " + authKey);
     socket = client.newWebSocket(request.build(), new SocketListener());
     messageHandler = new Handler(new Handler.Callback() {
       @Override
@@ -98,6 +101,24 @@ public class WebSocketUtils {
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes) {
       Log.d(TAG, "New byte stream: " + bytes.size());
+      try {
+        WebSocketProtos.WebSocketMessage message = WebSocketProtos.WebSocketMessage.parseFrom(bytes.toByteArray());
+        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
+          WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
+          String path = request.getPath();
+          String verb = request.getVerb();
+          com.google.protobuf.ByteString requestBytes = request.getBody();
+          // Now decode with ProvisionUuid.proto. Add to libsignal-service.
+          if (path.equals("/v1/address") && verb.equals("PUT")) {
+            
+          }
+        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
+
+        }
+      } catch (InvalidProtocolBufferException e) {
+        e.printStackTrace();
+      }
+      handleMessage(bytes.utf8());
     }
 
     @Override
