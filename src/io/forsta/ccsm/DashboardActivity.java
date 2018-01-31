@@ -24,14 +24,31 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.deser.Deserializers;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.InvalidKeyException;
+import org.whispersystems.libsignal.InvalidMessageException;
+import org.whispersystems.libsignal.SessionCipher;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECKeyPair;
+import org.whispersystems.libsignal.ecc.ECPrivateKey;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
+import org.whispersystems.libsignal.kdf.HKDF;
+import org.whispersystems.libsignal.kdf.HKDFv3;
+import org.whispersystems.libsignal.protocol.CiphertextMessage;
+import org.whispersystems.libsignal.ratchet.MessageKeys;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import org.whispersystems.signalservice.internal.crypto.ProvisioningCipher;
+import org.whispersystems.signalservice.internal.util.Base64;
 import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
+import io.forsta.ccsm.api.ProvisioningProtos;
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaTag;
@@ -46,8 +63,10 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
+import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -68,16 +87,30 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
+import io.forsta.securesms.util.Util;
 
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
@@ -162,20 +195,60 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
           WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
           String path = request.getPath();
           String verb = request.getVerb();
-          com.google.protobuf.ByteString requestBytes = request.getBody();
-          // Now decode with ProvisionUuid.proto. Add to libsignal-service.
-          // com.google.protobuf.ProvisioningUuid proto = com.google.protobuf.ProvisioningUuid.decode(request.getBody());
-          // ProvisioningCipher pubKey = ProvisioningCipher()???
-          //Send uuid and key to '/v1/provision/request/ on atlas.
-          // wait response from '/v1/message'
-          // This only fires if there are other devices registered.
-          // What if it times out? Normal registeration?
-          showScrollView();
-          mDebugText.append(requestBytes.toStringUtf8() + "\n");
+          final ECKeyPair provisionKeyPair = Curve.generateKeyPair();
+
           if (path.equals("/v1/address") && verb.equals("PUT")) {
             Log.w(TAG, "Received address");
+            try {
+              final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
+              mDebugText.append("UUID: " + proto.getUuid() + "\n");
+              final String encodedKey = Base64.encodeBytes(provisionKeyPair.getPublicKey().serialize());
+              new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                  CcsmApi.provisionRequest(DashboardActivity.this, proto.getUuid(), encodedKey);
+                  return null;
+                }
+              }.execute();
+
+            } catch (InvalidProtocolBufferException e) {
+              e.printStackTrace();
+            }
           } else if (path.equals("/v1/message") && verb.equals("PUT")) {
             Log.w(TAG, "Received message");
+            try {
+              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
+              byte[] key = envelope.getPublicKey().toByteArray();
+              byte[] body = envelope.getBody().toByteArray();
+              int version = body[0];
+              if (version != 1) {
+                Log.w(TAG, "Invalid ProvisionMessage version");
+              }
+              byte[] iv = Arrays.copyOfRange(body, 1, 16 + 1);
+              byte[] mac = Arrays.copyOfRange(body, body.length - 32, body.length);
+              byte[] ivAndCiphertext = Arrays.copyOfRange(body, 0, body.length - 32);
+              byte[] ciphertext = Arrays.copyOfRange(body, 16 + 1, body.length - 32);
+              ECPublicKey pubKey = Curve.decodePoint(key, 0);
+              byte[] ec = Curve.calculateAgreement(pubKey, provisionKeyPair.getPrivateKey());
+              byte[] keys = new HKDFv3().deriveSecrets(ec, "TextSecure Provisioning Message".getBytes(), 64);
+              byte[][]  parts = org.whispersystems.signalservice.internal.util.Util.split(keys, 32, 32);
+              Cipher cipher = getCipher(Cipher.DECRYPT_MODE, new SecretKeySpec(parts[0], "AES"), new IvParameterSpec(iv));
+              //This is crashing. Keys must not be correct.
+              byte[] plainText = getPlaintext(cipher, ciphertext);
+              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
+
+              mDebugText.append("Body: " + new String(plainText) + "\n");
+              Log.w(TAG, "Got message");
+
+
+            } catch (InvalidProtocolBufferException e) {
+              e.printStackTrace();
+            } catch (InvalidKeyException e) {
+              e.printStackTrace();
+            } catch (InvalidMessageException e) {
+              e.printStackTrace();
+            }
+            socketUtils.disconnect();
           }
         } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
           Log.w(TAG, "Received message response");
@@ -211,6 +284,28 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     });
   }
 
+  private byte[] getPlaintext(Cipher cipher, byte[] cipherText)
+      throws InvalidMessageException
+  {
+    try {
+      return cipher.doFinal(cipherText);
+    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      throw new InvalidMessageException(e);
+    }
+  }
+
+  private Cipher getCipher(int mode, SecretKeySpec key, IvParameterSpec iv) {
+    try {
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      cipher.init(mode, key, iv);
+      return cipher;
+    } catch (NoSuchAlgorithmException | NoSuchPaddingException | java.security.InvalidKeyException |
+        InvalidAlgorithmParameterException e)
+    {
+      throw new AssertionError(e);
+    }
+  }
+
   private void mockLogin() {
     showScrollView();
     // This can move to RegistrationService. Won't need async wrapper.
@@ -228,16 +323,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         if (response.has("devices")) {
           try {
             JSONArray devices = response.getJSONArray("devices");
-            for (int i=0; i<devices.length(); i++) {
-
-              if (devices.length() > 0) {
-                mDebugText.setText("Found existing devices: " + devices.length() + "\n");
-                socketTester.setText("Close Socket\n");
-                socketUtils.connect();
-                mDebugText.append("Send provision request...\n");
-              }
+            if (devices.length() > 0) {
+              mDebugText.setText("Found existing devices: " + devices.length() + "\n");
+              socketTester.setText("Close Socket\n");
+              socketUtils.connect();
+              mDebugText.append("Send provision request...\n");
             }
-
           } catch (JSONException e) {
             e.printStackTrace();
           }

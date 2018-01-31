@@ -12,6 +12,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -75,6 +76,17 @@ public class CcsmApi {
     String host = BuildConfig.FORSTA_API_URL;
     String authKey = ForstaPreferences.getRegisteredKey(context);
     return NetworkUtils.apiFetch("GET", authKey, host + API_PROVISION_ACCOUNT, null);
+  }
+
+  public static void provisionRequest(Context context, String uuid, String pubKey) {
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("uuid", uuid);
+      obj.put("key", pubKey);
+      fetchResource(context, "POST", API_PROVISION_REQUEST, obj);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {

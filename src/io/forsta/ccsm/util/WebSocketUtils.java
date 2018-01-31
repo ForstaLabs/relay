@@ -112,7 +112,11 @@ public class WebSocketUtils {
       Log.d(TAG, "New byte stream: " + bytes.size());
       try {
         WebSocketProtos.WebSocketMessage message = WebSocketProtos.WebSocketMessage.parseFrom(bytes.toByteArray());
-        handleMessage(message);
+        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
+          handleMessage(message);
+        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
+
+        }
       } catch (InvalidProtocolBufferException e) {
         e.printStackTrace();
       }
