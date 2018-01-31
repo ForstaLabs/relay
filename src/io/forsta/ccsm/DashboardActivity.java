@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
+import org.whispersystems.signalservice.internal.crypto.ProvisioningCipher;
 import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
@@ -163,6 +164,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
           String verb = request.getVerb();
           com.google.protobuf.ByteString requestBytes = request.getBody();
           // Now decode with ProvisionUuid.proto. Add to libsignal-service.
+          // com.google.protobuf.ProvisioningUuid proto = com.google.protobuf.ProvisioningUuid.decode(request.getBody());
+          // ProvisioningCipher pubKey = ProvisioningCipher()???
+          //Send uuid and key to '/v1/provision/request/ on atlas.
+          // wait response from '/v1/message'
+          // This only fires if there are other devices registered.
+          // What if it times out? Normal registeration?
           showScrollView();
           mDebugText.append(requestBytes.toStringUtf8() + "\n");
           if (path.equals("/v1/address") && verb.equals("PUT")) {
