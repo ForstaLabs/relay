@@ -43,7 +43,6 @@ import org.whispersystems.libsignal.kdf.HKDFv3;
 import org.whispersystems.libsignal.protocol.CiphertextMessage;
 import org.whispersystems.libsignal.ratchet.MessageKeys;
 import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
-import org.whispersystems.signalservice.internal.crypto.ProvisioningCipher;
 import org.whispersystems.signalservice.internal.util.Base64;
 import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
@@ -135,8 +134,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
-
-
     initSocket();
   }
 
@@ -218,36 +215,15 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             Log.w(TAG, "Received message");
             try {
               org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
-              byte[] key = envelope.getPublicKey().toByteArray();
-              byte[] body = envelope.getBody().toByteArray();
-              int version = body[0];
-              if (version != 1) {
-                Log.w(TAG, "Invalid ProvisionMessage version");
-              }
-              byte[] iv = Arrays.copyOfRange(body, 1, 16 + 1);
-              byte[] mac = Arrays.copyOfRange(body, body.length - 32, body.length);
-              byte[] ivAndCiphertext = Arrays.copyOfRange(body, 0, body.length - 32);
-              byte[] ciphertext = Arrays.copyOfRange(body, 16 + 1, body.length - 32);
-              ECPublicKey pubKey = Curve.decodePoint(key, 0);
-              byte[] ec = Curve.calculateAgreement(pubKey, provisionKeyPair.getPrivateKey());
-              byte[] keys = new HKDFv3().deriveSecrets(ec, "TextSecure Provisioning Message".getBytes(), 64);
-              byte[][]  parts = org.whispersystems.signalservice.internal.util.Util.split(keys, 32, 32);
-              Cipher cipher = getCipher(Cipher.DECRYPT_MODE, new SecretKeySpec(parts[0], "AES"), new IvParameterSpec(iv));
-              //This is crashing. Keys must not be correct.
-              byte[] plainText = getPlaintext(cipher, ciphertext);
-              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
-
-              mDebugText.append("Body: " + new String(plainText) + "\n");
+              ProvisioningCipher cipher = new ProvisioningCipher(provisionKeyPair.getPublicKey());
+              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = cipher.decrypt(envelope, provisionKeyPair.getPrivateKey());
+              mDebugText.append("Body: " + "\n");
               Log.w(TAG, "Got message");
 
 
             } catch (InvalidProtocolBufferException e) {
               e.printStackTrace();
-            } catch (InvalidKeyException e) {
-              e.printStackTrace();
-            } catch (InvalidMessageException e) {
-              e.printStackTrace();
-            }
+            } 
             socketUtils.disconnect();
           }
         } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
@@ -282,28 +258,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         }
       }
     });
-  }
-
-  private byte[] getPlaintext(Cipher cipher, byte[] cipherText)
-      throws InvalidMessageException
-  {
-    try {
-      return cipher.doFinal(cipherText);
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
-      throw new InvalidMessageException(e);
-    }
-  }
-
-  private Cipher getCipher(int mode, SecretKeySpec key, IvParameterSpec iv) {
-    try {
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      cipher.init(mode, key, iv);
-      return cipher;
-    } catch (NoSuchAlgorithmException | NoSuchPaddingException | java.security.InvalidKeyException |
-        InvalidAlgorithmParameterException e)
-    {
-      throw new AssertionError(e);
-    }
   }
 
   private void mockLogin() {
