@@ -111,7 +111,6 @@ import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
-
 // TODO Remove all of this code for production release. This is for discovery and debug use.
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private static final String TAG = DashboardActivity.class.getSimpleName();
@@ -126,6 +125,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private ProgressBar mProgressBar;
   private WebSocketUtils socketUtils;
   private Button socketTester;
+  
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -223,7 +223,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
             } catch (InvalidProtocolBufferException e) {
               e.printStackTrace();
-            } 
+            }
             socketUtils.disconnect();
           }
         } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {

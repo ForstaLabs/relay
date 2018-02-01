@@ -2,11 +2,13 @@ package io.forsta.ccsm;
 
 import android.util.Log;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.kdf.HKDFv3;
@@ -36,6 +38,24 @@ public class ProvisioningCipher {
 
   public ProvisioningCipher(ECPublicKey theirPublicKey) {
     this.theirPublicKey = theirPublicKey;
+  }
+
+  public byte[] encrypt(ProvisioningProtos.ProvisionMessage message) throws InvalidKeyException {
+    ECKeyPair ourKeyPair    = Curve.generateKeyPair();
+    byte[]    sharedSecret  = Curve.calculateAgreement(theirPublicKey, ourKeyPair.getPrivateKey());
+    byte[]    derivedSecret = new HKDFv3().deriveSecrets(sharedSecret, "TextSecure Provisioning Message".getBytes(), 64);
+    byte[][]  parts         = Util.split(derivedSecret, 32, 32);
+
+    byte[] version    = {0x01};
+    byte[] ciphertext = getCiphertext(parts[0], message.toByteArray());
+    byte[] mac        = getMac(parts[1], Util.join(version, ciphertext));
+    byte[] body       = Util.join(version, ciphertext, mac);
+
+    return ProvisioningProtos.ProvisionEnvelope.newBuilder()
+        .setPublicKey(ByteString.copyFrom(ourKeyPair.getPublicKey().serialize()))
+        .setBody(ByteString.copyFrom(body))
+        .build()
+        .toByteArray();
   }
 
   public ProvisioningProtos.ProvisionMessage decrypt(ProvisioningProtos.ProvisionEnvelope envelope, ECPrivateKey privateKey) {
