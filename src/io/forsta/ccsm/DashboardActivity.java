@@ -198,7 +198,10 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             Log.w(TAG, "Received address");
             try {
               final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
-              mDebugText.append("UUID: " + proto.getUuid() + "\n");
+              byte[] serializedKey = provisionKeyPair.getPublicKey().serialize();
+
+              Log.w(TAG, Arrays.toString(serializedKey));
+
               final String encodedKey = Base64.encodeBytes(provisionKeyPair.getPublicKey().serialize());
               new AsyncTask<Void, Void, Void>() {
                 @Override
@@ -215,12 +218,9 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             Log.w(TAG, "Received message");
             try {
               org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
-              ProvisioningCipher cipher = new ProvisioningCipher(provisionKeyPair.getPublicKey());
-              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = cipher.decrypt(envelope, provisionKeyPair.getPrivateKey());
+              ProvisioningCipher provisionCipher = new ProvisioningCipher(provisionKeyPair.getPublicKey());
+              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, provisionKeyPair.getPrivateKey());
               mDebugText.append("Body: " + "\n");
-              Log.w(TAG, "Got message");
-
-
             } catch (InvalidProtocolBufferException e) {
               e.printStackTrace();
             }

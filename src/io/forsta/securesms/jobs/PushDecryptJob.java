@@ -493,8 +493,8 @@ public class PushDecryptJob extends ContextJob {
             throw new Exception("UUID or Key is empty!");
           }
 
-//          ECPublicKey publicKey = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
-//          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+          ECPublicKey publicKey = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
+          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
 //
 //          accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
 //          TextSecurePreferences.setMultiDevice(context, true);

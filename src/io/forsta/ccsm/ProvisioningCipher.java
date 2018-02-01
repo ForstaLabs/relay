@@ -27,6 +27,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import io.forsta.securesms.util.Base64;
+
 /**
  * Created by john on 2/1/2018.
  */
@@ -62,42 +64,68 @@ public class ProvisioningCipher {
 
     try {
       byte[] key = envelope.getPublicKey().toByteArray();
+      Log.w(TAG, "Envelope key");
+      Log.w(TAG, Arrays.toString(key));
+
+      Log.w(TAG, "Our private key");
+      Log.w(TAG, Arrays.toString(privateKey.serialize()));
+
       byte[] body = envelope.getBody().toByteArray();
-      int version = body[0];
-      if (version != 1) {
-        Log.w(TAG, "Invalid ProvisionMessage version");
+      if (body[0] != 1) {
+        throw new InvalidMessageException("Invalid ProvisionMessage version");
       }
+
       byte[] iv = Arrays.copyOfRange(body, 1, 16 + 1);
       byte[] mac = Arrays.copyOfRange(body, body.length - 32, body.length);
       byte[] ivAndCiphertext = Arrays.copyOfRange(body, 0, body.length - 32);
       byte[] ciphertext = Arrays.copyOfRange(body, 16 + 1, body.length - 32);
       ECPublicKey pubKey = Curve.decodePoint(key, 0);
-      byte[] ec = Curve.calculateAgreement(pubKey, privateKey);
-      byte[] keys = new HKDFv3().deriveSecrets(ec, "TextSecure Provisioning Message".getBytes(), 64);
-      byte[][]  parts = org.whispersystems.signalservice.internal.util.Util.split(keys, 32, 32);
-      Cipher cipher = getCipher(Cipher.DECRYPT_MODE, new SecretKeySpec(parts[0], "AES"), new IvParameterSpec(iv));
+
+      byte[] sharedSecret = Curve.calculateAgreement(pubKey, privateKey);
+      byte[] derivedSecret = new HKDFv3().deriveSecrets(sharedSecret, "TextSecure Provisioning Message".getBytes(), 64);
+      byte[][] parts = Util.split(derivedSecret, 32, 32);
+
+      Log.w(TAG, Arrays.toString(parts[0]));
+      Log.w(TAG, Arrays.toString(parts[1]));
+
       //This is crashing. Keys must not be correct.
-      byte[] plainText = getPlaintext(cipher, ciphertext);
+      byte[] plainText = getPlaintext(parts[0], ciphertext, iv);
+
       org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
       return provisionMessage;
     } catch (InvalidMessageException e) {
       e.printStackTrace();
+    } catch (InvalidProtocolBufferException e) {
+      e.printStackTrace();
     } catch (InvalidKeyException e) {
       e.printStackTrace();
-    } catch (InvalidProtocolBufferException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return  null;
   }
 
-  private byte[] getPlaintext(Cipher cipher, byte[] cipherText)
+  private byte[] getPlaintext(byte[] key, byte[] cipherText, byte[] iv)
       throws InvalidMessageException
   {
     try {
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
       return cipher.doFinal(cipherText);
-    } catch (IllegalBlockSizeException | BadPaddingException e) {
-      throw new InvalidMessageException(e);
+    } catch (InvalidAlgorithmParameterException e) {
+      e.printStackTrace();
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    } catch (java.security.InvalidKeyException e) {
+      e.printStackTrace();
+    } catch (BadPaddingException e) {
+      e.printStackTrace();
+    } catch (IllegalBlockSizeException e) {
+      e.printStackTrace();
+    } catch (NoSuchPaddingException e) {
+      e.printStackTrace();
     }
+    return null;
   }
 
   private Cipher getCipher(int mode, SecretKeySpec key, IvParameterSpec iv) {
