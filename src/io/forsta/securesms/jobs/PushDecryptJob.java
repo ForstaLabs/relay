@@ -83,6 +83,7 @@ import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
 import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -487,16 +488,15 @@ public class PushDecryptJob extends ContextJob {
           ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
           String verificationCode = accountManager.getNewDeviceVerificationCode();
           String ephemeralId = request.getUuid();
-          String publicKeyEncoded = request.getKey();
+          String theirPublicKeyEncoded = request.getKey();
 
-          if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(publicKeyEncoded)) {
+          if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(theirPublicKeyEncoded)) {
             throw new Exception("UUID or Key is empty!");
           }
 
-          ECPublicKey publicKey = Curve.decodePoint(Base64.decode(publicKeyEncoded), 0);
+          ECPublicKey theirPublicKey = Curve.decodePoint(Base64.decode(theirPublicKeyEncoded), 0);
           IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
-//
-//          accountManager.addDevice(ephemeralId, publicKey, identityKeyPair, verificationCode);
+//          accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
 //          TextSecurePreferences.setMultiDevice(context, true);
           break;
       }

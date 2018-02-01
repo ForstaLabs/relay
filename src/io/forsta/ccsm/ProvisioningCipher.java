@@ -64,12 +64,6 @@ public class ProvisioningCipher {
 
     try {
       byte[] key = envelope.getPublicKey().toByteArray();
-      Log.w(TAG, "Envelope key");
-      Log.w(TAG, Arrays.toString(key));
-
-      Log.w(TAG, "Our private key");
-      Log.w(TAG, Arrays.toString(privateKey.serialize()));
-
       byte[] body = envelope.getBody().toByteArray();
       if (body[0] != 1) {
         throw new InvalidMessageException("Invalid ProvisionMessage version");
@@ -83,12 +77,8 @@ public class ProvisioningCipher {
 
       byte[] sharedSecret = Curve.calculateAgreement(pubKey, privateKey);
       byte[] derivedSecret = new HKDFv3().deriveSecrets(sharedSecret, "TextSecure Provisioning Message".getBytes(), 64);
+      //await libsignal.crypto.verifyMAC(ivAndCiphertext, keys[1], mac, 32);
       byte[][] parts = Util.split(derivedSecret, 32, 32);
-
-      Log.w(TAG, Arrays.toString(parts[0]));
-      Log.w(TAG, Arrays.toString(parts[1]));
-
-      //This is crashing. Keys must not be correct.
       byte[] plainText = getPlaintext(parts[0], ciphertext, iv);
 
       org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);

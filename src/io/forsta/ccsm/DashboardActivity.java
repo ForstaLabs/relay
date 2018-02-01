@@ -31,6 +31,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.SessionCipher;
@@ -192,17 +193,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
           WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
           String path = request.getPath();
           String verb = request.getVerb();
-          final ECKeyPair provisionKeyPair = Curve.generateKeyPair();
+          IdentityKeyPair identityKey  = IdentityKeyUtil.getIdentityKeyPair(DashboardActivity.this);
 
           if (path.equals("/v1/address") && verb.equals("PUT")) {
             Log.w(TAG, "Received address");
             try {
               final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
-              byte[] serializedKey = provisionKeyPair.getPublicKey().serialize();
-
-              Log.w(TAG, Arrays.toString(serializedKey));
-
-              final String encodedKey = Base64.encodeBytes(provisionKeyPair.getPublicKey().serialize());
+              byte[] serializedPublicKey = identityKey.getPublicKey().getPublicKey().serialize();
+              final String encodedKey = Base64.encodeBytes(serializedPublicKey);
               new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... voids) {
@@ -218,9 +216,19 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             Log.w(TAG, "Received message");
             try {
               org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
-              ProvisioningCipher provisionCipher = new ProvisioningCipher(provisionKeyPair.getPublicKey());
-              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, provisionKeyPair.getPrivateKey());
-              mDebugText.append("Body: " + "\n");
+              ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
+              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, identityKey.getPrivateKey());
+              Log.w(TAG, "Received provisioning message");
+              Log.w(TAG, "Our Public and Private keys");
+              Log.w(TAG, Arrays.toString(identityKey.getPublicKey().getPublicKey().serialize()));
+              Log.w(TAG, Arrays.toString(identityKey.getPrivateKey().serialize()));
+              // Verify who this is from.
+              Log.w(TAG, provisionMessage.getNumber());
+              Log.w(TAG, provisionMessage.getProvisioningCode());
+              Log.w(TAG, "Public and Private keys");
+              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPublic().toByteArray()));
+              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray()));
+
             } catch (InvalidProtocolBufferException e) {
               e.printStackTrace();
             }
