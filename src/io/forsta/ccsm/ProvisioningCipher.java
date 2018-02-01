@@ -77,8 +77,9 @@ public class ProvisioningCipher {
 
       byte[] sharedSecret = Curve.calculateAgreement(pubKey, privateKey);
       byte[] derivedSecret = new HKDFv3().deriveSecrets(sharedSecret, "TextSecure Provisioning Message".getBytes(), 64);
-      //await libsignal.crypto.verifyMAC(ivAndCiphertext, keys[1], mac, 32);
       byte[][] parts = Util.split(derivedSecret, 32, 32);
+      getMac(parts[1], ivAndCiphertext);
+
       byte[] plainText = getPlaintext(parts[0], ciphertext, iv);
 
       org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
