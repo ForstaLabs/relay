@@ -94,6 +94,10 @@ public class SignalApi {
               Log.w(TAG, provisionMessage.getProvisioningCode());
               Log.w(TAG, "Private key");
               Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); //My private key
+              // Now send provisionCode, address, SignalingKey, registrationId, name, supportsSms=false, fetchesMessages=true
+              // PUT to /v1/devices/code username(address), password in Auth Header.
+              // It sure looks like my original public key above could be used to save in state.
+              // It looks like I just call createAccount to do the above.
 
               // Not this
               // accountManager.addDevice(provisionMessage.getNumber(), theirPublicKey, identityKeyPair, provisionMessage.getProvisioningCode());
