@@ -27,10 +27,15 @@ import android.widget.Toast;
 import com.fasterxml.jackson.databind.deser.Deserializers;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.UnknownFieldSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.spongycastle.crypto.params.ECPrivateKeyParameters;
+import org.whispersystems.curve25519.Curve25519;
+import org.whispersystems.curve25519.Curve25519KeyPair;
+import org.whispersystems.curve25519.JavaCurve25519Provider;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -97,6 +102,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.whispersystems.curve25519.java.curve_sigs;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -218,16 +224,20 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
               org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
               ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
               org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, identityKey.getPrivateKey());
-              Log.w(TAG, "Received provisioning message");
               Log.w(TAG, "Our Public and Private keys");
               Log.w(TAG, Arrays.toString(identityKey.getPublicKey().getPublicKey().serialize()));
               Log.w(TAG, Arrays.toString(identityKey.getPrivateKey().serialize()));
               // Verify who this is from.
+              if (!provisionMessage.getNumber().equals(ForstaPreferences.getUserId(DashboardActivity.this))) { // or TextSecurePreferences.getNumber()
+                Log.w(TAG, "Received provision message from unknown address");
+              }
+              Log.w(TAG, "Provisioning message content");
               Log.w(TAG, provisionMessage.getNumber());
               Log.w(TAG, provisionMessage.getProvisioningCode());
-              Log.w(TAG, "Public and Private keys");
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPublic().toByteArray()));
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray()));
+              Log.w(TAG, "Private key");
+              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); //My private key
+
+//          accountManager.addDevice(provisionMessage.getNumber(), theirPublicKey, identityKeyPair, provisionMessage.getProvisioningCode());
 
             } catch (InvalidProtocolBufferException e) {
               e.printStackTrace();

@@ -495,7 +495,7 @@ public class PushDecryptJob extends ContextJob {
           }
 
           ECPublicKey theirPublicKey = Curve.decodePoint(Base64.decode(theirPublicKeyEncoded), 0);
-          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+//          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
 //          accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
 //          TextSecurePreferences.setMultiDevice(context, true);
           break;

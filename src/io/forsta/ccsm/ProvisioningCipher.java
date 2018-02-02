@@ -64,6 +64,8 @@ public class ProvisioningCipher {
 
     try {
       byte[] key = envelope.getPublicKey().toByteArray();
+      Log.w(TAG, "Public key in envelope");
+      Log.w(TAG, Arrays.toString(key));
       byte[] body = envelope.getBody().toByteArray();
       if (body[0] != 1) {
         throw new InvalidMessageException("Invalid ProvisionMessage version");
