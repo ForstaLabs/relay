@@ -1,6 +1,5 @@
 package io.forsta.ccsm;
 
-import android.accounts.AccountManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,36 +23,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.deser.Deserializers;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.UnknownFieldSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.spongycastle.crypto.params.ECPrivateKeyParameters;
-import org.whispersystems.curve25519.Curve25519;
-import org.whispersystems.curve25519.Curve25519KeyPair;
-import org.whispersystems.curve25519.JavaCurve25519Provider;
-import org.whispersystems.libsignal.IdentityKeyPair;
-import org.whispersystems.libsignal.InvalidKeyException;
-import org.whispersystems.libsignal.InvalidMessageException;
-import org.whispersystems.libsignal.SessionCipher;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
-import org.whispersystems.libsignal.kdf.HKDF;
-import org.whispersystems.libsignal.kdf.HKDFv3;
-import org.whispersystems.libsignal.protocol.CiphertextMessage;
-import org.whispersystems.libsignal.ratchet.MessageKeys;
-import org.whispersystems.signalservice.api.messages.multidevice.DeviceInfo;
 import org.whispersystems.signalservice.internal.util.Base64;
-import org.whispersystems.signalservice.internal.websocket.WebSocketConnection;
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
 import io.forsta.ccsm.api.ProvisioningProtos;
+import io.forsta.ccsm.api.SignalApi;
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaTag;
@@ -61,17 +44,14 @@ import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
-import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -86,37 +66,22 @@ import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.whispersystems.curve25519.java.curve_sigs;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.GroupUtil;
-import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.Util;
 
 // TODO Remove all of this code for production release. This is for discovery and debug use.
 public class DashboardActivity extends PassphraseRequiredActionBarActivity {
@@ -130,7 +95,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private Spinner mConfigSpinner;
   private ScrollView mScrollView;
   private ProgressBar mProgressBar;
-  private WebSocketUtils socketUtils;
   private Button socketTester;
   
 
@@ -175,137 +139,45 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (socketUtils.socketOpen) {
-      socketTester.setText("Close socket");
-    } else {
-      socketTester.setText("Open socket");
-    }
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    if (socketUtils.socketOpen) {
-      socketUtils.disconnect();
-    }
   }
 
   private void initSocket() {
-    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, "/v1/websocket/provisioning/", new WebSocketUtils.MessageCallback() {
 
-      @Override
-      public void onSocketMessage(WebSocketProtos.WebSocketMessage message) {
-        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
-          WebSocketProtos.WebSocketRequestMessage request = message.getRequest();
-          String path = request.getPath();
-          String verb = request.getVerb();
-          IdentityKeyPair identityKey  = IdentityKeyUtil.getIdentityKeyPair(DashboardActivity.this);
-
-          if (path.equals("/v1/address") && verb.equals("PUT")) {
-            Log.w(TAG, "Received address");
-            try {
-              final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
-              byte[] serializedPublicKey = identityKey.getPublicKey().getPublicKey().serialize();
-              final String encodedKey = Base64.encodeBytes(serializedPublicKey);
-              new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                  CcsmApi.provisionRequest(DashboardActivity.this, proto.getUuid(), encodedKey);
-                  return null;
-                }
-              }.execute();
-
-            } catch (InvalidProtocolBufferException e) {
-              e.printStackTrace();
-            }
-          } else if (path.equals("/v1/message") && verb.equals("PUT")) {
-            Log.w(TAG, "Received message");
-            try {
-              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
-              ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
-              org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, identityKey.getPrivateKey());
-              Log.w(TAG, "Our Public and Private keys");
-              Log.w(TAG, Arrays.toString(identityKey.getPublicKey().getPublicKey().serialize()));
-              Log.w(TAG, Arrays.toString(identityKey.getPrivateKey().serialize()));
-              // Verify who this is from.
-              if (!provisionMessage.getNumber().equals(ForstaPreferences.getUserId(DashboardActivity.this))) { // or TextSecurePreferences.getNumber()
-                Log.w(TAG, "Received provision message from unknown address");
-              }
-              Log.w(TAG, "Provisioning message content");
-              Log.w(TAG, provisionMessage.getNumber());
-              Log.w(TAG, provisionMessage.getProvisioningCode());
-              Log.w(TAG, "Private key");
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); //My private key
-
-//          accountManager.addDevice(provisionMessage.getNumber(), theirPublicKey, identityKeyPair, provisionMessage.getProvisioningCode());
-
-            } catch (InvalidProtocolBufferException e) {
-              e.printStackTrace();
-            }
-            socketUtils.disconnect();
-          }
-        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
-          Log.w(TAG, "Received message response");
-        }
-      }
-
-      @Override
-      public void onMessage(String message) {
-        showScrollView();
-        mDebugText.append(message + "\n");
-      }
-
-      @Override
-      public void onStatusChanged(boolean connected) {
-        if (!connected) {
-          socketTester.setText("Open socket");
-        } else {
-          socketTester.setText("Close socket");
-        }
-      }
-    });
     socketTester = (Button) findViewById(R.id.socket_tester);
     socketTester.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (!socketUtils.socketOpen) {
-          mockLogin();
-        } else {
-          socketUtils.disconnect();
-          socketTester.setText("Open Socket");
-        }
+        mockLogin();
       }
     });
   }
 
   private void mockLogin() {
     showScrollView();
-    // This can move to RegistrationService. Won't need async wrapper.
-    new AsyncTask<Void, Void, JSONObject>() {
+    new AsyncTask<Void, Void, Void>() {
       @Override
-      protected JSONObject doInBackground(Void... voids) {
-        JSONObject deviceObject = CcsmApi.getDevices(DashboardActivity.this);
-        return deviceObject;
-      }
-
-      @Override
-      protected void onPostExecute(JSONObject response) {
-        StringBuilder sb = new StringBuilder();
-
+      protected Void doInBackground(Void... voids) {
+        JSONObject response = CcsmApi.getDevices(DashboardActivity.this);
         if (response.has("devices")) {
           try {
             JSONArray devices = response.getJSONArray("devices");
             if (devices.length() > 0) {
-              mDebugText.setText("Found existing devices: " + devices.length() + "\n");
-              socketTester.setText("Close Socket\n");
-              socketUtils.connect();
-              mDebugText.append("Send provision request...\n");
+              SignalApi signal = SignalApi.getInstance(DashboardActivity.this);
+              signal.autoProvision();
+              // Now set callbacks for autoprovision steps.
             }
           } catch (JSONException e) {
             e.printStackTrace();
           }
         }
+        return null;
       }
+
     }.execute();
   }
 
