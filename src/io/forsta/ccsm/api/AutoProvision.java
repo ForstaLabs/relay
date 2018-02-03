@@ -6,8 +6,6 @@ import android.util.Log;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.whispersystems.libsignal.IdentityKeyPair;
-import org.whispersystems.libsignal.ecc.Curve;
-import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.signalservice.internal.util.Base64;
@@ -24,24 +22,24 @@ import io.forsta.securesms.crypto.IdentityKeyUtil;
  * Created by john on 2/2/2018.
  */
 
-
-public class SignalApi {
-  private static final String TAG = SignalApi.class.getSimpleName();
+// Rename this to AutoProvision or something else.
+public class AutoProvision {
+  private static final String TAG = AutoProvision.class.getSimpleName();
 
   private WebSocketUtils webSocket;
-  private static SignalApi instance;
+  private static AutoProvision instance;
   private Context context;
   private static final Object lock = new Object();
   private ProvisionCallbacks callbacks;
 
-  private SignalApi(Context context) {
+  private AutoProvision(Context context) {
     this.context = context;
   }
 
-  public static SignalApi getInstance(Context context) {
+  public static AutoProvision getInstance(Context context) {
     synchronized (lock) {
       if (instance == null)
-        instance = new SignalApi(context);
+        instance = new AutoProvision(context);
 
       return instance;
     }
@@ -57,12 +55,13 @@ public class SignalApi {
       public void onSocketMessage(WebSocketProtos.WebSocketRequestMessage request) {
         String path = request.getPath();
         String verb = request.getVerb();
-         IdentityKeyPair identityKeys  = IdentityKeyUtil.getIdentityKeyPair(context);
+
+        // Call generateIdentityKeyPair when moved to RegistrationService
+        // This will save the new KeyPair to local storage.
+//        IdentityKeyUtil.generateIdentityKeys(context);
+        IdentityKeyPair identityKeys  = IdentityKeyUtil.getIdentityKeyPair(context);
         ECPublicKey ourPubKey = identityKeys.getPublicKey().getPublicKey();
         ECPrivateKey ourPrivKey = identityKeys.getPrivateKey();
-//        ECKeyPair keyPair = Curve.generateKeyPair();
-//        ECPublicKey ourPubKey = keyPair.getPublicKey();
-//        ECPrivateKey ourPrivKey = keyPair.getPrivateKey();
 
         Log.w(TAG, "Our Public and Private keys");
         Log.w(TAG, Arrays.toString(ourPubKey.serialize()));
@@ -93,14 +92,16 @@ public class SignalApi {
               Log.w(TAG, provisionMessage.getNumber());
               Log.w(TAG, provisionMessage.getProvisioningCode());
               Log.w(TAG, "Private key");
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); //My private key
-              // Now send provisionCode, address, SignalingKey, registrationId, name, supportsSms=false, fetchesMessages=true
-              // PUT to /v1/devices/code username(address), password in Auth Header.
-              // It sure looks like my original public key above could be used to save in state.
-              // It looks like I just call createAccount to do the above.
+              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); // matched ourPrivKey. Why?
 
-              // Not this
-              // accountManager.addDevice(provisionMessage.getNumber(), theirPublicKey, identityKeyPair, provisionMessage.getProvisioningCode());
+              // Similar to createAccount.
+              // addDevice(provisionCode, address, SignalingKey, registrationId, name, supportsSms=false, fetchesMessages=true)
+              // setMultidevice = true in local store.
+              // Save any other needed state.
+              // Generate prekeys
+              // Register prekeys
+              // DONE!
+
             } else {
               Log.w(TAG, "Failed to decrypt provision message");
             }

@@ -23,20 +23,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.libsignal.ecc.Curve;
-import org.whispersystems.libsignal.ecc.ECKeyPair;
-import org.whispersystems.libsignal.ecc.ECPrivateKey;
-import org.whispersystems.libsignal.ecc.ECPublicKey;
-import org.whispersystems.signalservice.internal.util.Base64;
-import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
-import io.forsta.ccsm.api.ProvisioningProtos;
-import io.forsta.ccsm.api.SignalApi;
+import io.forsta.ccsm.api.AutoProvision;
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaTag;
@@ -45,7 +36,6 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
-import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
@@ -73,7 +63,6 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -167,7 +156,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
           try {
             JSONArray devices = response.getJSONArray("devices");
             if (devices.length() > 0) {
-              SignalApi signal = SignalApi.getInstance(DashboardActivity.this);
+              AutoProvision signal = AutoProvision.getInstance(DashboardActivity.this);
               signal.autoProvision();
               // Now set callbacks for autoprovision steps.
             }

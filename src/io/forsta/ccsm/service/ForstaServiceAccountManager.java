@@ -8,11 +8,14 @@ import android.util.Log;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.push.TrustStore;
 import org.whispersystems.signalservice.internal.push.PushServiceSocket;
+import org.whispersystems.signalservice.internal.util.Base64;
 import org.whispersystems.signalservice.internal.util.StaticCredentialsProvider;
 
 import static android.content.ContentValues.TAG;
@@ -58,5 +61,54 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
     StaticCredentialsProvider creds = new StaticCredentialsProvider(username, password,
                                                                     signalingKey);
     this.pushServiceSocket = new PushServiceSocket(serverUrl, trustStore, creds, userAgent);
+  }
+
+  // Move these two methods to the accountManager and use pushServerSocket.
+  public void addDevice(String code, String address, byte[] signalingKey, String registrationId) {
+    //PUT /v1/devices/code
+    // Header "Authorization", "Basic " + Base64.encode(username(address), password(generated))
+    // jsonPayload
+    try {
+      JSONObject jsonData = new JSONObject();
+      jsonData.put("signalingKey", Base64.encodeBytes(signalingKey));
+      jsonData.put("supportsSms", false);
+      jsonData.put("fetchesMessages", true);
+      jsonData.put("registrationId", registrationId);
+      jsonData.put("name", "Relay Android"); // Get other meta from device.
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void registerKeys() {
+    // PUT to /v2/keys/
+    // jsonPayload
+    try {
+      JSONObject jsonData = new JSONObject();
+      JSONObject signedPreKey = new JSONObject();
+      signedPreKey.put("keyId", "");
+      signedPreKey.put("publicKey", "");
+      signedPreKey.put("signature", "");
+
+      JSONArray preKeys = new JSONArray();
+      // This needs adjustment.
+      for (int i=0; i<3; i++) {
+        JSONObject preKey = new JSONObject();
+        preKey.put("keyId", "");
+        preKey.put("publicKey", "");
+        preKeys.put(i, preKey);
+      }
+
+      JSONObject lastResortKey = new JSONObject();
+      lastResortKey.put("keyId", "");
+      lastResortKey.put("publicKey", "");
+
+      jsonData.put("identityKey", "");
+      jsonData.put("signedPreKey", signedPreKey);
+      jsonData.put("preKeys", preKeys);
+      jsonData.put("lastResortKey", lastResortKey);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
   }
 }

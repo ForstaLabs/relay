@@ -123,6 +123,12 @@ public class RegistrationService extends Service {
     setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
     try {
       ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
+      // Get devices from atlas
+      // if > 0 try autoProvision
+      // Check to see if IdentityKeys already exist at this point.
+      IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+      // else
+
       accountManager.createAccount(context, addr, password, signalingKey, registrationId);
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
       handleCommonRegistration(accountManager, addr, password, signalingKey);
