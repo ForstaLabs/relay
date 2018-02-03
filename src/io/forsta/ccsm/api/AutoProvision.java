@@ -15,8 +15,10 @@ import java.util.Arrays;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.ProvisioningCipher;
+import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
+import io.forsta.securesms.push.TextSecureCommunicationFactory;
 
 /**
  * Created by john on 2/2/2018.
@@ -49,7 +51,7 @@ public class AutoProvision {
     this.callbacks = callbacks;
   }
 
-  public void autoProvision() {
+  public void autoProvision(final String signalingKey, final int registrationId, final String password) {
     webSocket = WebSocketUtils.getInstance(context, new WebSocketUtils.MessageCallbacks() {
       @Override
       public void onSocketMessage(WebSocketProtos.WebSocketRequestMessage request) {
@@ -93,7 +95,8 @@ public class AutoProvision {
               Log.w(TAG, provisionMessage.getProvisioningCode());
               Log.w(TAG, "Private key");
               Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); // matched ourPrivKey. Why?
-
+              ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
+              accountManager.addDevice(provisionMessage.getProvisioningCode(), provisionMessage.getNumber(), signalingKey, registrationId, password);
               // Similar to createAccount.
               // addDevice(provisionCode, address, SignalingKey, registrationId, name, supportsSms=false, fetchesMessages=true)
               // setMultidevice = true in local store.

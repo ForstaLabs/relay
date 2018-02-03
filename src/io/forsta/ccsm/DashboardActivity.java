@@ -94,7 +94,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
-    initSocket();
   }
 
   @Override
@@ -133,41 +132,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   @Override
   protected void onDestroy() {
     super.onDestroy();
-  }
-
-  private void initSocket() {
-
-    socketTester = (Button) findViewById(R.id.socket_tester);
-    socketTester.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        mockLogin();
-      }
-    });
-  }
-
-  private void mockLogin() {
-    showScrollView();
-    new AsyncTask<Void, Void, Void>() {
-      @Override
-      protected Void doInBackground(Void... voids) {
-        JSONObject response = CcsmApi.getDevices(DashboardActivity.this);
-        if (response.has("devices")) {
-          try {
-            JSONArray devices = response.getJSONArray("devices");
-            if (devices.length() > 0) {
-              AutoProvision signal = AutoProvision.getInstance(DashboardActivity.this);
-              signal.autoProvision();
-              // Now set callbacks for autoprovision steps.
-            }
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
-        }
-        return null;
-      }
-
-    }.execute();
   }
 
   private void initView() {

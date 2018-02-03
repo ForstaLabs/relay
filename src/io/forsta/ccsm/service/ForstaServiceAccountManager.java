@@ -64,13 +64,13 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
   }
 
   // Move these two methods to the accountManager and use pushServerSocket.
-  public void addDevice(String code, String address, byte[] signalingKey, String registrationId) {
+  public void addDevice(String code, String address, String signalingKey, int registrationId, String password) {
     //PUT /v1/devices/code
-    // Header "Authorization", "Basic " + Base64.encode(username(address), password(generated))
+    // Header "Authorization", "Basic " + Base64.encode(username(address), password)
     // jsonPayload
     try {
       JSONObject jsonData = new JSONObject();
-      jsonData.put("signalingKey", Base64.encodeBytes(signalingKey));
+      jsonData.put("signalingKey", Base64.encodeBytes(signalingKey.getBytes())); // Check this.
       jsonData.put("supportsSms", false);
       jsonData.put("fetchesMessages", true);
       jsonData.put("registrationId", registrationId);
