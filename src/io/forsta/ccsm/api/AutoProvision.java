@@ -12,6 +12,8 @@ import org.whispersystems.signalservice.internal.util.Base64;
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.ProvisioningCipher;
@@ -51,7 +53,7 @@ public class AutoProvision {
     this.callbacks = callbacks;
   }
 
-  public void start(final ForstaServiceAccountManager accountManager, final String addr, final String signalingKey, final int registrationId, final String password) {
+  public void start() {
     webSocket = WebSocketUtils.getInstance(context, new WebSocketUtils.MessageCallbacks() {
       @Override
       public void onSocketMessage(WebSocketProtos.WebSocketRequestMessage request) {
@@ -62,12 +64,11 @@ public class AutoProvision {
         ECPublicKey ourPubKey = identityKeys.getPublicKey().getPublicKey();
         ECPrivateKey ourPrivKey = identityKeys.getPrivateKey();
 
-        Log.w(TAG, "Our Public and Private keys");
-        Log.w(TAG, Arrays.toString(ourPubKey.serialize()));
-        Log.w(TAG, Arrays.toString(ourPrivKey.serialize()));
-
         if (path.equals("/v1/address") && verb.equals("PUT")) {
           Log.w(TAG, "Received address");
+          Log.w(TAG, "Our Public and Private keys");
+          Log.w(TAG, Arrays.toString(ourPubKey.serialize()));
+          Log.w(TAG, Arrays.toString(ourPrivKey.serialize()));
           try {
             final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
             byte[] serializedPublicKey = ourPubKey.serialize();
@@ -83,21 +84,18 @@ public class AutoProvision {
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
             ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, ourPrivKey);
+
             if (provisionMessage != null) {
-              if (!provisionMessage.getNumber().equals(ForstaPreferences.getUserId(context))) { // or TextSecurePreferences.getNumber()
-                Log.w(TAG, "Received provision message from unknown address");
-              }
-              Log.w(TAG, "Provisioning message content");
-              Log.w(TAG, provisionMessage.getNumber());
-              Log.w(TAG, provisionMessage.getProvisioningCode());
-              Log.w(TAG, "Private key");
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); // matched ourPrivKey. Why?
-              accountManager.addDevice(provisionMessage.getProvisioningCode(), provisionMessage.getNumber(), signalingKey, registrationId, password);
-              if (callbacks != null) {
-                callbacks.onComplete();
-              }
-            } else {
-              Log.w(TAG, "Failed to decrypt provision message");
+              Log.w(TAG, "New Private key");
+              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray()));
+
+
+              // Need to generate new public key from this private.
+              // Then, save new public and private keys to local storage.
+            }
+
+            if (callbacks != null) {
+              callbacks.onComplete(provisionMessage);
             }
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
@@ -115,8 +113,6 @@ public class AutoProvision {
   }
 
   public interface ProvisionCallbacks {
-    void onStartProvisioning(String uuid);
-    void onReceiveProvisionMessage();
-    void onComplete();
+    void onComplete(org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage);
   }
 }
