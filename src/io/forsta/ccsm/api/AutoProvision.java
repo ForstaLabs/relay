@@ -95,6 +95,7 @@ public class AutoProvision {
               ECPrivateKey newPrivateKey = Curve.decodePrivatePoint(provisionMessage.getIdentityKeyPrivate().toByteArray());
               Log.w(TAG, Arrays.toString(newPrivateKey.serialize()));
               byte[] pubKey = keyProvider.generatePublicKey(newPrivateKey.serialize());
+              Log.w(TAG, Arrays.toString(pubKey));
               ECPublicKey newPublicKey = Curve.decodePoint(pubKey, 0);
               Log.w(TAG, Arrays.toString(newPublicKey.serialize()));
               IdentityKeyUtil.updateKeys(context, newPrivateKey, newPublicKey);
