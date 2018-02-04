@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.util.NetworkUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -63,7 +64,7 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
     this.pushServiceSocket = new PushServiceSocket(serverUrl, trustStore, creds, userAgent);
   }
 
-  // Move these two methods to the accountManager and use pushServerSocket.
+  // Add this to the PushServerSocket in libsignal-service.
   public void addDevice(String code, String address, String signalingKey, int registrationId, String password) {
     //PUT /v1/devices/code
     // Header "Authorization", "Basic " + Base64.encode(username(address), password)
@@ -78,8 +79,10 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
     } catch (JSONException e) {
       e.printStackTrace();
     }
+
   }
 
+  // This should already be handled in CommonRegistration
   public void registerKeys() {
     // PUT to /v2/keys/
     // jsonPayload

@@ -12,6 +12,8 @@ import android.util.Log;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.AutoProvision;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -24,7 +26,10 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
@@ -116,25 +121,28 @@ public class RegistrationService extends Service {
       registrationId = KeyHelper.generateRegistrationId(false);
       TextSecurePreferences.setLocalRegistrationId(this, registrationId);
     }
-    String password     = Util.getSecret(18);
-    String signalingKey = Util.getSecret(52);
-    Context context = getApplicationContext();
-    String addr = ForstaPreferences.getUserId(context);
+    final String password     = Util.getSecret(18);
+    final String signalingKey = Util.getSecret(52);
+    final Context context = getApplicationContext();
+    final String addr = ForstaPreferences.getUserId(context);
     setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
     try {
-      ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
-      // Get devices from atlas
-      // if > 0 try autoProvision
-      // Check to see if IdentityKeys already exist at this point.
-      IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
-      // else
+      final ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
+      boolean isMultiDevice = CcsmApi.hasDevices(context);
+      if (isMultiDevice) {
+        AutoProvision autoProvision = AutoProvision.getInstance(context);
+        autoProvision.start(accountManager, addr, signalingKey, registrationId, password);
+        
+      } else {
+        // Normal registration
 
-      accountManager.createAccount(context, addr, password, signalingKey, registrationId);
-      setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
-      handleCommonRegistration(accountManager, addr, password, signalingKey);
-      markAsVerified(addr, password, signalingKey);
-      setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
-      broadcastComplete(true);
+        accountManager.createAccount(context, addr, password, signalingKey, registrationId);
+        setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
+        handleCommonRegistration(accountManager, addr, password, signalingKey);
+        markAsVerified(addr, password, signalingKey);
+        setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
+        broadcastComplete(true);
+      }
     } catch (ExpectationFailedException efe) {
       Log.w("RegistrationService", efe);
       setState(new RegistrationState(RegistrationState.STATE_MULTI_REGISTERED));

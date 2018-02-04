@@ -9,6 +9,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
 
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -55,7 +56,7 @@ public class WebSocketUtils {
 
   public void connect(String url) {
     Request.Builder request = new Request.Builder();
-    url = TextSecurePreferences.getServer(context) + url;
+    url = BuildConfig.SIGNAL_API_URL + url;
     url = url.replace("https", "wss");
     request.url(url);
     socket = client.newWebSocket(request.build(), new SocketListener());

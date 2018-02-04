@@ -51,16 +51,13 @@ public class AutoProvision {
     this.callbacks = callbacks;
   }
 
-  public void autoProvision(final String signalingKey, final int registrationId, final String password) {
+  public void start(final ForstaServiceAccountManager accountManager, final String addr, final String signalingKey, final int registrationId, final String password) {
     webSocket = WebSocketUtils.getInstance(context, new WebSocketUtils.MessageCallbacks() {
       @Override
       public void onSocketMessage(WebSocketProtos.WebSocketRequestMessage request) {
         String path = request.getPath();
         String verb = request.getVerb();
 
-        // Call generateIdentityKeyPair when moved to RegistrationService
-        // This will save the new KeyPair to local storage.
-//        IdentityKeyUtil.generateIdentityKeys(context);
         IdentityKeyPair identityKeys  = IdentityKeyUtil.getIdentityKeyPair(context);
         ECPublicKey ourPubKey = identityKeys.getPublicKey().getPublicKey();
         ECPrivateKey ourPrivKey = identityKeys.getPrivateKey();
@@ -95,16 +92,10 @@ public class AutoProvision {
               Log.w(TAG, provisionMessage.getProvisioningCode());
               Log.w(TAG, "Private key");
               Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray())); // matched ourPrivKey. Why?
-              ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
               accountManager.addDevice(provisionMessage.getProvisioningCode(), provisionMessage.getNumber(), signalingKey, registrationId, password);
-              // Similar to createAccount.
-              // addDevice(provisionCode, address, SignalingKey, registrationId, name, supportsSms=false, fetchesMessages=true)
-              // setMultidevice = true in local store.
-              // Save any other needed state.
-              // Generate prekeys
-              // Register prekeys
-              // DONE!
-
+              if (callbacks != null) {
+                callbacks.onComplete();
+              }
             } else {
               Log.w(TAG, "Failed to decrypt provision message");
             }

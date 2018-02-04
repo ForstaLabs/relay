@@ -72,10 +72,21 @@ public class CcsmApi {
   private CcsmApi() {
   }
 
-  public static JSONObject getDevices(Context context) {
+  public static boolean hasDevices(Context context) {
     String host = BuildConfig.FORSTA_API_URL;
     String authKey = ForstaPreferences.getRegisteredKey(context);
-    return NetworkUtils.apiFetch("GET", authKey, host + API_PROVISION_ACCOUNT, null);
+    JSONObject response = NetworkUtils.apiFetch("GET", authKey, host + API_PROVISION_ACCOUNT, null);
+    if (response.has("devices")) {
+      try {
+        JSONArray devices = response.getJSONArray("devices");
+        if (devices.length() > 0) {
+          return true;
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+    return false;
   }
 
   public static void provisionRequest(Context context, String uuid, String pubKey) {
