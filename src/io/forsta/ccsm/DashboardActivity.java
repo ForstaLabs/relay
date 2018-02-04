@@ -110,7 +110,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     Log.w(TAG, Arrays.toString(privateKey.serialize()));
     try {
       MyProvider provider = new MyProvider();
-      provider.generatePublicKey(privateKey.serialize());
+      byte[] pubKey = provider.generatePublicKey(privateKey.serialize());
+      Log.w(TAG, Arrays.toString(pubKey));
     } catch (Exception e) {
       e.printStackTrace();
     }

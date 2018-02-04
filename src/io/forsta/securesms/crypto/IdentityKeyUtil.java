@@ -23,6 +23,8 @@ import android.content.SharedPreferences.Editor;
 import android.support.annotation.NonNull;
 
 import io.forsta.securesms.util.Base64;
+
+import org.whispersystems.curve25519.JavaCurve25519Provider;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -81,13 +83,11 @@ public class IdentityKeyUtil {
     }
   }
 
-  public static void updateKeys(Context context, byte[] privateKey) {
-    ECPrivateKey privKey = Curve.decodePrivatePoint(privateKey);
-    //  ECPublicKey pubKey = Curve.getPublicKey(privKey);
-//    IdentityKey  IdentityKey = new IdentityKey(pubKey);
+  public static void updateKeys(Context context, ECPrivateKey privateKey, ECPublicKey publicKey) {
+    IdentityKey  IdentityKey = new IdentityKey(publicKey);
 
-//    save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
-//    save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privKey.serialize()));
+    save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
+    save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privateKey.serialize()));
   }
 
   public static void generateIdentityKeys(Context context) {
