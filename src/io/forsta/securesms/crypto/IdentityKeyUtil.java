@@ -86,8 +86,8 @@ public class IdentityKeyUtil {
     //  ECPublicKey pubKey = Curve.getPublicKey(privKey);
 //    IdentityKey  IdentityKey = new IdentityKey(pubKey);
 
-    save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
-    save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privKey.serialize()));
+//    save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
+//    save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privKey.serialize()));
   }
 
   public static void generateIdentityKeys(Context context) {
