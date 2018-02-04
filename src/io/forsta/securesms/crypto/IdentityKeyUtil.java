@@ -29,6 +29,7 @@ import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 
 import java.io.IOException;
 
@@ -78,6 +79,15 @@ public class IdentityKeyUtil {
     } catch (IOException e) {
       throw new AssertionError(e);
     }
+  }
+
+  public static void updateKeys(Context context, byte[] privateKey) {
+    ECPrivateKey privKey = Curve.decodePrivatePoint(privateKey);
+    //  ECPublicKey pubKey = Curve.getPublicKey(privKey);
+//    IdentityKey  IdentityKey = new IdentityKey(pubKey);
+
+    save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
+    save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privKey.serialize()));
   }
 
   public static void generateIdentityKeys(Context context) {
