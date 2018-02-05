@@ -603,7 +603,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
         @Override
         protected void onPostExecute(ForstaDistribution distribution) {
-          if (distribution != null && !distribution.getRecipients(ConversationActivity.this).isEmpty()) {
+          if (distribution != null && distribution.isValid()) {
             DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
           }
         }
