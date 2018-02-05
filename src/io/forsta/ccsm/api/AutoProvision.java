@@ -89,8 +89,8 @@ public class AutoProvision {
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, ourPrivKey);
 
             if (provisionMessage != null) {
+              webSocket.disconnect();
               Log.w(TAG, "New Private key");
-              Log.w(TAG, Arrays.toString(provisionMessage.getIdentityKeyPrivate().toByteArray()));
               KeyProvider keyProvider = new KeyProvider();
               ECPrivateKey newPrivateKey = Curve.decodePrivatePoint(provisionMessage.getIdentityKeyPrivate().toByteArray());
               Log.w(TAG, Arrays.toString(newPrivateKey.serialize()));
@@ -99,17 +99,18 @@ public class AutoProvision {
               ECPublicKey newPublicKey = Curve.decodePoint(typedPublicKey, 0);
               Log.w(TAG, Arrays.toString(newPublicKey.serialize()));
               IdentityKeyUtil.updateKeys(context, newPrivateKey, newPublicKey);
-            }
-
-            if (callbacks != null) {
-              callbacks.onComplete(provisionMessage);
+              if (callbacks != null) {
+                callbacks.onComplete(provisionMessage);
+              }
             }
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
           } catch (InvalidKeyException e) {
             e.printStackTrace();
           }
-          webSocket.disconnect();
+          if (webSocket.socketOpen) {
+            webSocket.disconnect();
+          }
         }
       }
 

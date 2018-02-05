@@ -106,24 +106,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
 
-    IdentityKeyPair keyPair = IdentityKeyUtil.getIdentityKeyPair(DashboardActivity.this);
-    ECPrivateKey privateKey = keyPair.getPrivateKey();
-    ECPublicKey publicKey = keyPair.getPublicKey().getPublicKey();
-    Log.w(TAG, "Local Public and Private Keys");
-    Log.w(TAG, Arrays.toString(publicKey.serialize()));
-    Log.w(TAG, Arrays.toString(privateKey.serialize()));
-    try {
-      MyProvider provider = new MyProvider();
-      byte[] pubKey = provider.generatePublicKey(privateKey.serialize());
-      Log.w(TAG, Arrays.toString(pubKey));
-
-      byte[] type = {Curve.DJB_TYPE};
-      byte[] fixed = ByteUtil.combine(type, pubKey);
-      ECPublicKey ecPublicKey = Curve.decodePoint(fixed, 0);
-      Log.w(TAG, Arrays.toString(ecPublicKey.serialize()));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    String key = TextSecurePreferences.getSignalingKey(DashboardActivity.this);
+    Log.w(TAG, key);
   }
 
   class MyProvider extends JavaCurve25519Provider {

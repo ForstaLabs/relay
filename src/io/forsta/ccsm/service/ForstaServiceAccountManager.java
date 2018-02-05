@@ -68,17 +68,25 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
   // Add this to the PushServerSocket in libsignal-service.
   public void registerDevice(Context context, String code, String address, String signalingKey, int registrationId, String password) throws Exception {
     JSONObject jsonData = new JSONObject();
-    jsonData.put("signalingKey", Base64.encodeBytes(signalingKey.getBytes())); // Check this.
+    String userAgent = Build.DISPLAY;
+    jsonData.put("signalingKey", signalingKey); // Check this.
     jsonData.put("supportsSms", false);
     jsonData.put("fetchesMessages", true);
     jsonData.put("registrationId", registrationId);
     jsonData.put("name", "Relay Android"); // Get other meta from device.
+    jsonData.put("userAgent", userAgent);
 
     String authString = getAuthorizationString(address, password);
     String url = BuildConfig.SIGNAL_API_URL + "/v1/devices/" + code;
     JSONObject response = NetworkUtils.hardFetch("PUT", authString, url, jsonData, 0);
     if (response.has("deviceId")) {
-      TextSecurePreferences.setLocalDeviceID(context, response.getInt("deviceId"));
+      this.user = address;
+      this.deviceId = response.getInt("deviceId");
+      this.userAgent = userAgent;
+      TextSecurePreferences.setLocalDeviceID(context, this.deviceId);
+      String username = address + "." + this.deviceId;
+      StaticCredentialsProvider creds = new StaticCredentialsProvider(username, password, signalingKey);
+      this.pushServiceSocket = new PushServiceSocket(BuildConfig.SIGNAL_API_URL, trustStore, creds, userAgent);
     }
   }
 
