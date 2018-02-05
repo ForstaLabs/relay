@@ -24,7 +24,6 @@ import android.support.annotation.NonNull;
 
 import io.forsta.securesms.util.Base64;
 
-import org.whispersystems.curve25519.JavaCurve25519Provider;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;

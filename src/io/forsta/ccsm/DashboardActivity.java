@@ -26,17 +26,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.curve25519.Curve25519;
-import org.whispersystems.curve25519.JavaCurve25519Provider;
-import org.whispersystems.libsignal.IdentityKey;
-import org.whispersystems.libsignal.IdentityKeyPair;
-import org.whispersystems.libsignal.ecc.Curve;
-import org.whispersystems.libsignal.ecc.DjbECPublicKey;
-import org.whispersystems.libsignal.ecc.ECPrivateKey;
-import org.whispersystems.libsignal.ecc.ECPublicKey;
-import org.whispersystems.libsignal.util.ByteUtil;
 
-import io.forsta.ccsm.api.AutoProvision;
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaTag;
@@ -105,15 +95,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
-
-    String key = TextSecurePreferences.getSignalingKey(DashboardActivity.this);
-    Log.w(TAG, key);
-  }
-
-  class MyProvider extends JavaCurve25519Provider {
-    public MyProvider() {
-      super();
-    }
   }
 
   @Override
