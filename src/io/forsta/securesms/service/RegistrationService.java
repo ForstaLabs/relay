@@ -149,6 +149,7 @@ public class RegistrationService extends Service {
                   accountManager.registerDevice(context, provisionMessage.getProvisioningCode(), addr, signalingKey, TextSecurePreferences.getLocalRegistrationId(context), password);
                   setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
                   handleCommonRegistration(accountManager, addr, password, signalingKey);
+                  TextSecurePreferences.setMultiDevice(context, true);
                   markAsVerified(addr, password, signalingKey);
                   setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
                   broadcastComplete(true);
