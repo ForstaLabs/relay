@@ -228,7 +228,7 @@ public class ContactDb extends DbBase {
     finally {
       db.endTransaction();
     }
-    if (removeExisting) {
+    if (removeExisting && users.size() > 0) {
       Log.w(TAG, "Reseting directory. Removing " + uids.size() + " entries.");
       db.beginTransaction();
       try {
