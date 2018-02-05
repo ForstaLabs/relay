@@ -47,6 +47,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Date;
 
 import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
@@ -117,6 +118,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
       ContentResolver.requestSync(account, ForstaSyncAdapter.AUTHORITY, Bundle.EMPTY);
     }
+    long lastUpdate = ForstaPreferences.getForstaContactSync(ConversationListActivity.this);
+    Date update = new Date(lastUpdate);
+    Date now = new Date();
+    Log.w(TAG, "Last contacts sync: " + update.toString());
+    // ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
   }
 
   @Override
@@ -273,8 +279,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     @Override
     protected JSONObject doInBackground(Void... voids) {
       CcsmApi.forstaRefreshToken(ConversationListActivity.this);
-      ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
-
       JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
         ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
