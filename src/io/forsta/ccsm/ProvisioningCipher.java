@@ -64,8 +64,6 @@ public class ProvisioningCipher {
 
     try {
       byte[] key = envelope.getPublicKey().toByteArray();
-      Log.w(TAG, "Public key in envelope");
-      Log.w(TAG, Arrays.toString(key));
       byte[] body = envelope.getBody().toByteArray();
       if (body[0] != 1) {
         throw new InvalidMessageException("Invalid ProvisionMessage version");
@@ -83,9 +81,9 @@ public class ProvisioningCipher {
       getMac(parts[1], ivAndCiphertext);
 
       byte[] plainText = getPlaintext(parts[0], ciphertext, iv);
-
       org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
       return provisionMessage;
+      
     } catch (InvalidMessageException e) {
       e.printStackTrace();
     } catch (InvalidProtocolBufferException e) {
