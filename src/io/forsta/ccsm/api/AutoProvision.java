@@ -68,10 +68,7 @@ public class AutoProvision {
         ECPrivateKey ourPrivKey = identityKeys.getPrivateKey();
 
         if (path.equals("/v1/address") && verb.equals("PUT")) {
-          Log.w(TAG, "Received address");
-          Log.w(TAG, "Our Public and Private keys");
-          Log.w(TAG, Arrays.toString(ourPubKey.serialize()));
-          Log.w(TAG, Arrays.toString(ourPrivKey.serialize()));
+          Log.w(TAG, "Auto Provision. Received ephemeral address.");
           try {
             final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
             byte[] serializedPublicKey = ourPubKey.serialize();
@@ -82,7 +79,7 @@ public class AutoProvision {
             e.printStackTrace();
           }
         } else if (path.equals("/v1/message") && verb.equals("PUT")) {
-          Log.w(TAG, "Received message");
+          Log.w(TAG, "Received Provision Envelope message");
           try {
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
             ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
@@ -90,24 +87,25 @@ public class AutoProvision {
 
             if (provisionMessage != null) {
               webSocket.disconnect();
-              Log.w(TAG, "New Private key");
+              Log.w(TAG, "New Provision Message");
               KeyProvider keyProvider = new KeyProvider();
               ECPrivateKey newPrivateKey = Curve.decodePrivatePoint(provisionMessage.getIdentityKeyPrivate().toByteArray());
-              Log.w(TAG, Arrays.toString(newPrivateKey.serialize()));
               byte[] pubKey = keyProvider.generatePublicKey(newPrivateKey.serialize());
               byte[] typedPublicKey = IdentityKeyUtil.addKeyType(pubKey);
               ECPublicKey newPublicKey = Curve.decodePoint(typedPublicKey, 0);
-              Log.w(TAG, Arrays.toString(newPublicKey.serialize()));
               IdentityKeyUtil.updateKeys(context, newPrivateKey, newPublicKey);
-              if (callbacks != null) {
-                callbacks.onComplete(provisionMessage);
-              }
+              provisioningComplete(provisionMessage);
+            } else {
+              provisioningFailed("Unable to decrypt provision message");
             }
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
+            provisioningFailed(e.getMessage());
           } catch (InvalidKeyException e) {
             e.printStackTrace();
+            provisioningFailed(e.getMessage());
           }
+
           if (webSocket.socketOpen) {
             webSocket.disconnect();
           }
@@ -122,8 +120,21 @@ public class AutoProvision {
     webSocket.connect("/v1/websocket/provisioning/");
   }
 
+  private void provisioningComplete(org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage) {
+    if (callbacks != null) {
+      callbacks.onComplete(provisionMessage);
+    }
+  }
+
+  private void provisioningFailed(String message) {
+    if (callbacks != null) {
+      callbacks.onFailure(message);
+    }
+  }
+
   public interface ProvisionCallbacks {
     void onComplete(org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage);
+    void onFailure(String message);
   }
 
   class KeyProvider extends JavaCurve25519Provider {

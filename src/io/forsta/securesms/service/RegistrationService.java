@@ -163,6 +163,15 @@ public class RegistrationService extends Service {
               broadcastComplete(false);
             }
           }
+
+          @Override
+          public void onFailure(String message) {
+            Log.w(TAG, "Provisioning FAILED! : " + message);
+            // Autoprovision FAILED!
+            // Now what do we want to do?
+            // There are other devices, so doing a full new account setup will blow away other clients.
+
+          }
         });
       } else {
         // Normal registration
