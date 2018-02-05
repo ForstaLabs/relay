@@ -83,7 +83,7 @@ public class ProvisioningCipher {
       byte[] plainText = getPlaintext(parts[0], ciphertext, iv);
       org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage.parseFrom(plainText);
       return provisionMessage;
-      
+
     } catch (InvalidMessageException e) {
       e.printStackTrace();
     } catch (InvalidProtocolBufferException e) {
