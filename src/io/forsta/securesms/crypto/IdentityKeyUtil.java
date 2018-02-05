@@ -32,6 +32,7 @@ import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
+import org.whispersystems.libsignal.util.ByteUtil;
 
 import java.io.IOException;
 
@@ -88,6 +89,11 @@ public class IdentityKeyUtil {
 
     save(context, IDENTITY_PUBLIC_KEY_PREF, Base64.encodeBytes(IdentityKey.serialize()));
     save(context, IDENTITY_PRIVATE_KEY_PREF, Base64.encodeBytes(privateKey.serialize()));
+  }
+
+  public static byte[] addKeyType(byte[] publicKey) {
+    byte[] type = {Curve.DJB_TYPE};
+    return ByteUtil.combine(type, publicKey);
   }
 
   public static void generateIdentityKeys(Context context) {

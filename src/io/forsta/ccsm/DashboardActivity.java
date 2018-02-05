@@ -28,9 +28,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.curve25519.Curve25519;
 import org.whispersystems.curve25519.JavaCurve25519Provider;
+import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.DjbECPublicKey;
 import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
+import org.whispersystems.libsignal.util.ByteUtil;
 
 import io.forsta.ccsm.api.AutoProvision;
 import io.forsta.ccsm.api.model.ForstaJWT;
@@ -112,6 +116,11 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       MyProvider provider = new MyProvider();
       byte[] pubKey = provider.generatePublicKey(privateKey.serialize());
       Log.w(TAG, Arrays.toString(pubKey));
+
+      byte[] type = {Curve.DJB_TYPE};
+      byte[] fixed = ByteUtil.combine(type, pubKey);
+      ECPublicKey ecPublicKey = Curve.decodePoint(fixed, 0);
+      Log.w(TAG, Arrays.toString(ecPublicKey.serialize()));
     } catch (Exception e) {
       e.printStackTrace();
     }
