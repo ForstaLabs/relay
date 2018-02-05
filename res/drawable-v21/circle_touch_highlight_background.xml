@@ -6,4 +6,9 @@
             <solid android:color="@color/black" />
         </shape>
     </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?conversation_send_button" />
+        </shape>
+    </item>
 </ripple>
