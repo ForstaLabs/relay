@@ -26,6 +26,7 @@ import java.util.List;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
@@ -51,6 +52,7 @@ public abstract class DisplayRecord {
   private final Body       body;
   private final int        deliveryStatus;
   private final int        receiptCount;
+  protected ForstaMessage forstaMessageBody;
 
   public DisplayRecord(Context context, Body body, Recipients recipients, long dateSent,
                        long dateReceived, long threadId, int deliveryStatus, int receiptCount, long type)
@@ -68,6 +70,13 @@ public abstract class DisplayRecord {
 
   public Body getBody() {
     return body;
+  }
+
+  protected ForstaMessage getForstaMessageBody() throws InvalidMessagePayloadException {
+    if (forstaMessageBody == null) {
+      forstaMessageBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+    }
+    return forstaMessageBody;
   }
 
   public boolean isFailed() {

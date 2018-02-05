@@ -100,7 +100,7 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public String getPlainTextBody() {
     try {
-      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaBody = getForstaMessageBody();
       return forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
@@ -110,7 +110,7 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public Spanned getHtmlBody() {
     try {
-      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaBody = getForstaMessageBody();
       if (!TextUtils.isEmpty(forstaBody.getHtmlBody())) {
         return Html.fromHtml(forstaBody.getHtmlBody());
       }
@@ -122,7 +122,7 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public String getGiphy() {
     try {
-      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaBody = getForstaMessageBody();
       return forstaBody.getGiphyUrl();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
@@ -138,7 +138,7 @@ public abstract class MessageRecord extends DisplayRecord {
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
     try {
-      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaBody = getForstaMessageBody();
       body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();

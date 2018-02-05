@@ -90,7 +90,7 @@ public class ThreadRecord extends DisplayRecord {
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
     try {
-      ForstaMessage forstaBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaBody = getForstaMessageBody();
       body = forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
@@ -104,7 +104,7 @@ public class ThreadRecord extends DisplayRecord {
 
   public String getSenderAddress() {
     try {
-      ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
+      ForstaMessage forstaMessage = getForstaMessageBody();
       return forstaMessage.getSenderId();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
