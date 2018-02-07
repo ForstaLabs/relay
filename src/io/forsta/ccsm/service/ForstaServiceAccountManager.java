@@ -93,37 +93,4 @@ public class ForstaServiceAccountManager extends SignalServiceAccountManager {
   private String getAuthorizationString(String userName, String password) {
     return "Basic " + Base64.encodeBytes((userName + ":" + password).getBytes());
   }
-
-  // This should already be handled in CommonRegistration
-  public void registerKeys() {
-    // PUT to /v2/keys/
-    // jsonPayload
-    try {
-      JSONObject jsonData = new JSONObject();
-      JSONObject signedPreKey = new JSONObject();
-      signedPreKey.put("keyId", "");
-      signedPreKey.put("publicKey", "");
-      signedPreKey.put("signature", "");
-
-      JSONArray preKeys = new JSONArray();
-      // This needs adjustment.
-      for (int i=0; i<3; i++) {
-        JSONObject preKey = new JSONObject();
-        preKey.put("keyId", "");
-        preKey.put("publicKey", "");
-        preKeys.put(i, preKey);
-      }
-
-      JSONObject lastResortKey = new JSONObject();
-      lastResortKey.put("keyId", "");
-      lastResortKey.put("publicKey", "");
-
-      jsonData.put("identityKey", "");
-      jsonData.put("signedPreKey", signedPreKey);
-      jsonData.put("preKeys", preKeys);
-      jsonData.put("lastResortKey", lastResortKey);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-  }
 }
