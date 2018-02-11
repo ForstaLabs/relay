@@ -49,29 +49,14 @@ public class AvatarImageView extends ImageView {
   }
 
   public void setAvatar(final @Nullable Recipients recipients, MaterialColor backgroundColor) {
+    setAvatarClickHandler(recipients, false);
     new AvatarLoader(backgroundColor).execute(recipients);
-
-//    if (recipients != null) {
-//      setImageDrawable(recipients.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-//      setAvatarClickHandler(recipients, false);
-//    } else {
-//      setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
-//      setOnClickListener(null);
-//    }
   }
 
   public void setAvatar(final @Nullable Recipients recipients, boolean quickContactEnabled) {
+    setAvatarClickHandler(recipients, quickContactEnabled);
     new AvatarLoader(recipients.getColor()).execute(recipients);
-
-//    if (recipients != null) {
-//      MaterialColor backgroundColor = recipients.getColor();
-//      setImageDrawable(recipients.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-//      setAvatarClickHandler(recipients, quickContactEnabled);
-//    } else {
-//      setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
-//      setOnClickListener(null);
-//    }
-  }
+}
 
   public void setAvatar(@Nullable Recipient recipient, boolean quickContactEnabled) {
     setAvatar(RecipientFactory.getRecipientsFor(getContext(), recipient, true), quickContactEnabled);
@@ -81,7 +66,6 @@ public class AvatarImageView extends ImageView {
     if (contactPhoto != null) {
       MaterialColor backgroundColor = color;
       setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-//      setAvatarClickHandler(recipients, quickContactEnabled);
     } else {
       setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
       setOnClickListener(null);
