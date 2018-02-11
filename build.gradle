@@ -82,7 +82,6 @@ dependencies {
     compile 'org.whispersystems:jobmanager:1.0.2'
     compile 'org.whispersystems:libpastelog:1.0.7'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
-    compile 'org.whispersystems:curve25519-android:0.2.4'
     compile 'com.h6ah4i.android.compat:mulsellistprefcompat:1.0.0'
     compile 'com.google.zxing:core:3.2.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
@@ -177,6 +176,7 @@ android {
         stage {
             applicationIdSuffix '.stage'
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-stage.forsta.io\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a14a-bb802bb0cefb\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
@@ -184,6 +184,7 @@ android {
         }
         prod {
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas.forsta.io\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-prod.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\""
             buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", prod_service_config
         }

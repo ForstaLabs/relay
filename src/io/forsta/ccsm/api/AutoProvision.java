@@ -69,6 +69,7 @@ public class AutoProvision {
 
         if (path.equals("/v1/address") && verb.equals("PUT")) {
           Log.w(TAG, "Auto Provision. Received ephemeral address.");
+
           try {
             final ProvisioningProtos.ProvisioningUuid proto = ProvisioningProtos.ProvisioningUuid.parseFrom(request.getBody());
             byte[] serializedPublicKey = ourPubKey.serialize();
@@ -78,8 +79,10 @@ public class AutoProvision {
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
           }
+
         } else if (path.equals("/v1/message") && verb.equals("PUT")) {
           Log.w(TAG, "Received Provision Envelope message");
+
           try {
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope envelope = org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionEnvelope.parseFrom(request.getBody());
             ProvisioningCipher provisionCipher = new ProvisioningCipher(null);
@@ -98,6 +101,7 @@ public class AutoProvision {
             } else {
               provisioningFailed("Unable to decrypt provision message");
             }
+
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
             provisioningFailed(e.getMessage());
@@ -137,6 +141,8 @@ public class AutoProvision {
     void onFailure(String message);
   }
 
+  // XXX This is here to expose generatePublicKey method.
+  // Move to libsignal-service
   class KeyProvider extends JavaCurve25519Provider {
     public KeyProvider() {
       super();

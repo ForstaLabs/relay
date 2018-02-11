@@ -141,25 +141,26 @@ public class RegistrationService extends Service {
         autoProvision.setProvisionCallbacks(new AutoProvision.ProvisionCallbacks() {
           @Override
           public void onComplete(ProvisioningProtos.ProvisionMessage provisionMessage) {
-            if (provisionMessage != null) {
-              if (!provisionMessage.getNumber().equals(addr)) { // or TextSecurePreferences.getNumber()
-                Log.w(TAG, "Received provision message for unknown address");
-              } else {
-                try {
-                  accountManager.registerDevice(context, provisionMessage.getProvisioningCode(), addr, signalingKey, TextSecurePreferences.getLocalRegistrationId(context), password);
-                  setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
-                  handleCommonRegistration(accountManager, addr, password, signalingKey);
-                  TextSecurePreferences.setMultiDevice(context, true);
-                  markAsVerified(addr, password, signalingKey);
-                  setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
-                  broadcastComplete(true);
-                } catch (Exception e) {
-                  e.printStackTrace();
-                  setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
-                  broadcastComplete(false);
-                }
+
+            try {
+              if (provisionMessage == null) {
+                throw new Exception("No provisioning message.");
               }
-            } else {
+
+              if (!provisionMessage.getNumber().equals(addr)) { // or TextSecurePreferences.getNumber()
+                throw new Exception("Received provision message for unknown address");
+              }
+
+              accountManager.registerDevice(context, provisionMessage.getProvisioningCode(), addr, signalingKey, TextSecurePreferences.getLocalRegistrationId(context), password);
+              setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
+              handleCommonRegistration(accountManager, addr, password, signalingKey);
+              TextSecurePreferences.setMultiDevice(context, true);
+              markAsVerified(addr, password, signalingKey);
+              setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
+              broadcastComplete(true);
+
+            } catch (Exception e) {
+              Log.w(TAG, "Provisioning FAILED! : " + e.getMessage());
               setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
               broadcastComplete(false);
             }
@@ -168,10 +169,8 @@ public class RegistrationService extends Service {
           @Override
           public void onFailure(String message) {
             Log.w(TAG, "Provisioning FAILED! : " + message);
-            // Autoprovision FAILED!
-            // Now what do we want to do?
-            // There are other devices, so doing a full new account setup will blow away other clients.
-
+            setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
+            broadcastComplete(false);
           }
         });
       } else {

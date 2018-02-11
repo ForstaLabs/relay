@@ -34,7 +34,6 @@ public class WebSocketUtils {
   private MessageCallbacks callback;
   public boolean socketOpen = false;
   private Context context;
-  private Handler messageHandler;
   private static WebSocketUtils instance;
   private static final Object lock = new Object();
 
@@ -60,28 +59,18 @@ public class WebSocketUtils {
     url = url.replace("https", "wss");
     request.url(url);
     socket = client.newWebSocket(request.build(), new SocketListener());
-//    messageHandler = new Handler(new Handler.Callback() {
-//      @Override
-//      public boolean handleMessage(Message message) {
-//        callback.onSocketMessage((WebSocketProtos.WebSocketRequestMessage) message.obj);
-//        callback.onStatusChanged(socketOpen);
-//        return true;
-//      }
-//    });
   }
 
   public void disconnect() {
     socket.close(1000, "Bye");
-//    messageHandler.removeCallbacksAndMessages(null);
+    setSocketState(false);
   }
 
   private synchronized void setSocketState(boolean state) {
     socketOpen = state;
-  }
-
-  private void handleThreadMessage(WebSocketProtos.WebSocketRequestMessage socketMessage) {
-    Message message = messageHandler.obtainMessage(0, socketMessage);
-    messageHandler.sendMessage(message);
+    if (callback != null) {
+      callback.onStatusChanged(state);
+    }
   }
 
   private class SocketListener extends WebSocketListener {
@@ -89,12 +78,6 @@ public class WebSocketUtils {
     public void onOpen(WebSocket webSocket, Response response) {
       Log.d(TAG, "Socket open");
       setSocketState(true);
-    }
-
-    @Override
-    public void onMessage(WebSocket webSocket, String text) {
-      Log.d(TAG, "Got String message from socket");
-      Log.d(TAG, text);
     }
 
     @Override

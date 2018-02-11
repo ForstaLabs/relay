@@ -278,12 +278,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
         ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
-        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
-        if (orgResponse.has("id")) {
-          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
-        } else {
-          return orgResponse;
-        }
       } else {
         return userResponse;
       }
