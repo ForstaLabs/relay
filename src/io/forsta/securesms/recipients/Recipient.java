@@ -257,13 +257,9 @@ public class Recipient {
     this.stale = true;
   }
 
-  public URL getGravitarUrl() {
-    try {
-      if (!TextUtils.isEmpty(gravatarHash)) {
-        return new URL("https://www.gravatar.com/avatar/" + gravatarHash);
-      }
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
+  public String getGravitarUrl() {
+    if (!TextUtils.isEmpty(gravatarHash)) {
+      return "https://www.gravatar.com/avatar/" + gravatarHash;
     }
     return null;
   }

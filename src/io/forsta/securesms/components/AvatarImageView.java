@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +24,7 @@ import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactColors;
 import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
+import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -48,14 +50,31 @@ public class AvatarImageView extends ImageView {
     }
   }
 
-  public void setAvatar(final @Nullable Recipients recipients, MaterialColor backgroundColor) {
-    setAvatarClickHandler(recipients, false);
-    new AvatarLoader(backgroundColor).execute(recipients);
+  public void setAvatar(final @Nullable Recipients recipients, final MaterialColor backgroundColor) {
+    if (recipients.isSingleRecipient()) {
+      setAvatarClickHandler(recipients, false);
+      final ImageView imageView = this;
+      Recipient recipient = recipients.getPrimaryRecipient();
+      if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
+        new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
+          @Override
+          public void onComplete(BitmapContactPhoto contactPhoto) {
+          // May need handler here, or post to UI thread object
+          imageView.setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+          }
+        }).execute(recipient.getGravitarUrl());
+      } else {
+        setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+      }
+    } else {
+      setOnClickListener(null);
+      setImageDrawable(ContactPhotoFactory.getDefaultGroupPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext())));
+    }
   }
 
   public void setAvatar(final @Nullable Recipients recipients, boolean quickContactEnabled) {
     setAvatarClickHandler(recipients, quickContactEnabled);
-    new AvatarLoader(recipients.getColor()).execute(recipients);
+
 }
 
   public void setAvatar(@Nullable Recipient recipient, boolean quickContactEnabled) {
@@ -89,54 +108,4 @@ public class AvatarImageView extends ImageView {
       setOnClickListener(null);
     }
   }
-
-  private class AvatarLoader extends AsyncTask<Recipients, Void, ContactPhoto> {
-    private MaterialColor color;
-
-    public AvatarLoader(MaterialColor color) {
-      this.color = color;
-    }
-
-    @Override
-    protected ContactPhoto doInBackground(Recipients... params) {
-      Recipients recipients = params[0];
-
-      if (!recipients.isSingleRecipient() && !recipients.isEmpty()) {
-        return ContactPhotoFactory.getDefaultGroupPhoto();
-      } else {
-        try {
-          URL gravatarUrl = recipients.getPrimaryRecipient().getGravitarUrl();
-          if (gravatarUrl != null) {
-            return new BitmapContactPhoto(getContactGravatar(gravatarUrl));
-          }
-        } catch (Exception e) {
-          Log.w("AvatarImageView", "Error loading gravatar");
-        }
-      }
-      return ContactPhotoFactory.getDefaultContactPhoto(recipients.getPrimaryRecipient().getName());
-    }
-
-    @Override
-    protected void onPostExecute(ContactPhoto contactPhoto) {
-      if (contactPhoto != null) {
-        setAvatar(contactPhoto, color);
-      } else {
-
-      }
-    }
-
-    private Bitmap getContactGravatar(URL url) {
-      try {
-        InputStream is = (InputStream) url.getContent();
-        Bitmap d = BitmapFactory.decodeStream(is);
-        is.close();
-        return d;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-  }
-
-
 }
