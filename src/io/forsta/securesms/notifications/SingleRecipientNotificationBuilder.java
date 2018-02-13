@@ -25,7 +25,6 @@ import io.forsta.securesms.mms.DecryptableStreamUriLoader;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.preferences.NotificationPrivacyPreference;
-import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.BitmapUtil;
@@ -58,7 +57,7 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
     setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(MessageNotifier.DeleteReceiver.DELETE_REMINDER_ACTION), 0));
   }
 
-  public void setThread(@NonNull final Recipients recipients, String title) {
+  public void setThread(@NonNull final Recipients recipients, String title) { // Need to pass color.
     if (privacy.isDisplayContact()) {
       if (!TextUtils.isEmpty(title)) {
         setContentTitle(title);
@@ -71,12 +70,12 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
       }
 
       if (recipients.isSingleRecipient() && !TextUtils.isEmpty(recipients.getPrimaryRecipient().getGravitarUrl())) {
-        new ContactPhotoFetcher(context, new ContactPhotoFetcher.Callbacks() {
-          @Override
-          public void onComplete(BitmapContactPhoto contactPhoto) {
-            setLargeIcon(contactPhoto.asDrawable(context, recipients.getColor().toConversationColor(context)));
-          }
-        }).execute(recipients.getPrimaryRecipient().getGravitarUrl());
+        try {
+          Bitmap bitmap = Glide.with(context).load(recipients.getPrimaryRecipient().getGravitarUrl()).asBitmap().into(-1, -1).get();
+          setLargeIcon(new BitmapContactPhoto(bitmap).asDrawable(context, recipients.getColor().toConversationColor(context)));
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
+        }
       } else {
         setLargeIcon(recipients.getContactPhoto()
             .asDrawable(context, recipients.getColor()

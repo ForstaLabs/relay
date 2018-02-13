@@ -1,36 +1,20 @@
 package io.forsta.securesms.components;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.makeramen.roundedimageview.RoundedDrawable;
-
-import java.io.InputStream;
-import java.net.URL;
 
 import io.forsta.ccsm.RecipientDetailsDialog;
+import io.forsta.ccsm.components.AvatarImageViewTarget;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
-import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
-import io.forsta.securesms.contacts.avatars.ContactColors;
-import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
-import io.forsta.securesms.crypto.MasterCipher;
-import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -73,15 +57,7 @@ public class AvatarImageView extends ImageView {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(new BitmapImageViewTarget(this) {
-          @Override
-          protected void setResource(Bitmap resource) {
-            RoundedDrawable drawable = RoundedDrawable.fromBitmap(resource)
-                .setScaleType(ImageView.ScaleType.CENTER_CROP)
-                .setOval(true);
-            setImageDrawable(drawable);
-          }
-        });
+        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(new AvatarImageViewTarget(this));
       } else {
         setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
       }

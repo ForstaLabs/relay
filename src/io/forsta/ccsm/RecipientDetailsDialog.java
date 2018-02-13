@@ -1,8 +1,6 @@
 package io.forsta.ccsm;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,10 +10,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import cn.carbswang.android.numberpickerview.library.NumberPickerView;
+import io.forsta.ccsm.components.AvatarImageViewTarget;
 import io.forsta.securesms.R;
-import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
-import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 
 /**
@@ -62,7 +58,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     email.setText(recipient.getEmail());
     avatar.setImageDrawable(recipient.getContactPhoto().asDrawable(context, recipient.getColor().toActionBarColor(context)));
     if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap().into(avatar);
+      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap().into(new AvatarImageViewTarget(avatar));
     }
     return view;
   }
