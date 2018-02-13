@@ -64,11 +64,10 @@ public class AvatarImageView extends ImageView {
   }
 
   private void setAvatar(Recipients recipients, final MaterialColor backgroundColor, boolean enableDetails) {
+    if (this.)
     if (recipients.isSingleRecipient()) {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
-      final ImageView parent = this;
-
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
         new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
           @Override
