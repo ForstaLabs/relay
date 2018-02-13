@@ -75,7 +75,7 @@ public class AvatarImageView extends ImageView {
           }
         }).execute(recipient.getGravitarUrl());
       } else {
-        setImageDrawable(recipient.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+        setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
       }
     } else {
       setOnClickListener(null);
