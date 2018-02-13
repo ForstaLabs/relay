@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import cn.carbswang.android.numberpickerview.library.NumberPickerView;
 import io.forsta.securesms.R;
 import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
@@ -60,12 +62,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     email.setText(recipient.getEmail());
     avatar.setImageDrawable(recipient.getContactPhoto().asDrawable(context, recipient.getColor().toActionBarColor(context)));
     if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-      new ContactPhotoFetcher(context, new ContactPhotoFetcher.Callbacks() {
-        @Override
-        public void onComplete(BitmapContactPhoto contactPhoto) {
-          avatar.setImageDrawable(contactPhoto.asDrawable(context, recipient.getColor().toActionBarColor(context)));
-        }
-      }).execute(recipient.getGravitarUrl());
+      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap().into(avatar);
     }
     return view;
   }

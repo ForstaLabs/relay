@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+
 import java.io.InputStream;
 import java.net.URL;
 
@@ -68,12 +70,14 @@ public class AvatarImageView extends ImageView {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-        new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
-          @Override
-          public void onComplete(BitmapContactPhoto contactPhoto) {
-            setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-          }
-        }).execute(recipient.getGravitarUrl());
+        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(this);
+//        AsyncTask task = new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
+//          @Override
+//          public void onComplete(BitmapContactPhoto contactPhoto) {
+//            setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+//          }
+//        });
+//        task.execute(recipient.getGravitarUrl());
       } else {
         setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
       }

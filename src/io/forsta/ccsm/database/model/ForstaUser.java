@@ -183,6 +183,10 @@ public class ForstaUser {
     return phone;
   }
 
+  public String getAvatar() {
+    return avatar;
+  }
+
   @Override
   public int hashCode() {
     return 31 + uid.hashCode();
