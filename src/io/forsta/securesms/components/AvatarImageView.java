@@ -53,7 +53,7 @@ public class AvatarImageView extends ImageView {
   }
 
   private void setAvatar(Recipients recipients, final MaterialColor backgroundColor, boolean enableDetails) {
-    if (recipients.isSingleRecipient()) {
+    if (recipients.isSingleRecipient() && !recipients.isGroupRecipient()) {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
