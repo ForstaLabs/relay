@@ -24,6 +24,7 @@ import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactColors;
 import io.forsta.securesms.contacts.avatars.ContactPhoto;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
+import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -51,43 +52,36 @@ public class AvatarImageView extends ImageView {
   }
 
   public void setAvatar(final @Nullable Recipients recipients, final MaterialColor backgroundColor) {
-    if (recipients.isSingleRecipient()) {
-      setAvatarClickHandler(recipients, false);
-      final ImageView imageView = this;
-      Recipient recipient = recipients.getPrimaryRecipient();
-      if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-        new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
-          @Override
-          public void onComplete(BitmapContactPhoto contactPhoto) {
-          // May need handler here, or post to UI thread object
-          imageView.setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-          }
-        }).execute(recipient.getGravitarUrl());
-      } else {
-        setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-      }
-    } else {
-      setOnClickListener(null);
-      setImageDrawable(ContactPhotoFactory.getDefaultGroupPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext())));
-    }
+    setAvatar(recipients, backgroundColor, false);
   }
 
   public void setAvatar(final @Nullable Recipients recipients, boolean quickContactEnabled) {
-    setAvatarClickHandler(recipients, quickContactEnabled);
-
-}
+    setAvatar(recipients, recipients.getColor(), quickContactEnabled);
+  }
 
   public void setAvatar(@Nullable Recipient recipient, boolean quickContactEnabled) {
     setAvatar(RecipientFactory.getRecipientsFor(getContext(), recipient, true), quickContactEnabled);
   }
 
-  private void setAvatar(ContactPhoto contactPhoto, MaterialColor color) {
-    if (contactPhoto != null) {
-      MaterialColor backgroundColor = color;
-      setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+  private void setAvatar(Recipients recipients, final MaterialColor backgroundColor, boolean enableDetails) {
+    if (recipients.isSingleRecipient()) {
+      setAvatarClickHandler(recipients, enableDetails);
+      final Recipient recipient = recipients.getPrimaryRecipient();
+      final ImageView parent = this;
+
+      if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
+        new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
+          @Override
+          public void onComplete(BitmapContactPhoto contactPhoto) {
+            setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+          }
+        }).execute(recipient.getGravitarUrl());
+      } else {
+        setImageDrawable(recipient.getContactPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
+      }
     } else {
-      setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(null).asDrawable(getContext(), ContactColors.UNKNOWN_COLOR.toConversationColor(getContext()), inverted));
       setOnClickListener(null);
+      setImageDrawable(ContactPhotoFactory.getDefaultGroupPhoto().asDrawable(getContext(), backgroundColor.toConversationColor(getContext())));
     }
   }
 

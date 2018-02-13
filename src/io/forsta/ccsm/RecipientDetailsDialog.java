@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import cn.carbswang.android.numberpickerview.library.NumberPickerView;
 import io.forsta.securesms.R;
+import io.forsta.securesms.contacts.avatars.BitmapContactPhoto;
+import io.forsta.securesms.recipients.ContactPhotoFetcher;
 import io.forsta.securesms.recipients.Recipient;
 
 /**
@@ -39,7 +41,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     builder.show();
   }
 
-  public static View createView(Context context, Recipient recipient) {
+  public static View createView(final Context context, final Recipient recipient) {
     final LayoutInflater inflater = LayoutInflater.from(context);
     View view = inflater.inflate(R.layout.recipient_details, null);
     TextView name = (TextView) view.findViewById(R.id.recipient_details_name);
@@ -47,7 +49,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     TextView phone = (TextView) view.findViewById(R.id.recipient_details_phone);
     TextView phoneLabel = (TextView) view.findViewById(R.id.recipient_details_phone_label);
     TextView email = (TextView) view.findViewById(R.id.recipient_details_email);
-    ImageView avatar = (ImageView) view.findViewById(R.id.recipient_details_avatar);
+    final ImageView avatar = (ImageView) view.findViewById(R.id.recipient_details_avatar);
 
     name.setText(recipient.getName());
     slug.setText(recipient.getFullTag());
@@ -57,6 +59,14 @@ public class RecipientDetailsDialog extends AlertDialog {
     }
     email.setText(recipient.getEmail());
     avatar.setImageDrawable(recipient.getContactPhoto().asDrawable(context, recipient.getColor().toActionBarColor(context)));
+    if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
+      new ContactPhotoFetcher(context, new ContactPhotoFetcher.Callbacks() {
+        @Override
+        public void onComplete(BitmapContactPhoto contactPhoto) {
+          avatar.setImageDrawable(contactPhoto.asDrawable(context, recipient.getColor().toActionBarColor(context)));
+        }
+      }).execute(recipient.getGravitarUrl());
+    }
     return view;
   }
 

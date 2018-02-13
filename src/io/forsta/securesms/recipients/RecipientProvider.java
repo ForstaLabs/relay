@@ -179,7 +179,6 @@ public class RecipientProvider {
                                                          .getGroup(GroupUtil.getDecodedId(groupId));
 
       if (record != null) {
-        ContactPhoto contactPhoto = ContactPhotoFactory.getGroupContactPhoto(record.getAvatar());
         return new RecipientDetails(record.getTitle(), groupId, null, null, null, record.getTag(), record.getOrgTag(), null, null, true, "TAG");
       }
 
@@ -229,7 +228,7 @@ public class RecipientProvider {
     {
       this.name       = name;
       this.number     = number;
-      this.avatar     = null;
+      this.avatar     = ContactPhotoFactory.getDefaultContactPhoto(name);
       this.gravatarHash = gravatarHash;
       this.contactUri = contactUri;
       this.color      = color;
