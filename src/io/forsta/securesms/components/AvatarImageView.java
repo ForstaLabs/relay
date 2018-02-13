@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -15,6 +16,8 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.makeramen.roundedimageview.RoundedDrawable;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -70,14 +73,15 @@ public class AvatarImageView extends ImageView {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(this);
-//        AsyncTask task = new ContactPhotoFetcher(getContext(), new ContactPhotoFetcher.Callbacks() {
-//          @Override
-//          public void onComplete(BitmapContactPhoto contactPhoto) {
-//            setImageDrawable(contactPhoto.asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
-//          }
-//        });
-//        task.execute(recipient.getGravitarUrl());
+        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(new BitmapImageViewTarget(this) {
+          @Override
+          protected void setResource(Bitmap resource) {
+            RoundedDrawable drawable = RoundedDrawable.fromBitmap(resource)
+                .setScaleType(ImageView.ScaleType.CENTER_CROP)
+                .setOval(true);
+            setImageDrawable(drawable);
+          }
+        });
       } else {
         setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
       }
