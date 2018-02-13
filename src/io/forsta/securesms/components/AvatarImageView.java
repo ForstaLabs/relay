@@ -64,7 +64,6 @@ public class AvatarImageView extends ImageView {
   }
 
   private void setAvatar(Recipients recipients, final MaterialColor backgroundColor, boolean enableDetails) {
-    if (this.)
     if (recipients.isSingleRecipient()) {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
