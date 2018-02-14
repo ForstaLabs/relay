@@ -12,6 +12,8 @@ import com.bumptech.glide.Glide;
 
 import io.forsta.ccsm.components.AvatarImageViewTarget;
 import io.forsta.securesms.R;
+import io.forsta.securesms.contacts.avatars.ContactColors;
+import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 
 /**
@@ -58,7 +60,9 @@ public class RecipientDetailsDialog extends AlertDialog {
     email.setText(recipient.getEmail());
     avatar.setImageDrawable(recipient.getContactPhoto().asDrawable(context, recipient.getColor().toActionBarColor(context)));
     if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap().into(new AvatarImageViewTarget(avatar));
+      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap()
+          .placeholder(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(context, recipient.getColor().toConversationColor(context), false))
+          .into(new AvatarImageViewTarget(avatar));
     }
     return view;
   }

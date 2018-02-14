@@ -57,7 +57,11 @@ public class AvatarImageView extends ImageView {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
-        Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap().into(new AvatarImageViewTarget(this));
+        Glide.with(getContext().getApplicationContext())
+            .load(recipient.getGravitarUrl())
+            .asBitmap()
+            .placeholder(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted))
+            .into(new AvatarImageViewTarget(this));
       } else {
         setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext(), backgroundColor.toConversationColor(getContext()), inverted));
       }
