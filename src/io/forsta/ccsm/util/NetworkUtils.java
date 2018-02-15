@@ -102,6 +102,37 @@ public class NetworkUtils {
     }
   }
 
+  public static JSONObject hardFetch(String method, String auth, String urlString, JSONObject jsonBody, float timeout) throws Exception {
+    URL url = new URL(urlString);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    try {
+      conn.setRequestMethod(method);
+      conn.setRequestProperty("Authorization", auth);
+      conn.setRequestProperty("Content-Type", "application/json");
+      conn.setRequestProperty("Accept", "application/json");
+      if (timeout != 0) {
+        conn.setConnectTimeout((int)(timeout * 1000));
+        conn.setReadTimeout((int)(timeout * 1000));
+      }
+      if (jsonBody != null) {
+        conn.setDoOutput(true);
+        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+        out.writeBytes(jsonBody.toString());
+        out.close();
+      }
+      int status = conn.getResponseCode();
+      if (status >= 200 && status < 300) {
+        String result = readResult(conn.getInputStream());
+        JSONObject jsonResult = new JSONObject(result);
+        return jsonResult;
+      } else {
+        throw new IOException(status + "");
+      }
+    } finally {
+      conn.disconnect();
+    }
+  }
+
   private static String readResult(InputStream input) throws IOException {
     BufferedReader br = new BufferedReader(new InputStreamReader(input));
     String line = null;

@@ -23,6 +23,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
@@ -33,11 +35,11 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
-import io.forsta.ccsm.util.WebSocketUtils;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.DatabaseAttachment;
+import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -61,6 +63,7 @@ import io.forsta.securesms.recipients.Recipients;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +73,8 @@ import io.forsta.securesms.util.DateUtils;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
-
 // TODO Remove all of this code for production release. This is for discovery and debug use.
-public class DashboardActivity extends PassphraseRequiredActionBarActivity implements WebSocketUtils.MessageCallback{
+public class DashboardActivity extends PassphraseRequiredActionBarActivity {
   private static final String TAG = DashboardActivity.class.getSimpleName();
   private TextView mDebugText;
   private TextView mLoginInfo;
@@ -83,8 +85,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   private Spinner mConfigSpinner;
   private ScrollView mScrollView;
   private ProgressBar mProgressBar;
-  private WebSocketUtils socketUtils;
   private Button socketTester;
+  
 
   @Override
   protected void onCreate(Bundle savedInstanceState, @Nullable MasterSecret masterSecret) {
@@ -93,7 +95,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
     setContentView(R.layout.activity_dashboard);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
     initView();
-    initSocket();
   }
 
   @Override
@@ -127,39 +128,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
   @Override
   protected void onResume() {
     super.onResume();
-    if (socketUtils.socketOpen) {
-      socketTester.setText("Close socket");
-    } else {
-      socketTester.setText("Open socket");
-    }
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    if (socketUtils.socketOpen) {
-      socketUtils.disconnect();
-    }
-  }
-
-  private void initSocket() {
-    socketUtils = WebSocketUtils.getInstance(DashboardActivity.this, this);
   }
 
   private void initView() {
-    socketTester = (Button) findViewById(R.id.socket_tester);
-    socketTester.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (!socketUtils.socketOpen) {
-          socketUtils.connect();
-          socketTester.setText("Close Socket");
-        } else {
-          socketUtils.disconnect();
-          socketTester.setText("Open Socket");
-        }
-      }
-    });
     mProgressBar = (ProgressBar) findViewById(R.id.dashboard_progress_bar);
     mScrollView = (ScrollView) findViewById(R.id.dashboard_scrollview);
     mLoginInfo = (TextView) findViewById(R.id.dashboard_login_info);
@@ -274,8 +250,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
             Toast.makeText(DashboardActivity.this, "All threads deleted", Toast.LENGTH_LONG).show();
           }
         }).show();
-
-
   }
 
   private void handleClearDirectory() {
@@ -607,21 +581,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity imple
       return sb.toString();
     }
     return "MasterSecret NULL";
-  }
-
-  @Override
-  public void onMessage(String message) {
-    showScrollView();
-    mDebugText.setText(message);
-  }
-
-  @Override
-  public void onStatusChanged(boolean connected) {
-    if (!connected) {
-      socketTester.setText("Open socket");
-    } else {
-      socketTester.setText("Close socket");
-    }
   }
 
   private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {

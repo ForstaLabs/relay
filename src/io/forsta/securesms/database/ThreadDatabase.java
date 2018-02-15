@@ -711,7 +711,7 @@ public class ThreadDatabase extends Database {
       values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
     // Distribution may be the same, but tag members may have changed.
-    if (!forstaThread.getRecipientIds().equals(recipientsString)) {
+    if (recipientIds.length > 0 && !forstaThread.getRecipientIds().equals(recipientsString)) {
       values.put(RECIPIENT_IDS, recipientsString);
     }
     if (values.size() > 0) {
@@ -740,7 +740,7 @@ public class ThreadDatabase extends Database {
       values.put(PRETTY_EXPRESSION, distribution.pretty);
     }
     // Distribution may be the same, but tag members may have changed.
-    if (!forstaThread.getRecipientIds().equals(recipientsString)) {
+    if (recipientIds.length > 0 && !forstaThread.getRecipientIds().equals(recipientsString)) {
       values.put(RECIPIENT_IDS, recipientsString);
     }
     if (values.size() > 0) {
