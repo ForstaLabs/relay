@@ -23,6 +23,7 @@ import android.text.TextUtils;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
@@ -107,13 +108,18 @@ public class MediaMmsMessageRecord extends MessageRecord {
   public String getDocumentAttachmentFileName() {
     DocumentSlide documentSlide = getSlideDeck().getDocumentSlide();
     String fileName = documentSlide.getFileName().or(context.getString(R.string.DocumentView_unknown_file));
-    ForstaMessage forstaMessage = ForstaMessageManager.fromJsonString(getMessagePayloadBody());
-    for (ForstaMessage.ForstaAttachment attachment : forstaMessage.getAttachments()) {
-      if (documentSlide.getContentType().equals(attachment.getType())) {
-        fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
-        break;
+    try {
+      ForstaMessage forstaMessage = getForstaMessageBody();
+      for (ForstaMessage.ForstaAttachment attachment : forstaMessage.getAttachments()) {
+        if (documentSlide.getContentType().equals(attachment.getType())) {
+          fileName = !TextUtils.isEmpty(attachment.getName()) ? attachment.getName() : fileName;
+          break;
+        }
       }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
+
     return fileName;
   }
 }

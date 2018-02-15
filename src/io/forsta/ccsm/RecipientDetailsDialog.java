@@ -1,8 +1,6 @@
 package io.forsta.ccsm;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -10,8 +8,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import cn.carbswang.android.numberpickerview.library.NumberPickerView;
+import com.bumptech.glide.Glide;
+
+import io.forsta.ccsm.components.AvatarImageViewTarget;
 import io.forsta.securesms.R;
+import io.forsta.securesms.contacts.avatars.ContactColors;
+import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 
 /**
@@ -39,7 +41,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     builder.show();
   }
 
-  public static View createView(Context context, Recipient recipient) {
+  public static View createView(final Context context, final Recipient recipient) {
     final LayoutInflater inflater = LayoutInflater.from(context);
     View view = inflater.inflate(R.layout.recipient_details, null);
     TextView name = (TextView) view.findViewById(R.id.recipient_details_name);
@@ -47,7 +49,7 @@ public class RecipientDetailsDialog extends AlertDialog {
     TextView phone = (TextView) view.findViewById(R.id.recipient_details_phone);
     TextView phoneLabel = (TextView) view.findViewById(R.id.recipient_details_phone_label);
     TextView email = (TextView) view.findViewById(R.id.recipient_details_email);
-    ImageView avatar = (ImageView) view.findViewById(R.id.recipient_details_avatar);
+    final ImageView avatar = (ImageView) view.findViewById(R.id.recipient_details_avatar);
 
     name.setText(recipient.getName());
     slug.setText(recipient.getFullTag());
@@ -57,6 +59,11 @@ public class RecipientDetailsDialog extends AlertDialog {
     }
     email.setText(recipient.getEmail());
     avatar.setImageDrawable(recipient.getContactPhoto().asDrawable(context, recipient.getColor().toActionBarColor(context)));
+    if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
+      Glide.with(context).load(recipient.getGravitarUrl()).asBitmap()
+          .placeholder(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(context, recipient.getColor().toConversationColor(context), false))
+          .into(new AvatarImageViewTarget(avatar));
+    }
     return view;
   }
 

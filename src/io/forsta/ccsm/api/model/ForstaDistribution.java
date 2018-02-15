@@ -35,8 +35,6 @@ public class ForstaDistribution {
   public static ForstaDistribution fromJson(JSONObject jsonResponse) {
     ForstaDistribution forstaDistribution = new ForstaDistribution();
     try {
-      Log.w(TAG, "Distribution object:");
-      Log.w(TAG, jsonResponse.toString());
       JSONArray ids = jsonResponse.getJSONArray("userids");
       for (int i=0; i<ids.length(); i++) {
         forstaDistribution.userIds.add(ids.getString(i));
@@ -63,7 +61,9 @@ public class ForstaDistribution {
       }
       forstaDistribution.appendWarning(sb.toString());
     } catch (JSONException e) {
-      Log.w(TAG, "ForstaDistribution json parsing error:");
+      Log.w(TAG, "ForstaDistribution json parsing error!");
+      Log.w(TAG, "Distribution object:");
+      Log.w(TAG, jsonResponse.toString());
       e.printStackTrace();
       forstaDistribution.appendWarning("Bad response from server");
     }
@@ -71,7 +71,7 @@ public class ForstaDistribution {
   }
 
   public boolean isValid() {
-    return universal != null && universal.contains("<");
+    return universal != null && universal.contains("<") && hasRecipients();
   }
 
   public boolean hasRecipients() {

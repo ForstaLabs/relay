@@ -148,22 +148,17 @@ public class RecipientProvider {
       if (cursor != null && cursor.moveToFirst()) {
         final String uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
         if (uid != null) {
-          URL avatarUrl = getGravitarUrl(cursor.getString(cursor.getColumnIndex(ContactDb.AVATAR)));
+          String gravatarHash = cursor.getString(cursor.getColumnIndex(ContactDb.AVATAR));
           String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
-          ContactPhoto contactPhoto = ContactPhotoFactory.getDefaultContactPhoto(name);
+
           boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.ISACTIVE)) != 0;
           String email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
           String phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
           String userType= cursor.getString(cursor.getColumnIndex(ContactDb.USERTYPE));
-          if (avatarUrl != null) {
-            Bitmap gravatar = getContactGravatar(avatarUrl);
-            if (gravatar != null) {
-              contactPhoto = new BitmapContactPhoto(gravatar);
-            }
-          }
-          return new RecipientDetails(name, uid, Uri.EMPTY, contactPhoto, color, slug, orgSlug, email, phone, isActive, userType);
+
+          return new RecipientDetails(name, uid, Uri.EMPTY, gravatarHash, color, slug, orgSlug, email, phone, isActive, userType);
         } else {
           Log.w(TAG, "resultNumber is null");
         }
@@ -175,7 +170,7 @@ public class RecipientProvider {
         cursor.close();
     }
 
-    return new RecipientDetails(null, number, null, ContactPhotoFactory.getDefaultContactPhoto(null), color, null, null, null, null, false, "PERSON");
+    return new RecipientDetails(null, number, null, null, color, null, null, null, null, false, "PERSON");
   }
 
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
@@ -184,14 +179,13 @@ public class RecipientProvider {
                                                          .getGroup(GroupUtil.getDecodedId(groupId));
 
       if (record != null) {
-        ContactPhoto contactPhoto = ContactPhotoFactory.getGroupContactPhoto(record.getAvatar());
-        return new RecipientDetails(record.getTitle(), groupId, null, contactPhoto, null, record.getTag(), record.getOrgTag(), null, null, true, "TAG");
+        return new RecipientDetails(record.getTitle(), groupId, null, null, null, record.getTag(), record.getOrgTag(), null, null, true, "TAG");
       }
 
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, null, null, false, "TAG");
+      return new RecipientDetails(null, groupId, null, null, null, null, null, null, null, false, "TAG");
     } catch (IOException e) {
       Log.w("RecipientProvider", e);
-      return new RecipientDetails(null, groupId, null, ContactPhotoFactory.getDefaultGroupPhoto(), null, null, null, null, null, false, "TAG");
+      return new RecipientDetails(null, groupId, null, null, null, null, null, null, null, false, "TAG");
     }
   }
 
@@ -218,6 +212,7 @@ public class RecipientProvider {
     @Nullable public final String        name;
     @NonNull  public final String        number;
     @NonNull  public final ContactPhoto  avatar;
+    @Nullable public final String gravatarHash;
     @Nullable public final String slug;
     @Nullable public final String orgSlug;
     @Nullable public final String email;
@@ -228,12 +223,13 @@ public class RecipientProvider {
     @Nullable public final MaterialColor color;
 
     public RecipientDetails(@Nullable String name, @NonNull String number,
-                            @Nullable Uri contactUri, @NonNull ContactPhoto avatar,
+                            @Nullable Uri contactUri, @Nullable String gravatarHash,
                             @Nullable MaterialColor color, @Nullable String slug, @Nullable String orgSlug, @Nullable String email, @Nullable String phone, boolean isActive, String userType)
     {
       this.name       = name;
       this.number     = number;
-      this.avatar     = avatar;
+      this.avatar     = ContactPhotoFactory.getDefaultContactPhoto(name);
+      this.gravatarHash = gravatarHash;
       this.contactUri = contactUri;
       this.color      = color;
       this.slug = slug;
@@ -299,29 +295,5 @@ public class RecipientProvider {
       }
     }
 
-  }
-
-  private URL getGravitarUrl(String gravatarHash) {
-    try {
-      if (!TextUtils.isEmpty(gravatarHash)) {
-        return new URL("https://www.gravatar.com/avatar/" + gravatarHash);
-      }
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  private Bitmap getContactGravatar(URL url) {
-    try {
-      InputStream is = (InputStream) url.getContent();
-      Bitmap d = BitmapFactory.decodeStream(is);
-      is.close();
-      return d;
-    } catch (Exception e) {
-      Log.w(TAG, "Gravatar Exception");
-      e.printStackTrace();
-    }
-    return null;
   }
 }

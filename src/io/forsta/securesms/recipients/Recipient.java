@@ -19,6 +19,7 @@ package io.forsta.securesms.recipients;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import io.forsta.securesms.color.MaterialColor;
@@ -30,6 +31,8 @@ import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.ListenableFutureTask;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -55,6 +58,7 @@ public class Recipient {
 
   private ContactPhoto contactPhoto;
   private Uri          contactUri;
+  private @Nullable String gravatarHash;
 
   @Nullable private MaterialColor color;
 
@@ -72,6 +76,7 @@ public class Recipient {
       this.name         = stale.name;
       this.contactUri   = stale.contactUri;
       this.contactPhoto = stale.contactPhoto;
+      this.gravatarHash = stale.gravatarHash;
       this.color        = stale.color;
       this.slug = stale.slug;
       this.orgSlug = stale.orgSlug;
@@ -90,6 +95,7 @@ public class Recipient {
             Recipient.this.number       = result.number;
             Recipient.this.contactUri   = result.contactUri;
             Recipient.this.contactPhoto = result.avatar;
+            Recipient.this.gravatarHash = result.gravatarHash;
             Recipient.this.color        = result.color;
             Recipient.this.slug = result.slug;
             Recipient.this.orgSlug = result.orgSlug;
@@ -116,6 +122,7 @@ public class Recipient {
     this.contactUri   = details.contactUri;
     this.name         = details.name;
     this.contactPhoto = details.avatar;
+    this.gravatarHash = details.gravatarHash;
     this.color        = details.color;
     this.slug = details.slug;
     this.orgSlug = details.orgSlug;
@@ -209,7 +216,7 @@ public class Recipient {
 
   public static Recipient getUnknownRecipient() {
     return new Recipient(-1, new RecipientDetails("Unknown", "Unknown", null,
-                                                  ContactPhotoFactory.getDefaultContactPhoto(null), null, null, null, null, null, false, "PERSON"));
+                                                  null, null, null, null, null, null, false, "PERSON"));
   }
 
   @Override
@@ -248,5 +255,12 @@ public class Recipient {
 
   void setStale() {
     this.stale = true;
+  }
+
+  public String getGravitarUrl() {
+    if (!TextUtils.isEmpty(gravatarHash)) {
+      return "https://www.gravatar.com/avatar/" + gravatarHash;
+    }
+    return null;
   }
 }
