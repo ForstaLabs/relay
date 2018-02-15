@@ -5,14 +5,18 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import org.whispersystems.signalservice.internal.websocket.WebSocketProtos;
+
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.util.TextSecurePreferences;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.forsta.ccsm.ForstaPreferences;
@@ -26,22 +30,21 @@ public class WebSocketUtils {
   private final String TAG = WebSocketUtils.class.getSimpleName();
   private WebSocket socket;
   private OkHttpClient client;
-  private final String uri;
   private final String authKey;
-  private MessageCallback callback;
+  private MessageCallbacks callback;
   public boolean socketOpen = false;
-  private Handler messageHandler;
+  private Context context;
   private static WebSocketUtils instance;
   private static final Object lock = new Object();
 
-  private WebSocketUtils(Context context, MessageCallback callback) {
+  private WebSocketUtils(Context context, MessageCallbacks callback) {
     this.authKey = ForstaPreferences.getRegisteredKey(context);
-    this.uri = BuildConfig.FORSTA_API_URL + "/ccsm/" + authKey + "/";
     this.callback = callback;
+    this.context = context;
     client = new OkHttpClient().newBuilder().readTimeout(3, TimeUnit.SECONDS).retryOnConnectionFailure(true).build();
   }
 
-  public static WebSocketUtils getInstance(Context context, MessageCallback callback) {
+  public static WebSocketUtils getInstance(Context context, MessageCallbacks callback) {
     synchronized (lock) {
       if (instance == null)
         instance = new WebSocketUtils(context, callback);
@@ -50,32 +53,24 @@ public class WebSocketUtils {
     }
   }
 
-  public void connect() {
+  public void connect(String url) {
     Request.Builder request = new Request.Builder();
-    request.url(uri);
+    url = BuildConfig.SIGNAL_API_URL + url;
+    url = url.replace("https", "wss");
+    request.url(url);
     socket = client.newWebSocket(request.build(), new SocketListener());
-    messageHandler = new Handler(new Handler.Callback() {
-      @Override
-      public boolean handleMessage(Message message) {
-        callback.onMessage((String)message.obj);
-        callback.onStatusChanged(socketOpen);
-        return true;
-      }
-    });
   }
 
   public void disconnect() {
     socket.close(1000, "Bye");
-    messageHandler.removeCallbacksAndMessages(null);
+    setSocketState(false);
   }
 
   private synchronized void setSocketState(boolean state) {
     socketOpen = state;
-  }
-
-  private void handleMessage(String text) {
-    Message message = messageHandler.obtainMessage(0, text);
-    messageHandler.sendMessage(message);
+    if (callback != null) {
+      callback.onStatusChanged(state);
+    }
   }
 
   private class SocketListener extends WebSocketListener {
@@ -83,37 +78,39 @@ public class WebSocketUtils {
     public void onOpen(WebSocket webSocket, Response response) {
       Log.d(TAG, "Socket open");
       setSocketState(true);
-      handleMessage("Socket open");
-    }
-
-    @Override
-    public void onMessage(WebSocket webSocket, String text) {
-      Log.d(TAG, text);
-      handleMessage(text);
     }
 
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes) {
-      Log.d(TAG, "New byte stream: " + bytes.size());
+      try {
+        WebSocketProtos.WebSocketMessage message = WebSocketProtos.WebSocketMessage.parseFrom(bytes.toByteArray());
+        if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.REQUEST)) {
+          if (callback != null) {
+            callback.onSocketMessage(message.getRequest());
+          }
+        } else if (message.getType().equals(WebSocketProtos.WebSocketMessage.Type.RESPONSE)) {
+          // TODO implement
+        }
+      } catch (InvalidProtocolBufferException e) {
+        e.printStackTrace();
+      }
     }
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
       Log.d(TAG, "Socket closed");
       setSocketState(false);
-      handleMessage("Socket closed");
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
       Log.d(TAG, "Socket Failed");
       setSocketState(false);
-      handleMessage("Socket failed");
     }
   }
 
-  public interface MessageCallback {
-    void onMessage(String message);
+  public interface MessageCallbacks {
+    void onSocketMessage(WebSocketProtos.WebSocketRequestMessage message);
     void onStatusChanged(boolean connected);
   }
 }

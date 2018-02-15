@@ -12,7 +12,10 @@ import android.util.Log;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.ccsm.api.AutoProvision;
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.PreKeyUtil;
@@ -24,13 +27,17 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.util.KeyHelper;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.exceptions.ExpectationFailedException;
+import org.whispersystems.signalservice.internal.push.ProvisioningProtos;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -55,6 +62,7 @@ import java.util.concurrent.Executors;
  */
 
 public class RegistrationService extends Service {
+  private static final String TAG = RegistrationService.class.getSimpleName();
 
   public static final String REGISTER_ACCOUNT = "io.forsta.securesms.RegistrationService.REGISTER_ACCOUNT";
 
@@ -116,19 +124,65 @@ public class RegistrationService extends Service {
       registrationId = KeyHelper.generateRegistrationId(false);
       TextSecurePreferences.setLocalRegistrationId(this, registrationId);
     }
-    String password     = Util.getSecret(18);
-    String signalingKey = Util.getSecret(52);
-    Context context = getApplicationContext();
-    String addr = ForstaPreferences.getUserId(context);
+    final String password     = Util.getSecret(18);
+    final String signalingKey = Util.getSecret(52);
+    final Context context = getApplicationContext();
+    final String addr = ForstaPreferences.getUserId(context);
     setState(new RegistrationState(RegistrationState.STATE_CONNECTING));
+
+    // Can I get this from the login, instead of just the createAccount function below?
+    TextSecurePreferences.setServer(context, BuildConfig.SIGNAL_API_URL);
     try {
-      ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
-      accountManager.createAccount(context, addr, password, signalingKey, registrationId);
-      setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
-      handleCommonRegistration(accountManager, addr, password, signalingKey);
-      markAsVerified(addr, password, signalingKey);
-      setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
-      broadcastComplete(true);
+      final ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
+      boolean isMultiDevice = CcsmApi.hasDevices(context);
+      if (isMultiDevice) {
+        AutoProvision autoProvision = AutoProvision.getInstance(context);
+        autoProvision.start();
+        autoProvision.setProvisionCallbacks(new AutoProvision.ProvisionCallbacks() {
+          @Override
+          public void onComplete(ProvisioningProtos.ProvisionMessage provisionMessage) {
+
+            try {
+              if (provisionMessage == null) {
+                throw new Exception("No provisioning message.");
+              }
+
+              if (!provisionMessage.getNumber().equals(addr)) { // or TextSecurePreferences.getNumber()
+                throw new Exception("Received provision message for unknown address");
+              }
+
+              accountManager.registerDevice(context, provisionMessage.getProvisioningCode(), addr, signalingKey, TextSecurePreferences.getLocalRegistrationId(context), password);
+              setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
+              handleCommonRegistration(accountManager, addr, password, signalingKey);
+              TextSecurePreferences.setMultiDevice(context, true);
+              markAsVerified(addr, password, signalingKey);
+              setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
+              broadcastComplete(true);
+
+            } catch (Exception e) {
+              Log.w(TAG, "Provisioning FAILED! : " + e.getMessage());
+              setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
+              broadcastComplete(false);
+            }
+          }
+
+          @Override
+          public void onFailure(String message) {
+            Log.w(TAG, "Provisioning FAILED! : " + message);
+            setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
+            broadcastComplete(false);
+          }
+        });
+      } else {
+        // Normal registration
+        accountManager.createAccount(context, addr, password, signalingKey, registrationId);
+        setState(new RegistrationState(RegistrationState.STATE_VERIFYING));
+        handleCommonRegistration(accountManager, addr, password, signalingKey);
+        markAsVerified(addr, password, signalingKey);
+        setState(new RegistrationState(RegistrationState.STATE_COMPLETE));
+        broadcastComplete(true);
+      }
+
     } catch (ExpectationFailedException efe) {
       Log.w("RegistrationService", efe);
       setState(new RegistrationState(RegistrationState.STATE_MULTI_REGISTERED));

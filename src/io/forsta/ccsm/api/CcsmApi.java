@@ -12,6 +12,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
@@ -64,9 +65,39 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
+  private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
+  private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
+  }
+
+  public static boolean hasDevices(Context context) {
+    String host = BuildConfig.FORSTA_API_URL;
+    String authKey = ForstaPreferences.getRegisteredKey(context);
+    JSONObject response = NetworkUtils.apiFetch("GET", authKey, host + API_PROVISION_ACCOUNT, null);
+    if (response.has("devices")) {
+      try {
+        JSONArray devices = response.getJSONArray("devices");
+        if (devices.length() > 0) {
+          return true;
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+    }
+    return false;
+  }
+
+  public static void provisionRequest(Context context, String uuid, String pubKey) {
+    try {
+      JSONObject obj = new JSONObject();
+      obj.put("uuid", uuid);
+      obj.put("key", pubKey);
+      fetchResource(context, "POST", API_PROVISION_REQUEST, obj);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
