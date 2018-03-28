@@ -168,9 +168,6 @@ public class CcsmApi {
         Log.w(TAG, "Token refresh. New token issued.");
         String token = result.getString("token");
         ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.w(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
       }
     } catch (Exception e) {
       e.printStackTrace();
