@@ -315,7 +315,7 @@ public class ConversationListItem extends RelativeLayout
 
   private void setSubjectView(Recipients recipients, Recipient sender, SpannableString body, boolean read) {
     String name = TextSecurePreferences.getLocalNumber(getContext()).equals(sender.getAddress()) ? "" : sender.getName();
-    if (!TextUtils.isEmpty(name) && recipients.getRecipientsList().size() > 1 && !read) {
+    if (!TextUtils.isEmpty(name) && recipients.getRecipientsList().size() > 1) {
       subjectView.setText(name + ": " + body);
     } else {
       subjectView.setText(body);
