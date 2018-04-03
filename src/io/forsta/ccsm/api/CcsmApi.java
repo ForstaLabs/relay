@@ -297,6 +297,9 @@ public class CcsmApi {
 
   public static JSONObject getOrg(Context context) {
     ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    if (localAccount == null) {
+      return null;
+    }
     return getOrg(context, localAccount.org_id);
   }
 

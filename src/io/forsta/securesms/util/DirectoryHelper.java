@@ -64,10 +64,11 @@ public class DirectoryHelper {
 
   public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber, boolean resetDirectory) throws IOException {
     JSONObject org = CcsmApi.getOrg(context);
-    if (org.has("id")) {
-      ForstaPreferences.setForstaOrg(context, org.toString());
+    if (org == null || !org.has("id")) {
+      return;
     }
 
+    ForstaPreferences.setForstaOrg(context, org.toString());
     CcsmApi.syncForstaContacts(context, resetDirectory);
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
