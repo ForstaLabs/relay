@@ -731,8 +731,8 @@ public class ThreadDatabase extends Database {
 
     Log.w(TAG, "Thread update: " + distribution.universal);
     Log.w(TAG, "Recipients: " + TextUtils.join(", ", distribution.getRecipients(context)));
-
-    if (!TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
+    Log.w(TAG, "Title: " + message.getThreadTitle());
+    if (message.getThreadTitle() != null && !TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
       values.put(TITLE, message.getThreadTitle());
     }
     if (!TextUtils.isEmpty(distribution.universal) && !distribution.universal.equals(forstaThread.distribution)) {
