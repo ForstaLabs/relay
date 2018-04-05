@@ -28,9 +28,11 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.crypto.MasterCipher;
@@ -693,6 +695,23 @@ public class ThreadDatabase extends Database {
     } finally {
       if (reader != null)
         reader.close();
+    }
+  }
+
+  public void leaveConversation(long threadId) {
+    ForstaUser me = ForstaUser.getLocalForstaUser(context);
+    Recipients currentRecipients = getRecipientsForThreadId(threadId);
+    List<String> recipientList = currentRecipients.getAddresses();
+    if (recipientList.remove(me.getUid())) {
+      Recipients updatedRecipients = RecipientFactory.getRecipientsFromStrings(context, recipientList, true);
+      ContentValues values = new ContentValues();
+      long[] recipientIds = getRecipientIds(updatedRecipients);
+      String recipientsString = getRecipientsAsString(recipientIds);
+      values.put(RECIPIENT_IDS, recipientsString);
+      SQLiteDatabase db = databaseHelper.getWritableDatabase();
+      db.update(TABLE_NAME, values, ID + " = ?", new String[] {threadId + ""});
+      notifyConversationListListeners();
+      notifyThreadListeners(threadId);
     }
   }
 

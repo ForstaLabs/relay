@@ -415,8 +415,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
-      case R.id.menu_call_recipient:         handleCallRecipient();                   return true;
+    case R.id.menu_call_recipient:            handleCallRecipient();                   return true;
+    case R.id.menu_leave_conversation:        handleLeaveConversation();                  return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
+
     }
 
     return false;
@@ -435,6 +437,24 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   //////// Event Handlers
+
+  private void handleLeaveConversation() {
+    // Remove localuser from thread.
+    // Finish this...
+    // Need to return new recipients and send a threadUpdate message
+    // Make sure this activity has new recipients as well.
+
+//    DatabaseFactory.getThreadDatabase(ConversationActivity.this).leaveConversation(threadId);
+//    updateDistribution();
+//    // Now I need to send a thread update
+//    new AsyncTask<Void, Void, Void>() {
+//      @Override
+//      protected Void doInBackground(Void... voids) {
+//        ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
+//        return null;
+//      }
+//    }.execute();
+  }
 
   private void handleReturnToConversationList() {
     Intent intent = new Intent(this, (archived ? ConversationListArchiveActivity.class : ConversationListActivity.class));
