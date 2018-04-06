@@ -1142,7 +1142,6 @@
     <string name="conversation__menu_add_attachment">Add attachment</string>
     <string name="conversation__menu_update_group">Update group</string>
     <string name="conversation__menu_leave_group">Leave group</string>
-    <string name="conversation__menu_leave_conversation">Leave conversation</string>
     <string name="conversation__menu_delete_thread">Delete conversation</string>
     <string name="conversation__menu_view_media">All images</string>
     <string name="conversation__menu_conversation_settings">Conversation settings</string>

@@ -6,9 +6,6 @@
         android:icon="@drawable/ic_call_white_24dp"
         app:showAsAction="always" android:visible="false" />
 
-    <item android:title="@string/conversation__menu_leave_conversation"
-          android:id="@+id/menu_leave_conversation" />
-
     <item android:title="@string/conversation__menu_add_attachment"
           android:id="@+id/menu_add_attachment" />
 
