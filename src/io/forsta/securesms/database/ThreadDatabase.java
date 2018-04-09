@@ -369,16 +369,6 @@ public class ThreadDatabase extends Database {
     return cursor;
   }
 
-  public Cursor getConversationListTest() {
-    SQLiteDatabase db     = databaseHelper.getReadableDatabase();
-    SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
-    builder.setTables(TABLE_NAME + " LEFT JOIN " + ThreadPreferenceDatabase.TABLE_NAME +
-        " ON " + TABLE_NAME + "." + ID + " = " + ThreadPreferenceDatabase.TABLE_NAME + "." + ThreadPreferenceDatabase.THREAD_ID);
-    Cursor cursor = builder.query(db, null, ARCHIVED + " = ?", new String[] {"0"}, null, null, PINNED + " DESC, " + DATE + " DESC");
-    setNotifyConverationListListeners(cursor);
-    return cursor;
-  }
-
   public Cursor getConversationListWithoutAnnouncements() {
     SQLiteDatabase db     = databaseHelper.getReadableDatabase();
     SQLiteQueryBuilder builder = new SQLiteQueryBuilder();
@@ -435,16 +425,6 @@ public class ThreadDatabase extends Database {
     contentValues.put(ARCHIVED, 0);
 
     db.update(TABLE_NAME, contentValues, ID_WHERE, new String[] {threadId + ""});
-    notifyConversationListListeners();
-  }
-
-  public void deleteConversation(long threadId) {
-    DatabaseFactory.getSmsDatabase(context).deleteThread(threadId);
-    DatabaseFactory.getMmsDatabase(context).deleteThread(threadId);
-    DatabaseFactory.getDraftDatabase(context).clearDrafts(threadId);
-    DatabaseFactory.getThreadPreferenceDatabase(context).deleteThreadPreference(threadId);
-    deleteThread(threadId);
-    notifyConversationListeners(threadId);
     notifyConversationListListeners();
   }
 
