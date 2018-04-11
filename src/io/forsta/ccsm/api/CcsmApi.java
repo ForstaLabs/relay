@@ -168,9 +168,6 @@ public class CcsmApi {
         Log.w(TAG, "Token refresh. New token issued.");
         String token = result.getString("token");
         ForstaPreferences.setRegisteredForsta(context, token);
-      } else {
-        Log.w(TAG, "Token refresh failed.");
-        ForstaPreferences.setRegisteredForsta(context, "");
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -300,6 +297,9 @@ public class CcsmApi {
 
   public static JSONObject getOrg(Context context) {
     ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    if (localAccount == null) {
+      return null;
+    }
     return getOrg(context, localAccount.org_id);
   }
 

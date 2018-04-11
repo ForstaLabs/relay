@@ -466,15 +466,14 @@ public class PushDecryptJob extends ContextJob {
           ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
           if (threadData != null) {
-            // TODO Need to handle in UI before allowing full thread updates here.
-//          ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-//          Recipients recipients = getDistributionRecipients(distribution);
-//          threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
-            String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
-            if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
-              threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
-              threadDb.setThreadUnread(threadData.getThreadid());
-            }
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+            Recipients recipients = getDistributionRecipients(distribution);
+            threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
+//            String currentTitle = threadData.getTitle() != null ? threadData.getTitle() : "";
+//            if (!currentTitle.equals(forstaMessage.getThreadTitle())) {
+//              threadDb.updateThreadTitle(threadData.getThreadid(), forstaMessage.getThreadTitle());
+//              threadDb.setThreadUnread(threadData.getThreadid());
+//            }
           }
           break;
         case ForstaMessage.ControlTypes.PROVISION_REQUEST:

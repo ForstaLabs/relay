@@ -154,10 +154,10 @@ android {
     }
     defaultConfig {
         applicationId 'io.forsta.relay'
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 22
-        versionName "0.1.89"
-        versionCode 189
+        versionName "0.1.90"
+        versionCode 190
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'

@@ -63,11 +63,12 @@ public class DirectoryHelper {
   }
 
   public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber, boolean resetDirectory) throws IOException {
-    JSONObject org = CcsmApi.getOrg(context);
-    if (org.has("id")) {
-      ForstaPreferences.setForstaOrg(context, org.toString());
+    JSONObject localUser = CcsmApi.getForstaUser(context);
+    if (localUser == null || !localUser.has("id")) {
+      return;
     }
 
+    ForstaPreferences.setForstaUser(context, localUser.toString());
     CcsmApi.syncForstaContacts(context, resetDirectory);
     ContactDb contactsDb = DbFactory.getContactDb(context);
     Set<String> eligibleContactAddresses = contactsDb.getAddresses();
@@ -84,6 +85,7 @@ public class DirectoryHelper {
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
         eligibleContactAddresses.remove(activeToken.getNumber());
+
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);

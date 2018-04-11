@@ -272,12 +272,15 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      CcsmApi.forstaRefreshToken(ConversationListActivity.this);
-      ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
-
       JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
+        CcsmApi.forstaRefreshToken(ConversationListActivity.this);
+        ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
         ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
+        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
+        if (orgResponse.has("id")) {
+          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
+        }
       } else {
         return userResponse;
       }
