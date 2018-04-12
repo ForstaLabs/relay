@@ -358,7 +358,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     List<String> addresses = new ArrayList<>();
 
     if (recipients.size() == 1) {
-      return getPrimaryRecipient().getName();
+      return getPrimaryRecipient().getName() != null ? getPrimaryRecipient().getName() : "Unknown recipient";
     }
 
     for (int i=0; i<recipients.size(); i++) {

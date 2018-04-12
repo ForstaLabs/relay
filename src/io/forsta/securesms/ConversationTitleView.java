@@ -106,6 +106,10 @@ public class ConversationTitleView extends LinearLayout {
         subtitle.setVisibility(View.VISIBLE);
       }
     }
+
+    if (!recipients.includesSelf(getContext())) {
+      subtitle.setText("You left this conversation.");
+    }
     // Always show thread title, if available
     if (!TextUtils.isEmpty(thread.getTitle())) {
       title.setText(thread.getTitle());

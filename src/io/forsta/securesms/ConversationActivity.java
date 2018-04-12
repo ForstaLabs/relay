@@ -69,6 +69,7 @@ import io.forsta.ccsm.ThreadPreferenceActivity;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -391,6 +392,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
           callItem.setVisible(true);
         }
+
+        final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
+        leaveConverationItem.setVisible(false);
       }
     }
 
@@ -406,6 +410,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     super.onOptionsItemSelected(item);
     switch (item.getItemId()) {
+    case R.id.menu_leave_conversation:        handleLeaveConversation();                          return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
     case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
@@ -415,7 +420,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
-      case R.id.menu_call_recipient:         handleCallRecipient();                   return true;
+    case R.id.menu_call_recipient:            handleCallRecipient();                             return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -435,6 +440,35 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   //////// Event Handlers
+
+  private void handleLeaveConversation() {
+    new AsyncTask<Void, Void, ForstaDistribution>() {
+      @Override
+      protected ForstaDistribution doInBackground(Void... voids) {
+        try {
+          ForstaUser self = ForstaUser.getLocalForstaUser(ConversationActivity.this);
+          List<String> addresses = recipients.getAddresses();
+          addresses.remove(self.getUid());
+          Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, addresses, false);
+          return CcsmApi.getMessageDistribution(ConversationActivity.this, newRecipients.getRecipientExpression());
+        } catch (Exception e) {
+          Log.w(TAG, "Exception leaving conversation: " + e.getMessage());
+        }
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(ForstaDistribution distribution) {
+        if (distribution != null && distribution.isValid()) {
+          DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
+          initializeThread();
+          ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
+        } else {
+          Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
+        }
+      }
+    }.execute();
+  }
 
   private void handleReturnToConversationList() {
     Intent intent = new Intent(this, (archived ? ConversationListArchiveActivity.class : ConversationListActivity.class));
@@ -621,7 +655,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), true);
     recipients.addListener(this);
 
-    if (recipients == null || recipients.isEmpty()) {
+    if (recipients == null || recipients.isEmpty() || (!recipients.isSingleRecipient() && !recipients.includesSelf(ConversationActivity.this))) {
       inputPanel.setVisibility(View.GONE);
     }
 

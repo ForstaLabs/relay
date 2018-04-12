@@ -44,7 +44,7 @@ public class FromTextView extends EmojiTextView {
     TypedArray colors         = getContext().obtainStyledAttributes(attributes);
     boolean    isUnnamedGroup = recipients.isGroupRecipient() && TextUtils.isEmpty(recipients.getPrimaryRecipient().getName());
 
-    String fromString;
+    String fromString = "";
 
     if (isUnnamedGroup) {
       fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
