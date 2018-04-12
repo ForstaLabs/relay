@@ -393,8 +393,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           callItem.setVisible(true);
         }
 
-        final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
-        leaveConverationItem.setVisible(false);
+//        final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
+//        leaveConverationItem.setVisible(false);
       }
     }
 
@@ -410,7 +410,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     super.onOptionsItemSelected(item);
     switch (item.getItemId()) {
-    case R.id.menu_leave_conversation:        handleLeaveConversation();                          return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
     case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
