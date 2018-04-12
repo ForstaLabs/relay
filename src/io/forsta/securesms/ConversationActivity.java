@@ -393,8 +393,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           callItem.setVisible(true);
         }
 
-//        final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
-//        leaveConverationItem.setVisible(false);
+        final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
+        leaveConverationItem.setVisible(false);
       }
     }
 
@@ -410,6 +410,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     super.onOptionsItemSelected(item);
     switch (item.getItemId()) {
+    case R.id.menu_leave_conversation:        handleLeaveConversation();                         return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
     case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
@@ -584,38 +585,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   ///// Initializers
-
-  private void warnInvalidRecipients() {
-    if (recipients == null || recipients.isEmpty()) {
-      recipients = RecipientFactory.getRecipientsFromString(ConversationActivity.this, TextSecurePreferences.getLocalNumber(ConversationActivity.this), false);
-    }
-
-    TextSecureDirectory directory = TextSecureDirectory.getInstance(ConversationActivity.this);
-    List<Recipient> invalidRecipients = new ArrayList<>();
-    for (Recipient recipient : recipients) {
-      try {
-        if (!directory.isSecureTextSupported(recipient.getAddress())) {
-          invalidRecipients.add(recipient);
-        }
-      } catch (NotInDirectoryException e) {
-        invalidRecipients.add(recipient);
-      }
-    }
-    if (invalidRecipients.size() > 0) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("This conversation contains ").append(invalidRecipients.size()).append(" invalid recipients.");
-      sb.append("\n").append("These recipients will not receive messages.").append("\n");
-      for (Recipient recipient : invalidRecipients) {
-        sb.append("\n");
-        sb.append(recipient.getName());
-      }
-      new AlertDialog.Builder(ConversationActivity.this)
-          .setTitle("WARNING")
-          .setMessage(sb.toString())
-          .setPositiveButton("OK", null)
-          .show();
-    }
-  }
 
   private void updateDistribution() {
     ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
