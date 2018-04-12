@@ -655,7 +655,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), true);
     recipients.addListener(this);
 
-    if (recipients == null || recipients.isEmpty() || !recipients.includesSelf(ConversationActivity.this)) {
+    if (recipients == null || recipients.isEmpty() || (!recipients.isSingleRecipient() && !recipients.includesSelf(ConversationActivity.this))) {
       inputPanel.setVisibility(View.GONE);
     }
 
