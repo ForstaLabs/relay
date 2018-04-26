@@ -157,6 +157,15 @@ public class ForstaMessageManager {
           }
         }
 
+        if (data.has("messageRef")) {
+          String messageId = data.getString("messageRef");
+        }
+
+        if (data.has("vote")) {
+          int votes = data.getInt("vote");
+          forstaMessage.setTextBody("Up Vote: " + votes);
+        }
+
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
 

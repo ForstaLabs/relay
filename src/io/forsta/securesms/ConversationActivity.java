@@ -447,10 +447,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected ForstaDistribution doInBackground(Void... voids) {
         try {
           ForstaUser self = ForstaUser.getLocalForstaUser(ConversationActivity.this);
-          List<String> addresses = recipients.getAddresses();
-          addresses.remove(self.getUid());
-          Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, addresses, false);
-          return CcsmApi.getMessageDistribution(ConversationActivity.this, newRecipients.getRecipientExpression());
+          String expression = recipients.getRecipientExpression();
+          expression = "(" + expression + ")-@" + self.getFullTag();
+          return CcsmApi.getMessageDistribution(ConversationActivity.this, expression);
         } catch (Exception e) {
           Log.w(TAG, "Exception leaving conversation: " + e.getMessage());
         }
@@ -459,12 +458,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        if (distribution != null && distribution.isValid()) {
-          DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
-          initializeThread();
-          ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
-        } else {
-          Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
+        try {
+          if (distribution != null && distribution.isValid()) {
+            DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
+            initializeThread();
+            ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
+          } else {
+            Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          Toast.makeText(ConversationActivity.this, "Unable to leave conversation. An exception has occurred.", Toast.LENGTH_LONG);
         }
       }
     }.execute();
