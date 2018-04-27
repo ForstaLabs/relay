@@ -166,9 +166,10 @@ public class ForstaMessageManager {
             // Override message type.
             forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
             forstaMessage.setControlType(ForstaMessage.ControlTypes.UP_VOTE);
+            int vote = data.getInt("vote");
+            forstaMessage.setMessageVote(messageId, vote);
+            Log.w(TAG, "Message UpVote message: " + messageId + " vote: " + vote);
           }
-          int votes = data.getInt("vote");
-          forstaMessage.setTextBody("Up Vote: " + votes);
         }
 
         if (data.has("control")) {
@@ -211,7 +212,7 @@ public class ForstaMessageManager {
 
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
     try {
-      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Title has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
+      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Thread has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
       message = new OutgoingSecureMediaMessage(message);
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       message.setForstaControlJsonBody(context, threadData);
