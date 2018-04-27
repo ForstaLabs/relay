@@ -38,6 +38,7 @@ public class ForstaMessage {
     public static final String SYNC_RESPONSE = "syncResponse";
     public static final String DISCOVER = "discover";
     public static final String DISCOVER_RESPONSE = "discoverResponse";
+    public static final String UP_VOTE = "upVote";
   }
 
   public static class MessageTypes {
