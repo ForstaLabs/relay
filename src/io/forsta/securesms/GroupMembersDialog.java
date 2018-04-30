@@ -53,7 +53,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
   public void onPostExecute(Recipients members) {
     GroupMembers groupMembers = new GroupMembers(members);
     AlertDialog.Builder builder = new AlertDialog.Builder(context);
-    builder.setTitle(R.string.ConversationActivity_group_members);
+    builder.setTitle(R.string.ConversationActivity_conversation_members);
     builder.setIconAttribute(R.attr.group_members_dialog_icon);
     builder.setCancelable(true);
 //    builder.setItems(groupMembers.getRecipientStrings(), new GroupMembersOnClickListener(context, groupMembers));
@@ -111,9 +111,9 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
 
       for (Recipient recipient : members) {
         if (isLocalNumber(recipient)) {
-          recipientStrings.add(context.getString(R.string.GroupMembersDialog_me));
+          recipientStrings.add(recipient.getFullTag() + "(" + context.getString(R.string.GroupMembersDialog_me) + ")");
         } else {
-          recipientStrings.add(recipient.toShortString());
+          recipientStrings.add(recipient.getFullTag());
         }
       }
 

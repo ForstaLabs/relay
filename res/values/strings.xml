@@ -149,6 +149,7 @@
     <string name="ConversationActivity_group_members">Group members</string>
     <string name="ConversationActivity_group_conversation">Group conversation</string>
     <string name="ConversationActivity_unnamed_group">Unnamed group</string>
+    <string name="ConversationActivity_conversation_members">Conversation members</string>
     <string name="ConversationActivity_announcement">Announcement</string>
 
     <plurals name="ConversationActivity_d_recipients_in_group">
@@ -1142,6 +1143,7 @@
     <string name="conversation__menu_add_attachment">Add attachment</string>
     <string name="conversation__menu_update_group">Update group</string>
     <string name="conversation__menu_leave_group">Leave group</string>
+    <string name="conversation__menu_leave_conversation">Leave conversation</string>
     <string name="conversation__menu_delete_thread">Delete conversation</string>
     <string name="conversation__menu_view_media">All images</string>
     <string name="conversation__menu_conversation_settings">Conversation settings</string>

@@ -25,6 +25,7 @@ public class ForstaMessage {
   private String threadType = ThreadTypes.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
   private ForstaProvisionRequest provisionRequest;
+  private Vote messageVote;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -38,6 +39,7 @@ public class ForstaMessage {
     public static final String SYNC_RESPONSE = "syncResponse";
     public static final String DISCOVER = "discover";
     public static final String DISCOVER_RESPONSE = "discoverResponse";
+    public static final String UP_VOTE = "upVote";
   }
 
   public static class MessageTypes {
@@ -48,6 +50,23 @@ public class ForstaMessage {
   public static class ThreadTypes {
     public static final String CONVERSATION = "conversation";
     public static final String ANNOUNCEMENT = "announcement";
+  }
+
+  public class Vote {
+    private String messageRef;
+    private int vote;
+    public Vote(String messageRef, int vote) {
+      this.messageRef = messageRef;
+      this.vote = vote;
+    }
+
+    public int getVote() {
+      return vote;
+    }
+
+    public String getMessageRef() {
+      return messageRef;
+    }
   }
 
   public ForstaMessage() {
@@ -175,6 +194,14 @@ public class ForstaMessage {
 
   public void setProvisionRequest(String uuid, String key) {
     this.provisionRequest = new ForstaProvisionRequest(uuid, key);
+  }
+
+  public void setMessageVote(String messageRef, int vote) {
+    messageVote = new Vote(messageRef, vote);
+  }
+
+  public Vote getMessageVote() {
+    return messageVote;
   }
 
   public ForstaProvisionRequest getProvisionRequest() {

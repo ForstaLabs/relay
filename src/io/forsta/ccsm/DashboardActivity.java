@@ -26,6 +26,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.InvalidMessageException;
 
 import io.forsta.ccsm.api.model.ForstaJWT;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -146,7 +147,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     options.add("Canonical Address Db");
     options.add("TextSecure Recipients");
     options.add("TextSecure Directory");
-    options.add("Control and Ccsm Sync messages.");
+    options.add("Messages Top 10");
     options.add("Threads");
     options.add("Forsta Contacts");
     options.add("Groups");
@@ -181,7 +182,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
           case 4:
 //            GetMessages getMessages = new GetMessages();
 //            getMessages.execute();
-            mDebugText.setText(printMediaMessages());
+            mDebugText.setText(printMediaMessages(10));
             break;
           case 5:
             mDebugText.setText(printThreads());
@@ -409,8 +410,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private String printThreads() {
     StringBuilder sb = new StringBuilder();
-    SmsDatabase smsDb = DatabaseFactory.getSmsDatabase(DashboardActivity.this);
-    sb.append("Message count:" + smsDb.getMessageCount()).append("\n");
     ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
     Cursor cursor = tdb.getConversationList();
     while (cursor != null && cursor.moveToNext()) {
@@ -426,24 +425,27 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return sb.toString();
   }
 
-  private String printMediaMessages() {
+  private String printMediaMessages(int count) {
     MmsDatabase db = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
-    Cursor cursor = db.getMessages(-1);
-    MmsDatabase.Reader reader = db.readerFor(mMasterSecret, cursor);
-    MessageRecord messageRecord;
+    Cursor cursor = db.getMessages(count);
     StringBuilder sb = new StringBuilder();
-    while ((messageRecord = reader.getNext()) != null) {
-      String displayDate = DateUtils.formatDateTime(DashboardActivity.this, messageRecord.getTimestamp(), android.text.format.DateUtils.FORMAT_ABBREV_TIME);
-      try {
-        ForstaMessage message = ForstaMessageManager.fromMessagBodyString(messageRecord.getBody().getBody());
-      } catch (InvalidMessagePayloadException e) {
-        Log.w(TAG, "Bad message payload");
+    while (cursor != null && cursor.moveToNext()) {
+      for (int i=0; i<cursor.getColumnCount(); i++) {
+        sb.append(cursor.getColumnName(i)).append(": ");
+        if (cursor.getColumnName(i).equals("body")) {
+          try {
+            sb.append(mMasterCipher.decryptBody(cursor.getString(i)));
+          } catch (InvalidMessageException e) {
+            e.printStackTrace();
+          }
+        } else {
+          sb.append(cursor.getString(i)).append("\n");
+        }
+
       }
-      sb.append(messageRecord.getId())
-          .append(" ")
-          .append(displayDate)
-          .append("\n");
+      sb.append("\n");
     }
+    cursor.close();
     return sb.toString();
   }
 

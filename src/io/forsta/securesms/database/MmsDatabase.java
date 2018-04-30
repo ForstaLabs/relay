@@ -334,6 +334,13 @@ public class MmsDatabase extends MessagingDatabase {
                              " WHERE " + where, arguments);
   }
 
+  public Cursor getMessages(int count) {
+    SQLiteDatabase database = databaseHelper.getReadableDatabase();
+    return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
+        " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
+        " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ") LIMIT " + count, null);
+  }
+
   public Cursor getMessages(long threadId) {
     return rawQuery(THREAD_ID + " = ? ", new String[] {threadId+ ""});
   }

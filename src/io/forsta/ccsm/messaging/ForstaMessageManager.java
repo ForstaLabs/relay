@@ -157,6 +157,21 @@ public class ForstaMessageManager {
           }
         }
 
+        // This is a special case. Message type is CONTENT,
+        // but processing like a control message because
+        // we don't want to save these messages to the message table.
+        if (data.has("vote")) {
+          if (data.has("messageRef")) {
+            String messageId = data.getString("messageRef");
+            // Override message type.
+            forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
+            forstaMessage.setControlType(ForstaMessage.ControlTypes.UP_VOTE);
+            int vote = data.getInt("vote");
+            forstaMessage.setMessageVote(messageId, vote);
+            Log.w(TAG, "Message UpVote message: " + messageId + " vote: " + vote);
+          }
+        }
+
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
 
@@ -197,7 +212,7 @@ public class ForstaMessageManager {
 
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
     try {
-      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Title has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
+      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Thread has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
       message = new OutgoingSecureMediaMessage(message);
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       message.setForstaControlJsonBody(context, threadData);
