@@ -365,7 +365,9 @@ public class MessageNotifier {
         SpannableString body       = new SpannableString(context.getString(R.string.MessageNotifier_locked_message));
         body.setSpan(new StyleSpan(android.graphics.Typeface.ITALIC), 0, body.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        if (!recipients.isMuted()) {
+        ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
+
+        if (threadPreference == null || !threadPreference.isMuted()) {
           notificationState.addNotification(new NotificationItem(recipient, recipients, null, threadId, body, 0, null));
         }
       }
@@ -394,7 +396,8 @@ public class MessageNotifier {
       Recipients   threadRecipients = null;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
-      
+
+      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
       if (threadId != -1) {
         threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
@@ -412,7 +415,7 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
-      if (threadRecipients == null || !threadRecipients.isMuted()) {
+      if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted()) {
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
       }
     }
