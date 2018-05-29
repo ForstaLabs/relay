@@ -69,7 +69,6 @@ public class ForstaUser {
       if (TextUtils.isEmpty(this.uid)) {
         throw new InvalidUserException("UID is empty of null");
       }
-      this.username = userObj.getString("username");
       String name = getContactName(userObj);
       this.name = name;
       if (userObj.has("tag")) {
@@ -79,6 +78,7 @@ public class ForstaUser {
         }
         if (tag.has("slug")) {
           this.slug = tag.getString("slug");
+          this.username = this.slug;
         }
       }
       JSONObject org = userObj.getJSONObject("org");
@@ -153,7 +153,7 @@ public class ForstaUser {
   private String getContactName(JSONObject userObject) throws JSONException {
     StringBuilder name = new StringBuilder();
     String firstName = userObject.getString("first_name");
-    String middleName = userObject.getString("middle_name");
+    String middleName = userObject.has("middle_name") ? userObject.getString("middle_name") : "";
     String lastName = userObject.getString("last_name");
     name.append(firstName).append(" ");
     if (!middleName.equals("")) {
