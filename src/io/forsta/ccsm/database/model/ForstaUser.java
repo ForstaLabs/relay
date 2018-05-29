@@ -69,7 +69,6 @@ public class ForstaUser {
       if (TextUtils.isEmpty(this.uid)) {
         throw new InvalidUserException("UID is empty of null");
       }
-//      this.username = userObj.getString("username");
       String name = getContactName(userObj);
       this.name = name;
       if (userObj.has("tag")) {
