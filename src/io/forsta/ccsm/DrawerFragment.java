@@ -55,15 +55,16 @@ public class DrawerFragment extends Fragment {
     contactPhotoImage = (AvatarImageView) view.findViewById(R.id.drawer_photo_image);
 
     final ForstaUser user = ForstaUser.getLocalForstaUser(getActivity());
-    userName.setText(user.getName());
-    orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-    orgName.setText(user.getOrgTag());
-    if (!TextUtils.isEmpty(user.getAvatar())) {
-      Glide.with(getActivity()).load("https://www.gravatar.com/avatar/" + user.getAvatar()).asBitmap().into(contactPhotoImage);
-    } else {
-      contactPhotoImage.setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(user.getName()).asDrawable(getActivity(), MaterialColor.GREY.toConversationColor(getActivity())));
+    if (user != null) {
+      userName.setText(user.getName());
+      orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
+      orgName.setText(user.getOrgTag());
+      if (!TextUtils.isEmpty(user.getAvatar())) {
+        Glide.with(getActivity()).load("https://www.gravatar.com/avatar/" + user.getAvatar()).asBitmap().into(contactPhotoImage);
+      } else {
+        contactPhotoImage.setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(user.getName()).asDrawable(getActivity(), MaterialColor.GREY.toConversationColor(getActivity())));
+      }
     }
-
     return view;
   }
 
