@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +36,7 @@ public class LoginActivity extends BaseActionBarActivity {
   private LinearLayout mLoginFormContainer;
   private LinearLayout mSendLinkFormContainer;
   private LinearLayout mVerifyFormContainer;
+  private LinearLayout passwordAuthContainer;
   private LinearLayout mAccountFormContainer;
   private TextView mLoginTitle;
   private EditText mSendTokenUsername;
@@ -44,9 +46,9 @@ public class LoginActivity extends BaseActionBarActivity {
   private EditText mAccountLastName;
   private EditText mAccountPhone;
   private EditText mAccountEmail;
+  private EditText mPassword;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
-  private Button createAccountButton;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +88,7 @@ public class LoginActivity extends BaseActionBarActivity {
     mSendLinkFormContainer = (LinearLayout) findViewById(R.id.forsta_login_send_link_container);
     mVerifyFormContainer = (LinearLayout) findViewById(R.id.forsta_login_verify_token_container);
     mAccountFormContainer = (LinearLayout) findViewById(R.id.forsta_login_create_account_container);
+    passwordAuthContainer = (LinearLayout) findViewById(R.id.forsta_login_password_container);
 
     mSendTokenOrg = (EditText) findViewById(R.id.forsta_login_org_get_token);
     mSendTokenUsername = (EditText) findViewById(R.id.forsta_login_username_get_token);
@@ -94,17 +97,13 @@ public class LoginActivity extends BaseActionBarActivity {
     mAccountLastName = (EditText) findViewById(R.id.forsta_login_account_lastname);
     mAccountPhone = (EditText) findViewById(R.id.forsta_login_account_phone);
     mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
+    mPassword = (EditText) findViewById(R.id.forsta_login_password);
 
     createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
-    createAccountButton = (Button) findViewById(R.id.forsta_create_account_button);
-
 
     ForstaUser user = ForstaUser.getLocalForstaUser(LoginActivity.this);
     if (user != null) {
       createAccountContainer.setVisibility(View.GONE);
-      if (user.hasPassword()) {
-        // This user has a password...
-      }
     }
   }
 
@@ -136,12 +135,13 @@ public class LoginActivity extends BaseActionBarActivity {
           Toast.makeText(LoginActivity.this, "Invalid security code", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-          CCSMLogin task = new CCSMLogin();
+          CCSMLogin task = new CCSMLogin(true);
           task.execute(code);
         }
       }
     });
 
+    Button createAccountButton = (Button) findViewById(R.id.forsta_create_account_button);
     createAccountButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -199,12 +199,27 @@ public class LoginActivity extends BaseActionBarActivity {
         showSendLinkForm();
       }
     });
+
+    Button loginWithPasswordButton = (Button) findViewById(R.id.forsta_login_password_submit_button);
+    loginWithPasswordButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (TextUtils.isEmpty(mPassword.getText().toString())) {
+          Toast.makeText(LoginActivity.this, "Please enter a password.", Toast.LENGTH_LONG).show();
+          return;
+        }
+        showProgressBar();
+        CCSMLogin loginTask = new CCSMLogin(false);
+        loginTask.execute(mPassword.getText().toString());
+      }
+    });
   }
 
   private void showSendLinkForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
+    passwordAuthContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
@@ -212,7 +227,17 @@ public class LoginActivity extends BaseActionBarActivity {
   private void showVerifyForm() {
     mSendLinkFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
+    passwordAuthContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.VISIBLE);
+    hideProgressBar();
+  }
+
+  private void showAuthPassword() {
+    ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    mVerifyFormContainer.setVisibility(View.GONE);
+    mAccountFormContainer.setVisibility(View.GONE);
+    mSendLinkFormContainer.setVisibility(View.GONE);
+    passwordAuthContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
 
@@ -220,6 +245,7 @@ public class LoginActivity extends BaseActionBarActivity {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
     mSendLinkFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.GONE);
+    passwordAuthContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
@@ -264,24 +290,48 @@ public class LoginActivity extends BaseActionBarActivity {
         } catch (JSONException e) {
           Log.d(TAG, e.getMessage());
         }
-      } else {
-        hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Sorry an error has occurred.", Toast.LENGTH_LONG).show();
+      } else if (jsonObject.has("error")) {
+        try {
+          if (jsonObject.getString("error").equals("409")) {
+            ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
+            showAuthPassword();
+          } else {
+            hideProgressBar();
+            Toast.makeText(LoginActivity.this, "Sorry an error has occurred.", Toast.LENGTH_LONG).show();
+          }
+        } catch (JSONException e) {
+          e.printStackTrace();
+        }
       }
     }
   }
 
   private class CCSMLogin extends AsyncTask<String, Void, JSONObject> {
+    private boolean isSms = true;
+
+    public CCSMLogin(boolean isSms) {
+      this.isSms = isSms;
+    }
 
     @Override
     protected JSONObject doInBackground(String... params) {
-      String authtoken = params[0];
+      String auth = params[0];
       String username = ForstaPreferences.getForstaUsername(getApplicationContext());
       String org = ForstaPreferences.getForstaOrgName(getApplicationContext());
-      authtoken = CcsmApi.parseLoginToken(authtoken);
-      authtoken = org + ":" + username + ":" + authtoken;
+      JSONObject authObj = new JSONObject();
+      try {
+        if (isSms) {
+          auth = org + ":" + username + ":" + auth;
+          authObj.put("authtoken", auth);
+        } else {
+          authObj.put("tag_slug", username + ":" + org);
+          authObj.put("password", auth);
+        }
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
 
-      JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, authtoken);
+      JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, authObj);
       return token;
     }
 

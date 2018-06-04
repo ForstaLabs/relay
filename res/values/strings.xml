@@ -17,6 +17,7 @@
     <string name="forsta_login_password_label">Password</string>
     <string name="forsta_login_org_label">Organization</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
+    <string name="forsta_login_password_instructions_label">Please enter your password below.</string>
     <string name="forsta_login_send_link_button">Login</string>
     <string name="forsta_login_create_account_button">Create Account</string>
     <string name="forsta_login_account_submit_button">Submit</string>

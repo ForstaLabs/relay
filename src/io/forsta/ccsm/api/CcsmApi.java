@@ -12,6 +12,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -63,7 +64,6 @@ public class CcsmApi {
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
-  private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
   private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
@@ -111,13 +111,11 @@ public class CcsmApi {
     return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
   }
 
-  public static JSONObject forstaLogin(Context context, String authToken) {
+  public static JSONObject forstaLogin(Context context, JSONObject authObject) {
     String host = BuildConfig.FORSTA_API_URL;
     JSONObject result = new JSONObject();
     try {
-      JSONObject obj = new JSONObject();
-      obj.put("authtoken", authToken);
-      result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
+      result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, authObject);
 
       if (result.has("token")) {
         Log.w(TAG, "Login Success. Token Received.");
