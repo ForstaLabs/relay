@@ -23,6 +23,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.BaseActionBarActivity;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
@@ -35,9 +36,7 @@ public class LoginActivity extends BaseActionBarActivity {
   private LinearLayout mSendLinkFormContainer;
   private LinearLayout mVerifyFormContainer;
   private LinearLayout mAccountFormContainer;
-
   private TextView mLoginTitle;
-
   private EditText mSendTokenUsername;
   private EditText mSendTokenOrg;
   private EditText mLoginSecurityCode;
@@ -45,8 +44,9 @@ public class LoginActivity extends BaseActionBarActivity {
   private EditText mAccountLastName;
   private EditText mAccountPhone;
   private EditText mAccountEmail;
-
   private ProgressBar mLoginProgressBar;
+  private LinearLayout createAccountContainer;
+  private Button createAccountButton;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +94,18 @@ public class LoginActivity extends BaseActionBarActivity {
     mAccountLastName = (EditText) findViewById(R.id.forsta_login_account_lastname);
     mAccountPhone = (EditText) findViewById(R.id.forsta_login_account_phone);
     mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
+
+    createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
+    createAccountButton = (Button) findViewById(R.id.forsta_create_account_button);
+
+
+    ForstaUser user = ForstaUser.getLocalForstaUser(LoginActivity.this);
+    if (user != null) {
+      createAccountContainer.setVisibility(View.GONE);
+      if (user.hasPassword()) {
+        // This user has a password...
+      }
+    }
   }
 
   private void initializeButtonListeners() {
@@ -107,7 +119,7 @@ public class LoginActivity extends BaseActionBarActivity {
           Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
         } else {
           showProgressBar();
-          ForstaPreferences.setForstaOrgName(getApplicationContext(),org);
+          ForstaPreferences.setForstaOrgName(getApplicationContext(), org);
           ForstaPreferences.setForstaUsername(getApplicationContext(), username);
           CCSMSendToken getToken = new CCSMSendToken();
           getToken.execute(org, username);
@@ -129,7 +141,7 @@ public class LoginActivity extends BaseActionBarActivity {
         }
       }
     });
-    Button createAccountButton = (Button) findViewById(R.id.forsta_create_account_button);
+
     createAccountButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
