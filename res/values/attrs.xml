@@ -113,6 +113,7 @@
     <attr name="menu_save_icon" format="reference" />
 
     <attr name="pref_ic_sms_mms" format="reference" />
+    <attr name="pref_ic_auth" format="reference" />
     <attr name="pref_ic_notifications" format="reference" />
     <attr name="pref_ic_app_protection" format="reference" />
     <attr name="pref_ic_appearance" format="reference" />

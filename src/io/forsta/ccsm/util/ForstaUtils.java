@@ -41,4 +41,12 @@ public class ForstaUtils {
     return df.format(date);
   }
 
+  public static String slugify(String fullName) {
+    String slug = fullName.replaceAll("[^\\w\\s-]+", "");
+    slug = slug.replaceAll("\\s+$", "");
+    slug = slug.replaceAll("[\\s_-]+", ".");
+    slug = slug.replaceAll("^[+!|-]+$", ".");
+    return slug.toLowerCase();
+  }
+
 }

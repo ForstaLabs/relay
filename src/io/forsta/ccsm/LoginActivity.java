@@ -5,9 +5,11 @@ import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.telephony.PhoneNumberUtils;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,16 +18,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
-import org.whispersystems.signalservice.api.util.PhoneNumberFormatter;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
+import java.util.concurrent.Executor;
+
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.BaseActionBarActivity;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.ccsm.api.CcsmApi;
@@ -42,10 +44,11 @@ public class LoginActivity extends BaseActionBarActivity {
   private EditText mSendTokenUsername;
   private EditText mSendTokenOrg;
   private EditText mLoginSecurityCode;
-  private EditText mAccountFirstName;
-  private EditText mAccountLastName;
+  private EditText mAccountFullName;
+  private EditText mAccountTagSlug;
   private EditText mAccountPhone;
   private EditText mAccountEmail;
+  private EditText mAccountPassword;
   private EditText mPassword;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
@@ -56,7 +59,7 @@ public class LoginActivity extends BaseActionBarActivity {
     setContentView(R.layout.activity_login);
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
     initializeView();
-    initializeButtonListeners();
+    initializeListeners();
   }
 
   @Override
@@ -93,10 +96,11 @@ public class LoginActivity extends BaseActionBarActivity {
     mSendTokenOrg = (EditText) findViewById(R.id.forsta_login_org_get_token);
     mSendTokenUsername = (EditText) findViewById(R.id.forsta_login_username_get_token);
     mLoginSecurityCode = (EditText) findViewById(R.id.forsta_login_security_code);
-    mAccountFirstName = (EditText) findViewById(R.id.forsta_login_account_firstname);
-    mAccountLastName = (EditText) findViewById(R.id.forsta_login_account_lastname);
+    mAccountFullName = (EditText) findViewById(R.id.forsta_login_account_fullname);
+    mAccountTagSlug = (EditText) findViewById(R.id.forsta_login_account_tag_slug);
     mAccountPhone = (EditText) findViewById(R.id.forsta_login_account_phone);
     mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
+    mAccountPassword = (EditText) findViewById(R.id.forsta_login_account_password);
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
 
     createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
@@ -107,7 +111,26 @@ public class LoginActivity extends BaseActionBarActivity {
     }
   }
 
-  private void initializeButtonListeners() {
+  private void initializeListeners() {
+    mAccountFullName.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+      }
+
+      @Override
+      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+      }
+
+      @Override
+      public void afterTextChanged(Editable editable) {
+        String slug = ForstaUtils.slugify(editable.toString());
+        mAccountTagSlug.setText(slug);
+      }
+    });
+
+
     Button getTokenButton = (Button) findViewById(R.id.forsta_get_token_button);
     getTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -154,16 +177,56 @@ public class LoginActivity extends BaseActionBarActivity {
       @Override
       public void onClick(View view) {
         // Need validation checking on form values.
-        String first = mAccountFirstName.getText().toString().trim();
-        String last = mAccountLastName.getText().toString().trim();
+
+//        SafetyNet.getClient(this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_KEY)
+//            .addOnSuccessListener((Executor) this,
+//                new OnSuccessListener<SafetyNetApi.RecaptchaTokenResponse>() {
+//                  @Override
+//                  public void onSuccess(SafetyNetApi.RecaptchaTokenResponse response) {
+//                    // Indicates communication with reCAPTCHA service was
+//                    // successful.
+//                    String userResponseToken = response.getTokenResult();
+//                    if (!userResponseToken.isEmpty()) {
+//                      // Validate the user response token using the
+//                      // reCAPTCHA siteverify API.
+//                    }
+//                  }
+//                })
+//            .addOnFailureListener((Executor) this, new OnFailureListener() {
+//              @Override
+//              public void onFailure(@NonNull Exception e) {
+//                if (e instanceof ApiException) {
+//                  // An error occurred when communicating with the
+//                  // reCAPTCHA service. Refer to the status code to
+//                  // handle the error appropriately.
+//                  ApiException apiException = (ApiException) e;
+//                  int statusCode = apiException.getStatusCode();
+//                  Log.d(TAG, "Error: " + CommonStatusCodes
+//                      .getStatusCodeString(statusCode));
+//                } else {
+//                  // A different, unknown type of error occurred.
+//                  Log.d(TAG, "Error: " + e.getMessage());
+//                }
+//              }
+//            });
+
+
+        String fullName = mAccountFullName.getText().toString().trim();
+        String tagSlug = mAccountTagSlug.getText().toString().trim();
         String phone = mAccountPhone.getText().toString().trim();
         String email = mAccountEmail.getText().toString().trim();
-        if (first.length() < 1) {
-          Toast.makeText(LoginActivity.this, "Please enter a first name", Toast.LENGTH_LONG).show();
+        String password = mAccountPassword.getText().toString().trim();
+        if (fullName.length() < 1) {
+          Toast.makeText(LoginActivity.this, "Please enter a name", Toast.LENGTH_LONG).show();
           return;
         }
-        if (last.length() < 1) {
-          Toast.makeText(LoginActivity.this, "Please enter a last name", Toast.LENGTH_LONG).show();
+        if (tagSlug.length() < 1) {
+          Toast.makeText(LoginActivity.this, "Please enter a username", Toast.LENGTH_LONG).show();
+          return;
+        }
+
+        if (password.length() < 8) {
+          Toast.makeText(LoginActivity.this, "Please enter a valid password", Toast.LENGTH_LONG).show();
           return;
         }
 
@@ -177,8 +240,8 @@ public class LoginActivity extends BaseActionBarActivity {
           return;
         }
         showProgressBar();
-        CCSMCreateAccount createAccountTask = new CCSMCreateAccount();
-        createAccountTask.execute(first, last, phone, email);
+        JoinAccountTask joinTask = new JoinAccountTask();
+        joinTask.execute(fullName, tagSlug, phone, email, password);
       }
     });
 
@@ -359,7 +422,43 @@ public class LoginActivity extends BaseActionBarActivity {
       } catch (JSONException e) {
         e.printStackTrace();
       }
-      return CcsmApi.createAccount(jsonObject);
+      return CcsmApi.accountJoin(jsonObject);
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      if (jsonObject.has("id")) {
+        try {
+          String username = jsonObject.getString("username");
+          JSONObject orgObject = jsonObject.getJSONObject("org");
+          String orgSlug = orgObject.getString("slug");
+          ForstaPreferences.setForstaUsername(LoginActivity.this, username);
+          ForstaPreferences.setForstaOrgName(LoginActivity.this, orgSlug);
+          showVerifyForm();
+        } catch (JSONException e) {
+          hideProgressBar();
+          Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
+        }
+      } else {
+        Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
+      }
+    }
+  }
+
+  private class JoinAccountTask extends AsyncTask<String, Void, JSONObject> {
+    @Override
+    protected JSONObject doInBackground(String... strings) {
+      JSONObject jsonObject = new JSONObject();
+      try {
+        jsonObject.put("full_name", strings[0]);
+        jsonObject.put("tag_slug", strings[1]);
+        jsonObject.put("phone", strings[2]);
+        jsonObject.put("email", strings[3]);
+        jsonObject.put("captcha", strings[3]);
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+      return CcsmApi.accountJoin(jsonObject);
     }
 
     @Override

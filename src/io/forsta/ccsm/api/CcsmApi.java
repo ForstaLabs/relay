@@ -55,6 +55,7 @@ public class CcsmApi {
   private static final String TAG = CcsmApi.class.getSimpleName();
   private static final String API_TOKEN_REFRESH = "/v1/api-token-refresh/";
   private static final String API_LOGIN = "/v1/login/";
+  private static final String API_JOIN = "/v1/join/";
   private static final String API_USER = "/v1/user/";
   private static final String API_USER_PICK = "/v1/user-pick/";
   private static final String API_TAG = "/v1/tag/";
@@ -109,6 +110,13 @@ public class CcsmApi {
     String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
     // This needs to change to using the /v1/join endpoint and stop using the service token.
     return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
+  }
+
+  public static JSONObject accountJoin(JSONObject jsonObject) {
+    String host = BuildConfig.FORSTA_API_URL;
+
+  JSONObject response = NetworkUtils.apiFetch("POST", null, host + API_JOIN, jsonObject);
+    return response;
   }
 
   public static JSONObject forstaLogin(Context context, JSONObject authObject) {

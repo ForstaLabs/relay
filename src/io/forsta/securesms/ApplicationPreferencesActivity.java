@@ -138,8 +138,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_NOTIFICATIONS));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APP_PROTECTION));
-      this.findPreference(PREFERENCE_AUTH)
-          .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_AUTH));
+//      this.findPreference(PREFERENCE_AUTH)
+//          .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_AUTH));
       this.findPreference(PREFERENCE_CATEGORY_APPEARANCE)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APPEARANCE));
       this.findPreference(PREFERENCE_CATEGORY_CHATS)

@@ -103,11 +103,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/forsta_login_account_firstname_label" />
+            android:layout_marginTop="0dp"
+            android:text="@string/forsta_login_account_fullname_label" />
 
         <EditText
-            android:id="@+id/forsta_login_account_firstname"
+            android:id="@+id/forsta_login_account_fullname"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -118,10 +118,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="@string/forsta_login_account_lastname_label" />
+            android:text="@string/forsta_login_account_username_label" />
 
         <EditText
-            android:id="@+id/forsta_login_account_lastname"
+            android:id="@+id/forsta_login_account_tag_slug"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -153,6 +153,19 @@
             android:layout_marginTop="5dp"
             android:ems="10"
             android:inputType="textEmailAddress" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_password_label" />
+        <EditText
+            android:id="@+id/forsta_login_account_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textPassword" />
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
