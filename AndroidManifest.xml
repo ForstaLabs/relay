@@ -578,6 +578,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ConversationActivity"/>
         </activity>
+        <activity
+            android:name="io.forsta.ccsm.PasswordActivity"
+            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
+            android:parentActivityName=".ApplicationPreferencesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ApplicationPreferencesActivity"/>
+        </activity>
     </application>
 
 </manifest>

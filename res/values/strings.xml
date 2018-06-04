@@ -927,6 +927,7 @@
     <string name="AndroidManifest__media_overview_named">All images with %1$s</string>
     <string name="AndroidManifest__message_details">Message details</string>
     <string name="AndroidManifest__linked_devices">Linked devices</string>
+    <string name="AndroidManifest__authentication">Authentication</string>
     <string name="AndroidManifest__invite_friends">Invite friends</string>
     <string name="AndroidManifest_archived_conversations">Archived conversations</string>
 
@@ -1023,6 +1024,7 @@
     <string name="preferences__normal">Normal</string>
     <string name="preferences__slow">Slow</string>
     <string name="preferences__custom">Custom</string>
+    <string name="preferences__auth">Authentication</string>
     <string name="preferences__advanced">Advanced</string>
     <string name="preferences__privacy">Privacy</string>
     <string name="preferences__mms_user_agent">MMS User Agent</string>

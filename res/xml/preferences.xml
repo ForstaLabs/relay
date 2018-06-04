@@ -13,6 +13,10 @@
                 android:title="@string/preferences__privacy"
                 android:icon="?pref_ic_app_protection"/>
 
+    <Preference android:key="preference_auth"
+                android:title="@string/preferences__auth"
+                android:icon="?pref_ic_storage"/>
+
     <Preference android:key="preference_category_appearance"
                 android:title="@string/preferences__appearance"
                 android:icon="?pref_ic_appearance"/>
