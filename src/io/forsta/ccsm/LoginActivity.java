@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -17,6 +18,13 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.safetynet.SafetyNet;
+import com.google.android.gms.safetynet.SafetyNetApi;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +41,7 @@ import io.forsta.securesms.R;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.Util;
 
-public class LoginActivity extends BaseActionBarActivity {
+public class LoginActivity extends BaseActionBarActivity implements View.OnClickListener, Executor {
   private static final String TAG = LoginActivity.class.getSimpleName();
   private LinearLayout mLoginFormContainer;
   private LinearLayout mSendLinkFormContainer;
@@ -173,77 +181,47 @@ public class LoginActivity extends BaseActionBarActivity {
     });
 
     Button submitAccountButton = (Button) findViewById(R.id.forsta_login_account_submit_button);
-    submitAccountButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        // Need validation checking on form values.
-
-//        SafetyNet.getClient(this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_KEY)
-//            .addOnSuccessListener((Executor) this,
-//                new OnSuccessListener<SafetyNetApi.RecaptchaTokenResponse>() {
-//                  @Override
-//                  public void onSuccess(SafetyNetApi.RecaptchaTokenResponse response) {
-//                    // Indicates communication with reCAPTCHA service was
-//                    // successful.
-//                    String userResponseToken = response.getTokenResult();
-//                    if (!userResponseToken.isEmpty()) {
-//                      // Validate the user response token using the
-//                      // reCAPTCHA siteverify API.
-//                    }
-//                  }
-//                })
-//            .addOnFailureListener((Executor) this, new OnFailureListener() {
-//              @Override
-//              public void onFailure(@NonNull Exception e) {
-//                if (e instanceof ApiException) {
-//                  // An error occurred when communicating with the
-//                  // reCAPTCHA service. Refer to the status code to
-//                  // handle the error appropriately.
-//                  ApiException apiException = (ApiException) e;
-//                  int statusCode = apiException.getStatusCode();
-//                  Log.d(TAG, "Error: " + CommonStatusCodes
-//                      .getStatusCodeString(statusCode));
-//                } else {
-//                  // A different, unknown type of error occurred.
-//                  Log.d(TAG, "Error: " + e.getMessage());
-//                }
-//              }
-//            });
-
-
-        String fullName = mAccountFullName.getText().toString().trim();
-        String tagSlug = mAccountTagSlug.getText().toString().trim();
-        String phone = mAccountPhone.getText().toString().trim();
-        String email = mAccountEmail.getText().toString().trim();
-        String password = mAccountPassword.getText().toString().trim();
-        if (fullName.length() < 1) {
-          Toast.makeText(LoginActivity.this, "Please enter a name", Toast.LENGTH_LONG).show();
-          return;
-        }
-        if (tagSlug.length() < 1) {
-          Toast.makeText(LoginActivity.this, "Please enter a username", Toast.LENGTH_LONG).show();
-          return;
-        }
-
-        if (password.length() < 8) {
-          Toast.makeText(LoginActivity.this, "Please enter a valid password", Toast.LENGTH_LONG).show();
-          return;
-        }
-
-        try {
-          if (phone.length() < 10) {
-            throw new InvalidNumberException("Too short");
-          }
-          phone = Util.canonicalizeNumberE164(phone);
-        } catch (InvalidNumberException e) {
-          Toast.makeText(LoginActivity.this, "Invalid phone number. Please enter full number, including area code.", Toast.LENGTH_LONG).show();
-          return;
-        }
-        showProgressBar();
-        JoinAccountTask joinTask = new JoinAccountTask();
-        joinTask.execute(fullName, tagSlug, phone, email, password);
-      }
-    });
+    submitAccountButton.setOnClickListener(this);
+//    submitAccountButton.setOnClickListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View view) {
+//        // Need validation checking on form values.
+//        showProgressBar();
+//
+//        String fullName = mAccountFullName.getText().toString().trim();
+//        String tagSlug = mAccountTagSlug.getText().toString().trim();
+//        String phone = mAccountPhone.getText().toString().trim();
+//        String email = mAccountEmail.getText().toString().trim();
+//        String password = mAccountPassword.getText().toString().trim();
+//        if (fullName.length() < 1) {
+//          Toast.makeText(LoginActivity.this, "Please enter a name", Toast.LENGTH_LONG).show();
+//          return;
+//        }
+//        if (tagSlug.length() < 1) {
+//          Toast.makeText(LoginActivity.this, "Please enter a username", Toast.LENGTH_LONG).show();
+//          return;
+//        }
+//
+//        if (password.length() < 8) {
+//          Toast.makeText(LoginActivity.this, "Please enter a valid password", Toast.LENGTH_LONG).show();
+//          return;
+//        }
+//
+//        try {
+//          if (phone.length() < 10) {
+//            throw new InvalidNumberException("Too short");
+//          }
+//          phone = Util.canonicalizeNumberE164(phone);
+//        } catch (InvalidNumberException e) {
+//          Toast.makeText(LoginActivity.this, "Invalid phone number. Please enter full number, including area code.", Toast.LENGTH_LONG).show();
+//          return;
+//        }
+//        hideProgressBar();
+////        showProgressBar();
+////        JoinAccountTask joinTask = new JoinAccountTask();
+////        joinTask.execute(fullName, tagSlug, phone, email, password);
+//      }
+//    });
 
     Button cancelAccountButton = (Button) findViewById(R.id.forsta_login_account_cancel_button);
     cancelAccountButton.setOnClickListener(new View.OnClickListener() {
@@ -331,6 +309,46 @@ public class LoginActivity extends BaseActionBarActivity {
 
     startActivity(nextIntent);
     finish();
+  }
+
+  @Override
+  public void onClick(View v) {
+    SafetyNet.getClient(this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_KEY)
+        .addOnSuccessListener((Executor) this,
+            new OnSuccessListener<SafetyNetApi.RecaptchaTokenResponse>() {
+              @Override
+              public void onSuccess(SafetyNetApi.RecaptchaTokenResponse response) {
+                // Indicates communication with reCAPTCHA service was
+                // successful.
+                String userResponseToken = response.getTokenResult();
+                if (!userResponseToken.isEmpty()) {
+                  // Validate the user response token using the
+                  // reCAPTCHA siteverify API.
+                }
+              }
+            })
+        .addOnFailureListener((Executor) this, new OnFailureListener() {
+          @Override
+          public void onFailure(@NonNull Exception e) {
+            if (e instanceof ApiException) {
+              // An error occurred when communicating with the
+              // reCAPTCHA service. Refer to the status code to
+              // handle the error appropriately.
+              ApiException apiException = (ApiException) e;
+              int statusCode = apiException.getStatusCode();
+              Log.d(TAG, "Error: " + CommonStatusCodes
+                  .getStatusCodeString(statusCode));
+            } else {
+              // A different, unknown type of error occurred.
+              Log.d(TAG, "Error: " + e.getMessage());
+            }
+          }
+        });
+  }
+
+  @Override
+  public void execute(@NonNull Runnable command) {
+    command.run();
   }
 
   private class CCSMSendToken extends AsyncTask<String, Void, JSONObject> {
