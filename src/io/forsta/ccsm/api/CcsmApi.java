@@ -65,7 +65,6 @@ public class CcsmApi {
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
-  private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
@@ -102,7 +101,7 @@ public class CcsmApi {
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
-    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+    return hardFetchResource(context, "PUT", API_PROVISION_ACCOUNT, obj);
   }
 
   public static JSONObject createAccount(JSONObject jsonObject) {
@@ -113,10 +112,7 @@ public class CcsmApi {
   }
 
   public static JSONObject accountJoin(JSONObject jsonObject) {
-    String host = BuildConfig.FORSTA_API_URL;
-
-  JSONObject response = NetworkUtils.apiFetch("POST", null, host + API_JOIN, jsonObject);
-    return response;
+    return NetworkUtils.apiFetch("POST", null, BuildConfig.FORSTA_API_URL + "" + API_JOIN, jsonObject);
   }
 
   public static JSONObject forstaLogin(Context context, JSONObject authObject) {
@@ -464,7 +460,7 @@ public class CcsmApi {
       try {
         String error = response.getString("error");
         Log.e(TAG, error);
-        if (error.equals("401")) {
+        if (error.contains("401")) {
           Log.e(TAG, "CCSM API Unauthorized.");
           return true;
         }

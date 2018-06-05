@@ -94,8 +94,8 @@ public class NetworkUtils {
         JSONObject jsonResult = new JSONObject(result);
         return jsonResult;
       } else {
-        Log.e(TAG, path);
-        throw new IOException(status + "");
+        String result = readResult(conn.getErrorStream());
+        throw new IOException("{\"" + status + "\": " + result + "}");
       }
     } finally {
       conn.disconnect();

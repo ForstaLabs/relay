@@ -1,11 +1,17 @@
 package io.forsta.ccsm.util;
 
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.TimeZone;
 
 /**
@@ -49,4 +55,24 @@ public class ForstaUtils {
     return slug.toLowerCase();
   }
 
+  public static String parseErrors(JSONObject jsonObject) {
+    StringBuilder sb = new StringBuilder();
+    Iterator<String> keys = jsonObject.keys();
+    while (keys.hasNext()) {
+      String key = keys.next();
+      JSONObject object = jsonObject.optJSONObject(key);
+      if (object != null) {
+        Iterator<String> objKeys = object.keys();
+        while (objKeys.hasNext()) {
+          String objKey = objKeys.next();
+          String message = object.optString(objKey, "No errors");
+          sb.append(message).append(" ");
+        }
+      } else {
+        String message = jsonObject.optString(key);
+        sb.append(message);
+      }
+    }
+    return sb.toString();
+  }
 }

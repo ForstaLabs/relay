@@ -96,7 +96,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     provided 'com.squareup.dagger:dagger-compiler:1.2.2'
-    compile 'com.android.support:support-v4:22.1.0'
 }
 
 dependencyVerification {
@@ -158,7 +157,7 @@ android {
         versionCode 191
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
-        buildConfigField "String", "RECAPTCHA_KEY", "\"6LcYOD8UAAAAAK8h67aZdxUJqgDPNpgIEDFgopil\""
+        buildConfigField "String", "RECAPTCHA_KEY", "\"6LetY10UAAAAAKugwBLDP31SVLcl1iem9K1fqJlA\""
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
         resValue "string", "forsta_account_type", applicationId
     }
