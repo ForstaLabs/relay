@@ -273,6 +273,17 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       }
     });
 
+    TextView resetPasswordText = (TextView) findViewById(R.id.forsta_login_forgotpassword_link);
+    resetPasswordText.setPaintFlags(resetPasswordText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+    resetPasswordText.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        showProgressBar();
+        ResetPasswordTask resetPasswordTask = new ResetPasswordTask();
+        resetPasswordTask.execute();
+      }
+    });
+
     Button loginWithPasswordButton = (Button) findViewById(R.id.forsta_login_password_submit_button);
     loginWithPasswordButton.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -558,6 +569,26 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       } catch (JSONException e) {
         hideProgressBar();
         Toast.makeText(LoginActivity.this, "Sorry. Error reading response.", Toast.LENGTH_LONG).show();
+      }
+    }
+  }
+
+  private class ResetPasswordTask extends AsyncTask<String, Void, JSONObject> {
+
+    @Override
+    protected JSONObject doInBackground(String... strings) {
+      return CcsmApi.resetPassword(LoginActivity.this);
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+      if (jsonObject.has("method")) {
+        String method = jsonObject.optString("method");
+        hideProgressBar();
+        Toast.makeText(LoginActivity.this, "Check your " + method + " for a password reset link.", Toast.LENGTH_LONG).show();
+      } else {
+        hideProgressBar();
+        Toast.makeText(LoginActivity.this, "Unable to reset password.", Toast.LENGTH_LONG).show();
       }
     }
   }

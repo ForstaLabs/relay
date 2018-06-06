@@ -226,6 +226,22 @@
             android:text="@string/forsta_login_login_button"
             android:textColor="@color/white"
             android:visibility="visible" />
+        <TextView
+            android:id="@+id/forsta_login_forgotpassword_instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textAlignment="center"
+            android:text="@string/forsta_login_forgotpassword_instructions_label" />
+
+        <TextView
+            android:id="@+id/forsta_login_forgotpassword_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/forsta_login_forgotpassword_link_label"
+            android:textAlignment="center" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -287,7 +303,7 @@
 
         <TextView
             android:id="@+id/forsta_login_tryagain_message"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:textAlignment="center"

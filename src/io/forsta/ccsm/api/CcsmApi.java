@@ -67,6 +67,7 @@ public class CcsmApi {
   private static final String API_SEND_TOKEN = "/v1/login/send/";
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
+  private static final String API_USER_RESET_PASSWORD = "/v1/password/reset/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -149,6 +150,21 @@ public class CcsmApi {
       e.printStackTrace();
       Log.e(TAG, "forstaRefreshToken failed");
     }
+    return result;
+  }
+
+  public static JSONObject resetPassword(Context context) {
+    String host = BuildConfig.FORSTA_API_URL;
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    JSONObject resetBody = new JSONObject();
+    try {
+      if (localAccount != null) {
+        resetBody.put("fq_tag", "@" + localAccount.getFullTag());
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    JSONObject result = NetworkUtils.apiFetch("POST", null, host + API_USER_RESET_PASSWORD, resetBody);
     return result;
   }
 

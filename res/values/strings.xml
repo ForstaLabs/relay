@@ -23,6 +23,8 @@
     <string name="forsta_login_password_instructions_label">Please enter your password.</string>
     <string name="forsta_login_tryagain_instructions_label">If you do not receive an sms or you are having trouble with your password, click below to try to login again.</string>
     <string name="forsta_login_tryagain_link_label">Try Login Again</string>
+    <string name="forsta_login_forgotpassword_instructions_label">Forgot your password?</string>
+    <string name="forsta_login_forgotpassword_link_label">Reset Password</string>
     <string name="forsta_login_send_link_button">Login</string>
     <string name="forsta_login_create_account_button">Create Account</string>
     <string name="forsta_login_account_submit_button">Submit</string>
