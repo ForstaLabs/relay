@@ -159,7 +159,7 @@ public class CcsmApi {
     JSONObject resetBody = new JSONObject();
     try {
       if (localAccount != null) {
-        resetBody.put("fq_tag", "@" + localAccount.getFullTag());
+        resetBody.put("validate_fq_tag", "@" + localAccount.getFullTag());
       }
     } catch (JSONException e) {
       e.printStackTrace();
