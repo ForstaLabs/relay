@@ -487,8 +487,8 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         if (jsonObject.has("token")) {
           String token = jsonObject.getString("token");
           JSONObject user = jsonObject.getJSONObject("user");
-          if (MasterSecretUtil.isPassphraseInitialized(context)) {
-            ForstaUser currentUser = ForstaUser.getLocalForstaUser(context);
+          ForstaUser currentUser = ForstaUser.getLocalForstaUser(context);
+          if (currentUser != null) {
             if (!currentUser.getUid().equals(user.getString("id"))) {
               hideProgressBar();
               Toast.makeText(LoginActivity.this, "Invalid User. To login as a different user, you must reinstall.", Toast.LENGTH_LONG).show();
