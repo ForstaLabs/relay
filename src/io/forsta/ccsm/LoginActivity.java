@@ -199,6 +199,12 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       @Override
       public void onClick(View view) {
         showProgressBar();
+        String errorMessage = validateAccountForm();
+        if (errorMessage != null) {
+          hideProgressBar();
+          Toast.makeText(LoginActivity.this, "Error." + errorMessage, Toast.LENGTH_LONG).show();
+          return;
+        }
 
         SafetyNet.getClient(LoginActivity.this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_KEY)
             .addOnSuccessListener((Activity) LoginActivity.this,
@@ -278,8 +284,46 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   }
 
   private void joinForstaFail(Exception e) {
-    Toast.makeText(LoginActivity.this, "An error occurred: " + e.getMessage(), Toast.LENGTH_LONG).show();
     hideProgressBar();
+    Toast.makeText(LoginActivity.this, "An error occurred: " + e.getMessage(), Toast.LENGTH_LONG).show();
+  }
+
+  private String validateAccountForm() {
+    String fullName = mAccountFullName.getText().toString().trim();
+    String tagSlug = mAccountTagSlug.getText().toString().trim();
+    String phone = mAccountPhone.getText().toString().trim();
+    String email = mAccountEmail.getText().toString().trim();
+    String password = mAccountPassword.getText().toString().trim();
+    try {
+      if (fullName.length() < 1) {
+        throw new Exception("Please enter a name");
+      }
+
+      if (tagSlug.length() < 1) {
+        throw new Exception("Please enter a username");
+      }
+
+      if (phone.length() < 10) {
+        throw new InvalidNumberException("Phone number Too short");
+      }
+
+      String formattedPhone = Util.canonicalizeNumberE164(phone);
+      mAccountPhone.setText(formattedPhone);
+
+      if (email.length() < 8) {
+        throw new Exception("Please enter a valid email");
+      }
+
+      if (password.length() < 8) {
+        throw new Exception("Please enter a valid password. It must be at least 8 characters");
+      }
+
+    } catch (InvalidNumberException | Exception e) {
+      String message = e.getMessage();
+      Log.d(TAG, "Join Form validation error: " + message);
+      return message;
+    }
+    return null;
   }
 
   private void joinForsta(String captcha) {
@@ -288,28 +332,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     String phone = mAccountPhone.getText().toString().trim();
     String email = mAccountEmail.getText().toString().trim();
     String password = mAccountPassword.getText().toString().trim();
-//    try {
-//      if (fullName.length() < 1) {
-//        throw new Exception("Please enter a name");
-//      }
-//
-//      if (tagSlug.length() < 1) {
-//        throw new Exception("Please enter a username");
-//      }
-//
-//      if (password.length() < 8) {
-//        throw new Exception("Please enter a valid password");
-//      }
-//
-//      if (phone.length() < 10) {
-//        throw new InvalidNumberException("Too short");
-//      }
-//      phone = Util.canonicalizeNumberE164(phone);
-//    } catch (InvalidNumberException | Exception e) {
-//      Toast.makeText(LoginActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-//      hideProgressBar();
-//      return;
-//    }
+
     JoinAccountTask joinTask = new JoinAccountTask();
     joinTask.execute(fullName, tagSlug, phone, email, password, captcha);
   }
@@ -367,14 +390,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     startActivity(nextIntent);
     finish();
-  }
-
-  class CreateAccountClickListener implements View.OnClickListener {
-
-    @Override
-    public void onClick(View view) {
-
-    }
   }
 
   @Override
@@ -500,11 +515,11 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           Toast.makeText(LoginActivity.this, "Error: "  + messages, Toast.LENGTH_LONG).show();
         } else {
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
+          Toast.makeText(LoginActivity.this, "Sorry. A communications error has occurred.", Toast.LENGTH_LONG).show();
         }
       } catch (JSONException e) {
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Sorry. An error has occurred.", Toast.LENGTH_LONG).show();
+        Toast.makeText(LoginActivity.this, "Sorry. Erroring reading response.", Toast.LENGTH_LONG).show();
       }
     }
   }

@@ -57,20 +57,22 @@ public class ForstaUtils {
 
   public static String parseErrors(JSONObject jsonObject) {
     StringBuilder sb = new StringBuilder();
-    Iterator<String> keys = jsonObject.keys();
-    while (keys.hasNext()) {
-      String key = keys.next();
-      JSONObject object = jsonObject.optJSONObject(key);
-      if (object != null) {
-        Iterator<String> objKeys = object.keys();
-        while (objKeys.hasNext()) {
-          String objKey = objKeys.next();
-          String message = object.optString(objKey, "No errors");
-          sb.append(message).append(" ");
+    if (jsonObject != null) {
+      Iterator<String> keys = jsonObject.keys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        JSONObject object = jsonObject.optJSONObject(key);
+        if (object != null) {
+          Iterator<String> objKeys = object.keys();
+          while (objKeys.hasNext()) {
+            String objKey = objKeys.next();
+            String message = object.optString(objKey, "No errors");
+            sb.append(message).append(" ");
+          }
+        } else {
+          String message = jsonObject.optString(key);
+          sb.append(message);
         }
-      } else {
-        String message = jsonObject.optString(key);
-        sb.append(message);
       }
     }
     return sb.toString();
