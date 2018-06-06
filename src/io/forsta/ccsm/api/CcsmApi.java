@@ -117,27 +117,7 @@ public class CcsmApi {
 
   public static JSONObject forstaLogin(Context context, JSONObject authObject) {
     String host = BuildConfig.FORSTA_API_URL;
-    JSONObject result = new JSONObject();
-    try {
-      result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, authObject);
-
-      if (result.has("token")) {
-        Log.w(TAG, "Login Success. Token Received.");
-
-        String token = result.getString("token");
-        JSONObject user = result.getJSONObject("user");
-        ForstaPreferences.setForstaUser(context, user.toString());
-        String lastLogin = user.getString("last_login");
-        // Write token and last login to local preferences.
-        // These can be eliminated. getForstaUser will give us everything we need.
-        ForstaPreferences.setRegisteredForsta(context, token);
-        ForstaPreferences.setRegisteredDateTime(context, lastLogin);
-        ForstaPreferences.setForstaLoginPending(context, false);
-      }
-    } catch (JSONException e) {
-      Log.e(TAG, "JSON Exception in forstaLogin.");
-      e.printStackTrace();
-    }
+    JSONObject result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, authObject);
     return result;
   }
 

@@ -1,6 +1,7 @@
 package io.forsta.ccsm;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -45,6 +46,7 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
@@ -69,6 +71,8 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private EditText mPassword;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
+  private LinearLayout tryAgainContainer;
+  private TextView tryAgainMessage;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +106,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void initializeView() {
     mLoginTitle = (TextView) findViewById(R.id.forsta_login_title);
+    tryAgainMessage = (TextView) findViewById(R.id.forsta_login_tryagain_message);
     mLoginProgressBar = (ProgressBar) findViewById(R.id.login_progress_bar);
 
     mLoginFormContainer = (LinearLayout) findViewById(R.id.forsta_login_container);
@@ -121,6 +126,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
 
     createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
+    tryAgainContainer = (LinearLayout) findViewById(R.id.forsta_login_tryagain_container);
 
     String phone = TextSecurePreferences.getLocalNumber(LoginActivity.this);
     if (!phone.equals("No Stored Number")) {
@@ -151,7 +157,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         mAccountTagSlug.setText(slug);
       }
     });
-
 
     Button getTokenButton = (Button) findViewById(R.id.forsta_get_token_button);
     getTokenButton.setOnClickListener(new View.OnClickListener() {
@@ -342,6 +347,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
+    tryAgainContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
@@ -351,6 +357,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.VISIBLE);
+    tryAgainContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
 
@@ -360,6 +367,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountFormContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.VISIBLE);
+    tryAgainContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
 
@@ -368,6 +376,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mSendLinkFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
+    tryAgainContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
   }
@@ -470,11 +479,42 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      if (jsonObject.has("token")) {
-        finishLoginActivity();
-      } else {
+      Context context = LoginActivity.this;
+
+      try {
+        if (jsonObject.has("token")) {
+          String token = jsonObject.getString("token");
+          JSONObject user = jsonObject.getJSONObject("user");
+          // Check to see if this app has been initialized before... MasterSecretExists
+          if (MasterSecretUtil.isPassphraseInitialized(context)) {
+            // Check to see if the user logging in is the same as the user that was already logged in.
+            ForstaUser currentUser = ForstaUser.getLocalForstaUser(context);
+            if (!currentUser.getUid().equals(user.getString("id"))) {
+              hideProgressBar();
+              Toast.makeText(LoginActivity.this, "Invalid User. To login as a different user, you must reinstall.", Toast.LENGTH_LONG).show();
+              return;
+            }
+          }
+          Log.w(TAG, "Login Success. Token Received.");
+
+          ForstaPreferences.setForstaUser(context, user.toString());
+          String lastLogin = user.getString("last_login");
+          ForstaPreferences.setRegisteredForsta(context, token);
+          ForstaPreferences.setRegisteredDateTime(context, lastLogin);
+          ForstaPreferences.setForstaLoginPending(context, false);
+          finishLoginActivity();
+        } else if (jsonObject.has("error")) {
+          String errorResult = jsonObject.getString("error");
+          String messages = ForstaUtils.parseErrors(new JSONObject(errorResult));
+          hideProgressBar();
+          Toast.makeText(LoginActivity.this, "Login Error: "  + messages, Toast.LENGTH_LONG).show();
+        } else {
+          hideProgressBar();
+          Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
+        }
+      } catch (JSONException e) {
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
+        Toast.makeText(LoginActivity.this, "Error reading response.", Toast.LENGTH_LONG).show();
       }
     }
   }
@@ -519,7 +559,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         }
       } catch (JSONException e) {
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Sorry. Erroring reading response.", Toast.LENGTH_LONG).show();
+        Toast.makeText(LoginActivity.this, "Sorry. Error reading response.", Toast.LENGTH_LONG).show();
       }
     }
   }

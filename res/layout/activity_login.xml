@@ -202,6 +202,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:layout_marginTop="10dp"
+            android:textAlignment="center"
             android:text="@string/forsta_login_password_instructions_label" />
 
         <EditText
@@ -276,28 +277,30 @@
                 android:visibility="visible" />
         </LinearLayout>
 
-        <LinearLayout
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/forsta_login_tryagain_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/forsta_login_tryagain_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textAlignment="center"
+            android:text="@string/forsta_login_tryagain_instructions_label" />
+
+        <TextView
+            android:id="@+id/forsta_login_tryagain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="If you do not receive an sms, click below to try again." />
-
-            <TextView
-                android:id="@+id/forsta_login_tryagain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="Try Login Again"
-                android:textAlignment="center" />
-        </LinearLayout>
-
+            android:layout_marginTop="5dp"
+            android:text="@string/forsta_login_tryagain_link_label"
+            android:textAlignment="center" />
     </LinearLayout>
-
 
 </LinearLayout>
 
