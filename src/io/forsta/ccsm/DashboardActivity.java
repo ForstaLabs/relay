@@ -278,7 +278,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
   private void printLoginInformation() {
     StringBuilder sb = new StringBuilder();
-    String lastLogin = ForstaPreferences.getRegisteredDateTime(DashboardActivity.this);
     String token = ForstaPreferences.getRegisteredKey(getApplicationContext());
     ForstaJWT jwt = new ForstaJWT(token);
 

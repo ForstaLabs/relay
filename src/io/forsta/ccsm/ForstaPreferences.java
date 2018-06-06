@@ -42,7 +42,6 @@ public class ForstaPreferences {
   public static void clearLogin(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     prefs.edit().putString(API_KEY, "")
-        .putString(API_LAST_LOGIN, "")
         .putBoolean(FORSTA_LOGIN_PENDING, false)
         .apply();
   }
@@ -80,15 +79,6 @@ public class ForstaPreferences {
 
   public static boolean isCCSMDebug(Context context) {
     return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(CCSM_DEBUG, false);
-  }
-
-  public static String getRegisteredDateTime(Context context) {
-    return PreferenceManager.getDefaultSharedPreferences(context).getString(API_LAST_LOGIN, "");
-  }
-
-  public static void setRegisteredDateTime(Context context, String lastLogin) {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    prefs.edit().putString(API_LAST_LOGIN, lastLogin).apply();
   }
 
   public static void setForstaLoginPending(Context context, boolean pending) {

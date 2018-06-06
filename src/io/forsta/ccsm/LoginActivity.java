@@ -468,8 +468,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           auth = org + ":" + username + ":" + auth;
           authObj.put("authtoken", auth);
         } else {
-          authObj.put("tag_slug", username + ":" + org);
-          authObj.put("fq_slug", username + ":" + org);
+          authObj.put("fq_tag", username + ":" + org);
           authObj.put("password", auth);
         }
       } catch (JSONException e) {
@@ -499,9 +498,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           Log.w(TAG, "Login Success. Token Received.");
 
           ForstaPreferences.setForstaUser(context, user.toString());
-          String lastLogin = user.getString("last_login");
           ForstaPreferences.setRegisteredForsta(context, token);
-          ForstaPreferences.setRegisteredDateTime(context, lastLogin);
           ForstaPreferences.setForstaLoginPending(context, false);
           finishLoginActivity();
         } else if (jsonObject.has("error")) {
