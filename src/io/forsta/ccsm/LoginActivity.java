@@ -344,6 +344,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void showSendLinkForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    mPassword.setText("");
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
@@ -418,16 +419,12 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-      if (jsonObject.has("msg")) {
-        try {
+      try {
+        if (jsonObject.has("msg")) {
           ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
           showVerifyForm();
           Toast.makeText(LoginActivity.this, jsonObject.getString("msg"), Toast.LENGTH_LONG).show();
-        } catch (JSONException e) {
-          Log.d(TAG, e.getMessage());
-        }
-      } else {
-        try {
+        } else {
           if (jsonObject.has("error")) {
             String errorResult = jsonObject.getString("error");
             JSONObject error = new JSONObject(errorResult);
@@ -439,11 +436,16 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
               hideProgressBar();
               Toast.makeText(LoginActivity.this, "Error: " + messages, Toast.LENGTH_LONG).show();
             }
+          } else {
+            hideProgressBar();
+            Toast.makeText(LoginActivity.this, "Invalid server response.", Toast.LENGTH_LONG).show();
           }
-        } catch (JSONException e) {
-          e.printStackTrace();
-          hideProgressBar();
         }
+      } catch (JSONException e) {
+        Log.d(TAG, e.getMessage());
+        e.printStackTrace();
+        hideProgressBar();
+        Toast.makeText(LoginActivity.this, "Invalid server response.", Toast.LENGTH_LONG).show();
       }
     }
   }
@@ -485,9 +487,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         if (jsonObject.has("token")) {
           String token = jsonObject.getString("token");
           JSONObject user = jsonObject.getJSONObject("user");
-          // Check to see if this app has been initialized before... MasterSecretExists
           if (MasterSecretUtil.isPassphraseInitialized(context)) {
-            // Check to see if the user logging in is the same as the user that was already logged in.
             ForstaUser currentUser = ForstaUser.getLocalForstaUser(context);
             if (!currentUser.getUid().equals(user.getString("id"))) {
               hideProgressBar();

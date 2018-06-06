@@ -255,10 +255,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  private void showValidationError() {
-    Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
-  }
-
   private class ContactsSyncReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -291,12 +287,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     protected void onPostExecute(JSONObject errorResponse) {
       if (errorResponse != null) {
         try {
-          if (errorResponse.getString("error").equals("401")) {
+          String errorResult = errorResponse.getString("error");
+          JSONObject error = new JSONObject(errorResult);
+          if (error.has("401")) {
             Log.e(TAG, "Not Authorized");
             handleLogout();
+          } else {
+            Log.e(TAG, "Error: " + errorResult);
+            Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
           }
         } catch (JSONException e) {
-          showValidationError();
+          Log.d(TAG, "Error: " + e.getMessage());
+          Toast.makeText(ConversationListActivity.this, "Invalid response from server. Check your network connection.", Toast.LENGTH_LONG).show();
         }
       } else {
         ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
