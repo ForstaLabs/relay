@@ -13,6 +13,9 @@ apply plugin: 'witness'
 
 repositories {
     maven {
+        url "https://maven.google.com"
+    }
+    maven {
         url "https://raw.github.com/whispersystems/maven/master/preferencefragment/releases/"
     }
     maven {
@@ -58,9 +61,11 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'me.leolin:ShortcutBadger:1.1.0-WS1'
     compile 'se.emilsjolander:stickylistheaders:2.7.0'
-    compile 'com.google.android.gms:play-services-gcm:8.1.0'
-    compile 'com.google.android.gms:play-services-maps:8.1.0'
-    compile 'com.google.android.gms:play-services-location:8.1.0'
+    compile 'com.google.android.gms:play-services-base:15.0.1'
+    compile 'com.google.android.gms:play-services-gcm:15.0.1'
+    compile 'com.google.android.gms:play-services-maps:15.0.1'
+    compile 'com.google.android.gms:play-services-location:15.0.1'
+    compile 'com.google.android.gms:play-services-places:15.0.1'
     compile 'com.google.android.gms:play-services-safetynet:15.0.1'
     compile 'com.jpardogo.materialtabstrip:library:1.0.9'
     compile 'org.w3c:smil:1.0.0'
@@ -102,9 +107,6 @@ dependencyVerification {
     verify = [
             'me.leolin:ShortcutBadger:3142d017234bfa0cdd69ccded7cc5ea63f13b97574803c8c616c9bbeaad33ad9',
             'se.emilsjolander:stickylistheaders:a08ca948aa6b220f09d82f16bbbac395f6b78897e9eeac6a9f0b0ba755928eeb',
-            'com.google.android.gms:play-services-gcm:757ecd2c837ac81c98f4cc7dc783e7454c6d0506f6cc66b10417126b675248c9',
-            'com.google.android.gms:play-services-maps:c58a9d98a98889fb0b27f78100f2d9341ed7722db24ccf832df62b6e8ce1b42e',
-            'com.google.android.gms:play-services-location:8226f778aa86bd15b9143f62425262cc53d64021990f62eb1aaec108d4e25f35',
             'com.jpardogo.materialtabstrip:library:c6ef812fba4f74be7dc4a905faa4c2908cba261a94c13d4f96d5e67e4aad4aaa',
             'org.w3c:smil:085dc40f2bb249651578bfa07499fd08b16ad0886dbe2c4078586a408da62f9b',
             'com.github.chrisbanes.photoview:library:8b5344e206f125e7ba9d684008f36c4992d03853c57e5814125f88496126e3cc',
@@ -153,8 +155,8 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 21
         targetSdkVersion 22
-        versionName "0.1.91"
-        versionCode 191
+        versionName "0.1.92"
+        versionCode 192
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         buildConfigField "String", "RECAPTCHA_KEY", "\"6LetY10UAAAAAKugwBLDP31SVLcl1iem9K1fqJlA\""
@@ -169,7 +171,6 @@ android {
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
-            buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", dev_service_config
         }
         stage {
             applicationIdSuffix '.stage'
@@ -178,13 +179,11 @@ android {
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a14a-bb802bb0cefb\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
-            buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", stage_service_config
         }
         prod {
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas.forsta.io\""
             buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-prod.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\""
-            buildConfigField "String", "FORSTA_PROVISION_SERVICE_TOKEN", prod_service_config
         }
     }
     compileOptions {

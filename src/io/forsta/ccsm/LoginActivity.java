@@ -469,6 +469,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           authObj.put("authtoken", auth);
         } else {
           authObj.put("tag_slug", username + ":" + org);
+          authObj.put("fq_slug", username + ":" + org);
           authObj.put("password", auth);
         }
       } catch (JSONException e) {

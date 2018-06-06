@@ -36,13 +36,7 @@ public class SignalMapView extends LinearLayout {
     super(context, attrs);
     initialize(context);
   }
-
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-  public SignalMapView(Context context, AttributeSet attrs, int defStyleAttr) {
-    super(context, attrs, defStyleAttr);
-    initialize(context);
-  }
-
+  
   private void initialize(Context context) {
     setOrientation(LinearLayout.VERTICAL);
     LayoutInflater.from(context).inflate(R.layout.signal_map_view, this, true);

@@ -104,13 +104,6 @@ public class CcsmApi {
     return hardFetchResource(context, "PUT", API_PROVISION_ACCOUNT, obj);
   }
 
-  public static JSONObject createAccount(JSONObject jsonObject) {
-    String host = BuildConfig.FORSTA_API_URL;
-    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
-    // This needs to change to using the /v1/join endpoint and stop using the service token.
-    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
-  }
-
   public static JSONObject accountJoin(JSONObject jsonObject) {
     return NetworkUtils.apiFetch("POST", null, BuildConfig.FORSTA_API_URL + "" + API_JOIN, jsonObject);
   }
