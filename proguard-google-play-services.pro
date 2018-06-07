@@ -1,6 +1,9 @@
 ## Google Play Services 4.3.23 specific rules ##
 ## https://developer.android.com/google/play-services/setup.html#Proguard ##
 
+-keep public class com.google.android.gms.* { public *; }
+-dontwarn com.google.android.gms.**
+
 -keep class * extends java.util.ListResourceBundle {
     protected Object[][] getContents();
 }
