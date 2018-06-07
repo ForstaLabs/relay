@@ -586,6 +586,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         String method = jsonObject.optString("method", "unknown");
         hideProgressBar();
         Toast.makeText(LoginActivity.this, "Check your " + method + " for a password reset link.", Toast.LENGTH_LONG).show();
+        // broadcastListner();
       } else {
         hideProgressBar();
         Toast.makeText(LoginActivity.this, "Unable to reset password.", Toast.LENGTH_LONG).show();
