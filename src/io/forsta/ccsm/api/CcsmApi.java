@@ -12,6 +12,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -54,6 +55,7 @@ public class CcsmApi {
   private static final String TAG = CcsmApi.class.getSimpleName();
   private static final String API_TOKEN_REFRESH = "/v1/api-token-refresh/";
   private static final String API_LOGIN = "/v1/login/";
+  private static final String API_JOIN = "/v1/join/";
   private static final String API_USER = "/v1/user/";
   private static final String API_USER_PICK = "/v1/user-pick/";
   private static final String API_TAG = "/v1/tag/";
@@ -63,10 +65,9 @@ public class CcsmApi {
   private static final String API_DIRECTORY_USER = "/v1/directory/user/";
   private static final String API_DIRECTORY_DOMAIN = "/v1/directory/org/";
   private static final String API_SEND_TOKEN = "/v1/login/send/";
-  private static final String API_AUTH_TOKEN = "/v1/login/authtoken/";
-  private static final String API_PROVISION_PROXY = "/v1/provision-proxy/";
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
+  private static final String API_USER_RESET_PASSWORD = "/v1/password/reset/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -101,40 +102,16 @@ public class CcsmApi {
   }
 
   public static JSONObject provisionAccount(Context context, JSONObject obj) throws Exception {
-    return hardFetchResource(context, "PUT", API_PROVISION_PROXY, obj);
+    return hardFetchResource(context, "PUT", API_PROVISION_ACCOUNT, obj);
   }
 
-  public static JSONObject createAccount(JSONObject jsonObject) {
-    String host = BuildConfig.FORSTA_API_URL;
-    String serviceToken = BuildConfig.FORSTA_PROVISION_SERVICE_TOKEN;
-    return NetworkUtils.apiFetchWithServiceToken("POST", serviceToken, host + API_USER + "?login=true", jsonObject);
+  public static JSONObject accountJoin(JSONObject jsonObject) {
+    return NetworkUtils.apiFetch("POST", null, BuildConfig.FORSTA_API_URL + "" + API_JOIN, jsonObject);
   }
 
-  public static JSONObject forstaLogin(Context context, String authToken) {
+  public static JSONObject forstaLogin(Context context, JSONObject authObject) {
     String host = BuildConfig.FORSTA_API_URL;
-    JSONObject result = new JSONObject();
-    try {
-      JSONObject obj = new JSONObject();
-      obj.put("authtoken", authToken);
-      result = NetworkUtils.apiFetch("POST", null, host + API_AUTH_TOKEN, obj);
-
-      if (result.has("token")) {
-        Log.w(TAG, "Login Success. Token Received.");
-
-        String token = result.getString("token");
-        JSONObject user = result.getJSONObject("user");
-        ForstaPreferences.setForstaUser(context, user.toString());
-        String lastLogin = user.getString("last_login");
-        // Write token and last login to local preferences.
-        // These can be eliminated. getForstaUser will give us everything we need.
-        ForstaPreferences.setRegisteredForsta(context, token);
-        ForstaPreferences.setRegisteredDateTime(context, lastLogin);
-        ForstaPreferences.setForstaLoginPending(context, false);
-      }
-    } catch (JSONException e) {
-      Log.e(TAG, "JSON Exception in forstaLogin.");
-      e.printStackTrace();
-    }
+    JSONObject result = NetworkUtils.apiFetch("POST", null, host + API_LOGIN, authObject);
     return result;
   }
 
@@ -173,6 +150,19 @@ public class CcsmApi {
       e.printStackTrace();
       Log.e(TAG, "forstaRefreshToken failed");
     }
+    return result;
+  }
+
+  public static JSONObject resetPassword(Context context, String tag, String org) {
+    String host = BuildConfig.FORSTA_API_URL;
+    ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
+    JSONObject resetBody = new JSONObject();
+    try {
+      resetBody.put("fq_tag", "@" + tag + ":" + org);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    JSONObject result = NetworkUtils.apiFetch("POST", null, host + API_USER_RESET_PASSWORD, resetBody);
     return result;
   }
 
@@ -457,7 +447,7 @@ public class CcsmApi {
       try {
         String error = response.getString("error");
         Log.e(TAG, error);
-        if (error.equals("401")) {
+        if (error.contains("401")) {
           Log.e(TAG, "CCSM API Unauthorized.");
           return true;
         }

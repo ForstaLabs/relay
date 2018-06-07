@@ -36,6 +36,7 @@ public class ForstaUser {
   public boolean isActive = true;
   public boolean isMonitor = false;
   public RecipientType type = RecipientType.PERSON;
+  public boolean has_password = false;
 
   public enum RecipientType {
     PERSON,
@@ -102,6 +103,9 @@ public class ForstaUser {
         this.phone = userObj.getString("phone");
       }
       this.tsRegistered = false;
+      if (userObj.has("has_password")) {
+        this.has_password = userObj.getBoolean("has_password");
+      }
 
     } catch (JSONException e) {
       e.printStackTrace();
@@ -185,6 +189,10 @@ public class ForstaUser {
 
   public String getAvatar() {
     return avatar;
+  }
+
+  public boolean hasPassword() {
+    return has_password;
   }
 
   @Override

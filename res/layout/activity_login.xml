@@ -66,24 +66,31 @@
             android:text="@string/forsta_login_send_link_button"
             android:textColor="@color/white" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:text="- OR -" />
-
-        <Button
-            android:id="@+id/forsta_create_account_button"
+        <LinearLayout
+            android:id="@+id/create_account_button_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginLeft="50dp"
-            android:layout_marginRight="50dp"
-            android:background="@drawable/forsta_button_pop4"
-            android:text="@string/forsta_login_create_account_button"
-            android:textColor="@color/white" />
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:text="- OR -" />
+
+            <Button
+                android:id="@+id/forsta_create_account_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp"
+                android:background="@drawable/forsta_button_pop4"
+                android:text="@string/forsta_login_create_account_button"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout
@@ -96,11 +103,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/forsta_login_account_firstname_label" />
+            android:layout_marginTop="0dp"
+            android:text="@string/forsta_login_account_fullname_label" />
 
         <EditText
-            android:id="@+id/forsta_login_account_firstname"
+            android:id="@+id/forsta_login_account_fullname"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -111,10 +118,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="@string/forsta_login_account_lastname_label" />
+            android:text="@string/forsta_login_account_username_label" />
 
         <EditText
-            android:id="@+id/forsta_login_account_lastname"
+            android:id="@+id/forsta_login_account_tag_slug"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
@@ -146,6 +153,19 @@
             android:layout_marginTop="5dp"
             android:ems="10"
             android:inputType="textEmailAddress" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/forsta_login_account_password_label" />
+        <EditText
+            android:id="@+id/forsta_login_account_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textPassword" />
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -168,6 +188,59 @@
                 android:visibility="visible"
                 android:layout_alignParentRight="true"/>
         </RelativeLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/forsta_login_password_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
+            android:textAlignment="center"
+            android:text="@string/forsta_login_password_instructions_label" />
+
+        <EditText
+            android:id="@+id/forsta_login_password"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="15dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginTop="5dp"
+            android:inputType="textPassword"
+            android:singleLine="true"/>
+
+        <Button
+            android:id="@+id/forsta_login_password_submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/forsta_button_pop4"
+            android:text="@string/forsta_login_login_button"
+            android:textColor="@color/white"
+            android:visibility="visible" />
+        <TextView
+            android:id="@+id/forsta_login_forgotpassword_instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textAlignment="center"
+            android:text="@string/forsta_login_forgotpassword_instructions_label" />
+
+        <TextView
+            android:id="@+id/forsta_login_forgotpassword_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/forsta_login_forgotpassword_link_label"
+            android:textAlignment="center" />
 
     </LinearLayout>
 
@@ -220,28 +293,30 @@
                 android:visibility="visible" />
         </LinearLayout>
 
-        <LinearLayout
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/forsta_login_tryagain_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/forsta_login_tryagain_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginTop="20dp"
+            android:textAlignment="center"
+            android:text="@string/forsta_login_tryagain_instructions_label" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="If you do not receive an sms, click below to try again." />
-
-            <TextView
-                android:id="@+id/forsta_login_tryagain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="Try Login Again"
-                android:textAlignment="center" />
-        </LinearLayout>
-
+        <TextView
+            android:id="@+id/forsta_login_tryagain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/forsta_login_tryagain_link_label"
+            android:textAlignment="center" />
     </LinearLayout>
-
 
 </LinearLayout>
 
