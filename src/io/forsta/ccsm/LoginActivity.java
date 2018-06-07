@@ -280,7 +280,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       public void onClick(View view) {
         showProgressBar();
         ResetPasswordTask resetPasswordTask = new ResetPasswordTask();
-        resetPasswordTask.execute();
+        resetPasswordTask.execute(mSendTokenUsername.getText().toString(), mSendTokenOrg.getText().toString());
       }
     });
 
@@ -577,7 +577,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     @Override
     protected JSONObject doInBackground(String... strings) {
-      return CcsmApi.resetPassword(LoginActivity.this);
+      return CcsmApi.resetPassword(LoginActivity.this, strings[0], strings[1]);
     }
 
     @Override

@@ -153,14 +153,12 @@ public class CcsmApi {
     return result;
   }
 
-  public static JSONObject resetPassword(Context context) {
+  public static JSONObject resetPassword(Context context, String tag, String org) {
     String host = BuildConfig.FORSTA_API_URL;
     ForstaUser localAccount = ForstaUser.getLocalForstaUser(context);
     JSONObject resetBody = new JSONObject();
     try {
-      if (localAccount != null) {
-        resetBody.put("validate_fq_tag", "@" + localAccount.getFullTag());
-      }
+      resetBody.put("fq_tag", "@" + tag + ":" + org);
     } catch (JSONException e) {
       e.printStackTrace();
     }
