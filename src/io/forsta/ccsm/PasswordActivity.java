@@ -14,4 +14,8 @@ public class PasswordActivity extends PassphraseRequiredActionBarActivity {
     getSupportActionBar().setTitle(R.string.AndroidManifest__authentication);
     setContentView(R.layout.activity_password);
   }
+
+  private void initializeView() {
+
+  }
 }

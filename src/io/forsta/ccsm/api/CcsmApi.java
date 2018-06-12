@@ -255,7 +255,9 @@ public class CcsmApi {
   private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
     String query = "";
     try {
-      query = "?phone_in=" + URLEncoder.encode(TextUtils.join(",", phoneNumbers), "UTF-8");
+      if (!phoneNumbers.isEmpty()) {
+        query = "?phone_in=" + URLEncoder.encode(TextUtils.join(",", phoneNumbers), "UTF-8");
+      }
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }

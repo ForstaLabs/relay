@@ -19,9 +19,16 @@
         android:layout_height="wrap_content"
         android:id="@+id/forsta_login_title"
         android:text="@string/forsta_login_title"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="20dp"
+        android:layout_gravity="center_horizontal"
         style="@style/TextAppearance.AppCompat.Medium"/>
-
+    <TextView android:id="@+id/forsta_login_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="An error has occurred."
+        android:textColor="@color/red"
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal" />
     <LinearLayout
         android:id="@+id/forsta_login_send_link_container"
         android:layout_width="match_parent"
