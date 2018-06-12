@@ -73,6 +73,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private LinearLayout createAccountContainer;
   private LinearLayout tryAgainContainer;
   private TextView tryAgainMessage;
+  private TextView errorMessage;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +125,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
     mAccountPassword = (EditText) findViewById(R.id.forsta_login_account_password);
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
+    errorMessage = (TextView) findViewById(R.id.forsta_login_error);
 
     createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
     tryAgainContainer = (LinearLayout) findViewById(R.id.forsta_login_tryagain_container);
@@ -385,12 +387,23 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void showAccountForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    mLoginTitle.setText(R.string.forsta_login_title_join);
     mSendLinkFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
     tryAgainContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
+  }
+
+  private void showError(String error) {
+    errorMessage.setText(error);
+    errorMessage.setVisibility(View.VISIBLE);
+  }
+
+  private void hideError() {
+    errorMessage.setText("");
+    errorMessage.setVisibility(View.GONE);
   }
 
   private void showProgressBar() {
@@ -493,6 +506,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
       Context context = LoginActivity.this;
+      hideError();
 
       try {
         if (jsonObject.has("token")) {
@@ -515,6 +529,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         } else if (jsonObject.has("error")) {
           String errorResult = jsonObject.getString("error");
           String messages = ForstaUtils.parseErrors(new JSONObject(errorResult));
+          showError(messages);
           hideProgressBar();
           Toast.makeText(LoginActivity.this, "Login Error: "  + messages, Toast.LENGTH_LONG).show();
         } else {

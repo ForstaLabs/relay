@@ -7,7 +7,8 @@
     <string name="please_wait">Please wait...</string>
 
     <!-- Forsta Strings -->
-    <string name="forsta_login_title">Join Forsta</string>
+    <string name="forsta_login_title">Login to Forsta</string>
+    <string name="forsta_login_title_join">Join Forsta</string>
     <string name="forsta_login_account_firstname_label">First Name</string>
     <string name="forsta_login_account_fullname_label">Full Name</string>
     <string name="forsta_login_account_username_label">Username</string>
