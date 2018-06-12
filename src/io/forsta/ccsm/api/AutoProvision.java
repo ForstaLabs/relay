@@ -29,7 +29,6 @@ import io.forsta.securesms.push.TextSecureCommunicationFactory;
  * Created by john on 2/2/2018.
  */
 
-// Rename this to AutoProvision or something else.
 public class AutoProvision {
   private static final String TAG = AutoProvision.class.getSimpleName();
 
