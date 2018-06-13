@@ -4,6 +4,7 @@ package io.forsta.securesms;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -23,6 +24,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import io.forsta.ccsm.LoginActivity;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.service.RegistrationService;
 import static io.forsta.securesms.service.RegistrationService.RegistrationState;
@@ -42,6 +45,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
 
   private LinearLayout registrationLayout;
   private LinearLayout connectivityFailureLayout;
+  private LinearLayout provisioningFailureLayout;
 
   private ProgressBar connectingProgress;
   private ProgressBar generatingKeysProgress;
@@ -101,6 +105,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.masterSecret              = getIntent().getParcelableExtra("master_secret");
     this.registrationLayout        = (LinearLayout)findViewById(R.id.registering_layout);
     this.connectivityFailureLayout = (LinearLayout)findViewById(R.id.connectivity_failure_layout);
+    this.provisioningFailureLayout = (LinearLayout)findViewById(R.id.provisioning_failure_layout);
     this.connectingProgress        = (ProgressBar) findViewById(R.id.connecting_progress);
     this.generatingKeysProgress    = (ProgressBar) findViewById(R.id.generating_keys_progress);
     this.gcmRegistrationProgress   = (ProgressBar) findViewById(R.id.gcm_registering_progress);
@@ -110,6 +115,29 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     this.connectingText            = (TextView)    findViewById(R.id.connecting_text);
     this.generatingKeysText        = (TextView)    findViewById(R.id.generating_keys_text);
     this.gcmRegistrationText       = (TextView)    findViewById(R.id.gcm_registering_text);
+
+    Button provisionRetryButton = (Button) findViewById(R.id.provisioning_retry_button);
+    provisionRetryButton.setOnClickListener(new ConnnectivityRetryListener());
+
+    Button provisionContinueButton = (Button) findViewById(R.id.provisioning_continue_button);
+    provisionContinueButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        new AlertDialog.Builder(RegistrationProgressActivity.this)
+            .setTitle("Continue Registration")
+            .setMessage("Are you sure? This will disable other registered mobile devices!")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialogInterface, int i) {
+                handleStateProvisionContinue();
+              }
+            })
+            .show();
+
+
+      }
+    });
 
     Button retryButton = (Button) findViewById(R.id.connectivity_retry_button);
     retryButton.setOnClickListener(new ConnnectivityRetryListener());
@@ -150,6 +178,14 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
     startService(intent);
   }
 
+  private void handleStateProvisionContinue() {
+    Intent intent = new Intent(this, RegistrationService.class);
+    intent.setAction(RegistrationService.REGISTER_ACCOUNT);
+    intent.putExtra("master_secret", masterSecret);
+    intent.putExtra("provision_continue", true);
+    startService(intent);
+  }
+
   private void handleStateComplete() {
     if (visible) {
       Toast.makeText(this,
@@ -164,6 +200,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private void handleStateConnecting() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
+    this.provisioningFailureLayout.setVisibility(View.GONE);
     this.connectingProgress.setVisibility(View.VISIBLE);
     this.connectingCheck.setVisibility(View.INVISIBLE);
     this.generatingKeysProgress.setVisibility(View.INVISIBLE);
@@ -178,6 +215,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private void handleStateVerifying() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
+    this.provisioningFailureLayout.setVisibility(View.GONE);
     this.connectingProgress.setVisibility(View.INVISIBLE);
     this.connectingCheck.setVisibility(View.VISIBLE);
     this.generatingKeysProgress.setVisibility(View.INVISIBLE);
@@ -192,6 +230,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private void handleStateGeneratingKeys() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
+    this.provisioningFailureLayout.setVisibility(View.GONE);
     this.connectingProgress.setVisibility(View.INVISIBLE);
     this.connectingCheck.setVisibility(View.VISIBLE);
     this.generatingKeysProgress.setVisibility(View.VISIBLE);
@@ -206,6 +245,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private void handleStateGcmRegistering() {
     this.registrationLayout.setVisibility(View.VISIBLE);
     this.connectivityFailureLayout.setVisibility(View.GONE);
+    this.provisioningFailureLayout.setVisibility(View.GONE);
     this.connectingProgress.setVisibility(View.INVISIBLE);
     this.connectingCheck.setVisibility(View.VISIBLE);
     this.generatingKeysProgress.setVisibility(View.INVISIBLE);
@@ -224,6 +264,11 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   private void handleConnectivityError(RegistrationState state) {
     this.registrationLayout.setVisibility(View.GONE);
     this.connectivityFailureLayout.setVisibility(View.VISIBLE);
+  }
+
+  private void handleProvisioningError() {
+    this.registrationLayout.setVisibility(View.GONE);
+    this.provisioningFailureLayout.setVisibility(View.VISIBLE);
   }
 
   private void shutdownServiceBinding() {
@@ -275,6 +320,7 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
       case RegistrationState.STATE_GCM_TIMEOUT:          handleGcmTimeout(state);                 break;
       case RegistrationState.STATE_NETWORK_ERROR:        handleConnectivityError(state);          break;
       case RegistrationState.STATE_COMPLETE:             handleStateComplete();                   break;
+      case RegistrationState.STATE_PROVISION_ERROR:      handleProvisioningError();               break;
       }
     }
   }

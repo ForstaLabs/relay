@@ -7,7 +7,8 @@
     <string name="please_wait">Please wait...</string>
 
     <!-- Forsta Strings -->
-    <string name="forsta_login_title">Join Forsta</string>
+    <string name="forsta_login_title">Login to Forsta</string>
+    <string name="forsta_login_title_join">Join Forsta</string>
     <string name="forsta_login_account_firstname_label">First Name</string>
     <string name="forsta_login_account_fullname_label">Full Name</string>
     <string name="forsta_login_account_username_label">Username</string>
@@ -32,6 +33,9 @@
     <string name="forsta_login_login_button">Submit</string>
     <string name="forsta_login_verify_token_button">Verify Token</string>
     <string name="forsta_login_tryagain_button">Try Again</string>
+    <string name="forsta_login_provision_error_title">Unable to communicate with any other registered devices.</string>
+    <string name="forsta_login_provision_error">If you have another registered phone or web app, please make sure one of them is running and try again. If you choose to continue, other phone devices will no longer be registered.</string>
+    <string name="forsta_login_provision_continue">Continue Registration</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 
