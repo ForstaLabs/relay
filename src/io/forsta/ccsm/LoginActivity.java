@@ -349,6 +349,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   }
 
   private void joinForsta(String captcha) {
+    hideError();
     String fullName = mAccountFullName.getText().toString().trim();
     String tagSlug = mAccountTagSlug.getText().toString().trim();
     String phone = mAccountPhone.getText().toString().trim();
@@ -580,7 +581,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           String errorResult = jsonObject.getString("error");
           String messages = ForstaUtils.parseErrors(new JSONObject(errorResult));
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Error: "  + messages, Toast.LENGTH_LONG).show();
+          showError(messages);
         } else {
           hideProgressBar();
           Toast.makeText(LoginActivity.this, "Sorry. A communications error has occurred.", Toast.LENGTH_LONG).show();

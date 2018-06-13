@@ -33,7 +33,8 @@
     <string name="forsta_login_login_button">Submit</string>
     <string name="forsta_login_verify_token_button">Verify Token</string>
     <string name="forsta_login_tryagain_button">Try Again</string>
-    <string name="forsta_login_provision_error">Unable to communicate with any other registered devices. If you have another registered phone or web app, please make sure one of them is running and try again. If you choose to continue, other phone devices will no longer be registered.</string>
+    <string name="forsta_login_provision_error_title">Unable to communicate with any other registered devices.</string>
+    <string name="forsta_login_provision_error">If you have another registered phone or web app, please make sure one of them is running and try again. If you choose to continue, other phone devices will no longer be registered.</string>
     <string name="forsta_login_provision_continue">Continue Registration</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
