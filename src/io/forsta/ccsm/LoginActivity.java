@@ -213,7 +213,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         String errorMessage = validateAccountForm();
         if (errorMessage != null) {
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Error." + errorMessage, Toast.LENGTH_LONG).show();
+          showError(errorMessage);
           return;
         }
 
@@ -307,7 +307,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void joinForstaFail(Exception e) {
     hideProgressBar();
-    Toast.makeText(LoginActivity.this, "An error occurred: " + e.getMessage(), Toast.LENGTH_LONG).show();
+    showError(e.getMessage() + "");
   }
 
   private String validateAccountForm() {
@@ -363,6 +363,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private void showSendLinkForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
     mPassword.setText("");
+    hideError();
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
@@ -372,6 +373,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   }
 
   private void showVerifyForm() {
+    hideError();
     mSendLinkFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     passwordAuthContainer.setVisibility(View.GONE);
@@ -382,6 +384,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void showAuthPassword() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    hideError();
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.GONE);
@@ -392,6 +395,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
   private void showAccountForm() {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
+    hideError();
     mLoginTitle.setText(R.string.forsta_login_title_join);
     mSendLinkFormContainer.setVisibility(View.GONE);
     mVerifyFormContainer.setVisibility(View.GONE);
@@ -399,6 +403,10 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     tryAgainContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
+  }
+
+  private void showError() {
+    showError("Invalid server response.");
   }
 
   private void showError(String error) {
@@ -412,6 +420,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   }
 
   private void showProgressBar() {
+    hideError();
     mLoginFormContainer.setVisibility(View.GONE);
     mLoginProgressBar.setVisibility(View.VISIBLE);
   }
@@ -463,18 +472,18 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
             } else {
               String messages = ForstaUtils.parseErrors(error);
               hideProgressBar();
-              Toast.makeText(LoginActivity.this, "Error: " + messages, Toast.LENGTH_LONG).show();
+              showError(messages);
             }
           } else {
             hideProgressBar();
-            Toast.makeText(LoginActivity.this, "Invalid server response.", Toast.LENGTH_LONG).show();
+            showError();
           }
         }
       } catch (JSONException e) {
         Log.d(TAG, e.getMessage());
         e.printStackTrace();
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Invalid server response.", Toast.LENGTH_LONG).show();
+        showError();
       }
     }
   }
@@ -511,7 +520,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
       Context context = LoginActivity.this;
-      hideError();
 
       try {
         if (jsonObject.has("token")) {
@@ -521,7 +529,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           if (currentUser != null) {
             if (!currentUser.getUid().equals(user.getString("id"))) {
               hideProgressBar();
-              Toast.makeText(LoginActivity.this, "Invalid User. To login as a different user, you must reinstall.", Toast.LENGTH_LONG).show();
+              showError("Invalid User. To login as a different user, you must reinstall.");
               return;
             }
           }
@@ -534,16 +542,15 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         } else if (jsonObject.has("error")) {
           String errorResult = jsonObject.getString("error");
           String messages = ForstaUtils.parseErrors(new JSONObject(errorResult));
-          showError(messages);
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Login Error: "  + messages, Toast.LENGTH_LONG).show();
+          showError(messages);
         } else {
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Sorry. Invalid Authentication.", Toast.LENGTH_LONG).show();
+          showError();
         }
       } catch (JSONException e) {
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Error reading response.", Toast.LENGTH_LONG).show();
+        showError();
       }
     }
   }
@@ -584,11 +591,11 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           showError(messages);
         } else {
           hideProgressBar();
-          Toast.makeText(LoginActivity.this, "Sorry. A communications error has occurred.", Toast.LENGTH_LONG).show();
+          showError();
         }
       } catch (JSONException e) {
         hideProgressBar();
-        Toast.makeText(LoginActivity.this, "Sorry. Error reading response.", Toast.LENGTH_LONG).show();
+        showError();
       }
     }
   }
@@ -609,7 +616,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       } else {
         hideProgressBar();
         showError("Unable to reset password.");
-        Toast.makeText(LoginActivity.this, "Unable to reset password.", Toast.LENGTH_LONG).show();
       }
     }
   }
