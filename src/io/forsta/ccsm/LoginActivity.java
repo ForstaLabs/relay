@@ -72,6 +72,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private EditText mAccountPhone;
   private EditText mAccountEmail;
   private EditText mAccountPassword;
+  private EditText mAccountPasswordVerify;
   private EditText mPassword;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
@@ -128,6 +129,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountPhone = (EditText) findViewById(R.id.forsta_login_account_phone);
     mAccountEmail = (EditText) findViewById(R.id.forsta_login_account_email);
     mAccountPassword = (EditText) findViewById(R.id.forsta_login_account_password);
+    mAccountPasswordVerify = (EditText) findViewById(R.id.forsta_login_account_password_verify);
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
     errorMessage = (TextView) findViewById(R.id.forsta_login_error);
 
@@ -316,6 +318,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     String phone = mAccountPhone.getText().toString().trim();
     String email = mAccountEmail.getText().toString().trim();
     String password = mAccountPassword.getText().toString().trim();
+    String passwordVerify = mAccountPasswordVerify.getText().toString().trim();
     try {
       if (fullName.length() < 1) {
         throw new Exception("Please enter a name");
@@ -338,6 +341,10 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
       if (password.length() < 8) {
         throw new Exception("Please enter a valid password. It must be at least 8 characters");
+      }
+
+      if (!password.equals(passwordVerify)) {
+        throw new Exception("Passwords don't match.");
       }
 
     } catch (InvalidNumberException | Exception e) {

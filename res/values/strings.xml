@@ -13,6 +13,7 @@
     <string name="forsta_login_account_fullname_label">Full Name</string>
     <string name="forsta_login_account_username_label">Username</string>
     <string name="forsta_login_account_password_label">Password</string>
+    <string name="forsta_login_account_password_verify_label">Verify Password</string>
     <string name="forsta_login_account_lastname_label">Last Name</string>
     <string name="forsta_login_account_email_label">Email</string>
     <string name="forsta_login_account_phone_label">Phone</string>
