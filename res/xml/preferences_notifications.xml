@@ -63,4 +63,13 @@
         android:summary="@string/preferences__show_a_notification_for_new_signal_contacts"
         android:defaultValue="true" />
 
+    <ListPreference
+        android:title="Filters"
+        android:summary="Additional filters for receiving notifications"
+        android:entries="@array/pref_filters_entries"
+        android:dependency="pref_key_enable_notifications"
+        android:defaultValue="mentions"
+        android:entryValues="@array/pref_filters_values" />
+
+
 </PreferenceScreen>
