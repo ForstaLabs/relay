@@ -26,6 +26,7 @@ public class ForstaMessage {
   private List<ForstaAttachment> attachments = new ArrayList<>();
   private ForstaProvisionRequest provisionRequest;
   private Vote messageVote;
+  private List<String> mentions = new ArrayList<>();
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -125,6 +126,8 @@ public class ForstaMessage {
     return threadType;
   }
 
+  public List<String> getMentions() { return mentions; }
+
   public String getGiphyUrl() {
     String html = getHtmlBody();
     if (!TextUtils.isEmpty(html)) {
@@ -200,12 +203,26 @@ public class ForstaMessage {
     messageVote = new Vote(messageRef, vote);
   }
 
+  public ForstaProvisionRequest getProvisionRequest() {
+    return provisionRequest;
+  }
+
   public Vote getMessageVote() {
     return messageVote;
   }
 
-  public ForstaProvisionRequest getProvisionRequest() {
-    return provisionRequest;
+  public void setMentions(String mentions) {
+    this.mentions.add(mentions);
+  }
+
+  public class Mentions {
+    private String name;
+
+    public Mentions(String name) {
+      this.name = name;
+    }
+
+    public String getName() { return name; }
   }
 
   public class ForstaAttachment {

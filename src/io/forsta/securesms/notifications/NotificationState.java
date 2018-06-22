@@ -27,6 +27,7 @@ public class NotificationState {
 
   public void addNotification(NotificationItem item) {
     notifications.addFirst(item);
+    notifications.addFirst(item);
     threads.add(item.getThreadId());
     notificationCount++;
   }
