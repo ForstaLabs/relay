@@ -210,7 +210,7 @@ public class ForstaMessage {
   public Vote getMessageVote() {
     return messageVote;
   }
-  
+
   public void setMentions(String mentions) {
     this.mentions.add(mentions);
   }
