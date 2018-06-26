@@ -33,6 +33,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
@@ -74,6 +75,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private EditText mAccountPassword;
   private EditText mAccountPasswordVerify;
   private EditText mPassword;
+  private EditText totp;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
   private LinearLayout tryAgainContainer;
@@ -131,6 +133,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountPassword = (EditText) findViewById(R.id.forsta_login_account_password);
     mAccountPasswordVerify = (EditText) findViewById(R.id.forsta_login_account_password_verify);
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
+    totp = (EditText) findViewById(R.id.forsta_login_totp);
     errorMessage = (TextView) findViewById(R.id.forsta_login_error);
 
     createAccountContainer = (LinearLayout) findViewById(R.id.create_account_button_container);
@@ -302,7 +305,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         }
         showProgressBar();
         CCSMLogin loginTask = new CCSMLogin(false);
-        loginTask.execute(mPassword.getText().toString());
+        loginTask.execute(mPassword.getText().toString(), totp.getText().toString());
       }
     });
   }
@@ -389,12 +392,17 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     hideProgressBar();
   }
 
-  private void showAuthPassword() {
+  private void showAuthPassword(boolean totpAuth) {
     ForstaPreferences.setForstaLoginPending(LoginActivity.this, false);
     hideError();
     mVerifyFormContainer.setVisibility(View.GONE);
     mAccountFormContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.GONE);
+    if (totpAuth) {
+      totp.setVisibility(View.VISIBLE);
+    } else {
+      totp.setVisibility(View.GONE);
+    }
     passwordAuthContainer.setVisibility(View.VISIBLE);
     tryAgainContainer.setVisibility(View.VISIBLE);
     hideProgressBar();
@@ -474,8 +482,18 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
             String errorResult = jsonObject.getString("error");
             JSONObject error = new JSONObject(errorResult);
             if (error.has("409")) {
+              boolean totpAuth = false;
               ForstaPreferences.setForstaLoginPending(LoginActivity.this, true);
-              showAuthPassword();
+              JSONObject errors = error.getJSONObject("409");
+              if (errors.has("non_field_errors")) {
+                JSONArray nfes = errors.getJSONArray("non_field_errors");
+                for (int i=0; i<nfes.length(); i++) {
+                  if (nfes.getString(i).equals("totp auth required")) {
+                    totpAuth = true;
+                  }
+                }
+              }
+              showAuthPassword(totpAuth);
             } else {
               String messages = ForstaUtils.parseErrors(error);
               hideProgressBar();
@@ -504,11 +522,14 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     @Override
     protected JSONObject doInBackground(String... params) {
-      String auth = params[0];
-      String username = ForstaPreferences.getForstaUsername(getApplicationContext());
-      String org = ForstaPreferences.getForstaOrgName(getApplicationContext());
       JSONObject authObj = new JSONObject();
       try {
+        String auth = params[0];
+        if (params.length > 1) {
+          authObj.put("otp", params[1]);
+        }
+        String username = ForstaPreferences.getForstaUsername(getApplicationContext());
+        String org = ForstaPreferences.getForstaOrgName(getApplicationContext());
         if (isSms) {
           auth = org + ":" + username + ":" + auth;
           authObj.put("authtoken", auth);
@@ -516,7 +537,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           authObj.put("fq_tag", username + ":" + org);
           authObj.put("password", auth);
         }
-      } catch (JSONException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
 
