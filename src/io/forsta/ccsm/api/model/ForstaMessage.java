@@ -211,7 +211,7 @@ public class ForstaMessage {
     return messageVote;
   }
 
-  public void setMentions(String mentions) { this.mentions.add(mentions); }
+  public void addMentions(String mentions) { this.mentions.add(mentions); }
 
   public class ForstaAttachment {
     private String name;
