@@ -105,7 +105,7 @@ public class TextSecurePreferences {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     prefs.edit().putStringSet(NOTIFICATION_FILTER, notificationPrefs);
   }
-  
+
   public static Set<String> getNotificationPreferences(Context context) {
     return PreferenceManager.getDefaultSharedPreferences(context).getStringSet(NOTIFICATION_FILTER, new HashSet<String>(Arrays.asList("mention", "name", "dm")));
   }
