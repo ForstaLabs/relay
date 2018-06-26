@@ -959,9 +959,11 @@
     <string name="arrays__enabled">Enabled</string>
     <string name="arrays__disabled">Disabled</string>
 
-    <string name="arrays__mentions">Mentions</string>
-    <string name="arrays__name">Name is used</string>
-    <string name="arrays__direct_message">Direct message</string>
+    <string-array name="empty_array" />
+
+    <string name="arrays__mentions">Mentioned</string>
+    <string name="arrays__name">Name Referenced</string>
+    <string name="arrays__direct_message">Direct messages</string>
 
     <string name="arrays__name_and_message">Name and message</string>
     <string name="arrays__name_only">Name only</string>
