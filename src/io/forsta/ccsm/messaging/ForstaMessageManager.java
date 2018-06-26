@@ -156,6 +156,14 @@ public class ForstaMessageManager {
             forstaMessage.addAttachment(name, type, size);
           }
         }
+        if(data.has("mentions")) {
+          JSONArray mentions = data.getJSONArray(("mentions"));
+          for( int i=0; i<mentions.length(); i++) {
+            JSONObject object = mentions.getJSONObject(i);
+            String name = object.getString(("name"));
+            forstaMessage.setMentions(name);
+          }
+        }
 
         // This is a special case. Message type is CONTENT,
         // but processing like a control message because
@@ -257,6 +265,7 @@ public class ForstaMessageManager {
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
       JSONArray attachments = new JSONArray();
+      JSONObject mentions = new JSONObject();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
 
