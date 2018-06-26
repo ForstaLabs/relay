@@ -99,6 +99,17 @@ public class TextSecurePreferences {
   private static final String MULTI_DEVICE_PROVISIONED_PREF    = "pref_multi_device";
   public  static final String DIRECT_CAPTURE_CAMERA_ID         = "pref_direct_capture_camera_id";
   public  static final String LOCAL_DEVICE_ID         = "pref_local_device_id";
+  public static final String NOTIFICATION_FILTER = "pref_notification_filter";
+
+  public static void setNotificationPreferences(Context context, Set<String> notificationPrefs) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    prefs.edit().putStringSet(NOTIFICATION_FILTER, notificationPrefs);
+  }
+
+
+  public static Set<String> getNotificationPreferences(Context context, Set<String> notificationPrefs) {
+    return PreferenceManager.getDefaultSharedPreferences(context).getStringSet(NOTIFICATION_FILTER, new HashSet<String>(Arrays.asList("mention", "name", "dm")));
+  }
 
   public static void setDirectCaptureCameraId(Context context, int value) {
     setIntegerPrefrence(context, DIRECT_CAPTURE_CAMERA_ID, value);
