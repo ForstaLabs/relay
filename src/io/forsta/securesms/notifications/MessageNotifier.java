@@ -66,6 +66,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -397,12 +398,6 @@ public class MessageNotifier {
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
 
-      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
-
-      if (threadId != -1) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
-      }
-
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
       } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
@@ -413,6 +408,30 @@ public class MessageNotifier {
         int    italicLength = message.length() - body.length();
         body = SpanUtil.italic(message, italicLength);
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
+      }
+
+      if (threadId != -1) {
+        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
+      }
+
+      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
+      Set<String> notificationFilter = TextSecurePreferences.getNotificationPreferences(context);
+      boolean notify = true;
+      if (notificationFilter.size() < 3) {
+        notify = false;
+        if (notificationFilter.contains("dm")) {
+          if (threadRecipients != null && threadRecipients.isSingleRecipient()) {
+            notify = true;
+          }
+        }
+
+        if (notificationFilter.contains("name")) {
+
+        }
+
+        if (notificationFilter.contains("mention")) {
+
+        }
       }
 
       if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted()) {
