@@ -109,8 +109,9 @@ public class MessageNotifier {
     }
   }
 
+  //Also needs to checks for filter preferences
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
-    if (!TextSecurePreferences.isNotificationsEnabled(context)) {
+    if (!TextSecurePreferences.isNotificationsEnabled(context) || TextSecurePreferences.getNotificationPreferences(context)) {
       return;
     }
 
@@ -151,6 +152,7 @@ public class MessageNotifier {
       MarkReadReceiver.process(context, messageIds);
     }
 
+    //Also need to check for filters
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
         (threadPreference != null && threadPreference.isMuted()))
     {
