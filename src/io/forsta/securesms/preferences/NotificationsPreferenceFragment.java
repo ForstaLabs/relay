@@ -17,6 +17,7 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -128,11 +129,12 @@ public class NotificationsPreferenceFragment extends ListSummaryPreferenceFragme
     if (values.size() == 0) {
       return "Show all notifications";
     }
-    Set<CharSequence> selectedValues = new LinkedHashSet<>();
+    List<CharSequence> selectedValues = new ArrayList<>();
     for (String value : values) {
       int i = notificationPreference.findIndexOfValue(value);
       selectedValues.add(notificationPreference.getEntries()[i]);
     }
+    Collections.reverse(selectedValues);
     return TextUtils.join(", ", selectedValues);
   }
 }
