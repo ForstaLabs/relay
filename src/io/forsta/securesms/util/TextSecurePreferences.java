@@ -107,7 +107,7 @@ public class TextSecurePreferences {
   }
 
   public static Set<String> getNotificationPreferences(Context context) {
-    return PreferenceManager.getDefaultSharedPreferences(context).getStringSet(NOTIFICATION_FILTER, new HashSet<String>(Arrays.asList("mention", "name", "dm")));
+    return PreferenceManager.getDefaultSharedPreferences(context).getStringSet(NOTIFICATION_FILTER, new HashSet<String>());
   }
 
   public static void setDirectCaptureCameraId(Context context, int value) {
