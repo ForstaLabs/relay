@@ -128,11 +128,11 @@ public class NotificationsPreferenceFragment extends ListSummaryPreferenceFragme
     if (values.size() == 0) {
       return "Show all notifications";
     }
-    CharSequence[] displayValues = new String[values.size()];
+    Set<CharSequence> selectedValues = new LinkedHashSet<>();
     for (String value : values) {
       int i = notificationPreference.findIndexOfValue(value);
-      displayValues[i] = notificationPreference.getEntries()[i];
+      selectedValues.add(notificationPreference.getEntries()[i]);
     }
-    return TextUtils.join(", ", displayValues);
+    return TextUtils.join(", ", selectedValues);
   }
 }
