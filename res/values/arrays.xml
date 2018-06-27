@@ -189,6 +189,20 @@
       <item>2</item>
   </string-array>
 
+    //need to add values for these entries
+    <string-array name="pref_filters_entries">
+      <item>@string/arrays__mentions</item>
+      <item>@string/arrays__name</item>
+      <item>@string/arrays__direct_message</item>
+    </string-array>
+
+    <string-array name="pref_filters_values">
+        <item>@string/arrays__mentions</item>
+        <item>@string/arrays__name</item>
+        <item>@string/arrays__direct_message</item>
+    </string-array>
+
+
   <string-array name="pref_notification_privacy_entries">
       <item>@string/arrays__name_and_message</item>
       <item>@string/arrays__name_only</item>
