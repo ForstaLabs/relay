@@ -66,6 +66,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -109,7 +110,6 @@ public class MessageNotifier {
     }
   }
 
-  //Also needs to checks for filter preferences
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
     if (!TextSecurePreferences.isNotificationsEnabled(context)) {
       return;
@@ -399,12 +399,6 @@ public class MessageNotifier {
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
 
-      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
-
-      if (threadId != -1) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
-      }
-
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
       } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
@@ -417,7 +411,36 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
-      if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted()) {
+        if (threadId != -1) {
+            threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
+        }
+
+        ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
+        Set<String> notificationFilter = TextSecurePreferences.getNotificationPreferences(context);
+        boolean notify = true;
+        if (notificationFilter.size() < 3) {
+            notify = false;
+            if (notificationFilter.contains("dm")) {
+                if (threadRecipients != null && threadRecipients.isSingleRecipient()) {
+                    notify = true;
+                }
+            }
+
+            if (notificationFilter.contains("name")) {
+                //message body contains a name
+                for(int i = 1; i < threadRecipients.getAddresses().size(); i++ ) {
+                    if(threadRecipients.getAddresses().get(i) == "test");
+                }
+
+            }
+
+            if (notificationFilter.contains("mention")) {
+                //message body contains a mention
+            }
+        }
+
+
+      if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted() || notify) {
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
       }
     }

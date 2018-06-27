@@ -21,7 +21,7 @@ import java.util.List;
 public class OutgoingMediaMessage {
 
   private   final Recipients       recipients;
-  protected String           body;
+  protected String                 body;
   protected final List<Attachment> attachments;
   private   final long             sentTimeMillis;
   private   final int              distributionType;

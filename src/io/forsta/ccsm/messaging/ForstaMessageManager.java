@@ -234,16 +234,16 @@ public class ForstaMessageManager {
     }
   }
 
-  public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread, List<String> mentionStrings) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL, mentionStrings);
+  public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) { //, List<String> mentionStrings) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL); //, mentionStrings);
   }
 
   //Need to find where this is used so I can update its parameters
-  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread, List<String> mentionStrings) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT, mentionStrings);
+  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) { //, List<String> mentionStrings) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT); //, mentionStrings);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type, List<String> mentionStrings) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type) { //, List<String> mentionStrings) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -308,14 +308,15 @@ public class ForstaMessageManager {
           attachments.put(attachmentJson);
         }
       }
-
-      if(!mentionStrings.isEmpty()) {
+      //somehow the app needs to parse the message body to look for the "@" and name references, then these values will be cross referenced with the users in the thread to pick out who gets the notification. These will be stored in a List.
+      //First check to see if user has muted thread or muted globally. Next check which filters are on. Next check if User's ID is inside the List. Then notify.
+      /*if(!mentionStrings.isEmpty()) {
         for(String m : mentionStrings) {
           JSONObject mentionJson = new JSONObject();
           mentionJson.put("userIds", m);
           mentions.put(mentionJson);
         }
-      }
+      }*/
 
       List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
       for (ForstaUser x : forstaUsers) {
