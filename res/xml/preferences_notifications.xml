@@ -8,6 +8,7 @@
                         android:defaultValue="true" />
 
     <MultiSelectListPreference
+        mention_support1
         android:dependency="pref_key_enable_notifications"
         android:key="pref_notification_filter"
         android:title="Notification Filter"
@@ -15,7 +16,7 @@
         android:entryValues="@array/pref_notification_filter_values"
         android:defaultValue="@array/pref_notification_filter_values"
         />
-    
+
     <RingtonePreference android:dependency="pref_key_enable_notifications"
                         android:key="pref_key_ringtone"
                         android:title="@string/preferences__sound"
