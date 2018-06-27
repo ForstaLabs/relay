@@ -312,7 +312,7 @@ public class ForstaMessageManager {
       if(!mentionStrings.isEmpty()) {
         for(String m : mentionStrings) {
           JSONObject mentionJson = new JSONObject();
-          mentionJson.put("name", m);
+          mentionJson.put("userIds", m);
           mentions.put(mentionJson);
         }
       }
