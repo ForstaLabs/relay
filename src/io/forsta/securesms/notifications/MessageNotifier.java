@@ -111,7 +111,7 @@ public class MessageNotifier {
 
   //Also needs to checks for filter preferences
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
-    if (!TextSecurePreferences.isNotificationsEnabled(context) || TextSecurePreferences.getNotificationPreferences(context)) {
+    if (!TextSecurePreferences.isNotificationsEnabled(context)) {
       return;
     }
 
