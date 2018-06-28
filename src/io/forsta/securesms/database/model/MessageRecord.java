@@ -28,9 +28,12 @@ import android.text.style.StyleSpan;
 import org.w3c.dom.Text;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.NetworkFailure;
@@ -39,8 +42,12 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.List;
+import java.util.Set;
+
+import static android.R.attr.filter;
 
 /**
  * The base class for message record models that are displayed in
@@ -96,6 +103,65 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public boolean isAsymmetricEncryption() {
     return MmsSmsColumns.Types.isAsymmetricEncryption(type);
+  }
+
+//  public boolean showNotification(Context context, Recipients threadRecipients) {
+//    boolean result = true;
+//    Set<String> filters = TextSecurePreferences.getNotificationPreferences(context);
+//    if (filters.size() > 0) {
+//      result = false;
+//      for (String item : filters) {
+//        if (item.equals("dm")) {
+//
+//          if (isDirectMessage) {
+//            result = true;
+//          }
+//        }
+//
+//        if (item.equals("name")) {
+//          result = isNamed(context);
+//        }
+//
+//        if (item.equals("mention")) {
+//          result = isMentioned(context);
+//        }
+//      }
+//    }
+//
+//    return result;
+//  }
+
+  public boolean isMentioned(Context context) {
+    try {
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      ForstaMessage forstaBody = getForstaMessageBody();
+//      if (forstaBody.getMentions().contains(user.getUid())) {
+//        return true;
+//      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+  public boolean isNamed(Context context) {
+    try {
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      ForstaMessage forstaBody = getForstaMessageBody();
+      String plainTextBody = forstaBody.getTextBody();
+      String name = user.getName();
+      if (name != null) {
+        String[] parts = name.split(" ");
+        for (String part : parts) {
+          if (plainTextBody.contains(part)) {
+            return true;
+          }
+        }
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 
   public String getPlainTextBody() {

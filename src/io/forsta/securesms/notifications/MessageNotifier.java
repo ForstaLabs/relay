@@ -38,10 +38,7 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -66,6 +63,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -149,8 +147,7 @@ public class MessageNotifier {
       MarkReadReceiver.process(context, messageIds);
     }
 
-    if (!TextSecurePreferences.isNotificationsEnabled(context) ||
-        (threadPreference != null && threadPreference.isMuted()))
+    if (!showThreadNotification(context, threadId))
     {
       return;
     }
@@ -382,6 +379,7 @@ public class MessageNotifier {
     NotificationState notificationState = new NotificationState();
     MessageRecord record;
     MmsSmsDatabase.Reader reader;
+    Set<String> filters = TextSecurePreferences.getNotificationPreferences(context);
 
     if (masterSecret == null) reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor);
     else                      reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor, masterSecret);
@@ -391,13 +389,15 @@ public class MessageNotifier {
       Recipients   recipients       = record.getRecipients();
       long         threadId         = record.getThreadId();
       CharSequence body             = record.getPlainTextBody();
-      Recipients   threadRecipients = null;
+      Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
-
-      if (threadId > 0) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
-      }
+//      boolean messageNotification = record.showNotification(context, threadRecipients);
+      boolean threadNotification = showThreadNotification(context, threadId);
+      boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
+      boolean isNamed = record.isNamed(context);
+      boolean isMentioned = record.isMentioned(context);
+      boolean messageNotification = showMessageNotification(filters, isDirectMessage, isNamed, isMentioned);
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
@@ -411,7 +411,7 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
-      if (threadRecipients != null) {
+      if (threadRecipients != null && threadNotification && messageNotification) {
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
       }
     }
@@ -479,5 +479,35 @@ public class MessageNotifier {
     public void onReceive(Context context, Intent intent) {
       clearReminder(context);
     }
+  }
+
+  private static boolean showThreadNotification(Context context, long threadId) {
+    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
+    if (TextSecurePreferences.isNotificationsEnabled(context) && (threadPreference != null && !threadPreference.isMuted()))
+    {
+      return true;
+    }
+    return false;
+  }
+
+  private static boolean showMessageNotification(Set<String> filters, boolean isDirect, boolean isNamed, boolean isMentioned) {
+    boolean result = true;
+    if (filters.size() > 0) {
+      result = false;
+      for (String item : filters) {
+        if (item.equals("dm")) {
+          if (isDirect) {
+            result = true;
+          }
+        }
+        if (item.equals("name")) {
+          if (isNamed) {
+            result = true;
+          }
+        }
+      }
+    }
+
+    return result;
   }
 }
