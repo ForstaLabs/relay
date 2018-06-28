@@ -66,6 +66,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -109,7 +110,6 @@ public class MessageNotifier {
     }
   }
 
-  //Also needs to checks for filter preferences
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
     if (!TextSecurePreferences.isNotificationsEnabled(context)) {
       return;
@@ -402,7 +402,7 @@ public class MessageNotifier {
       ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
       if (threadId != -1) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
+          threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
@@ -417,7 +417,7 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
-      if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted()) {
+      if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted() || notify) {
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
       }
     }
