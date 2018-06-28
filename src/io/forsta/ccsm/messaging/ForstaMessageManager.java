@@ -156,6 +156,13 @@ public class ForstaMessageManager {
             forstaMessage.addAttachment(name, type, size);
           }
         }
+        if(data.has("mentions")) {
+          JSONArray mentions = data.getJSONArray(("mentions"));
+          for( int i=0; i<mentions.length(); i++) {
+            String id = mentions.getString(i);
+            forstaMessage.addMention(id);
+          }
+        }
 
         // This is a special case. Message type is CONTENT,
         // but processing like a control message because
@@ -230,6 +237,7 @@ public class ForstaMessageManager {
     return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
   }
 
+  //Need to find where this is used so I can update its parameters
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
     return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
   }
@@ -256,6 +264,7 @@ public class ForstaMessageManager {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
+      //JSONArray mentions = new JSONArray();
       JSONArray attachments = new JSONArray();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
@@ -304,6 +313,18 @@ public class ForstaMessageManager {
         userIds.put(x.getUid());
       }
 
+      //somehow the app needs to parse the message body to look for the "@" and name references, then these values will be cross referenced with the users in the thread to pick out who gets the notification. These will be stored in a List.
+      //First check to see if user has muted thread or muted globally. Next check which filters are on. Next check if User's ID is inside the List. Then notify.
+      /*JSONArray mentions = new JSONArray();
+      if(!mentionStrings.isEmpty()) {
+        for(String m : mentionStrings) {
+          JSONObject mentionJson = new JSONObject();
+          mentionJson.put("userIds", m);
+          mentions.put(mentionJson);
+        }
+      }*/
+      //Code to parse message for tags and store them inside mentions JSONArray
+
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
 
@@ -320,6 +341,7 @@ public class ForstaMessageManager {
 
       data.put("body", body);
       data.put("attachments", attachments);
+      //data.put("mentions", )
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());

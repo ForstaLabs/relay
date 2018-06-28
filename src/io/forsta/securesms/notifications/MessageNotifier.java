@@ -66,6 +66,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -151,6 +152,7 @@ public class MessageNotifier {
       MarkReadReceiver.process(context, messageIds);
     }
 
+    //Also need to check for filters
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
         (threadPreference != null && threadPreference.isMuted()))
     {
@@ -400,7 +402,7 @@ public class MessageNotifier {
       ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
       if (threadId != -1) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
+          threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
