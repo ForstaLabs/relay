@@ -264,7 +264,7 @@ public class ForstaMessageManager {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      JSONArray mentions = new JSONArray();
+      //JSONArray mentions = new JSONArray();
       JSONArray attachments = new JSONArray();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";

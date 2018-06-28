@@ -416,7 +416,7 @@ public class MessageNotifier {
         body = SpanUtil.italic(message, italicLength);
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
-      
+
       if (threadRecipients == null || threadPreference == null || !threadPreference.isMuted() || notify) {
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
       }
