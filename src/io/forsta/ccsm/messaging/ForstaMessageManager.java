@@ -160,7 +160,7 @@ public class ForstaMessageManager {
           JSONArray mentions = data.getJSONArray(("mentions"));
           for( int i=0; i<mentions.length(); i++) {
             String id = mentions.getString(i);
-            forstaMessage.addMentions(id);
+            forstaMessage.addMention(id);
           }
         }
 
