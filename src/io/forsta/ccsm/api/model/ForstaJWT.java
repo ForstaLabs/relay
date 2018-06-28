@@ -16,7 +16,7 @@ import io.forsta.securesms.util.Base64;
 
 public class ForstaJWT {
   private String jwt = "";
-  private String[] tokenParts = jwt.split("\\.");
+  private String[] tokenParts;
 
   public ForstaJWT(String token) {
     this.jwt = token;

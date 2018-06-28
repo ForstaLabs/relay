@@ -264,7 +264,8 @@ public class ForstaMessageManager {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
-      //JSONArray mentions = new JSONArray();
+      JSONArray mentions = new JSONArray();
+      List<String> tags = new ArrayList<>();
       JSONArray attachments = new JSONArray();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
@@ -311,19 +312,19 @@ public class ForstaMessageManager {
       List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
       for (ForstaUser x : forstaUsers) {
         userIds.put(x.getUid());
+        tags.add(x.getFormattedTag());
       }
 
-      //somehow the app needs to parse the message body to look for the "@" and name references, then these values will be cross referenced with the users in the thread to pick out who gets the notification. These will be stored in a List.
-      //First check to see if user has muted thread or muted globally. Next check which filters are on. Next check if User's ID is inside the List. Then notify.
-      /*JSONArray mentions = new JSONArray();
-      if(!mentionStrings.isEmpty()) {
-        for(String m : mentionStrings) {
-          JSONObject mentionJson = new JSONObject();
-          mentionJson.put("userIds", m);
-          mentions.put(mentionJson);
+      //This is super slow, maybe DB can have a method boolean doesUserExist(Tag) that finds a user based on their tag and returns with a boolean. Currently has O(n^2);
+      //Gotta find that regex to parse the message. Not sure if split is what should be used here.
+      String[] messageTags = richTextMessage.split("regex");
+      for(int i = 0; i < messageTags.length; i++) {
+        for(int j = 0; j < tags.size(); j++) {
+          if(messageTags[i].equals(tags.get(j))) {
+            mentions.put(tags.get(i));
+          }
         }
-      }*/
-      //Code to parse message for tags and store them inside mentions JSONArray
+      }
 
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
@@ -341,7 +342,7 @@ public class ForstaMessageManager {
 
       data.put("body", body);
       data.put("attachments", attachments);
-      //data.put("mentions", )
+      data.put("mentions", mentions );
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());
