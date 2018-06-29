@@ -26,6 +26,7 @@ public class ForstaMessage {
   private List<ForstaAttachment> attachments = new ArrayList<>();
   private ForstaProvisionRequest provisionRequest;
   private Vote messageVote;
+  private List<String> mentions = new ArrayList<>();
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -124,6 +125,8 @@ public class ForstaMessage {
   public String getThreadType() {
     return threadType;
   }
+
+  public List<String> getMentions() { return mentions; }
 
   public String getGiphyUrl() {
     String html = getHtmlBody();

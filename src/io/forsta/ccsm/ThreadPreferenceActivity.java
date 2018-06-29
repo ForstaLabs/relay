@@ -31,7 +31,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -277,6 +279,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
       pinnedPreference.setChecked(forstaThead.isPinned());
       mutePreference.setChecked(threadPreference.isMuted());
+      setMuteSummary();
+
       if (threadPreference.getColor() == null) {
         db.setColor(threadId, MaterialColors.getRandomConversationColor());
       }
@@ -292,6 +296,22 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //          }
 //        }
 
+    }
+
+    private void setMuteSummary() {
+      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(getActivity()).getThreadPreferences(threadId);
+      long muteSetting = threadPreference.getMuteUntil();
+      if (muteSetting != 0) {
+        if (muteSetting == -1) {
+          mutePreference.setSummary("Mute permanently");
+        } else {
+          SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm");
+          Date muteUntil = new Date(muteSetting);
+          mutePreference.setSummary("Mute until " + df.format(muteUntil));
+        }
+      } else {
+        mutePreference.setSummary(R.string.thread_preferences__disable_notifications_for_this_conversation);
+      }
     }
 
     private class RingtoneChangeListener implements Preference.OnPreferenceChangeListener {
@@ -369,6 +389,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
               DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
               return null;
             }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+              setMuteSummary();
+            }
           }.execute(0L);
         } else {
           MuteDialog.show(getActivity(), new MuteDialog.MuteSelectionListener() {
@@ -380,6 +405,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
                 protected Void doInBackground(Long... params) {
                   DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
                   return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                  setMuteSummary();
                 }
               }.execute(until);
             }

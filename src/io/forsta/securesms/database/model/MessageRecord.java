@@ -105,39 +105,13 @@ public abstract class MessageRecord extends DisplayRecord {
     return MmsSmsColumns.Types.isAsymmetricEncryption(type);
   }
 
-//  public boolean showNotification(Context context, Recipients threadRecipients) {
-//    boolean result = true;
-//    Set<String> filters = TextSecurePreferences.getNotificationPreferences(context);
-//    if (filters.size() > 0) {
-//      result = false;
-//      for (String item : filters) {
-//        if (item.equals("dm")) {
-//
-//          if (isDirectMessage) {
-//            result = true;
-//          }
-//        }
-//
-//        if (item.equals("name")) {
-//          result = isNamed(context);
-//        }
-//
-//        if (item.equals("mention")) {
-//          result = isMentioned(context);
-//        }
-//      }
-//    }
-//
-//    return result;
-//  }
-
   public boolean isMentioned(Context context) {
     try {
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
       ForstaMessage forstaBody = getForstaMessageBody();
-//      if (forstaBody.getMentions().contains(user.getUid())) {
-//        return true;
-//      }
+      if (forstaBody.getMentions().contains(user.getUid())) {
+        return true;
+      }
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
     }

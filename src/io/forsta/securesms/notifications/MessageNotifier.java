@@ -392,7 +392,6 @@ public class MessageNotifier {
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
-//      boolean messageNotification = record.showNotification(context, threadRecipients);
       boolean threadNotification = showThreadNotification(context, threadId);
       boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
       boolean isNamed = record.isNamed(context);
