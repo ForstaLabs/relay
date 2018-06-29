@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.ContactDb;
@@ -237,7 +239,6 @@ public class ForstaMessageManager {
     return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
   }
 
-  //Need to find where this is used so I can update its parameters
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
     return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
   }
@@ -315,14 +316,13 @@ public class ForstaMessageManager {
         tags.add(x.getFormattedTag());
       }
 
-      //This is super slow, maybe DB can have a method boolean doesUserExist(Tag) that finds a user based on their tag and returns with a boolean. Currently has O(n^2);
-      //Gotta find that regex to parse the message. Not sure if split is what should be used here.
-      String[] messageTags = richTextMessage.split("regex");
-      for(int i = 0; i < messageTags.length; i++) {
-        for(int j = 0; j < tags.size(); j++) {
-          if(messageTags[i].equals(tags.get(j))) {
-            mentions.put(tags.get(i));
-          }
+      String regex = "@[a-zA-Z0-9(-|.)]+";
+      Pattern pattern = Pattern.compile(regex);
+      Matcher matcher = pattern.matcher(richTextMessage);
+      while(matcher.find()) {
+        String parsedTag = richTextMessage.substring(matcher.start(),matcher.end());
+        if(contactDb.checkForTag(parsedTag)) {
+          mentions.put(parsedTag);
         }
       }
 
