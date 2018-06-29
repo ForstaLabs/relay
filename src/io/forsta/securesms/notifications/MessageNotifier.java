@@ -66,7 +66,6 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -151,8 +150,7 @@ public class MessageNotifier {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
       MarkReadReceiver.process(context, messageIds);
     }
-
-    //Also need to check for filters
+    
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
         (threadPreference != null && threadPreference.isMuted()))
     {

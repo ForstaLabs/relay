@@ -351,6 +351,15 @@ public class ContactDb extends DbBase {
     return null;
   }
 
+  public boolean checkForTag(String tag) {
+    try {
+      return doesRowExist(TABLE_NAME, "slug= ?", tag);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
   @Override
   public long add(ContentValues values) {
     return addRecord(TABLE_NAME, values);
