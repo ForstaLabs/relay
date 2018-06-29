@@ -122,12 +122,12 @@ public abstract class MessageRecord extends DisplayRecord {
     try {
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
       ForstaMessage forstaBody = getForstaMessageBody();
-      String plainTextBody = forstaBody.getTextBody();
+      String plainTextBody = forstaBody.getTextBody().toLowerCase();
       String name = user.getName();
       if (name != null) {
         String[] parts = name.split(" ");
         for (String part : parts) {
-          if (plainTextBody.contains(part)) {
+          if (plainTextBody.contains(part.toLowerCase())) {
             return true;
           }
         }

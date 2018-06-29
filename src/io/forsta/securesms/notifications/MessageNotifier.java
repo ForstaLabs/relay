@@ -194,7 +194,8 @@ public class MessageNotifier {
         sendSingleThreadNotification(context, masterSecret, notificationState, signal);
       }
 
-      updateBadge(context, notificationState.getMessageCount());
+      int unreadMessageCount = telcoCursor.getCount();
+      updateBadge(context, unreadMessageCount);
 
       if (signal) {
         scheduleReminder(context, reminderCount);
@@ -392,11 +393,12 @@ public class MessageNotifier {
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
-      boolean threadNotification = showThreadNotification(context, threadId);
       boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
       boolean isNamed = record.isNamed(context);
       boolean isMentioned = record.isMentioned(context);
-      boolean messageNotification = showMessageNotification(filters, isDirectMessage, isNamed, isMentioned);
+
+      boolean threadNotification = showThreadNotification(context, threadId);
+      boolean messageNotification = showFilteredNotification(filters, isDirectMessage, isNamed, isMentioned);
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
@@ -489,7 +491,7 @@ public class MessageNotifier {
     return false;
   }
 
-  private static boolean showMessageNotification(Set<String> filters, boolean isDirect, boolean isNamed, boolean isMentioned) {
+  private static boolean showFilteredNotification(Set<String> filters, boolean isDirect, boolean isNamed, boolean isMentioned) {
     boolean result = true;
     if (filters.size() > 0) {
       result = false;
@@ -499,6 +501,13 @@ public class MessageNotifier {
             result = true;
           }
         }
+
+        if (item.equals("mention")) {
+          if (isMentioned) {
+            result = true;
+          }
+        }
+
         if (item.equals("name")) {
           if (isNamed) {
             result = true;
