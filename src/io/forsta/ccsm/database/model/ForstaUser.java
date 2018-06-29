@@ -167,22 +167,38 @@ public class ForstaUser {
     return name.toString();
   }
 
-  public String getOrgTag() { return org_slug; }
+  public String getOrgTag() {
+    return org_slug;
+  }
 
-  public String getTag() { return slug; }
+  public String getTag() {
+    return slug;
+  }
 
-  public String getFullTag() { return slug + ":" + org_slug; }
+  public String getFullTag() {
+    return slug + ":" + org_slug;
+  }
 
-  public String getFormattedTag(String currentOrg) { return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag()); }
+  public String getFormattedTag(String currentOrg) {
+    return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag());
+  }
 
-  public String getPhone() { return phone; }
+  public String getPhone() {
+    return phone;
+  }
 
-  public String getAvatar() { return avatar; }
+  public String getAvatar() {
+    return avatar;
+  }
 
-  public boolean hasPassword() { return has_password; }
+  public boolean hasPassword() {
+    return has_password;
+  }
 
   @Override
-  public int hashCode() { return 31 + uid.hashCode(); }
+  public int hashCode() {
+    return 31 + uid.hashCode();
+  }
 
   @Override
   public boolean equals(Object o) {
