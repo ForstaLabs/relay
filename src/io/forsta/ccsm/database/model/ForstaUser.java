@@ -175,8 +175,6 @@ public class ForstaUser {
 
   public String getFormattedTag(String currentOrg) { return "@" + (currentOrg.equals(getOrgTag()) ? getTag() : getFullTag()); }
 
-  public String getFormattedTag() { return "@" + getTag(); }
-
   public String getPhone() { return phone; }
 
   public String getAvatar() { return avatar; }

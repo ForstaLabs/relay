@@ -266,7 +266,6 @@ public class ForstaMessageManager {
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
       JSONArray mentions = new JSONArray();
-      List<String> tags = new ArrayList<>();
       JSONArray attachments = new JSONArray();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
@@ -313,7 +312,6 @@ public class ForstaMessageManager {
       List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
       for (ForstaUser x : forstaUsers) {
         userIds.put(x.getUid());
-        tags.add(x.getFormattedTag());
       }
 
       String regex = "@[a-zA-Z0-9(-|.)]+";
