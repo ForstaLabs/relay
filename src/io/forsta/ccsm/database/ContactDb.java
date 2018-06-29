@@ -353,7 +353,7 @@ public class ContactDb extends DbBase {
 
   public boolean checkForTag(String tag) {
     try {
-      return doesRowExist(TABLE_NAME, "slug= ?", tag);
+      return doesRowExist(TABLE_NAME, SLUG, tag);
     } catch (Exception e) {
       e.printStackTrace();
     }
