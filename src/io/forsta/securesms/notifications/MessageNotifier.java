@@ -150,7 +150,7 @@ public class MessageNotifier {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
       MarkReadReceiver.process(context, messageIds);
     }
-
+    
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
         (threadPreference != null && threadPreference.isMuted()))
     {
@@ -400,7 +400,7 @@ public class MessageNotifier {
       ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
       if (threadId != -1) {
-        threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
+          threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       }
 
       if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
