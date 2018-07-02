@@ -345,20 +345,6 @@ public class ContactDb extends DbBase {
     return user;
   }
 
-  public ForstaUser getUserByName(String name) {
-    ForstaUser user = null;
-    try {
-      Cursor cursor = getRecords(TABLE_NAME, null, UID + " = ?", new String[] {name}, UID);
-      if(cursor != null && cursor.moveToNext()) {
-        user = new ForstaUser((cursor));
-      }
-      cursor.close();
-    }catch(Exception e) {
-      e.printStackTrace();
-    }
-    return user;
-  }
-
   @Override
   public Cursor get() {
     try {
