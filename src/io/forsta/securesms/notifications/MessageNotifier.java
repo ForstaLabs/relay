@@ -38,6 +38,8 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
+import com.google.common.primitives.Chars;
+
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.R;
@@ -222,9 +224,8 @@ public class MessageNotifier {
     SingleRecipientNotificationBuilder builder       = new SingleRecipientNotificationBuilder(context, masterSecret, TextSecurePreferences.getNotificationPrivacy(context));
     List<NotificationItem>             notifications = notificationState.getNotifications();
     Recipients                         recipients    = notifications.get(0).getRecipients();
-    ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(context).getForstaThread(notificationThreadId);
 
-    builder.setThread(notifications.get(0).getRecipients(), forstaThread != null ? forstaThread.getTitle() : "");
+    builder.setThread(notifications.get(0).getRecipients(), notifications.get(0).getTitle().toString());
     builder.setMessageCount(notificationState.getMessageCount());
     builder.setPrimaryMessageBody(recipients, notifications.get(0).getIndividualRecipient(),
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
@@ -364,7 +365,7 @@ public class MessageNotifier {
         ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
         if (threadPreference == null || !threadPreference.isMuted()) {
-          notificationState.addNotification(new NotificationItem(recipient, recipients, null, threadId, body, 0, null));
+          notificationState.addNotification(new NotificationItem(recipient, recipients, null, threadId, body, "Locked",0, null));
         }
       }
     } finally {
@@ -393,6 +394,8 @@ public class MessageNotifier {
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
       SlideDeck    slideDeck        = null;
       long         timestamp        = record.getTimestamp();
+      ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      CharSequence title = forstaThread != null ? forstaThread.getTitle() : "";
       boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
       boolean isNamed = record.isNamed(context);
       boolean isMentioned = record.isMentioned(context);
@@ -413,7 +416,7 @@ public class MessageNotifier {
       }
 
       if (threadRecipients != null && threadNotification && messageNotification) {
-        notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, timestamp, slideDeck));
+        notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, title, timestamp, slideDeck));
       }
     }
 
