@@ -150,7 +150,7 @@ public class MessageNotifier {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
       MarkReadReceiver.process(context, messageIds);
     }
-    
+
     if (!TextSecurePreferences.isNotificationsEnabled(context) ||
         (threadPreference != null && threadPreference.isMuted()))
     {

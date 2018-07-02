@@ -27,6 +27,7 @@ public class ForstaMessage {
   private ForstaProvisionRequest provisionRequest;
   private Vote messageVote;
   private List<String> mentions = new ArrayList<>();
+  private String messageRef;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -128,6 +129,8 @@ public class ForstaMessage {
 
   public List<String> getMentions() { return mentions; }
 
+  public String getMessageRef() { return messageRef; }
+
   public String getGiphyUrl() {
     String html = getHtmlBody();
     if (!TextUtils.isEmpty(html)) {
@@ -201,6 +204,10 @@ public class ForstaMessage {
 
   public void setMessageVote(String messageRef, int vote) {
     messageVote = new Vote(messageRef, vote);
+  }
+
+  public void setMessageRef(String messageRef) {
+    this.messageRef = messageRef;
   }
 
   public ForstaProvisionRequest getProvisionRequest() {
