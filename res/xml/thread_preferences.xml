@@ -8,7 +8,6 @@
         android:defaultValue="false"
         android:disableDependentsState="true"
         android:persistent="false" />
-
     <io.forsta.securesms.components.SwitchPreferenceCompat
         android:key="pref_key_thread_mute"
         android:title="@string/thread_preferences__mute_conversation"
