@@ -55,16 +55,4 @@ public abstract class DbBase {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.delete(table, null, null);
   }
-
-  protected boolean doesRowExist(String table, String dbField, String fieldValue) {
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    String query = "Select * from " + table + " where " + dbField + " = " + fieldValue;
-    Cursor cursor = db.rawQuery(query,null);
-      if(cursor.getCount() <= 0) {
-        cursor.close();
-        return false;
-      }
-      cursor.close();
-      return true;
-  }
 }
