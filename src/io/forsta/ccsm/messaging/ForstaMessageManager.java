@@ -316,21 +316,11 @@ public class ForstaMessageManager {
 
       ForstaUser parsedUser;
       String tagRegex = "@[a-zA-Z0-9(-|.)]+";
-      String nameRegex = "(\\b[A-Z]{1}[a-z]+)( )([A-Z]{1}[a-z]+\\b)";  //returns two consecutive words that have their first letters capitalized
       Pattern tagPattern = Pattern.compile(tagRegex);
-      Pattern namePattern = Pattern.compile(nameRegex);
       Matcher tagMatcher = tagPattern.matcher(richTextMessage);
-      Matcher nameMatcher = namePattern.matcher(richTextMessage);
       while(tagMatcher.find()) {
         String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
         parsedUser = contactDb.getUserByTag(parsedTag);
-        if(parsedUser != null) {
-          mentions.put(parsedUser.getUid());
-        }
-      }
-      while(nameMatcher.find()) {
-        String parsedName = richTextMessage.substring(nameMatcher.start(), nameMatcher.end());
-        parsedUser = contactDb.getUserByName(parsedName);
         if(parsedUser != null) {
           mentions.put(parsedUser.getUid());
         }
