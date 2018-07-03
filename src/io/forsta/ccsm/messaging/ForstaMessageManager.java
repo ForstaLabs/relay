@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.ContactDb;
@@ -156,6 +158,13 @@ public class ForstaMessageManager {
             forstaMessage.addAttachment(name, type, size);
           }
         }
+        if(data.has("mentions")) {
+          JSONArray mentions = data.getJSONArray(("mentions"));
+          for( int i=0; i<mentions.length(); i++) {
+            String id = mentions.getString(i);
+            forstaMessage.addMention(id);
+          }
+        }
 
         // This is a special case. Message type is CONTENT,
         // but processing like a control message because
@@ -256,6 +265,7 @@ public class ForstaMessageManager {
       JSONObject sender = new JSONObject();
       JSONObject recipients = new JSONObject();
       JSONArray userIds = new JSONArray();
+      JSONArray mentions = new JSONArray();
       JSONArray attachments = new JSONArray();
 
       String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
@@ -304,6 +314,18 @@ public class ForstaMessageManager {
         userIds.put(x.getUid());
       }
 
+      ForstaUser parsedUser;
+      String tagRegex = "@[a-zA-Z0-9(-|.)]+";
+      Pattern tagPattern = Pattern.compile(tagRegex);
+      Matcher tagMatcher = tagPattern.matcher(richTextMessage);
+      while(tagMatcher.find()) {
+        String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
+        parsedUser = contactDb.getUserByTag(parsedTag);
+        if(parsedUser != null) {
+          mentions.put(parsedUser.getUid());
+        }
+      }
+
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
 
@@ -320,6 +342,7 @@ public class ForstaMessageManager {
 
       data.put("body", body);
       data.put("attachments", attachments);
+      data.put("mentions", mentions );
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());
