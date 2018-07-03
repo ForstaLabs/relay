@@ -72,7 +72,7 @@ public abstract class DisplayRecord {
     return body;
   }
 
-  protected ForstaMessage getForstaMessageBody() throws InvalidMessagePayloadException {
+  protected synchronized ForstaMessage getForstaMessageBody() throws InvalidMessagePayloadException {
     if (forstaMessageBody == null) {
       forstaMessageBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
     }
