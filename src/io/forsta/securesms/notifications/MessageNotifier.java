@@ -140,11 +140,8 @@ public class MessageNotifier {
                                         long      threadId,
                                         boolean   signal)
   {
-//    notificationThreadId = threadId;
     boolean    isVisible  = visibleThread == threadId;
-
     ThreadDatabase threads    = DatabaseFactory.getThreadDatabase(context);
-    ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
 
     if (isVisible) {
       List<MarkedMessageInfo> messageIds = threads.setRead(threadId);
@@ -157,7 +154,7 @@ public class MessageNotifier {
     }
 
     if (isVisible) {
-//      sendInThreadNotification(context, threads.getRecipientsForThreadId(threadId));
+      sendInThreadNotification(context, threads.getRecipientsForThreadId(threadId));
     } else {
       updateNotification(context, masterSecret, signal, includePushDatabase, 0);
     }
