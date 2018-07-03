@@ -335,19 +335,16 @@ public class ContactDb extends DbBase {
     ForstaUser user = null;
     String[] splitTag = tag.split(":");
     try {
+      Cursor cursor = null;
       if(splitTag.length == 1) {
-        Cursor cursor = getRecords(TABLE_NAME, null, SLUG + " = ?", splitTag, SLUG );
-        if(cursor != null && cursor.moveToNext()) {
-          user = new ForstaUser((cursor));
-        }
-        cursor.close();
+        cursor = getRecords(TABLE_NAME, null, SLUG + " = ?", splitTag, SLUG);
       } else if(splitTag.length == 2) {
-        Cursor cursor = getRecords(TABLE_NAME, null, SLUG + " = ?" + " AND" + ORGSLUG + " = ?", splitTag, SLUG );
-        if(cursor != null && cursor.moveToNext()) {
-          user = new ForstaUser((cursor));
-        }
-        cursor.close();
+        cursor = getRecords(TABLE_NAME, null, SLUG + " = ?" + " AND" + ORGSLUG + " = ?", splitTag, SLUG);
       }
+      if(cursor != null && cursor.moveToNext()) {
+        user = new ForstaUser((cursor));
+      }
+      cursor.close();
     }catch(Exception e) {
       e.printStackTrace();
     }

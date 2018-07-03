@@ -22,6 +22,7 @@ public class NotificationState {
 
   private final LinkedList<NotificationItem> notifications = new LinkedList<>();
   private final Set<Long>                    threads       = new HashSet<>();
+  private boolean notify = false;
 
   private int notificationCount = 0;
 
@@ -114,5 +115,11 @@ public class NotificationState {
     return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
   }
 
+  public void setNotify(boolean state) {
+    notify = state;
+  }
 
+  public boolean getNotify() {
+    return notify;
+  }
 }
