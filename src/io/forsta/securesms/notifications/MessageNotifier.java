@@ -37,6 +37,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.util.Pair;
 
 import com.google.common.primitives.Chars;
 
@@ -117,6 +118,7 @@ public class MessageNotifier {
     updateNotification(context, masterSecret, false, false, 0);
   }
 
+  // Main entry point for incoming message notifications.
   public static void updateNotification(@NonNull  Context context,
                                         @Nullable MasterSecret masterSecret,
                                         long threadId)
@@ -138,7 +140,7 @@ public class MessageNotifier {
                                         long      threadId,
                                         boolean   signal)
   {
-    notificationThreadId = threadId;
+//    notificationThreadId = threadId;
     boolean    isVisible  = visibleThread == threadId;
 
     ThreadDatabase threads    = DatabaseFactory.getThreadDatabase(context);
@@ -155,7 +157,7 @@ public class MessageNotifier {
     }
 
     if (isVisible) {
-      sendInThreadNotification(context, threads.getRecipientsForThreadId(threadId));
+//      sendInThreadNotification(context, threads.getRecipientsForThreadId(threadId));
     } else {
       updateNotification(context, masterSecret, signal, includePushDatabase, 0);
     }
@@ -190,10 +192,12 @@ public class MessageNotifier {
         appendPushNotificationState(context, notificationState, pushCursor);
       }
 
-      if (notificationState.hasMultipleThreads()) {
-        sendMultipleThreadNotification(context, notificationState, signal);
-      } else {
-        sendSingleThreadNotification(context, masterSecret, notificationState, signal);
+      if (notificationState.getNotify()) {
+        if (notificationState.hasMultipleThreads()) {
+          sendMultipleThreadNotification(context, notificationState, signal);
+        } else {
+          sendSingleThreadNotification(context, masterSecret, notificationState, signal);
+        }
       }
 
       int unreadMessageCount = telcoCursor.getCount();
@@ -387,15 +391,15 @@ public class MessageNotifier {
     else                      reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor, masterSecret);
 
     while ((record = reader.getNext()) != null) {
+      long         threadId         = record.getThreadId();
+      Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
       Recipient    recipient        = record.getIndividualRecipient();
       Recipients   recipients       = record.getRecipients();
-      long         threadId         = record.getThreadId();
-      CharSequence body             = record.getPlainTextBody();
-      Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
-      SlideDeck    slideDeck        = null;
-      long         timestamp        = record.getTimestamp();
       ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       CharSequence title = forstaThread != null ? forstaThread.getTitle() : "";
+      CharSequence body             = record.getPlainTextBody();
+      SlideDeck    slideDeck        = null;
+      long         timestamp        = record.getTimestamp();
       boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
       boolean isNamed = record.isNamed(context);
       boolean isMentioned = record.isMentioned(context);
@@ -416,7 +420,10 @@ public class MessageNotifier {
       }
 
       if (threadRecipients != null && threadNotification && messageNotification) {
+        notificationState.setNotify(true);
         notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, title, timestamp, slideDeck));
+      } else {
+        notificationState.setNotify(false);
       }
     }
 
