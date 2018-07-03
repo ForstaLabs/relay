@@ -158,9 +158,9 @@ public class ForstaMessageManager {
             forstaMessage.addAttachment(name, type, size);
           }
         }
-        if(data.has("mentions")) {
+        if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for( int i=0; i<mentions.length(); i++) {
+          for (int i=0; i<mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
           }
@@ -318,7 +318,7 @@ public class ForstaMessageManager {
       String tagRegex = "@[a-zA-Z0-9(-|.)]+";
       Pattern tagPattern = Pattern.compile(tagRegex);
       Matcher tagMatcher = tagPattern.matcher(richTextMessage);
-      while(tagMatcher.find()) {
+      while (tagMatcher.find()) {
         String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
         parsedUser = contactDb.getUserByTag(parsedTag);
         if(parsedUser != null) {
@@ -342,7 +342,9 @@ public class ForstaMessageManager {
 
       data.put("body", body);
       data.put("attachments", attachments);
-      data.put("mentions", mentions );
+      if (mentions.length() > 0) {
+        data.put("mentions", mentions );
+      }
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());

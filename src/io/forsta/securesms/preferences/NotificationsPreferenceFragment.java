@@ -15,9 +15,14 @@ import android.preference.RingtonePreference;
 import android.support.v4.util.ArraySet;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.R;
@@ -121,11 +126,15 @@ public class NotificationsPreferenceFragment extends ListSummaryPreferenceFragme
   }
 
   private String getNotificationDisplayValues(MultiSelectListPreference notificationPreference, Set<String> values) {
-    Set<CharSequence> selectedValues = new ArraySet<>();
+    if (values.size() == 0) {
+      return "Show all notifications";
+    }
+    List<CharSequence> selectedValues = new ArrayList<>();
     for (String value : values) {
       int i = notificationPreference.findIndexOfValue(value);
       selectedValues.add(notificationPreference.getEntries()[i]);
     }
+    Collections.reverse(selectedValues);
     return TextUtils.join(", ", selectedValues);
   }
 }

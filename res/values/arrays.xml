@@ -170,6 +170,7 @@
   </string-array>
 
   <string-array name="mute_durations">
+      <item>@string/arrays__mute_for_permanent</item>
       <item>@string/arrays__mute_for_one_hour</item>
       <item>@string/arrays__mute_for_two_hours</item>
       <item>@string/arrays__mute_for_one_day</item>

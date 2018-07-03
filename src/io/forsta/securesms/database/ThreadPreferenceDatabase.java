@@ -188,6 +188,7 @@ public class ThreadPreferenceDatabase extends Database {
     }
 
     public boolean isMuted() {
+      if (muteUntil == -1) return true;
       return System.currentTimeMillis() <= muteUntil;
     }
 
