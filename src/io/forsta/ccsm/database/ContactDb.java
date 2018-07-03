@@ -331,6 +331,26 @@ public class ContactDb extends DbBase {
     return users;
   }
 
+  public ForstaUser getUserByTag(String tag) {
+    ForstaUser user = null;
+    String[] splitTag = tag.split(":");
+    try {
+      Cursor cursor = null;
+      if(splitTag.length == 1) {
+        cursor = getRecords(TABLE_NAME, null, SLUG + " = ?", splitTag, SLUG);
+      } else if(splitTag.length == 2) {
+        cursor = getRecords(TABLE_NAME, null, SLUG + " = ?" + " AND" + ORGSLUG + " = ?", splitTag, SLUG);
+      }
+      if(cursor != null && cursor.moveToNext()) {
+        user = new ForstaUser((cursor));
+      }
+      cursor.close();
+    }catch(Exception e) {
+      e.printStackTrace();
+    }
+    return user;
+  }
+
   @Override
   public Cursor get() {
     try {

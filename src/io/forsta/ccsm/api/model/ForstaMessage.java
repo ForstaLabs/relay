@@ -203,13 +203,15 @@ public class ForstaMessage {
     messageVote = new Vote(messageRef, vote);
   }
 
+  public ForstaProvisionRequest getProvisionRequest() {
+    return provisionRequest;
+  }
+
   public Vote getMessageVote() {
     return messageVote;
   }
 
-  public ForstaProvisionRequest getProvisionRequest() {
-    return provisionRequest;
-  }
+  public void addMention(String mention) { this.mentions.add(mention); }
 
   public class ForstaAttachment {
     private String name;

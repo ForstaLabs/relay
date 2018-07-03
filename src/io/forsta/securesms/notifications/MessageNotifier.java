@@ -400,7 +400,6 @@ public class MessageNotifier {
       boolean isDirectMessage = threadRecipients != null && threadRecipients.isSingleRecipient();
       boolean isNamed = record.isNamed(context);
       boolean isMentioned = record.isMentioned(context);
-
       boolean threadNotification = showThreadNotification(context, threadId);
       boolean messageNotification = showFilteredNotification(filters, isDirectMessage, isNamed, isMentioned);
 
