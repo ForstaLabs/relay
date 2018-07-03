@@ -333,12 +333,21 @@ public class ContactDb extends DbBase {
 
   public ForstaUser getUserByTag(String tag) {
     ForstaUser user = null;
+    String[] splitTag = tag.split(":");
     try {
-      Cursor cursor = getRecords(TABLE_NAME, null, UID + " = ?", new String[] {tag}, UID);
-      if(cursor != null && cursor.moveToNext()) {
-        user = new ForstaUser((cursor));
+      if(splitTag.length == 1) {
+        Cursor cursor = getRecords(TABLE_NAME, null, SLUG + " = ?", splitTag, SLUG );
+        if(cursor != null && cursor.moveToNext()) {
+          user = new ForstaUser((cursor));
+        }
+        cursor.close();
+      } else if(splitTag.length == 2) {
+        Cursor cursor = getRecords(TABLE_NAME, null, SLUG + " = ?" + " AND" + ORGSLUG + " = ?", splitTag, SLUG );
+        if(cursor != null && cursor.moveToNext()) {
+          user = new ForstaUser((cursor));
+        }
+        cursor.close();
       }
-      cursor.close();
     }catch(Exception e) {
       e.printStackTrace();
     }
