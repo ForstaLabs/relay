@@ -527,7 +527,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       JSONObject authObj = new JSONObject();
       try {
         String auth = params[0];
-        if (params.length > 1) {
+        if (params.length > 1 && !TextUtils.isEmpty(params[1])) {
           authObj.put("otp", params[1]);
         }
         String username = ForstaPreferences.getForstaUsername(getApplicationContext());
