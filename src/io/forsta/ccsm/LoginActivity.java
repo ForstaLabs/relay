@@ -76,6 +76,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private EditText mAccountPasswordVerify;
   private EditText mPassword;
   private EditText totp;
+  private LinearLayout totpContainer;
   private ProgressBar mLoginProgressBar;
   private LinearLayout createAccountContainer;
   private LinearLayout tryAgainContainer;
@@ -133,6 +134,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountPassword = (EditText) findViewById(R.id.forsta_login_account_password);
     mAccountPasswordVerify = (EditText) findViewById(R.id.forsta_login_account_password_verify);
     mPassword = (EditText) findViewById(R.id.forsta_login_password);
+    totpContainer = (LinearLayout) findViewById(R.id.forsta_login_totp_container);
     totp = (EditText) findViewById(R.id.forsta_login_totp);
     errorMessage = (TextView) findViewById(R.id.forsta_login_error);
 
@@ -399,9 +401,9 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountFormContainer.setVisibility(View.GONE);
     mSendLinkFormContainer.setVisibility(View.GONE);
     if (totpAuth) {
-      totp.setVisibility(View.VISIBLE);
+      totpContainer.setVisibility(View.VISIBLE);
     } else {
-      totp.setVisibility(View.GONE);
+      totpContainer.setVisibility(View.GONE);
     }
     passwordAuthContainer.setVisibility(View.VISIBLE);
     tryAgainContainer.setVisibility(View.VISIBLE);
