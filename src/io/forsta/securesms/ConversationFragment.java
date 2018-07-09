@@ -196,6 +196,7 @@ public class ConversationFragment extends Fragment
       menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
       menu.findItem(R.id.menu_context_resend).setVisible(false);
       menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+      menu.findItem(R.id.menu_context_reply).setVisible(false);
     } else {
       MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -239,6 +240,10 @@ public class ConversationFragment extends Fragment
         list.smoothScrollToPosition(0);
       }
     });
+  }
+
+  private void handleReplyMessage(MessageRecord messageRecord) {
+
   }
 
   private void handleCopyMessage(final Set<MessageRecord> messageRecords) {
@@ -489,6 +494,10 @@ public class ConversationFragment extends Fragment
           return true;
         case R.id.menu_context_save_attachment:
           handleSaveAttachment((MediaMmsMessageRecord)getSelectedMessageRecord());
+          actionMode.finish();
+          return true;
+        case R.id.menu_context_reply:
+          handleReplyMessage(getSelectedMessageRecord());
           actionMode.finish();
           return true;
       }
