@@ -30,4 +30,10 @@
           android:visible="false"
           android:icon="?menu_save_icon"
           app:showAsAction="always" />
+
+    <item android:title="@string/conversation_context_menu_reply_message"
+          android:id="@+id/menu_context_reply"
+          android:visible="false"
+          android:icon="?menu_reply_icon"
+          app:showAsAction="never" />
 </menu>

@@ -169,7 +169,6 @@ public class ForstaMessageManager {
         // This is a special case. Message type is CONTENT,
         // but processing like a control message because
         // we don't want to save these messages to the message table.
-
         if (data.has("messageRef")) {
           String messageId = data.getString("messageRef");
           if(data.has("vote")) {
