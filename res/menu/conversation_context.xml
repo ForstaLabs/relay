@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:title="@string/conversation_context__menu_message_details"
           android:id="@+id/menu_context_details"
           android:icon="?menu_info_icon"
@@ -15,11 +16,6 @@
           android:icon="?menu_copy_icon"
           app:showAsAction="always" />
 
-    <item android:title="@string/conversation_context__menu_forward_message"
-          android:id="@+id/menu_context_forward"
-          android:icon="?menu_forward_icon"
-          app:showAsAction="ifRoom" />
-
     <item android:title="@string/conversation_context__menu_resend_message"
           android:id="@+id/menu_context_resend"
           android:visible="false"
@@ -31,9 +27,14 @@
           android:icon="?menu_save_icon"
           app:showAsAction="always" />
 
-    <item android:title="@string/conversation_context_menu_reply_message"
-          android:id="@+id/menu_context_reply"
-          android:visible="false"
-          android:icon="?menu_reply_icon"
-          app:showAsAction="never" />
+    <item
+        android:title="@string/conversation_context_menu_reply_message"
+        android:id="@+id/menu_context_reply"
+        android:icon="@drawable/ic_reply_white_36dp"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_context_forward"
+        android:icon="?menu_forward_icon"
+        android:title="@string/conversation_context__menu_forward_message" />
 </menu>
