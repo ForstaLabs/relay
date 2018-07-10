@@ -155,8 +155,8 @@ android {
         applicationId 'io.forsta.relay'
         minSdkVersion 21
         targetSdkVersion 22
-        versionName "0.1.99"
-        versionCode 199
+        versionName "0.2.00"
+        versionCode 200
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         buildConfigField "String", "RECAPTCHA_KEY", "\"6LetY10UAAAAAKugwBLDP31SVLcl1iem9K1fqJlA\""
