@@ -210,7 +210,7 @@
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
             android:parentActivityName=".ConversationListActivity"
-            android:windowSoftInputMode="stateVisible">
+            android:windowSoftInputMode="stateHidden">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ConversationListActivity"/>
