@@ -326,6 +326,8 @@ public class ForstaMessageManager {
         }
       }
 
+
+
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
 
