@@ -18,6 +18,7 @@ package io.forsta.securesms.database.model;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 
@@ -52,6 +53,7 @@ public class MediaMmsMessageRecord extends MessageRecord {
   private final Context context;
   private final int partCount;
   private final @NonNull SlideDeck slideDeck;
+  private final @Nullable Quote quote;
 
   public MediaMmsMessageRecord(Context context, long id, Recipients recipients,
                                Recipient individualRecipient, int recipientDeviceId,
@@ -61,7 +63,7 @@ public class MediaMmsMessageRecord extends MessageRecord {
                                int partCount, long mailbox,
                                List<IdentityKeyMismatch> mismatches,
                                List<NetworkFailure> failures, int subscriptionId,
-                               long expiresIn, long expireStarted)
+                               long expiresIn, long expireStarted, @Nullable Quote quote)
   {
     super(context, id, body, recipients, individualRecipient, recipientDeviceId, dateSent,
           dateReceived, threadId, SmsDatabase.Status.STATUS_NONE, receiptCount, mailbox, mismatches, failures,
@@ -69,6 +71,7 @@ public class MediaMmsMessageRecord extends MessageRecord {
 
     this.context   = context.getApplicationContext();
     this.partCount = partCount;
+    this.quote = quote;
     this.slideDeck = slideDeck;
   }
 
@@ -103,6 +106,10 @@ public class MediaMmsMessageRecord extends MessageRecord {
     }
 
     return false;
+  }
+  public @Nullable
+  Quote getQuote() {
+    return quote;
   }
 
   public String getDocumentAttachmentFileName() {

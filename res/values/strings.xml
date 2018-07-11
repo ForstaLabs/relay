@@ -370,6 +370,13 @@
     <!-- InputPanel -->
     <string name="InputPanel_tap_and_hold_to_record_a_voice_message_release_to_send">Tap and hold to record a voice message, release to send</string>
 
+    <!-- QuoteView -->
+    <string name="QuoteView_audio">Audio</string>
+    <string name="QuoteView_video">Video</string>
+    <string name="QuoteView_photo">Photo</string>
+    <string name="QuoteView_document">Document</string>
+    <string name="QuoteView_you">You</string>
+
     <!-- InviteActivity -->
     <string name="InviteActivity_share">Share</string>
     <string name="InviteActivity_choose_contacts">Choose contacts</string>

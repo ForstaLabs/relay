@@ -50,6 +50,7 @@ import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
+import io.forsta.securesms.components.QuoteView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -60,6 +61,7 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
+import io.forsta.securesms.database.model.Quote;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
@@ -78,6 +80,7 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
+
 
 import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
@@ -107,6 +110,7 @@ public class ConversationItem extends LinearLayout
   private Recipient     recipient;
 
   private View               bodyBubble;
+  private QuoteView          quoteView;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
@@ -482,6 +486,27 @@ public class ConversationItem extends LinearLayout
       }
     } else {
       this.expirationTimer.setVisibility(View.GONE);
+    }
+  }
+
+  private void setQuote(@NonNull MessageRecord messageRecord) {
+    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
+      Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
+      assert quote != null;
+      quoteView.setQuote(glideRequests, quote.getId(), Recipient.from(context, quote.getAuthor(), true), quote.getText(), quote.getAttachment());
+      quoteView.setVisibility(View.VISIBLE);
+      quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+
+      quoteView.setOnClickListener(view -> {
+        if (eventListener != null && batchSelected.isEmpty()) {
+          eventListener.onQuoteClicked((MmsMessageRecord) messageRecord);
+        } else {
+          passthroughClickListener.onClick(view);
+        }
+      });
+      quoteView.setOnLongClickListener(passthroughClickListener);
+    } else {
+      quoteView.dismiss();
     }
   }
 

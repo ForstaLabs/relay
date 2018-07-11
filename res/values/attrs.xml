@@ -188,4 +188,12 @@
         <attr name="documentBackgroundTintColor" format="color"/>
     </declare-styleable>
 
+    <declare-styleable name="QuoteView">
+        <attr name ="message_type" format="enum">
+            <enum name="preview" value="0"/>
+            <enum name="outgoing" value="1"/>
+            <enum name="incoming" value="2"/>
+        </attr>
+    </declare-styleable>
+
 </resources>
