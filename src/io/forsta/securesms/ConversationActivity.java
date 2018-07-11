@@ -106,6 +106,8 @@ import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
+import io.forsta.securesms.mms.QuoteId;
+import io.forsta.securesms.mms.QuoteModel;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
@@ -115,6 +117,8 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
+import io.forsta.securesms.database.model.MessageRecord;
+import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
@@ -692,6 +696,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
               setMedia(Uri.parse(draft.getValue()), MediaType.VIDEO);
             } else if (draft.getType().equals(DraftDatabase.Draft.DOCUMENT)) {
               setMedia(Uri.parse(draft.getValue()), MediaType.DOCUMENT);
+            } else if(draft.getType().equals(DraftDatabase.Draft.QUOTE)) {
+              new QuoteRestorationTask(draft.getValue()).execute();
             }
           } catch (IOException e) {
             Log.w(TAG, e);
@@ -701,6 +707,35 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         updateToggleButtonState();
       }
     }.execute();
+  }
+
+  private class QuoteRestorationTask extends AsyncTask<Void, Void, MessageRecord> {
+
+    private final String serialized;
+
+    QuoteRestorationTask(@NonNull String serialized) {
+      this.serialized = serialized;
+    }
+
+    @Override
+    protected MessageRecord doInBackground(Void... voids) {
+      QuoteId quoteId = QuoteId.deserialize(serialized);
+
+      if (quoteId != null) {
+        return DatabaseFactory.getMmsSmsDatabase(getApplicationContext()).getMessageFor(quoteId.getId(), quoteId.getAuthor());
+      }
+
+      return null;
+    }
+
+    @Override
+    protected void onPostExecute(MessageRecord messageRecord) {
+      if (messageRecord != null) {
+        handleReplyMessage(messageRecord);
+      } else {
+        Log.e(TAG, "Failed to restore a quote from a draft. No matching message record.");
+      }
+    }
   }
 
   private void initializeViews() {
@@ -1212,6 +1247,40 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void setThreadId(long threadId) {
     this.threadId = threadId;
+  }
+
+  @Override
+  public void handleReplyMessage(MessageRecord messageRecord) {
+    Recipient author;
+
+    if (messageRecord.isOutgoing()) {
+      author = Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
+    } else {
+      author = messageRecord.getIndividualRecipient();
+    }
+
+    if (messageRecord.isMms() && !((MediaMmsMessageRecord) messageRecord).getSharedContacts().isEmpty()) {
+      Contact   contact     = ((MediaMmsMessageRecord) messageRecord).getSharedContacts().get(0);
+      String    displayName = ContactUtil.getDisplayName(contact);
+      String    body        = getString(R.string.ConversationActivity_quoted_contact_message, EmojiStrings.BUST_IN_SILHOUETTE, displayName);
+      SlideDeck slideDeck   = new SlideDeck();
+
+      if (contact.getAvatarAttachment() != null) {
+        slideDeck.addSlide(MediaUtil.getSlideForAttachment(this, contact.getAvatarAttachment()));
+      }
+
+      inputPanel.setQuote(GlideApp.with(this),
+              messageRecord.getDateSent(),
+              author,
+              body,
+              slideDeck);
+    } else {
+      inputPanel.setQuote(GlideApp.with(this),
+              messageRecord.getDateSent(),
+              author,
+              messageRecord.getBody(),
+              messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
+    }
   }
 
   @Override

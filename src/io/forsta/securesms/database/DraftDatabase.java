@@ -24,6 +24,7 @@ public class DraftDatabase extends Database {
   public  static final String THREAD_ID   = "thread_id";
   public  static final String DRAFT_TYPE  = "type";
   public  static final String DRAFT_VALUE = "value";
+  public static final String QUOTE        = "quote";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, " +
                                             THREAD_ID + " INTEGER, " + DRAFT_TYPE + " TEXT, " + DRAFT_VALUE + " TEXT);";
@@ -109,6 +110,7 @@ public class DraftDatabase extends Database {
     public static final String AUDIO    = "audio";
     public static final String LOCATION = "location";
     public static final String DOCUMENT = "document";
+    public static final String QUOTE    = "quote";
 
     private final String type;
     private final String value;
@@ -133,7 +135,8 @@ public class DraftDatabase extends Database {
       case VIDEO:    return context.getString(R.string.DraftDatabase_Draft_video_snippet);
       case AUDIO:    return context.getString(R.string.DraftDatabase_Draft_audio_snippet);
       case LOCATION: return context.getString(R.string.DraftDatabase_Draft_location_snippet);
-        case DOCUMENT: return context.getString(R.string.DraftDatabase_Draft_document_snippet);
+      case DOCUMENT: return context.getString(R.string.DraftDatabase_Draft_document_snippet);
+      case QUOTE:  return context.getString(R.string.DraftDatabase_Draft_quote_snippet);
       default:       return null;
       }
     }

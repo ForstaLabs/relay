@@ -243,8 +243,13 @@ public class ConversationFragment extends Fragment
     });
   }
 
-  private void handleReplyMessage(MessageRecord messageRecord) {
+  private void handleReplyMessage(final MessageRecord message) {
+    listener.handleReplyMessage(message);
+  }
 
+  public interface ConversationFragmentListener {
+    void setThreadId(long threadId);
+    void handleReplyMessage(MessageRecord messageRecord);
   }
 
   private void handleCopyMessage(final Set<MessageRecord> messageRecords) {
@@ -405,10 +410,6 @@ public class ConversationFragment extends Fragment
     if (list.getAdapter() != null) {
       getListAdapter().changeCursor(null);
     }
-  }
-
-  public interface ConversationFragmentListener {
-    void setThreadId(long threadId);
   }
 
   private class ConversationFragmentItemClickListener implements ConversationAdapter.ItemClickListener {

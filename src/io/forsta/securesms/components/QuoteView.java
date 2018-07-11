@@ -117,7 +117,12 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             dismissView.setVisibility(messageType == MESSAGE_TYPE_PREVIEW ? VISIBLE : GONE);
         }
 
-        dismissView.setOnClickListener(view -> setVisibility(GONE));
+        dismissView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setVisibility(GONE);
+            }
+        });
 
         setWillNotDraw(false);
         if (Build.VERSION.SDK_INT < 18) {
@@ -164,10 +169,12 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
     }
 
     @Override
-    public void onModified(Recipient recipient) {
-        Util.runOnMain(() -> {
-            if (recipient == author) {
-                setQuoteAuthor(recipient);
+    public void onModified(final Recipient recipient) {
+        Util.runOnMain(new Runnable() {
+            @Override public void run(){
+                if (recipient == author) {
+                    setQuoteAuthor(recipient);
+                }
             }
         });
     }
