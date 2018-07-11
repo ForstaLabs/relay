@@ -148,7 +148,7 @@ public class MessageNotifier {
       MarkReadReceiver.process(context, messageIds);
     }
 
-    if (!showThreadNotification(context, threadId))
+    if (!TextSecurePreferences.isNotificationsEnabled(context))
     {
       return;
     }

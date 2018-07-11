@@ -131,11 +131,6 @@
             android:theme="@style/TextSecure.HighlightTheme"
             android:windowSoftInputMode="stateHidden"/>
         <activity
-            android:name=".PromptMmsActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:label="Configure MMS Settings"
-            android:windowSoftInputMode="stateUnchanged"/>
-        <activity
             android:name=".DeviceProvisioningActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
             <intent-filter>
@@ -147,9 +142,6 @@
                 <data android:scheme="tsdevice"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name=".preferences.MmsPreferencesActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
         <activity
             android:name=".ShareActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
