@@ -52,7 +52,7 @@ public class MmsRadio {
 
     if (connectedCounter == 0) {
       Log.w("MmsRadio", "Turning off MMS radio...");
-      connectivityManager.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, FEATURE_ENABLE_MMS);
+//      connectivityManager.stopUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE, FEATURE_ENABLE_MMS);
 
       if (connectivityListener != null) {
         Log.w("MmsRadio", "Unregistering receiver...");
@@ -63,33 +63,34 @@ public class MmsRadio {
   }
 
   public synchronized void connect() throws MmsRadioException {
-    int status = connectivityManager.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE,
-                                                              FEATURE_ENABLE_MMS);
-
-    Log.w("MmsRadio", "startUsingNetworkFeature status: " + status);
-
-    if (status == APN_ALREADY_ACTIVE) {
-      wakeLock.acquire();
-      connectedCounter++;
-      return;
-    } else {
-      wakeLock.acquire();
-      connectedCounter++;
-
-      if (connectivityListener == null) {
-        IntentFilter filter  = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        connectivityListener = new ConnectivityListener();
-        context.registerReceiver(connectivityListener, filter);
-      }
-
-      Util.wait(this, 30000);
-
-      if (!isConnected()) {
-        Log.w("MmsRadio", "Got back from connectivity wait, and not connected...");
-        disconnect();
-        throw new MmsRadioException("Unable to successfully enable MMS radio.");
-      }
-    }
+    Log.w("MmsRadio", "startUsingNetworkFeature status: this feature is not implemented in the Forsta app");
+//    int status = connectivityManager.startUsingNetworkFeature(ConnectivityManager.TYPE_MOBILE,
+//                                                              FEATURE_ENABLE_MMS);
+//
+//    Log.w("MmsRadio", "startUsingNetworkFeature status: " + status);
+//
+//    if (status == APN_ALREADY_ACTIVE) {
+//      wakeLock.acquire();
+//      connectedCounter++;
+//      return;
+//    } else {
+//      wakeLock.acquire();
+//      connectedCounter++;
+//
+//      if (connectivityListener == null) {
+//        IntentFilter filter  = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+//        connectivityListener = new ConnectivityListener();
+//        context.registerReceiver(connectivityListener, filter);
+//      }
+//
+//      Util.wait(this, 30000);
+//
+//      if (!isConnected()) {
+//        Log.w("MmsRadio", "Got back from connectivity wait, and not connected...");
+//        disconnect();
+//        throw new MmsRadioException("Unable to successfully enable MMS radio.");
+//      }
+//    }
   }
 
   private boolean isConnected() {

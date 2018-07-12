@@ -28,11 +28,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -126,17 +126,12 @@ public class ConversationItem extends LinearLayout
   private @NonNull  ThumbnailView       mediaThumbnail;
   private @NonNull  AudioView           audioView;
   private @NonNull DocumentView documentView;
-  private @NonNull  Button              mmsDownloadButton;
-  private @NonNull  TextView            mmsDownloadingLabel;
-  private @NonNull
-  ExpirationTimerView expirationTimer;
+  private @NonNull ExpirationTimerView expirationTimer;
   private VideoView videoView;
   private int giphyLoopCounter = 0;
 
   private int defaultBubbleColor;
 
-  private final MmsDownloadClickListener    mmsDownloadClickListener    = new MmsDownloadClickListener();
-  private final MmsPreferencesClickListener mmsPreferencesClickListener = new MmsPreferencesClickListener();
   private final Context                     context;
 
   public ConversationItem(Context context) {
@@ -167,8 +162,6 @@ public class ConversationItem extends LinearLayout
     this.secureImage             = (ImageView)          findViewById(R.id.secure_indicator);
     this.deliveryStatusIndicator = (DeliveryStatusView) findViewById(R.id.delivery_status);
     this.alertView               = (AlertView)          findViewById(R.id.indicators_parent);
-    this.mmsDownloadButton       = (Button)             findViewById(R.id.mms_download_button);
-    this.mmsDownloadingLabel     = (TextView)           findViewById(R.id.mms_label_downloading);
     this.contactPhoto            = (AvatarImageView)    findViewById(R.id.contact_photo);
     this.bodyBubble              =                      findViewById(R.id.body_bubble);
     this.mediaThumbnail          = (ThumbnailView)      findViewById(R.id.image_view);
@@ -181,7 +174,6 @@ public class ConversationItem extends LinearLayout
     PassthroughClickListener        passthroughClickListener = new PassthroughClickListener();
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
 
-    mmsDownloadButton.setOnClickListener(mmsDownloadClickListener);
     mediaThumbnail.setThumbnailClickListener(new ThumbnailClickListener());
     mediaThumbnail.setDownloadClickListener(downloadClickListener);
     mediaThumbnail.setOnLongClickListener(passthroughClickListener);
@@ -281,10 +273,6 @@ public class ConversationItem extends LinearLayout
     bodyText.setAutoLinkMask(batchSelected.isEmpty() ? Linkify.ALL : 0);
   }
 
-  private boolean isCaptionlessMms(MessageRecord messageRecord) {
-    return TextUtils.isEmpty(messageRecord.getDisplayBody()) && messageRecord.isMms();
-  }
-
   private boolean hasAudio(MessageRecord messageRecord) {
     return messageRecord.isMms() &&
            !messageRecord.isMmsNotification() &&
@@ -325,15 +313,7 @@ public class ConversationItem extends LinearLayout
   private void setMediaAttributes(MessageRecord messageRecord) {
     boolean showControls = !messageRecord.isFailed() && (!messageRecord.isOutgoing() || messageRecord.isPending());
 
-    if (messageRecord.isMmsNotification()) {
-      mediaThumbnail.setVisibility(View.GONE);
-      audioView.setVisibility(View.GONE);
-      documentView.setVisibility(GONE);
-      videoView.setVisibility(GONE);
-
-      bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-      setNotificationMmsAttributes((NotificationMmsMessageRecord) messageRecord);
-    } else if (hasAudio(messageRecord)) {
+    if (hasAudio(messageRecord)) {
       audioView.setVisibility(View.VISIBLE);
       mediaThumbnail.setVisibility(View.GONE);
       documentView.setVisibility(GONE);
@@ -417,8 +397,6 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setStatusIcons(MessageRecord messageRecord) {
-    mmsDownloadButton.setVisibility(View.GONE);
-    mmsDownloadingLabel.setVisibility(View.GONE);
     indicatorText.setVisibility(View.GONE);
 
     secureImage.setVisibility(messageRecord.isSecure() ? View.VISIBLE : View.GONE);
@@ -553,31 +531,6 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  private void setNotificationMmsAttributes(NotificationMmsMessageRecord messageRecord) {
-    String messageSize = String.format(context.getString(R.string.ConversationItem_message_size_d_kb),
-                                       messageRecord.getMessageSize());
-    String expires     = String.format(context.getString(R.string.ConversationItem_expires_s),
-                                       DateUtils.getRelativeTimeSpanString(getContext(),
-                                                                           messageRecord.getExpiration(),
-                                                                           false));
-
-    dateText.setText(messageSize + "\n" + expires);
-
-    if (MmsDatabase.Status.isDisplayDownloadButton(messageRecord.getStatus())) {
-      mmsDownloadButton.setVisibility(View.VISIBLE);
-      mmsDownloadingLabel.setVisibility(View.GONE);
-    } else {
-      mmsDownloadingLabel.setText(MmsDatabase.Status.getLabelForStatus(context, messageRecord.getStatus()));
-      mmsDownloadButton.setVisibility(View.GONE);
-      mmsDownloadingLabel.setVisibility(View.VISIBLE);
-
-      if (MmsDatabase.Status.isHardError(messageRecord.getStatus()) && !messageRecord.isOutgoing())
-        setOnClickListener(mmsDownloadClickListener);
-      else if (MmsDatabase.Status.DOWNLOAD_APN_UNAVAILABLE == messageRecord.getStatus() && !messageRecord.isOutgoing())
-        setOnClickListener(mmsPreferencesClickListener);
-    }
-  }
-
   /// Helper Methods
 
   private void setContactPhotoForRecipient(final Recipient recipient) {
@@ -695,44 +648,7 @@ public class ConversationItem extends LinearLayout
           Toast.makeText(context, R.string.ConversationItem_unable_to_open_media, Toast.LENGTH_LONG).show();
         }
 
-      } else {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(R.string.ConversationItem_view_secure_media_question);
-        builder.setIconAttribute(R.attr.dialog_alert_icon);
-        builder.setCancelable(true);
-        builder.setMessage(R.string.ConversationItem_this_media_has_been_stored_in_an_encrypted_database_external_viewer_warning);
-        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int which) {
-            fireIntent(slide);
-          }
-        });
-        builder.setNegativeButton(R.string.no, null);
-        builder.show();
       }
-    }
-  }
-
-  private class MmsDownloadClickListener implements View.OnClickListener {
-    public void onClick(View v) {
-      NotificationMmsMessageRecord notificationRecord = (NotificationMmsMessageRecord)messageRecord;
-      Log.w(TAG, "Content location: " + new String(notificationRecord.getContentLocation()));
-      mmsDownloadButton.setVisibility(View.GONE);
-      mmsDownloadingLabel.setVisibility(View.VISIBLE);
-
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new MmsDownloadJob(context, messageRecord.getId(),
-                                                messageRecord.getThreadId(), false));
-    }
-  }
-
-  private class MmsPreferencesClickListener implements View.OnClickListener {
-    public void onClick(View v) {
-      Intent intent = new Intent(context, PromptMmsActivity.class);
-      intent.putExtra("message_id", messageRecord.getId());
-      intent.putExtra("thread_id", messageRecord.getThreadId());
-      intent.putExtra("automatic", true);
-      context.startActivity(intent);
     }
   }
 
