@@ -148,7 +148,7 @@ public class MessageNotifier {
       MarkReadReceiver.process(context, messageIds);
     }
 
-    if (!showThreadNotification(context, threadId))
+    if (!TextSecurePreferences.isNotificationsEnabled(context))
     {
       return;
     }
@@ -429,7 +429,8 @@ public class MessageNotifier {
 
   private static void updateBadge(Context context, int count) {
     try {
-      ShortcutBadger.setBadge(context.getApplicationContext(), count);
+      if (count == 0) ShortcutBadger.removeCount(context);
+      else            ShortcutBadger.applyCount(context, count);
     } catch (Throwable t) {
       // NOTE :: I don't totally trust this thing, so I'm catching
       // everything.

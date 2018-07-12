@@ -334,4 +334,7 @@
 
         <item name="group_members_dialog_icon">@drawable/ic_group_white_24dp</item>
     </style>
+    <style name="RationaleDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/permission_rationale_dialog_corners</item>
+    </style>
 </resources>
