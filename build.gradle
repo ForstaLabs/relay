@@ -73,7 +73,7 @@ dependencies {
     }
     compile 'org.whispersystems:curve25519-android:0.3.0'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
-    compile 'me.leolin:ShortcutBadger:1.1.0-WS1'
+    compile "me.leolin:ShortcutBadger:1.1.16"
     compile 'se.emilsjolander:stickylistheaders:2.7.0'
     compile 'com.jpardogo.materialtabstrip:library:1.0.9'
     compile 'org.w3c:smil:1.0.0'
@@ -110,7 +110,6 @@ dependencies {
 
 dependencyVerification {
     verify = [
-            'me.leolin:ShortcutBadger:3142d017234bfa0cdd69ccded7cc5ea63f13b97574803c8c616c9bbeaad33ad9',
             'se.emilsjolander:stickylistheaders:a08ca948aa6b220f09d82f16bbbac395f6b78897e9eeac6a9f0b0ba755928eeb',
             'com.jpardogo.materialtabstrip:library:c6ef812fba4f74be7dc4a905faa4c2908cba261a94c13d4f96d5e67e4aad4aaa',
             'org.w3c:smil:085dc40f2bb249651578bfa07499fd08b16ad0886dbe2c4078586a408da62f9b',
