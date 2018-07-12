@@ -116,7 +116,7 @@ public class ConversationListFragment extends Fragment
     LinearLayoutManager lm = new LinearLayoutManager(getActivity());
     list.setLayoutManager(lm);
 
-//    new ItemTouchHelper(new ArchiveListenerCallback()).attachToRecyclerView(list);
+    new ItemTouchHelper(new ArchiveListenerCallback()).attachToRecyclerView(list);
 
     return view;
   }
