@@ -1257,6 +1257,9 @@
     <string name="DocumentView_unknown_file">Unknown file</string>
     <string name="title_activity_recipient_details">RecipientDetailsActivity</string>
 
+    <string name="Permissions_permission_required">Permission required</string>
+    <string name="Permissions_continue">Continue</string>
+    <string name="Permissions_not_now">Not now</string>
     <!-- EOF -->
 
 </resources>

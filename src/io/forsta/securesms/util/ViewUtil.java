@@ -201,4 +201,8 @@ public class ViewUtil {
       view.setScaleX(-1.0f);
     }
   }
+
+  public static int dpToPx(Context context, int dp) {
+    return (int)((dp * context.getResources().getDisplayMetrics().density) + 0.5);
+  }
 }
