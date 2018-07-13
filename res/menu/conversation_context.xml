@@ -30,7 +30,7 @@
     <item
         android:title="@string/conversation_context_menu_reply_message"
         android:id="@+id/menu_context_reply"
-        android:icon="@drawable/ic_reply_white_36dp"
+        android:icon="?menu_reply_icon"
         app:showAsAction="always" />
 
     <item

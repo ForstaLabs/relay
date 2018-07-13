@@ -111,6 +111,7 @@
     <attr name="menu_info_icon" format="reference" />
     <attr name="menu_forward_icon" format="reference" />
     <attr name="menu_save_icon" format="reference" />
+    <attr name="menu_reply_icon" format="reference" />
 
     <attr name="pref_ic_sms_mms" format="reference" />
     <attr name="pref_ic_auth" format="reference" />

@@ -18,10 +18,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.whispersystems.libsignal.util.guava.Optional;
+
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.components.emoji.EmojiToggle;
+import io.forsta.securesms.mms.QuoteModel;
+import io.forsta.securesms.mms.SlideDeck;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
@@ -38,6 +43,7 @@ public class InputPanel extends LinearLayout
 
   private static final int FADE_TIME = 150;
 
+  private QuoteView     quoteView;
   private EmojiToggle   emojiToggle;
   private EmojiEditText composeText;
   private View          quickCameraToggle;
@@ -69,6 +75,7 @@ public class InputPanel extends LinearLayout
   public void onFinishInflate() {
     super.onFinishInflate();
 
+    this.quoteView              = findViewById(R.id.quote_view);
     this.emojiToggle            = ViewUtil.findById(this, R.id.emoji_toggle);
     this.composeText            = ViewUtil.findById(this, R.id.embedded_text_editor);
     this.quickCameraToggle      = ViewUtil.findById(this, R.id.quick_camera_toggle);
@@ -104,6 +111,23 @@ public class InputPanel extends LinearLayout
         listener.onEmojiToggle();
       }
     });
+  }
+
+  public void setQuote(/*@NonNull GlideRequests glideRequests,*/ long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
+    this.quoteView.setQuote(/*glideRequests,*/ id, author, body, attachments);
+    this.quoteView.setVisibility(View.VISIBLE);
+  }
+
+  public void clearQuote() {
+    this.quoteView.dismiss();
+  }
+
+  public Optional<QuoteModel> getQuote() {
+    if (quoteView.getQuoteId() > 0 && quoteView.getVisibility() == View.VISIBLE) {
+      return Optional.of(new QuoteModel(quoteView.getQuoteId(), /*quoteView.getAuthor().getAddress(),*/ quoteView.getBody(), quoteView.getAttachments()));
+    } else {
+      return Optional.absent();
+    }
   }
 
   @Override

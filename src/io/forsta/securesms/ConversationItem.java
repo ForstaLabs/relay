@@ -31,6 +31,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
+import android.util.EventLog;
 import android.util.Log;
 import android.support.v7.app.AlertDialog;
 import android.view.MotionEvent;
@@ -85,6 +86,7 @@ import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.util.EventListener;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -215,6 +217,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
+    //setQuote(messageRecord);
   }
 
   private void initializeAttributes() {
@@ -358,29 +361,20 @@ public class ConversationItem extends LinearLayout
       videoView.setVisibility(VISIBLE);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
       videoView.setVideoURI(Uri.parse(giphy));
-      videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-        @Override
-        public void onPrepared(MediaPlayer mediaPlayer) {
+      videoView.setOnPreparedListener((MediaPlayer mediaPlayer) -> {
           videoView.start();
-        }
-      });
-      videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
+        });
+      videoView.setOnCompletionListener((MediaPlayer mediaPlayer) -> {
           if (giphyLoopCounter < 4) {
             videoView.start();
             giphyLoopCounter++;
           } else {
             giphyLoopCounter = 0;
           }
-        }
-      });
-      videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-        @Override
-        public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        });
+      videoView.setOnErrorListener((MediaPlayer mediaPlayer, int i, int i1) -> {
           return true;
-        }
-      });
+        });
     } else {
       videoView.setVisibility(GONE);
       mediaThumbnail.setVisibility(View.GONE);
@@ -467,26 +461,28 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  private void setQuote(@NonNull MessageRecord messageRecord) {
+  /*private void setQuote(@NonNull MessageRecord messageRecord) {
     if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
+      Recipient author = new Recipient(1,"123");
       Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
       assert quote != null;
-      quoteView.setQuote(glideRequests, quote.getId(), Recipient.from(context, quote.getAuthor(), true), quote.getText(), quote.getAttachment());
+      quoteView.setQuote(/*glideRequests, quote.getId(), author, /*Recipient.from(context, quote.getAuthor(), true), quote.getText(), quote.getAttachment());
       quoteView.setVisibility(View.VISIBLE);
       quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-      quoteView.setOnClickListener(view -> {
+      //Code for bringing user to original message in thread. Implement this later
+      /*quoteView.setOnClickListener(view -> {
         if (eventListener != null && batchSelected.isEmpty()) {
           eventListener.onQuoteClicked((MmsMessageRecord) messageRecord);
         } else {
           passthroughClickListener.onClick(view);
         }
       });
-      quoteView.setOnLongClickListener(passthroughClickListener);
+      //quoteView.setOnLongClickListener(passthroughClickListener);
     } else {
       quoteView.dismiss();
     }
-  }
+  }*/
 
   private void setFailedStatusIcons() {
     alertView.setFailed();
@@ -552,26 +548,43 @@ public class ConversationItem extends LinearLayout
     new AcceptIdentityMismatch(getContext(), masterSecret, messageRecord, mismatches.get(0)).execute();
   }
 
+  /*@Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+    if (hasQuote(messageRecord)) {
+      int quoteWidth = quoteView.getMeasuredWidth();
+
+      int availableWidth;
+      if (hasAudio(messageRecord)) {
+        availableWidth = audioView.getMeasuredWidth();
+      } else if (hasThumbnail(messageRecord)) {
+        availableWidth = mediaThumbnail.getMeasuredWidth();
+      } else {
+        availableWidth = bodyBubble.getMeasuredWidth() - bodyBubble.getPaddingLeft() - bodyBubble.getPaddingRight();
+      }
+
+      if (quoteWidth != availableWidth) {
+        quoteView.getLayoutParams().width = availableWidth;
+        measure(widthMeasureSpec, heightMeasureSpec);
+      }
+    }
+  }*/
+
   @Override
   public void onModified(final Recipient recipient) {
-    Util.runOnMain(new Runnable() {
-      @Override
-      public void run() {
+    Util.runOnMain(() -> {
         setBubbleState(messageRecord, recipient);
         setContactPhoto(recipient);
         setGroupMessageStatus(messageRecord, recipient);
-      }
-    });
+      });
   }
 
   @Override
   public void onModified(final Recipients recipients) {
-    Util.runOnMain(new Runnable() {
-      @Override
-      public void run() {
+    Util.runOnMain(() -> {
         setAudioViewTint(messageRecord, recipients);
-      }
-    });
+      });
   }
 
   private class DocumentAttachmentSaveClickListener implements SlideClickListener {
@@ -582,8 +595,7 @@ public class ConversationItem extends LinearLayout
 
     @Override
     public void onClick(View v, final Slide slide) {
-      SaveAttachmentTask.showWarningDialog(getContext(), new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
+      SaveAttachmentTask.showWarningDialog(getContext(), (DialogInterface dialog, int which) -> {
           if (slide.getUri() != null) {
             SaveAttachmentTask saveTask = new SaveAttachmentTask(getContext(), masterSecret);
             saveTask.execute(new SaveAttachmentTask.Attachment(slide.getUri(), slide.getContentType(), messageRecord.getDateReceived(), fileName));
@@ -593,8 +605,7 @@ public class ConversationItem extends LinearLayout
                 getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
                 Toast.LENGTH_LONG).show();
           }
-        }
-      });
+        });
     }
   }
 
@@ -709,9 +720,7 @@ public class ConversationItem extends LinearLayout
 
     if (message > -1) builder.setMessage(message);
 
-    builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialogInterface, int i) {
+    builder.setPositiveButton(R.string.yes, (DialogInterface dialogInterface, int i) -> {
         if (messageRecord.isMms()) {
           MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
           database.markAsInsecure(messageRecord.getId());
@@ -732,20 +741,19 @@ public class ConversationItem extends LinearLayout
                             .add(new SmsSendJob(context, messageRecord.getId(),
                                                 messageRecord.getIndividualRecipient().getAddress()));
         }
-      }
-    });
+      });
 
-    builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialogInterface, int i) {
+    builder.setNegativeButton(R.string.no, (DialogInterface dialogInterface, int i) -> {
         if (messageRecord.isMms()) {
           DatabaseFactory.getMmsDatabase(context).markAsSentFailed(messageRecord.getId());
         } else {
           DatabaseFactory.getSmsDatabase(context).markAsSentFailed(messageRecord.getId());
         }
-      }
-    });
+      });
     builder.show();
   }
 
+  /*private boolean hasQuote(MessageRecord messageRecord) {
+    return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null;
+  }*/
 }

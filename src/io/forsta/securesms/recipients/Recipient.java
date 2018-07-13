@@ -16,11 +16,14 @@
  */
 package io.forsta.securesms.recipients;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import org.whispersystems.libsignal.util.guava.Optional;
 
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.contacts.avatars.ContactColors;
@@ -41,6 +44,7 @@ import java.util.WeakHashMap;
 public class Recipient {
 
   private final static String TAG = Recipient.class.getSimpleName();
+  private static final RecipientProvider provider = new RecipientProvider();
 
   private final Set<RecipientModifiedListener> listeners = Collections.newSetFromMap(new WeakHashMap<RecipientModifiedListener, Boolean>());
 
@@ -61,6 +65,11 @@ public class Recipient {
   private @Nullable String gravatarHash;
 
   @Nullable private MaterialColor color;
+
+  public Recipient(long recipientId, String number) {
+    this.recipientId = recipientId;
+    this.number = number;
+  }
 
   Recipient(long recipientId,
             @NonNull  String number,
@@ -131,6 +140,18 @@ public class Recipient {
     this.isActive = details.isActive;
     this.userType = details.userType;
   }
+
+  /*@SuppressWarnings("ConstantConditions")
+    public static @NonNull Recipient from(@NonNull Context context, /*@NonNull Address address, boolean asynchronous) {
+      //if (address == null) throw new AssertionError(address);
+      return provider.getRecipient(context, address, Optional.absent(), Optional.absent(), asynchronous);
+  }*/
+
+  /*@SuppressWarnings("ConstantConditions")
+    public static @NonNull Recipient from(@NonNull Context context, @NonNull Address address, @NonNull Optional<RecipientSettings> settings, @NonNull Optional<GroupDatabase.GroupRecord> groupRecord, boolean asynchronous) {
+      //if (address == null) throw new AssertionError(address);
+      return provider.getRecipient(context, address, settings, groupRecord, asynchronous);
+  }*/
 
   public synchronized @NonNull String getAddress() {
     return number;

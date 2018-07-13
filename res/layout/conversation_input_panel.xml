@@ -26,7 +26,17 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/sent_bubble"
                 android:clipChildren="false"
-                android:clipToPadding="false">
+                android:clipToPadding="false"
+                android:orientation="vertical" >
+
+
+                <!--<io.forsta.securesms.components.QuoteView
+                    android:id="@+id/quote_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:message_type="preview"
+                    tools:visibility="visible"/>-->
 
                 <io.forsta.securesms.components.emoji.EmojiToggle
                     android:id="@+id/emoji_toggle"

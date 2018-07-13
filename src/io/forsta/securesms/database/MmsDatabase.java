@@ -1190,6 +1190,7 @@ public class MmsDatabase extends MessagingDatabase {
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
       long expireStarted      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRE_STARTED));
 
+      //Quote                     quote           = getQuote()
       Recipients                recipients      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);

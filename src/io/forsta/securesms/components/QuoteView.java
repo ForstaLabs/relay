@@ -97,16 +97,16 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         inflate(getContext(), R.layout.quote_view, this);
 
         this.rootView                     = findViewById(R.id.quote_root);
-        this.authorView                   = (TextView) findViewById(R.id.quote_author);
-        this.bodyView                     = (TextView) findViewById(R.id.quote_text);
-        this.quoteBarView                 = (ImageView) findViewById(R.id.quote_bar);
-        this.attachmentView               = (ImageView) findViewById(R.id.quote_attachment);
-        this.attachmentVideoOverlayView   = (ImageView) findViewById(R.id.quote_video_overlay);
-        this.attachmentIconContainerView  = (ViewGroup) findViewById(R.id.quote_attachment_icon_container);
-        this.attachmentIconView           = (ImageView)findViewById(R.id.quote_attachment_icon);
-        this.attachmentIconBackgroundView = (ImageView) findViewById(R.id.quote_attachment_icon_background);
-        this.dismissView                  = (ImageView) findViewById(R.id.quote_dismiss);
-        this.mediaDescriptionText         = (TextView) findViewById(R.id.media_name);
+        this.authorView                   = findViewById(R.id.quote_author);
+        this.bodyView                     = findViewById(R.id.quote_text);
+        this.quoteBarView                 = findViewById(R.id.quote_bar);
+        this.attachmentView               = findViewById(R.id.quote_attachment);
+        this.attachmentVideoOverlayView   = findViewById(R.id.quote_video_overlay);
+        this.attachmentIconContainerView  = findViewById(R.id.quote_attachment_icon_container);
+        this.attachmentIconView           = findViewById(R.id.quote_attachment_icon);
+        this.attachmentIconBackgroundView = findViewById(R.id.quote_attachment_icon_background);
+        this.dismissView                  = findViewById(R.id.quote_dismiss);
+        this.mediaDescriptionText         = findViewById(R.id.media_name);
         this.roundedCornerRadiusPx        = getResources().getDimensionPixelSize(R.dimen.quote_corner_radius);
 
         if (attrs != null) {
@@ -117,12 +117,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             dismissView.setVisibility(messageType == MESSAGE_TYPE_PREVIEW ? VISIBLE : GONE);
         }
 
-        dismissView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setVisibility(GONE);
-            }
-        });
+        dismissView.setOnClickListener(view -> setVisibility(GONE));
 
         setWillNotDraw(false);
         if (Build.VERSION.SDK_INT < 18) {
@@ -170,11 +165,9 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
 
     @Override
     public void onModified(final Recipient recipient) {
-        Util.runOnMain(new Runnable() {
-            @Override public void run(){
-                if (recipient == author) {
-                    setQuoteAuthor(recipient);
-                }
+        Util.runOnMain(() -> {
+            if (recipient == author) {
+                setQuoteAuthor(recipient);
             }
         });
     }
@@ -246,10 +239,10 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             if (imageVideoSlides.get(0).hasVideo()) {
                 attachmentVideoOverlayView.setVisibility(VISIBLE);
             }
-            glideRequests.load(new DecryptableUri(imageVideoSlides.get(0).getThumbnailUri()))
+            /*glideRequests.load(new DecryptableUri(imageVideoSlides.get(0).getThumbnailUri()))
                     .centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .into(attachmentView);
+                    .into(attachmentView);*/
         } else if (!audioSlides.isEmpty() || !documentSlides.isEmpty()){
             boolean outgoing = messageType != MESSAGE_TYPE_INCOMING;
 

@@ -47,7 +47,6 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:gridlayout-v7:26.1.0'
     compile 'com.android.support:multidex:1.0.2'
-
     compile 'com.google.android.gms:play-services-base:15.0.1'
     compile 'com.google.android.gms:play-services-gcm:15.0.1'
     compile 'com.google.android.gms:play-services-maps:15.0.1'
@@ -73,7 +72,7 @@ dependencies {
     }
     compile 'org.whispersystems:curve25519-android:0.3.0'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
-    compile "me.leolin:ShortcutBadger:1.1.16"
+    compile 'me.leolin:ShortcutBadger:1.1.16'
     compile 'se.emilsjolander:stickylistheaders:2.7.0'
     compile 'com.jpardogo.materialtabstrip:library:1.0.9'
     compile 'org.w3c:smil:1.0.0'

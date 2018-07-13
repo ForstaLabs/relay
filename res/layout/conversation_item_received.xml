@@ -59,6 +59,16 @@
                     android:visibility="gone"
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="gone" />
+
+            <!--<io.forsta.securesms.components.QuoteView
+                android:id="@+id/quote_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:visibility="gone"
+                app:message_type="incoming"
+                tools:visibility="visible"/>-->
+
             <io.forsta.securesms.components.DocumentView
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -169,6 +179,7 @@
                           tools:visibility="visible"
                           tools:text="from SIM1"/>
             </LinearLayout>
+
         </LinearLayout>
 
         <io.forsta.securesms.components.AlertView

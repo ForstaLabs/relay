@@ -14,7 +14,7 @@ public class Quote {
     private final String    text;
     private final SlideDeck attachment;
 
-    public Quote(long id /*, @NonNull Address author*/, @Nullable String text, @NonNull SlideDeck attachment) {
+    public Quote(long id , /*@NonNull Address author,*/ @Nullable String text, @NonNull SlideDeck attachment) {
         this.id         = id;
         //his.author     = author;
         this.text       = text;
@@ -25,7 +25,7 @@ public class Quote {
         return id;
     }
 
-    /*public @NonNull Address getAuthor() {
+    /* @NonNull Address getAuthor() {
         return author;
     }*/
 
