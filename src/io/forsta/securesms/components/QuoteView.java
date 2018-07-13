@@ -173,7 +173,10 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
     }
 
     private void setQuoteAuthor() {
+        boolean outgoing    = messageType != MESSAGE_TYPE_INCOMING;
+        authorView.setTextColor(getResources().getColor(R.color.cyan_500));
         authorView.setText("TEST");
+        quoteBarView.setImageResource(R.color.cyan_500);
     }
 
     private void setQuoteAuthor(@NonNull Recipient author) {

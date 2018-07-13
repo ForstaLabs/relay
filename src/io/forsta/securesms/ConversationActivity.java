@@ -1221,8 +1221,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
-    Recipient author = new Recipient(1,"123");
-    inputPanel.setQuote(messageRecord.getDateSent(), /*author,*/ messageRecord.getBody().getBody()/*, messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/);
+    inputPanel.setQuote(messageRecord.getDateSent(), /*author,*/ "Test message"/*, messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/);
 
     /*if (messageRecord.isOutgoing()) {
       author = provider.getRecipient(this, address, Optional.absent(), Optional.absent(), asynchronous);//Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
