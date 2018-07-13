@@ -623,6 +623,8 @@
     <string name="ApplicationMigrationService_import_complete">Import complete</string>
     <string name="ApplicationMigrationService_system_database_import_is_complete">System database import is complete.</string>
 
+    <string name="Button_pressed">Button Pressed</string>
+
     <!-- KeyCachingService -->
     <string name="KeyCachingService_signal_passphrase_cached">Touch to open.</string>
     <string name="KeyCachingService_signal_passphrase_cached_with_lock">Touch to open, or touch the lock to close.</string>

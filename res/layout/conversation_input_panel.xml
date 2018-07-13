@@ -7,36 +7,37 @@
         android:id="@+id/bottom_panel"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:background="?android:windowBackground"
+        android:clickable="true"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:clickable="true"
-        android:background="?android:windowBackground"
-        android:padding="5dp"
-        android:clipChildren="false"
-        android:clipToPadding="false">
+        android:padding="5dp">
 
-        <FrameLayout android:layout_width="0dp"
+        <FrameLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <LinearLayout android:id="@+id/compose_bubble"
+            <LinearLayout
+                android:id="@+id/compose_bubble"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/sent_bubble"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:orientation="vertical" >
+                android:orientation="vertical">
 
-
-                <!--<io.forsta.securesms.components.QuoteView
+                <io.forsta.securesms.components.QuoteView
                     android:id="@+id/quote_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:message_type="preview"
-                    tools:visibility="visible"/>-->
+                    tools:visibility="visible" />
 
                 <io.forsta.securesms.components.emoji.EmojiToggle
                     android:id="@+id/emoji_toggle"
@@ -47,17 +48,18 @@
                     android:contentDescription="@string/conversation_activity__emoji_toggle_description" />
 
                 <io.forsta.securesms.components.ComposeText
-                    style="@style/ComposeEditText"
                     android:id="@+id/embedded_text_editor"
+                    style="@style/ComposeEditText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:minHeight="37dp"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
+                    android:minHeight="37dp"
                     android:nextFocusForward="@+id/send_button"
                     android:nextFocusRight="@+id/send_button"
-                    tools:visibility="visible"
-                    tools:hint="Send TextSecure message" >
+                    tools:hint="Send TextSecure message"
+                    tools:visibility="visible">
+
                     <requestFocus />
                 </io.forsta.securesms.components.ComposeText>
 
@@ -73,10 +75,10 @@
                         android:layout_width="37dp"
                         android:layout_height="37dp"
                         android:layout_gravity="bottom"
-                        android:src="?quick_camera_icon"
                         android:background="@drawable/touch_highlight_background"
                         android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
-                        android:padding="10dp"/>
+                        android:padding="10dp"
+                        android:src="?quick_camera_icon" />
 
                     <io.forsta.securesms.components.MicrophoneRecorderView
                         android:id="@+id/recorder_view"
@@ -90,91 +92,98 @@
                             android:layout_width="37dp"
                             android:layout_height="37dp"
                             android:layout_gravity="bottom"
-                            android:src="?quick_mic_icon"
                             android:background="@null"
                             android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
-                            android:padding="10dp"/>
+                            android:padding="10dp"
+                            android:src="?quick_mic_icon" />
 
-                        <ImageView android:id="@+id/quick_audio_fab"
+                        <ImageView
+                            android:id="@+id/quick_audio_fab"
                             android:layout_width="74dp"
                             android:layout_height="74dp"
-                            android:src="@drawable/ic_mic_white_48dp"
                             android:background="@drawable/circle_tintable"
                             android:backgroundTint="@color/red_400"
-                            android:visibility="gone"
-                            android:scaleType="center"/>
+                            android:scaleType="center"
+                            android:src="@drawable/ic_mic_white_48dp"
+                            android:visibility="gone" />
 
                     </io.forsta.securesms.components.MicrophoneRecorderView>
 
                 </io.forsta.securesms.components.HidingLinearLayout>
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/recording_container"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/recording_container"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView android:id="@+id/record_time"
+                <TextView
+                    android:id="@+id/record_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="none"
                     android:layout_marginLeft="20dp"
+                    android:ellipsize="none"
+                    android:singleLine="true"
                     android:text="00:00"
                     android:textColor="#61737b"
                     android:textSize="20dp"
-                    android:singleLine="true"
                     android:visibility="gone"
-                    tools:visibility="visible"/>
+                    tools:visibility="visible" />
 
-                <FrameLayout android:layout_width="match_parent"
+                <FrameLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:clipChildren="true">
 
-                    <TextView android:id="@+id/slide_to_cancel"
+                    <TextView
+                        android:id="@+id/slide_to_cancel"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:gravity="center"
                         android:drawableLeft="@drawable/ic_keyboard_arrow_left_grey600_24dp"
+                        android:ellipsize="none"
+                        android:gravity="center"
+                        android:paddingLeft="20dp"
+                        android:singleLine="true"
                         android:text="@string/conversation_input_panel__slide_to_cancel"
                         android:textAllCaps="true"
                         android:textColor="#61737b"
                         android:textSize="10sp"
-                        android:ellipsize="none"
-                        android:singleLine="true"
-                        android:paddingLeft="20dp"
                         android:visibility="gone"
-                        tools:visibility="visible"/>
+                        tools:visibility="visible" />
 
                 </FrameLayout>
 
             </LinearLayout>
 
         </FrameLayout>
+
         <io.forsta.securesms.components.AnimatingToggle
             android:id="@+id/button_toggle"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:background="@drawable/circle_tintable"
-            android:layout_gravity="bottom">
+            android:layout_gravity="bottom"
+            android:background="@drawable/circle_tintable">
 
-            <ImageButton android:id="@+id/attach_button"
+            <ImageButton
+                android:id="@+id/attach_button"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@drawable/circle_touch_highlight_background"
-                android:src="@drawable/ic_attach_white_24dp"
                 android:contentDescription="@string/ConversationActivity_add_attachment"
-                android:nextFocusLeft="@+id/embedded_text_editor" />
+                android:nextFocusLeft="@+id/embedded_text_editor"
+                android:src="@drawable/ic_attach_white_24dp" />
 
             <io.forsta.securesms.components.SendButton
                 android:id="@+id/send_button"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/circle_touch_highlight_background"
                 android:contentDescription="@string/conversation_activity__send"
                 android:nextFocusLeft="@+id/embedded_text_editor"
-                android:src="@drawable/ic_send_push_white_24dp"
-                android:background="@drawable/circle_touch_highlight_background" />
+                android:src="@drawable/ic_send_push_white_24dp" />
 
         </io.forsta.securesms.components.AnimatingToggle>
     </io.forsta.securesms.components.InputPanel>

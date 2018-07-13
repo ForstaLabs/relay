@@ -106,8 +106,6 @@ import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
-//import io.forsta.securesms.mms.QuoteId;
-import io.forsta.securesms.mms.QuoteModel;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
@@ -696,9 +694,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
               setMedia(Uri.parse(draft.getValue()), MediaType.VIDEO);
             } else if (draft.getType().equals(DraftDatabase.Draft.DOCUMENT)) {
               setMedia(Uri.parse(draft.getValue()), MediaType.DOCUMENT);
-            } /*else if(draft.getType().equals(DraftDatabase.Draft.QUOTE)) {
-              new QuoteRestorationTask(draft.getValue()).execute();
-            }*/
+            }
           } catch (IOException e) {
             Log.w(TAG, e);
           }
@@ -709,34 +705,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }.execute();
   }
 
-  /*private class QuoteRestorationTask extends AsyncTask<Void, Void, MessageRecord> {
-
-    private final String serialized;
-
-    QuoteRestorationTask(@NonNull String serialized) {
-      this.serialized = serialized;
-    }
-
-    @Override
-    protected MessageRecord doInBackground(Void... voids) {
-      QuoteId quoteId = QuoteId.deserialize(serialized);
-
-      if (quoteId != null) {
-        return DatabaseFactory.getMmsSmsDatabase(getApplicationContext()).getMessageFor(quoteId.getId(), quoteId.getAuthor());
-      }
-
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(MessageRecord messageRecord) {
-      if (messageRecord != null) {
-        handleReplyMessage(messageRecord);
-      } else {
-        Log.e(TAG, "Failed to restore a quote from a draft. No matching message record.");
-      }
-    }
-  }*/
 
   private void initializeViews() {
     titleView             = (ConversationTitleView) getSupportActionBar().getCustomView();
@@ -1254,6 +1222,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author = new Recipient(1,"123");
+    inputPanel.setQuote(messageRecord.getDateSent(), /*author,*/ messageRecord.getBody().getBody()/*, messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/);
 
     /*if (messageRecord.isOutgoing()) {
       author = provider.getRecipient(this, address, Optional.absent(), Optional.absent(), asynchronous);//Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
@@ -1276,14 +1245,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
               author,
               body,
               slideDeck);
-    } else {*/
-      inputPanel.setQuote(/*GlideApp.with(this),*/
+    } else
+      inputPanel.setQuote(GlideApp.with(this),
               messageRecord.getDateSent(),
               author,
               messageRecord.getBody().getBody(),
               messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
-    }
-  //}
+    }*/
+  }
 
   @Override
   public void onAttachmentChanged() {

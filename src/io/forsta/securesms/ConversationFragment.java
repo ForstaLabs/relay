@@ -48,6 +48,7 @@ import android.widget.Toast;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.securesms.components.QuoteView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsDatabase;
@@ -61,6 +62,7 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.SaveAttachmentTask;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
+import io.forsta.securesms.components.InputPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -88,6 +90,7 @@ public class ConversationFragment extends Fragment
   private Locale       locale;
   private RecyclerView list;
   private View         loadMoreView;
+  private   InputPanel             inputPanel;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -243,8 +246,9 @@ public class ConversationFragment extends Fragment
     });
   }
 
-  private void handleReplyMessage(final MessageRecord message) {
-    listener.handleReplyMessage(message);
+  private void handleReplyMessage(final MessageRecord messageRecord) {
+    //inputPanel.setQuote( messageRecord.getDateSent(), /*author,*/ messageRecord.getBody().getBody());/*, messageRecord.isMms() ? ((MmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/
+    listener.handleReplyMessage(messageRecord);
   }
 
   public interface ConversationFragmentListener {
