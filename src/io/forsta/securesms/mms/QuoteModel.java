@@ -4,6 +4,7 @@ package io.forsta.securesms.mms;
 import android.support.annotation.Nullable;
 
 import io.forsta.securesms.attachments.Attachment;
+import io.forsta.securesms.recipients.Recipient;
 //import io.forsta.securesms.database.Address;
 
 import java.util.List;
@@ -11,14 +12,14 @@ import java.util.List;
 public class QuoteModel {
 
     private final long             id;
-   //private final Address          author;
+    private final Recipient        author;
     private final String           text;
     private final List<Attachment> attachments;
 
-    public QuoteModel(long id, /*Address author,*/ String text, @Nullable List<Attachment> attachments) {
-        this.id         = id;
-        //this.author     = author;
-        this.text       = text;
+    public QuoteModel(long id, Recipient author, String text, @Nullable List<Attachment> attachments) {
+        this.id          = id;
+        this.author      = author;
+        this.text        = text;
         this.attachments = attachments;
     }
 
@@ -26,9 +27,9 @@ public class QuoteModel {
         return id;
     }
 
-    /*public Address getAuthor() {
+    public Recipient getAuthor() {
         return author;
-    }*/
+    }
 
     public String getText() {
         return text;

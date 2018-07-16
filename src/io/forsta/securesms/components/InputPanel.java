@@ -113,22 +113,22 @@ public class InputPanel extends LinearLayout
     });
   }
 
-  public void setQuote(long id/*, @NonNull Recipient author*/, @NonNull String body) {
-    this.quoteView.setQuote(id, /*author,*/ body);
+  public void setQuote(/*@NonNull GlideRequests glideRequests,*/ long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
+    this.quoteView.setQuote(/*glideRequests,*/ id, author, body, attachments);
     this.quoteView.setVisibility(View.VISIBLE);
   }
 
-  /*public void clearQuote() {
+  public void clearQuote() {
     this.quoteView.dismiss();
   }
 
   public Optional<QuoteModel> getQuote() {
     if (quoteView.getQuoteId() > 0 && quoteView.getVisibility() == View.VISIBLE) {
-      return Optional.of(new QuoteModel(quoteView.getQuoteId(), quoteView.getAuthor().getAddress(), quoteView.getBody(), quoteView.getAttachments()));
+      return Optional.of(new QuoteModel(quoteView.getQuoteId(), quoteView.getAuthor(), quoteView.getBody(), quoteView.getAttachments()));
     } else {
       return Optional.absent();
     }
-  }*/
+  }
 
   @Override
   public void onRecordPressed(float startPositionX) {

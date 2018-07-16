@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -110,9 +111,11 @@ import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.RecipientProvider;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.database.model.MessageRecord;
@@ -176,6 +179,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int PICK_LOCATION     = 8;
   private static final int PICK_DOCUMENT = 9;
 
+  private static final RecipientProvider provider = new RecipientProvider();
+
   private MasterSecret masterSecret;
   protected ComposeText           composeText;
   private   AnimatingToggle       buttonToggle;
@@ -203,6 +208,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
+  private boolean    isSecureText;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -1053,13 +1059,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     System.currentTimeMillis(),
                                                                     subscriptionId,
                                                                     expiresIn,
-                                                                    distributionType);
+                                                                    distributionType,
+                                                                    inputPanel.getQuote().orNull());
     outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
-
-
 
     attachmentManager.clear();
     composeText.setText("");
+    inputPanel.clearQuote();
 
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override
@@ -1076,6 +1082,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         future.set(null);
       }
     }.execute(outgoingMessage);
+
 
     return future;
   }
@@ -1221,16 +1228,22 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
-    inputPanel.setQuote(messageRecord.getDateSent(), /*author,*/ "Test message"/*, messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/);
+    Recipient author;
 
+    //Need method to return local user as a Recipient
     /*if (messageRecord.isOutgoing()) {
-      author = provider.getRecipient(this, address, Optional.absent(), Optional.absent(), asynchronous);//Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
+      author = Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
     } else {
       author = messageRecord.getIndividualRecipient();
-    }
+    }*/
+    author = messageRecord.getIndividualRecipient();
 
-    if (messageRecord.isMms() && !((MediaMmsMessageRecord) messageRecord).getSharedContacts().isEmpty()) {
-      Contact   contact     = ((MediaMmsMessageRecord) messageRecord).getSharedContacts().get(0);
+    inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
+
+    //Handles mms quotes
+    /*if (messageRecord.isMms() && !((MediaMmsMessageRecord) messageRecord).getSharedContacts().isEmpty()) {
+      ForstaUser user       =
+      //Contact contact     = ((MediaMmsMessageRecord) messageRecord).getSharedContacts().get(0);
       String    displayName = ContactUtil.getDisplayName(contact);
       String    body        = getString(R.string.ConversationActivity_quoted_contact_message, EmojiStrings.BUST_IN_SILHOUETTE, displayName);
       SlideDeck slideDeck   = new SlideDeck();
@@ -1239,13 +1252,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         slideDeck.addSlide(MediaUtil.getSlideForAttachment(this, contact.getAvatarAttachment()));
       }
 
-      inputPanel.setQuote(GlideApp.with(this),
+      inputPanel.setQuote(/*GlideApp.with(this),
               messageRecord.getDateSent(),
               author,
               body,
               slideDeck);
-    } else
-      inputPanel.setQuote(GlideApp.with(this),
+    } else {
+      inputPanel.setQuote(/*GlideApp.with(this),
               messageRecord.getDateSent(),
               author,
               messageRecord.getBody().getBody(),

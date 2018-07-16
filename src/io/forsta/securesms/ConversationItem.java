@@ -71,6 +71,7 @@ import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -85,7 +86,6 @@ import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
 import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
-
 import java.util.EventListener;
 import java.util.HashSet;
 import java.util.List;
@@ -129,10 +129,13 @@ public class ConversationItem extends LinearLayout
   private @NonNull  AudioView           audioView;
   private @NonNull DocumentView documentView;
   private @NonNull ExpirationTimerView expirationTimer;
+  private @Nullable EventListener           eventListener;
   private VideoView videoView;
   private int giphyLoopCounter = 0;
 
   private int defaultBubbleColor;
+
+  private final PassthroughClickListener        passthroughClickListener   = new PassthroughClickListener();
 
   private final Context                     context;
 
@@ -156,24 +159,27 @@ public class ConversationItem extends LinearLayout
 
     initializeAttributes();
 
-    this.bodyText                = (TextView)           findViewById(R.id.conversation_item_body);
-    this.dateText                = (TextView)           findViewById(R.id.conversation_item_date);
-    this.simInfoText             = (TextView)           findViewById(R.id.sim_info);
-    this.indicatorText           = (TextView)           findViewById(R.id.indicator_text);
-    this.groupStatusText         = (TextView)           findViewById(R.id.group_message_status);
-    this.secureImage             = (ImageView)          findViewById(R.id.secure_indicator);
-    this.deliveryStatusIndicator = (DeliveryStatusView) findViewById(R.id.delivery_status);
-    this.alertView               = (AlertView)          findViewById(R.id.indicators_parent);
-    this.contactPhoto            = (AvatarImageView)    findViewById(R.id.contact_photo);
-    this.bodyBubble              =                      findViewById(R.id.body_bubble);
-    this.mediaThumbnail          = (ThumbnailView)      findViewById(R.id.image_view);
-    this.audioView               = (AudioView)          findViewById(R.id.audio_view);
-    this.documentView               = (DocumentView)          findViewById(R.id.document_view);
-    this.expirationTimer         = (ExpirationTimerView) findViewById(R.id.expiration_indicator);
-    videoView = (VideoView) findViewById(R.id.item_video_view);
+    this.bodyText                = findViewById(R.id.conversation_item_body);
+    this.dateText                = findViewById(R.id.conversation_item_date);
+    this.simInfoText             = findViewById(R.id.sim_info);
+    this.indicatorText           = findViewById(R.id.indicator_text);
+    this.groupStatusText         = findViewById(R.id.group_message_status);
+    this.secureImage             = findViewById(R.id.secure_indicator);
+    this.deliveryStatusIndicator = findViewById(R.id.delivery_status);
+    this.alertView               = findViewById(R.id.indicators_parent);
+    this.contactPhoto            = findViewById(R.id.contact_photo);
+    this.bodyBubble              = findViewById(R.id.body_bubble);
+    this.mediaThumbnail          = findViewById(R.id.image_view);
+    this.audioView               = findViewById(R.id.audio_view);
+    this.documentView            = findViewById(R.id.document_view);
+    this.expirationTimer         = findViewById(R.id.expiration_indicator);
+    videoView                    = findViewById(R.id.item_video_view);
+    this.quoteView               = findViewById(R.id.quote_view);
 
     setOnClickListener(new ClickListener(null));
-    PassthroughClickListener        passthroughClickListener = new PassthroughClickListener();
+    //These two methods could be un-needed
+    bodyText.setOnLongClickListener(passthroughClickListener);
+    bodyText.setOnClickListener(passthroughClickListener);
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
 
     mediaThumbnail.setThumbnailClickListener(new ThumbnailClickListener());
@@ -217,8 +223,12 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    //setQuote(messageRecord);
+    setQuote(messageRecord);
   }
+
+  /*public void setEventListener(@Nullable EventListener eventListener) {
+    this.eventListener = eventListener;
+  }*/
 
   private void initializeAttributes() {
     final int[]      attributes = new int[] {R.attr.conversation_item_bubble_background,
@@ -300,6 +310,10 @@ public class ConversationItem extends LinearLayout
 
   private boolean hasDocument(MessageRecord messageRecord) {
     return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
+  }
+
+  private boolean hasQuote(MessageRecord messageRecord) {
+    return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null;
   }
 
   private void setBodyText(MessageRecord messageRecord) {
@@ -460,29 +474,26 @@ public class ConversationItem extends LinearLayout
       this.expirationTimer.setVisibility(View.GONE);
     }
   }
-
-  /*private void setQuote(@NonNull MessageRecord messageRecord) {
+  private void setQuote(@NonNull MessageRecord messageRecord) {
     if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
-      Recipient author = new Recipient(1,"123");
       Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
       assert quote != null;
-      quoteView.setQuote(/*glideRequests, quote.getId(), author, /*Recipient.from(context, quote.getAuthor(), true), quote.getText(), quote.getAttachment());
+      quoteView.setQuote(/*glideRequests,*/ quote.getId(), messageRecord.getIndividualRecipient(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), quote.getAttachment());
       quoteView.setVisibility(View.VISIBLE);
       quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-      //Code for bringing user to original message in thread. Implement this later
       /*quoteView.setOnClickListener(view -> {
         if (eventListener != null && batchSelected.isEmpty()) {
-          eventListener.onQuoteClicked((MmsMessageRecord) messageRecord);
+          eventListener.onQuoteClicked((MediaMmsMessageRecord) messageRecord);
         } else {
           passthroughClickListener.onClick(view);
         }
-      });
+      });*/
       //quoteView.setOnLongClickListener(passthroughClickListener);
-    } else {
-      quoteView.dismiss();
-    }
-  }*/
+    } //else {
+      //quoteView.dismiss();
+    //}
+  }
 
   private void setFailedStatusIcons() {
     alertView.setFailed();

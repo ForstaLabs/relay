@@ -637,14 +637,14 @@ public class MmsDatabase extends MessagingDatabase {
         Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, destinations, false);
 
         if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
-          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
+          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0, null);
         } else if (Types.isExpirationTimerUpdate(outboxType)) {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
         OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
                                                                 !addresses.getBcc().isEmpty() ? ThreadDatabase.DistributionTypes.BROADCAST :
-                                                                                                ThreadDatabase.DistributionTypes.DEFAULT);
+                                                                                                ThreadDatabase.DistributionTypes.DEFAULT, null);
         if (Types.isSecureType(outboxType)) {
           return new OutgoingSecureMediaMessage(message);
         }
@@ -1199,7 +1199,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, null);
     }
 
     private Recipients getRecipientsFor(String address) {

@@ -60,14 +60,14 @@
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="gone" />
 
-            <!--<io.forsta.securesms.components.QuoteView
+            <io.forsta.securesms.components.QuoteView
                 android:id="@+id/quote_view"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="3dp"
                 android:visibility="gone"
                 app:message_type="incoming"
-                tools:visibility="visible"/>-->
+                tools:visibility="visible"/>
 
             <io.forsta.securesms.components.DocumentView
                 xmlns:android="http://schemas.android.com/apk/res/android"

@@ -37,6 +37,7 @@ import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
+import io.forsta.securesms.mms.QuoteModel;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -84,6 +85,7 @@ import org.whispersystems.signalservice.internal.push.DeviceLimitExceededExcepti
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -376,7 +378,7 @@ public class PushDecryptJob extends ContextJob {
           PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
           message.getTimestamp(), -1,
           message.getMessage().getExpiresInSeconds() * 1000,
-          ThreadDatabase.DistributionTypes.DEFAULT);
+          ThreadDatabase.DistributionTypes.DEFAULT,null);
 
       mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
       long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);

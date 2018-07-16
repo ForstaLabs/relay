@@ -1,5 +1,7 @@
 package io.forsta.securesms.mms;
 
+import android.support.annotation.Nullable;
+
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
 
@@ -11,9 +13,10 @@ public class OutgoingSecureMediaMessage extends OutgoingMediaMessage {
                                     List<Attachment> attachments,
                                     long sentTimeMillis,
                                     int distributionType,
-                                    long expiresIn)
+                                    long expiresIn,
+                                    @Nullable QuoteModel quote)
   {
-    super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, distributionType);
+    super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, distributionType, quote);
   }
 
   public OutgoingSecureMediaMessage(OutgoingMediaMessage base) {

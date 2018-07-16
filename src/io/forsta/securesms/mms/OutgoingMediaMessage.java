@@ -1,6 +1,8 @@
 package io.forsta.securesms.mms;
 
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import org.json.JSONArray;
@@ -21,17 +23,18 @@ import java.util.List;
 public class OutgoingMediaMessage {
 
   private   final Recipients       recipients;
-  protected String           body;
+  protected String                 body;
   protected final List<Attachment> attachments;
   private   final long             sentTimeMillis;
   private   final int              distributionType;
   private   final int              subscriptionId;
   private   final long             expiresIn;
+  private   final QuoteModel       outgoingQuote;
 
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,
                               int subscriptionId, long expiresIn,
-                              int distributionType)
+                              int distributionType, @Nullable QuoteModel outgoingQuote)
   {
     this.recipients       = recipients;
     this.body             = message;
@@ -40,15 +43,16 @@ public class OutgoingMediaMessage {
     this.attachments      = attachments;
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
+    this.outgoingQuote    = outgoingQuote;
   }
 
-  public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType)
+  public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType, @Nullable QuoteModel outgoingQuote)
   {
     this(recipients,
          buildMessage(slideDeck, message),
          slideDeck.asAttachments(),
          sentTimeMillis, subscriptionId,
-         expiresIn, distributionType);
+         expiresIn, distributionType, outgoingQuote);
   }
 
   public OutgoingMediaMessage(OutgoingMediaMessage that) {
@@ -59,6 +63,7 @@ public class OutgoingMediaMessage {
     this.sentTimeMillis   = that.sentTimeMillis;
     this.subscriptionId   = that.subscriptionId;
     this.expiresIn        = that.expiresIn;
+    this.outgoingQuote    = that.outgoingQuote;
   }
 
   public Recipients getRecipients() {
@@ -75,6 +80,10 @@ public class OutgoingMediaMessage {
 
   public int getDistributionType() {
     return distributionType;
+  }
+
+  public @Nullable QuoteModel getOutgoingQuote() {
+    return outgoingQuote;
   }
 
   public boolean isSecure() {

@@ -139,18 +139,18 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         canvas.clipPath(clipPath);
     }
 
-    public void setQuote(long id, /*@NonNull Recipient author,*/ @Nullable String body) {
-        //if (this.author != null) this.author.removeListener(this);
+    public void setQuote(/*GlideRequests glideRequests,*/ long id, @NonNull Recipient author, @Nullable String body, @NonNull SlideDeck attachments) {
+        if (this.author != null) this.author.removeListener(this);
 
         this.id          = id;
-        //this.author      = author;
+        this.author      = author;
         this.body        = body;
-        //this.attachments = attachments;
+        this.attachments = attachments;
 
-        //author.addListener(this);
-        setQuoteAuthor();
+        author.addListener(this);
+        setQuoteAuthor(author);
         setQuoteText(body, attachments);
-        //setQuoteAttachment(attachments, author);
+        setQuoteAttachment(attachments, author);
     }
 
     public void dismiss() {
@@ -172,12 +172,13 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         });
     }
 
-    private void setQuoteAuthor() {
+    //Test Method
+    /*private void setQuoteAuthor() {
         boolean outgoing    = messageType != MESSAGE_TYPE_INCOMING;
         authorView.setTextColor(getResources().getColor(R.color.cyan_500));
         authorView.setText("TEST");
         quoteBarView.setImageResource(R.color.cyan_500);
-    }
+    }*/
 
     private void setQuoteAuthor(@NonNull Recipient author) {
         boolean outgoing    = messageType != MESSAGE_TYPE_INCOMING;
@@ -203,7 +204,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             return;
         }
 
-       /* bodyView.setVisibility(GONE);
+        bodyView.setVisibility(GONE);
         mediaDescriptionText.setVisibility(VISIBLE);
         mediaDescriptionText.setTypeface(null, Typeface.ITALIC);
 
@@ -227,10 +228,10 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             mediaDescriptionText.setText(R.string.QuoteView_video);
         } else if (!imageSlides.isEmpty()) {
             mediaDescriptionText.setText(R.string.QuoteView_photo);
-        }*/
+        }
     }
 
-    /*private void setQuoteAttachment(@NonNull SlideDeck slideDeck,
+    private void setQuoteAttachment(@NonNull SlideDeck slideDeck,
                                     @NonNull Recipient author)
     {
         List<Slide> imageVideoSlides = Stream.of(slideDeck.getSlides()).filter(s -> s.hasImage() || s.hasVideo()).limit(1).toList();
@@ -249,7 +250,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             /*glideRequests.load(new DecryptableUri(imageVideoSlides.get(0).getThumbnailUri()))
                     .centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .into(attachmentView);
+                    .into(attachmentView);*/
         } else if (!audioSlides.isEmpty() || !documentSlides.isEmpty()){
             boolean outgoing = messageType != MESSAGE_TYPE_INCOMING;
 
@@ -275,7 +276,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         if (ThemeUtil.isDarkTheme(getContext())) {
             dismissView.setBackgroundResource(R.drawable.circle_alpha);
         }
-    }*/
+    }
 
     public long getQuoteId() {
         return id;

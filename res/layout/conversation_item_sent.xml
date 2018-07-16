@@ -38,15 +38,6 @@
                       android:background="@drawable/sent_bubble"
                       android:orientation="vertical">
 
-            <io.forsta.securesms.components.QuoteView
-                android:id="@+id/quote_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:visibility="gone"
-                app:message_type="outgoing"
-                tools:visibility="visible"/>
-
             <io.forsta.securesms.components.ThumbnailView
                     android:id="@+id/image_view"
                     android:layout_width="@dimen/media_bubble_height"
@@ -59,6 +50,15 @@
                     android:visibility="gone"
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="visible" />
+
+            <io.forsta.securesms.components.QuoteView
+                android:id="@+id/quote_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:visibility="gone"
+                app:message_type="outgoing"
+                tools:visibility="visible"/>
 
             <io.forsta.securesms.components.DocumentView
                 xmlns:android="http://schemas.android.com/apk/res/android"
