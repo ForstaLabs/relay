@@ -51,7 +51,7 @@ import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
-//import io.forsta.securesms.components.QuoteView;
+import io.forsta.securesms.components.QuoteView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -62,7 +62,7 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
-//import io.forsta.securesms.database.model.Quote;
+import io.forsta.securesms.database.model.Quote;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
 import io.forsta.securesms.jobs.MmsDownloadJob;
 import io.forsta.securesms.jobs.MmsSendJob;
@@ -112,7 +112,7 @@ public class ConversationItem extends LinearLayout
   private Recipient     recipient;
 
   private View               bodyBubble;
-  //private QuoteView          quoteView;
+  private QuoteView          quoteView;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
