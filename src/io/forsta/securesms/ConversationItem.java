@@ -474,25 +474,30 @@ public class ConversationItem extends LinearLayout
       this.expirationTimer.setVisibility(View.GONE);
     }
   }
-  private void setQuote(@NonNull MessageRecord messageRecord) {
-    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
-      Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
-      assert quote != null;
-      quoteView.setQuote(/*glideRequests,*/ quote.getId(), messageRecord.getIndividualRecipient(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), quote.getAttachment());
-      quoteView.setVisibility(View.VISIBLE);
-      quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 
-      /*quoteView.setOnClickListener(view -> {
+  //This method is not executing most likely because the final boolean in the if statement is false. Without this part, all messages have quotes set. App will crash due to NullPointerException. getQuote RETURNS NULL
+  private void setQuote(@NonNull MessageRecord messageRecord) {
+    if (messageRecord.isMms() && !messageRecord.isMmsNotification()){ //&& ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
+      SlideDeck slide = new SlideDeck();
+      Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
+      Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
+      assert quote != null;
+      //this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), messageRecord.getIndividualRecipient(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), slide);
+      this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
+      this.quoteView.setVisibility(View.VISIBLE);
+      this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+
+      quoteView.setOnClickListener(view -> {
         if (eventListener != null && batchSelected.isEmpty()) {
           eventListener.onQuoteClicked((MediaMmsMessageRecord) messageRecord);
         } else {
           passthroughClickListener.onClick(view);
         }
-      });*/
-      //quoteView.setOnLongClickListener(passthroughClickListener);
-    } //else {
-      //quoteView.dismiss();
-    //}
+      });
+      quoteView.setOnLongClickListener(passthroughClickListener);
+    } else {
+      quoteView.dismiss();
+    }
   }
 
   private void setFailedStatusIcons() {
@@ -763,8 +768,4 @@ public class ConversationItem extends LinearLayout
       });
     builder.show();
   }
-
-  /*private boolean hasQuote(MessageRecord messageRecord) {
-    return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null;
-  }*/
 }

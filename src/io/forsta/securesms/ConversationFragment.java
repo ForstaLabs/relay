@@ -247,7 +247,6 @@ public class ConversationFragment extends Fragment
   }
 
   private void handleReplyMessage(final MessageRecord messageRecord) {
-    //inputPanel.setQuote( messageRecord.getDateSent(), /*author,*/ messageRecord.getBody().getBody());/*, messageRecord.isMms() ? ((MmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck()*/
     listener.handleReplyMessage(messageRecord);
   }
 

@@ -1196,6 +1196,7 @@ public class MmsDatabase extends MessagingDatabase {
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
 
+      //this is most likely the reason why quote are not showing up
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,

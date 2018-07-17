@@ -39,123 +39,142 @@
                     app:message_type="preview"
                     tools:visibility="visible" />
 
-                <io.forsta.securesms.components.emoji.EmojiToggle
-                    android:id="@+id/emoji_toggle"
-                    android:layout_width="37dp"
-                    android:layout_height="37dp"
-                    android:layout_gravity="bottom"
-                    android:background="@drawable/touch_highlight_background"
-                    android:contentDescription="@string/conversation_activity__emoji_toggle_description" />
-
-                <io.forsta.securesms.components.ComposeText
-                    android:id="@+id/embedded_text_editor"
-                    style="@style/ComposeEditText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:minHeight="37dp"
-                    android:nextFocusForward="@+id/send_button"
-                    android:nextFocusRight="@+id/send_button"
-                    tools:hint="Send TextSecure message"
-                    tools:visibility="visible">
-
-                    <requestFocus />
-                </io.forsta.securesms.components.ComposeText>
-
-                <io.forsta.securesms.components.HidingLinearLayout
-                    android:id="@+id/quick_attachment_toggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
                     android:clipChildren="false"
-                    android:clipToPadding="false">
+                    android:clipToPadding="false"
 
-                    <ImageButton
-                        android:id="@+id/quick_camera_toggle"
-                        android:layout_width="37dp"
-                        android:layout_height="37dp"
-                        android:layout_gravity="bottom"
-                        android:background="@drawable/touch_highlight_background"
-                        android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
-                        android:padding="10dp"
-                        android:src="?quick_camera_icon" />
-
-                    <io.forsta.securesms.components.MicrophoneRecorderView
-                        android:id="@+id/recorder_view"
-                        android:layout_width="37dp"
-                        android:layout_height="37dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
                         android:clipChildren="false"
-                        android:clipToPadding="false">
+                        android:clipToPadding="false"
 
-                        <ImageButton
-                            android:id="@+id/quick_audio_toggle"
+                        <io.forsta.securesms.components.emoji.EmojiToggle
+                            android:id="@+id/emoji_toggle"
                             android:layout_width="37dp"
                             android:layout_height="37dp"
                             android:layout_gravity="bottom"
-                            android:background="@null"
-                            android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
-                            android:padding="10dp"
-                            android:src="?quick_mic_icon" />
+                            android:background="@drawable/touch_highlight_background"
+                            android:contentDescription="@string/conversation_activity__emoji_toggle_description" />
 
-                        <ImageView
-                            android:id="@+id/quick_audio_fab"
-                            android:layout_width="74dp"
-                            android:layout_height="74dp"
-                            android:background="@drawable/circle_tintable"
-                            android:backgroundTint="@color/red_400"
-                            android:scaleType="center"
-                            android:src="@drawable/ic_mic_white_48dp"
-                            android:visibility="gone" />
+                        <io.forsta.securesms.components.ComposeText
+                            android:id="@+id/embedded_text_editor"
+                            style="@style/ComposeEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:minHeight="37dp"
+                            android:nextFocusForward="@+id/send_button"
+                            android:nextFocusRight="@+id/send_button"
+                            tools:hint="Send TextSecure message"
+                            tools:visibility="visible">
 
-                    </io.forsta.securesms.components.MicrophoneRecorderView>
+                            <requestFocus />
+                        </io.forsta.securesms.components.ComposeText>
 
-                </io.forsta.securesms.components.HidingLinearLayout>
-            </LinearLayout>
+                        <io.forsta.securesms.components.HidingLinearLayout
+                            android:id="@+id/quick_attachment_toggle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
 
-            <LinearLayout
-                android:id="@+id/recording_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:orientation="horizontal">
+                            <ImageButton
+                                android:id="@+id/quick_camera_toggle"
+                                android:layout_width="37dp"
+                                android:layout_height="37dp"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/touch_highlight_background"
+                                android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
+                                android:padding="10dp"
+                                android:src="?quick_camera_icon" />
 
-                <TextView
-                    android:id="@+id/record_time"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:ellipsize="none"
-                    android:singleLine="true"
-                    android:text="00:00"
-                    android:textColor="#61737b"
-                    android:textSize="20dp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                            <io.forsta.securesms.components.MicrophoneRecorderView
+                                android:id="@+id/recorder_view"
+                                android:layout_width="37dp"
+                                android:layout_height="37dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false">
 
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:clipChildren="true">
+                                <ImageButton
+                                    android:id="@+id/quick_audio_toggle"
+                                    android:layout_width="37dp"
+                                    android:layout_height="37dp"
+                                    android:layout_gravity="bottom"
+                                    android:background="@null"
+                                    android:contentDescription="@string/conversation_activity__quick_attachment_drawer_toggle_description"
+                                    android:padding="10dp"
+                                    android:src="?quick_mic_icon" />
 
-                    <TextView
-                        android:id="@+id/slide_to_cancel"
+                                <ImageView
+                                    android:id="@+id/quick_audio_fab"
+                                    android:layout_width="74dp"
+                                    android:layout_height="74dp"
+                                    android:background="@drawable/circle_tintable"
+                                    android:backgroundTint="@color/red_400"
+                                    android:scaleType="center"
+                                    android:src="@drawable/ic_mic_white_48dp"
+                                    android:visibility="gone" />
+
+                            </io.forsta.securesms.components.MicrophoneRecorderView>
+
+                        </io.forsta.securesms.components.HidingLinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/recording_container"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:drawableLeft="@drawable/ic_keyboard_arrow_left_grey600_24dp"
-                        android:ellipsize="none"
-                        android:gravity="center"
-                        android:paddingLeft="20dp"
-                        android:singleLine="true"
-                        android:text="@string/conversation_input_panel__slide_to_cancel"
-                        android:textAllCaps="true"
-                        android:textColor="#61737b"
-                        android:textSize="10sp"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/record_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20dp"
+                            android:ellipsize="none"
+                            android:singleLine="true"
+                            android:text="00:00"
+                            android:textColor="#61737b"
+                            android:textSize="20dp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+
+                        <FrameLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:clipChildren="true">
+
+                            <TextView
+                                android:id="@+id/slide_to_cancel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:drawableLeft="@drawable/ic_keyboard_arrow_left_grey600_24dp"
+                                android:ellipsize="none"
+                                android:gravity="center"
+                                android:paddingLeft="20dp"
+                                android:singleLine="true"
+                                android:text="@string/conversation_input_panel__slide_to_cancel"
+                                android:textAllCaps="true"
+                                android:textColor="#61737b"
+                                android:textSize="10sp"
+                                android:visibility="gone"
+                                tools:visibility="visible" />
+
+                        </FrameLayout>
+
+                    </LinearLayout>
 
                 </FrameLayout>
 
+
             </LinearLayout>
+
 
         </FrameLayout>
 

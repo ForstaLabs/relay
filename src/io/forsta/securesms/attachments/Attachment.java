@@ -26,6 +26,7 @@ public abstract class Attachment {
   @Nullable
   private final String relay;
 
+
   // XXX - This shouldn't be here.
   @Nullable
   private Bitmap thumbnail;
@@ -39,7 +40,7 @@ public abstract class Attachment {
     this.location      = location;
     this.key           = key;
     this.relay         = relay;
-    this.fileName = "";
+    this.fileName      = "";
   }
 
   @Nullable
@@ -94,4 +95,5 @@ public abstract class Attachment {
   public Bitmap getThumbnail() {
     return thumbnail;
   }
+
 }
