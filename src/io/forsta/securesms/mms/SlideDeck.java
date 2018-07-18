@@ -31,7 +31,7 @@ public class SlideDeck {
 
   private final List<Slide> slides = new LinkedList<>();
 
-  public SlideDeck(Context context, List<Attachment> attachments) {
+  public SlideDeck(Context context, List<? extends Attachment> attachments) {
     for (Attachment attachment : attachments) {
       Slide slide = MediaUtil.getSlideForAttachment(context, attachment);
       if (slide != null) slides.add(slide);

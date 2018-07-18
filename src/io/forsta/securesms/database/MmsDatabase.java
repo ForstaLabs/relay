@@ -25,9 +25,11 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
 
+import com.annimon.stream.Stream;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
 import io.forsta.securesms.ApplicationContext;
@@ -46,6 +48,7 @@ import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
+import io.forsta.securesms.database.model.Quote;
 import io.forsta.securesms.jobs.TrimThreadJob;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
@@ -94,6 +97,11 @@ public class MmsDatabase extends MessagingDatabase {
           static final String PART_COUNT         = "part_count";
           static final String NETWORK_FAILURE    = "network_failures";
 
+          //static final String QUOTE_ID           = "quote_id";
+          //static final String QUOTE_AUTHOR       = "quote_author";
+          //static final String QUOTE_BODY         = "quote_body";
+          //static final String QUOTE_ATTACHMENT   = "quote_attachment";
+
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
     THREAD_ID + " INTEGER, " + DATE_SENT + " INTEGER, " + DATE_RECEIVED + " INTEGER, " + MESSAGE_BOX + " INTEGER, " +
     READ + " INTEGER DEFAULT 0, " + "m_id" + " TEXT, " + "sub" + " TEXT, "                +
@@ -109,7 +117,8 @@ public class MmsDatabase extends MessagingDatabase {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + MISMATCHED_IDENTITIES + " TEXT DEFAULT NULL, "     +
     NETWORK_FAILURE + " TEXT DEFAULT NULL," + "d_rpt" + " INTEGER, " +
     SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
-    EXPIRE_STARTED + " INTEGER DEFAULT 0);";
+    EXPIRE_STARTED + " INTEGER DEFAULT 0);";/*, " + QUOTE_ID + " INTEGER DEFAULT 0, " + QUOTE_AUTHOR + " TEXT, " +
+    QUOTE_BODY + " TEXT, " + QUOTE_ATTACHMENT + " INTEGER DEFAULT -1);";*/
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS mms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -129,7 +138,7 @@ public class MmsDatabase extends MessagingDatabase {
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
       BODY, PART_COUNT, ADDRESS, ADDRESS_DEVICE_ID,
       RECEIPT_COUNT, MISMATCHED_IDENTITIES, NETWORK_FAILURE, SUBSCRIPTION_ID,
-      EXPIRES_IN, EXPIRE_STARTED,
+      EXPIRES_IN, EXPIRE_STARTED, //QUOTE_ID, QUOTE_AUTHOR, QUOTE_BODY, QUOTE_ATTACHMENT,
       AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
       AttachmentDatabase.UNIQUE_ID,
       AttachmentDatabase.MMS_ID,
@@ -139,7 +148,8 @@ public class MmsDatabase extends MessagingDatabase {
       AttachmentDatabase.CONTENT_LOCATION,
       AttachmentDatabase.CONTENT_DISPOSITION,
       AttachmentDatabase.NAME,
-      AttachmentDatabase.TRANSFER_STATE
+      AttachmentDatabase.TRANSFER_STATE,
+      //AttachmentDatabase.QUOTE
   };
 
   private static final String RAW_ID_WHERE = TABLE_NAME + "._id = ?";
@@ -1189,18 +1199,19 @@ public class MmsDatabase extends MessagingDatabase {
       int subscriptionId      = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
       long expireStarted      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRE_STARTED));
+      //Quote quote             = getQuote(cursor);
 
-      //Quote                     quote           = getQuote()
+      //Quote quote             = getQuote()
       Recipients                recipients      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
-
+      Quote quote = new Quote(1234, recipients.getPrimaryRecipient(),"TEST TEXT", slideDeck);
       //this is most likely the reason why quote are not showing up
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted, null);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, quote);
     }
 
     private Recipients getRecipientsFor(String address) {
@@ -1265,6 +1276,22 @@ public class MmsDatabase extends MessagingDatabase {
       Attachment attachment = DatabaseFactory.getAttachmentDatabase(context).getAttachment(cursor);
       return new SlideDeck(context, attachment);
     }
+
+    /*private @Nullable Quote getQuote(@NonNull Cursor cursor) {
+      long                       quoteId          = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.QUOTE_ID));
+      String                     quoteAuthor      = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.QUOTE_AUTHOR));
+      String                     quoteText        = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.QUOTE_BODY))
+      DatabaseAttachment         attachment       = DatabaseFactory.getAttachmentDatabase(context).getAttachment(cursor);
+      List<? extends Attachment> quoteAttachments = Stream.of(attachment).filter(Attachment::isQuote).toList();
+      SlideDeck                  quoteDeck        = new SlideDeck(context, quoteAttachments);
+      //SlideDeck                    quoteDeck  = new SlideDeck();
+
+      if (quoteId > 0 && !TextUtils.isEmpty(quoteAuthor)) {
+        return new Quote(quoteId, Address.fromExternal(context, quoteAuthor), quoteText, quoteDeck);
+      } else {
+        return null;
+      }
+    }*/
 
     public void close() {
       cursor.close();

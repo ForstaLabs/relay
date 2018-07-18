@@ -482,7 +482,8 @@ public class ConversationItem extends LinearLayout
       Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
       Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
       assert quote != null;
-      //this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), messageRecord.getIndividualRecipient(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), slide);
+      //use quote.getAuthor to get the quotes author, duh.
+      //this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), quote.getAuthor(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), slide);
       this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
       this.quoteView.setVisibility(View.VISIBLE);
       this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;

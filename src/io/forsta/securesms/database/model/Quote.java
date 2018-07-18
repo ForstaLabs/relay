@@ -9,7 +9,7 @@ import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 
 public class Quote {
-
+    //maybe add messageRef here?
     private final long      id;
     private final Recipient author;
     private final String    text;

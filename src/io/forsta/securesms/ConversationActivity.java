@@ -628,14 +628,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author;
-
-    //Need method to return local user as a Recipient
-    /*if (messageRecord.isOutgoing()) {
-      author = Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
+    long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
+    if (messageRecord.isOutgoing()) {
+      author = Recipient.from(this, localId, true);//Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
     } else {
       author = messageRecord.getIndividualRecipient();
-    }*/
-    author = messageRecord.getIndividualRecipient();
+    }
 
     inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
 

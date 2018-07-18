@@ -141,11 +141,11 @@ public class Recipient {
     this.userType = details.userType;
   }
 
-  /*@SuppressWarnings("ConstantConditions")
-    public static @NonNull Recipient from(@NonNull Context context, /*@NonNull Address address, boolean asynchronous) {
+  @SuppressWarnings("ConstantConditions")
+    public static @NonNull Recipient from(@NonNull Context context, long recipientId, boolean asynchronous) {
       //if (address == null) throw new AssertionError(address);
-      return provider.getRecipient(context, address, Optional.absent(), Optional.absent(), asynchronous);
-  }*/
+      return provider.getRecipient(context, recipientId, asynchronous);
+  }
 
   /*@SuppressWarnings("ConstantConditions")
     public static @NonNull Recipient from(@NonNull Context context, @NonNull Address address, @NonNull Optional<RecipientSettings> settings, @NonNull Optional<GroupDatabase.GroupRecord> groupRecord, boolean asynchronous) {

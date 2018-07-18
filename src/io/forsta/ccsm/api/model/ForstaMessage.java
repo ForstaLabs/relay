@@ -1,11 +1,16 @@
 package io.forsta.ccsm.api.model;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Spanned;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.forsta.securesms.mms.SlideDeck;
+import io.forsta.securesms.recipients.Recipient;
 
 /**
  * Created by jlewis on 9/6/17.
@@ -219,6 +224,43 @@ public class ForstaMessage {
   }
 
   public void addMention(String mention) { this.mentions.add(mention); }
+
+  public class ForstaQuote {
+    private String messageRef;
+    private final long      id;
+    private final Recipient author;
+    private final String    text;
+    private SlideDeck attachment;
+
+    public ForstaQuote(long id , @NonNull Recipient author, @Nullable String text, @NonNull SlideDeck attachment) {
+      this.id         = id;
+      this.author     = author;
+      this.text       = text;
+      this.attachment = attachment;
+    }
+
+    public ForstaQuote(long id , @NonNull Recipient author, @Nullable String text) {
+      this.id         = id;
+      this.author     = author;
+      this.text       = text;
+    }
+
+    public long getId() {
+      return id;
+    }
+
+    @NonNull Recipient getAuthor() {
+      return author;
+    }
+
+    public @Nullable String getText() {
+      return text;
+    }
+
+    public @NonNull SlideDeck getAttachment() {
+      return attachment;
+    }
+  }
 
   public class ForstaAttachment {
     private String name;
