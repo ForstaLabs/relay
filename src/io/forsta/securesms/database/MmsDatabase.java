@@ -1206,12 +1206,12 @@ public class MmsDatabase extends MessagingDatabase {
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
-      Quote quote = new Quote(1234, recipients.getPrimaryRecipient(),"TEST TEXT", slideDeck);
-      //this is most likely the reason why quote are not showing up
+      Quote quote = new Quote(1234, recipients.getPrimaryRecipient(),"Test Text", slideDeck);
+      //this is the reason why quote are not showing up
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted, quote);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, null);
     }
 
     private Recipients getRecipientsFor(String address) {
@@ -1248,7 +1248,6 @@ public class MmsDatabase extends MessagingDatabase {
           Log.w(TAG, ioe);
         }
       }
-
       return new LinkedList<>();
     }
 

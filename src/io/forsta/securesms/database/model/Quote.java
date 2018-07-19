@@ -32,7 +32,7 @@ public class Quote {
         return id;
     }
 
-     @NonNull Recipient getAuthor() {
+     @NonNull public Recipient getAuthor() {
         return author;
     }
 

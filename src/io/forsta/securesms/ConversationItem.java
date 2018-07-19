@@ -177,9 +177,6 @@ public class ConversationItem extends LinearLayout
     this.quoteView               = findViewById(R.id.quote_view);
 
     setOnClickListener(new ClickListener(null));
-    //These two methods could be un-needed
-    bodyText.setOnLongClickListener(passthroughClickListener);
-    bodyText.setOnClickListener(passthroughClickListener);
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
 
     mediaThumbnail.setThumbnailClickListener(new ThumbnailClickListener());
@@ -213,6 +210,7 @@ public class ConversationItem extends LinearLayout
     this.conversationRecipients.addListener(this);
     giphyLoopCounter = 0;
 
+    //here we could check messageRecord for a MessageRef, if it is there, we instead call a method to create a Reply instead and put it under the original message
     setInteractionState(messageRecord);
     setBodyText(messageRecord);
     setBubbleState(messageRecord, recipient);
@@ -477,14 +475,13 @@ public class ConversationItem extends LinearLayout
 
   //This method is not executing most likely because the final boolean in the if statement is false. Without this part, all messages have quotes set. App will crash due to NullPointerException. getQuote RETURNS NULL
   private void setQuote(@NonNull MessageRecord messageRecord) {
-    if (messageRecord.isMms() && !messageRecord.isMmsNotification()){ //&& ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
+    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
       SlideDeck slide = new SlideDeck();
       Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
-      Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
+      //Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
       assert quote != null;
-      //use quote.getAuthor to get the quotes author, duh.
-      //this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), quote.getAuthor(),/*Recipient.from(context, quote.getAuthor(), true),*/ quote.getText(), slide);
-      this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
+      this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), quote.getAuthor(), quote.getText(), slide);
+      //this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
       this.quoteView.setVisibility(View.VISIBLE);
       this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 

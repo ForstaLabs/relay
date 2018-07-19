@@ -60,14 +60,6 @@
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="gone" />
 
-            <io.forsta.securesms.components.QuoteView
-                android:id="@+id/quote_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:visibility="gone"
-                app:message_type="incoming"
-                tools:visibility="visible"/>
 
             <io.forsta.securesms.components.DocumentView
                 xmlns:android="http://schemas.android.com/apk/res/android"
@@ -88,11 +80,13 @@
                     android:visibility="gone"
                     app:tintColor="@color/white"
                     tools:visibility="visible"/>
+
             <VideoView
                 android:layout_width="210dp"
                 android:layout_height="210dp"
                 android:id="@+id/item_video_view"
                 android:visibility="gone"/>
+
 
             <io.forsta.securesms.components.emoji.EmojiTextView
                     android:id="@+id/conversation_item_body"
@@ -106,6 +100,14 @@
                     android:textSize="@dimen/conversation_item_body_text_size"
                     android:autoLink="all"
                     android:linksClickable="true" />
+
+            <io.forsta.securesms.components.QuoteView
+                android:id="@+id/quote_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:message_type="incoming"
+                tools:visibility="visible"/>
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"

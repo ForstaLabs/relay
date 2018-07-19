@@ -181,25 +181,25 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private static final RecipientProvider provider = new RecipientProvider();
 
-  private MasterSecret masterSecret;
+  private   MasterSecret          masterSecret;
   protected ComposeText           composeText;
   private   AnimatingToggle       buttonToggle;
-  private SendButton sendButton;
+  private   SendButton            sendButton;
   private   ImageButton           attachButton;
   protected ConversationTitleView titleView;
   private   TextView              charactersLeft;
   private   ConversationFragment  fragment;
   private   Button                unblockButton;
-  private InputAwareLayout container;
+  private   InputAwareLayout      container;
   private   View                  composePanel;
-  protected ReminderView reminderView;
+  protected ReminderView          reminderView;
 
-  private AttachmentTypeSelector attachmentTypeSelector;
+  private   AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver recipientsClearReceiver;
+  private   BroadcastReceiver      recipientsClearReceiver;
   private   EmojiDrawer            emojiDrawer;
-  protected HidingLinearLayout quickAttachmentToggle;
+  protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
 

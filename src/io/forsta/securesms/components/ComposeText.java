@@ -16,6 +16,7 @@ import android.view.inputmethod.EditorInfo;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiEditText;
+import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ComposeText extends EmojiEditText {

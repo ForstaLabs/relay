@@ -28,6 +28,7 @@ import org.w3c.dom.Text;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
+import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
 import io.forsta.securesms.mms.DocumentSlide;
@@ -40,6 +41,8 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
 import io.forsta.securesms.util.ThemeUtil;
 import io.forsta.securesms.util.Util;
+import io.forsta.securesms.util.ViewUtil;
+
 import java.util.List;
 
 public class QuoteView extends LinearLayout implements Recipient.RecipientModifiedListener {
@@ -171,14 +174,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             }
         });
     }
-
-    //Test Method
-    /*private void setQuoteAuthor() {
-        boolean outgoing    = messageType != MESSAGE_TYPE_INCOMING;
-        authorView.setTextColor(getResources().getColor(R.color.cyan_500));
-        authorView.setText("TEST");
-        quoteBarView.setImageResource(R.color.cyan_500);
-    }*/
 
     private void setQuoteAuthor(@NonNull Recipient author) {
         boolean outgoing    = messageType != MESSAGE_TYPE_INCOMING;
