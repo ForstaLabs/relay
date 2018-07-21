@@ -36,24 +36,11 @@
         android:layout_width="250dp"
         android:layout_height="match_parent"
         android:layout_gravity="left"
-        android:background="@color/forsta_primary"
+        android:background="@color/white"
         android:orientation="vertical">
         <FrameLayout
             android:id="@+id/forsta_drawer_left"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>
-
-    <!--<LinearLayout-->
-    <!--android:id="@+id/right_drawer"-->
-    <!--android:layout_width="250dp"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:layout_gravity="right"-->
-    <!--android:background="@color/forsta_primary"-->
-    <!--android:orientation="vertical" android:visibility="gone">-->
-    <!--<FrameLayout-->
-    <!--android:id="@+id/forsta_drawer_right"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
-    <!--</LinearLayout>-->
 </android.support.v4.widget.DrawerLayout>
