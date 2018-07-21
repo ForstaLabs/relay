@@ -2,7 +2,10 @@
 <resources>
     <color name="forsta_primary">#FFFFFF</color>
     <color name="forsta_primary_dark">#000000</color>
-    <color name="forsta_accent">#CACACA</color>
+    <color name="forsta_accent">#2185d0</color>
+    <color name="forsta_primary_alpha33">#552185d0</color>
+    <color name="forsta_primary_alpha_focus">#882185d0</color>
+
     <color name="forsta_accent2">#9F9F9F</color>
     <color name="forsta_accent3">#606161</color>
     <color name="forsta_accent4">#4B4B4B</color>
@@ -17,10 +20,10 @@
     <color name="signal_primary_alpha33">#55faaa57</color>
     <color name="signal_primary_alpha_focus">#88faaa57</color>
 
-    <color name="textsecure_primary">@color/signal_primary</color>
-    <color name="textsecure_primary_dark">@color/signal_primary_dark</color>
-    <color name="textsecure_accent">@color/signal_accent</color>
-    <color name="textsecure_primary_alpha33">@color/signal_primary_alpha33</color>
+    <color name="textsecure_primary">@color/forsta_primary</color>
+    <color name="textsecure_primary_dark">@color/forsta_primary_dark</color>
+    <color name="textsecure_accent">@color/forsta_accent</color>
+    <color name="textsecure_primary_alpha33">@color/forsta_primary_alpha33</color>
 
     <color name="white">#ffffffff</color>
     <color name="black">#000000</color>
@@ -46,7 +49,7 @@
     <color name="conversation_list_divider_light">#15000000</color>
     <color name="conversation_list_divider_dark">#22ffffff</color>
 
-    <color name="textsecure_holo_blue_light">#ff33b5e5</color>
+    <color name="textsecure_holo_blue_light">@color/textsecure_accent</color>
 
     <color name="dark_action_bar">#ff111111</color>
     <color name="action_mode_status_bar">#ff1f1f1f</color>

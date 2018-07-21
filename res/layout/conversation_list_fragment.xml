@@ -38,6 +38,6 @@
         android:contentDescription="@string/conversation_list_fragment__fab_content_description"
         android:focusable="true"
         android:src="@drawable/ic_create_white_24dp"
-        app:backgroundTint="@color/forsta_pop4"/>
+        app:backgroundTint="@color/textsecure_accent"/>
 
 </android.support.design.widget.CoordinatorLayout>
