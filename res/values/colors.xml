@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-    <color name="forsta_primary">#000000</color>
-    <color name="forsta_primary_dark">#444444</color>
+    <color name="forsta_primary">#FFFFFF</color>
+    <color name="forsta_primary_dark">#000000</color>
     <color name="forsta_accent">#2185d0</color>
     <color name="forsta_primary_alpha33">#552185d0</color>
     <color name="forsta_primary_alpha_focus">#882185d0</color>
