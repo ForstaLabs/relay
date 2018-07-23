@@ -663,7 +663,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     Recipient author;
     long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
     if (messageRecord.isOutgoing()) {
-      author = Recipient.from(this, localId, true);//Recipient.from(this, Address.fromSerialized(TextSecurePreferences.getLocalNumber(this)), true);
+      author = Recipient.from(this, localId, true);
     } else {
       author = messageRecord.getIndividualRecipient();
     }

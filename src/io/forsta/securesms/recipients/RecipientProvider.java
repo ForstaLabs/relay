@@ -173,42 +173,6 @@ public class RecipientProvider {
     return new RecipientDetails(null, number, null, null, color, null, null, null, null, false, "PERSON");
   }
 
-  private @NonNull RecipientDetails getIndividualRecipientDetails(Context context, @NonNull String number) {
-    //Optional<RecipientPreferenceDatabase.RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(new long[]{recipientId});
-    //MaterialColor color       = preferences.isPresent() ? preferences.get().getColor() : null;
-
-    ContactDb db = DbFactory.getContactDb(context);
-    Cursor cursor  = db.getContactByAddress(number);
-    try {
-      if (cursor != null && cursor.moveToFirst()) {
-        final String uid = cursor.getString(cursor.getColumnIndex(ContactDb.UID));
-        if (uid != null) {
-          String gravatarHash = cursor.getString(cursor.getColumnIndex(ContactDb.AVATAR));
-          String name = cursor.getString(cursor.getColumnIndex(ContactDb.NAME));
-          String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
-          String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
-
-          boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.ISACTIVE)) != 0;
-          String email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
-          String phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
-          String userType= cursor.getString(cursor.getColumnIndex(ContactDb.USERTYPE));
-
-          return new RecipientDetails(name, uid, Uri.EMPTY, gravatarHash, null, slug, orgSlug, email, phone, isActive, userType);
-        } else {
-          Log.w(TAG, "resultNumber is null");
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
-
-    return new RecipientDetails(null, number, null, null, null, null, null, null, null, false, "PERSON");
-  }
-
-
   private @NonNull RecipientDetails getGroupRecipientDetails(Context context, String groupId) {
     try {
       GroupDatabase.GroupRecord record  = DatabaseFactory.getGroupDatabase(context)
