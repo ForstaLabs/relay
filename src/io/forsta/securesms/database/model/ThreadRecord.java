@@ -157,6 +157,14 @@ public class ThreadRecord extends DisplayRecord {
     return title;
   }
 
+  public String getNormalizedTitle() {
+    if (!TextUtils.isEmpty(title)) {
+      return title;
+    } else {
+      return getRecipients().toCondensedString(context);
+    }
+  }
+
   public String getThreadUid() {
     return threadUid;
   }
