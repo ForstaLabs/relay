@@ -163,6 +163,15 @@ android {
     }
     flavorDimensions "forsta"
     productFlavors {
+        prototype {
+            dimension "forsta"
+            applicationIdSuffix '.prototype'
+            buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev.forsta.io\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
+            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
+            resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
+            resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
+        }
         dev {
             dimension "forsta"
             applicationIdSuffix '.dev'
@@ -252,6 +261,9 @@ android {
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
+        }
+        prototype {
+            res.srcDirs = ['res-prototype']
         }
         dev {
             res.srcDirs = ['res-dev']
