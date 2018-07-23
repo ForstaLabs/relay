@@ -15,7 +15,6 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
-import io.forsta.securesms.DeviceActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -26,13 +25,11 @@ import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
 import io.forsta.securesms.crypto.storage.TextSecureSessionStore;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.groups.GroupMessageProcessor;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -43,13 +40,8 @@ import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
-import io.forsta.securesms.sms.IncomingEncryptedMessage;
-import io.forsta.securesms.sms.IncomingEndSessionMessage;
-import io.forsta.securesms.sms.IncomingPreKeyBundleMessage;
-import io.forsta.securesms.sms.IncomingTextMessage;
 import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.whispersystems.jobqueue.JobParameters;
@@ -80,12 +72,7 @@ import org.whispersystems.signalservice.api.messages.multidevice.RequestMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
-import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
-import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -168,7 +155,8 @@ public class PushDecryptJob extends ContextJob {
       if (content.getDataMessage().isPresent()) {
         SignalServiceDataMessage message = content.getDataMessage().get();
 
-        if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
+        if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
+        else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
         else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
       } else if (content.getSyncMessage().isPresent()) {
         SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
@@ -246,6 +234,31 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
+  private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
+                                       @NonNull SignalServiceDataMessage message,
+                                       @NonNull Optional<Long>           smsMessageId)
+  {
+    String addr = envelope.getSource() + "." + envelope.getSourceDevice();
+    Log.w(TAG, "Deleting session for: " + addr);
+    SessionStore sessionStore = new TextSecureSessionStore(context);
+    sessionStore.deleteAllSessions(addr);
+    SecurityEvent.broadcastSecurityUpdateEvent(context);
+  }
+
+  private long handleSynchronizeSentEndSessionMessage(@NonNull SentTranscriptMessage message)
+  {
+    String destination = message.getDestination().get();
+    if (destination == null) {
+      Log.e(TAG, "Invalid recipeint for end session");
+    } else {
+      Log.w(TAG, "Deleting sessions for: " + destination);
+      SessionStore sessionStore = new TextSecureSessionStore(context);
+      sessionStore.deleteAllSessions(destination);
+      SecurityEvent.broadcastSecurityUpdateEvent(context);
+    }
+    return -1;
+  }
+
   private void handleSynchronizeSentMessage(@NonNull MasterSecretUnion masterSecret,
                                             @NonNull SignalServiceEnvelope envelope,
                                             @NonNull SentTranscriptMessage message,
@@ -253,7 +266,11 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     Long threadId;
 
-    if (message.getMessage().isExpirationUpdate()) {
+    if (message.getMessage().isEndSession()) {
+      Log.e(TAG, "Sync end session is invalid: Only send to directly to peers");
+      //threadId = handleSynchronizeSentEndSessionMessage(message);
+      threadId = -1L;
+    } else if (message.getMessage().isExpirationUpdate()) {
       threadId = handleSynchronizeSentExpirationUpdate(masterSecret, message, smsMessageId);
     } else {
       threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);

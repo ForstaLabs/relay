@@ -8,7 +8,7 @@
     <uses-sdk tools:overrideLibrary="com.amulyakhare.textdrawable,com.astuetz.pagerslidingtabstrip,pl.tajchert.waitingdots,com.h6ah4i.android.multiselectlistpreferencecompat"/>
 
     <permission
-        android:name="io.forsta.securesms.ACCESS_SECRETS"
+        android:name="io.forsta.securesms.${applicationId}.ACCESS_SECRETS"
         android:label="Access to TextSecure Secrets"
         android:protectionLevel="signature"/>
 
@@ -41,7 +41,7 @@
         android:required="false"/>
 
     <uses-permission android:name="android.permission.READ_SYNC_STATS"/>
-    <uses-permission android:name="io.forsta.securesms.ACCESS_SECRETS"/>
+    <uses-permission android:name="io.forsta.securesms.${applicationId}.ACCESS_SECRETS"/>
     <uses-permission android:name="android.permission.READ_PROFILE"/>
     <uses-permission android:name="android.permission.WRITE_PROFILE"/>
     <uses-permission
@@ -90,10 +90,10 @@
     <uses-permission android:name="android.permission.CALL_PHONE"/>
 
     <permission
-        android:name="io.forsta.securesms.permission.C2D_MESSAGE"
+        android:name="io.forsta.securesms.${applicationId}.permission.C2D_MESSAGE"
         android:protectionLevel="signature"/>
 
-    <uses-permission android:name="io.forsta.securesms.permission.C2D_MESSAGE"/>
+    <uses-permission android:name="io.forsta.securesms.${applicationId}.permission.C2D_MESSAGE"/>
 
     <application
         android:name=".ApplicationContext"

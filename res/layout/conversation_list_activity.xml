@@ -26,7 +26,6 @@
             android:id="@+id/forsta_conversation_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="10dp"
             android:orientation="vertical"
             android:layout_above="@id/layout_container"/>
 
@@ -43,17 +42,4 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>
-
-    <!--<LinearLayout-->
-    <!--android:id="@+id/right_drawer"-->
-    <!--android:layout_width="250dp"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:layout_gravity="right"-->
-    <!--android:background="@color/forsta_primary"-->
-    <!--android:orientation="vertical" android:visibility="gone">-->
-    <!--<FrameLayout-->
-    <!--android:id="@+id/forsta_drawer_right"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent" />-->
-    <!--</LinearLayout>-->
 </android.support.v4.widget.DrawerLayout>
