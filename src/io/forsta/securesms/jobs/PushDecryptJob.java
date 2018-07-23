@@ -73,12 +73,6 @@ import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptM
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
-<<<<<<< HEAD
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-=======
->>>>>>> d4951e1adf3a36bdeabe8c0a8beb24249df9f48c
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
