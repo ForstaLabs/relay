@@ -51,6 +51,8 @@ public class InputPanel extends LinearLayout
   private View          buttonToggle;
   private View          recordingContainer;
 
+  private static ComposeText inputText;
+
   private MicrophoneRecorderView microphoneRecorderView;
   private SlideToCancel          slideToCancel;
   private RecordTime             recordTime;
@@ -86,6 +88,7 @@ public class InputPanel extends LinearLayout
     this.slideToCancel          = new SlideToCancel(ViewUtil.findById(this, R.id.slide_to_cancel));
     this.microphoneRecorderView = ViewUtil.findById(this, R.id.recorder_view);
     this.microphoneRecorderView.setListener(this);
+    inputText = ViewUtil.findById(this, R.id.embedded_text_editor);
 
 //    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       this.microphoneRecorderView.setVisibility(View.GONE);
@@ -113,10 +116,14 @@ public class InputPanel extends LinearLayout
     });
   }
 
-  public void setQuote(/*@NonNull GlideRequests glideRequests,*/ long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
+  public void setQuote(long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
     this.quoteView.setQuote(/*glideRequests,*/ id, author, body, attachments);
     this.quoteView.setVisibility(View.VISIBLE);
-    //((ComposeText)composeText).setHint(getContext().getString(R.string.conversation_activity__type_reply_push),null);
+    inputText.setHint(getContext().getString(R.string.conversation_activity__type_reply_push), null);
+  }
+
+  public static void dismissQuote() {
+    inputText.setHint("Send Forsta message", null);
   }
 
   public void clearQuote() {

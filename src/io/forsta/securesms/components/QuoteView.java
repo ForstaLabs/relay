@@ -32,7 +32,6 @@ import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
 import io.forsta.securesms.mms.DocumentSlide;
-//import io.forsta.securesms.mms.GlideRequests;
 import io.forsta.securesms.mms.ImageSlide;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
@@ -120,7 +119,14 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             dismissView.setVisibility(messageType == MESSAGE_TYPE_PREVIEW ? VISIBLE : GONE);
         }
 
-        dismissView.setOnClickListener(view -> setVisibility(GONE));
+        //dismissView.setOnClickListener(view -> setVisibility(GONE));
+        dismissView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setVisibility(GONE);
+                InputPanel.dismissQuote();
+            }
+        });
 
         setWillNotDraw(false);
         if (Build.VERSION.SDK_INT < 18) {
@@ -142,7 +148,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         canvas.clipPath(clipPath);
     }
 
-    public void setQuote(/*GlideRequests glideRequests,*/ long id, @NonNull Recipient author, @Nullable String body, @NonNull SlideDeck attachments) {
+    public void setQuote(long id, @NonNull Recipient author, @Nullable String body, @NonNull SlideDeck attachments) {
         if (this.author != null) this.author.removeListener(this);
 
         this.id          = id;
@@ -242,10 +248,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             if (imageVideoSlides.get(0).hasVideo()) {
                 attachmentVideoOverlayView.setVisibility(VISIBLE);
             }
-            /*glideRequests.load(new DecryptableUri(imageVideoSlides.get(0).getThumbnailUri()))
-                    .centerCrop()
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .into(attachmentView);*/
         } else if (!audioSlides.isEmpty() || !documentSlides.isEmpty()){
             boolean outgoing = messageType != MESSAGE_TYPE_INCOMING;
 

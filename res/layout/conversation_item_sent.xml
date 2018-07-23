@@ -63,15 +63,6 @@
                 app:documentBackgroundTintColor="@color/blue_500"
                 tools:visibility="visible"/>
 
-            <io.forsta.securesms.components.QuoteView
-                android:id="@+id/quote_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:visibility="visible"
-                app:message_type="outgoing"
-                tools:visibility="visible"/>
-
             <io.forsta.securesms.components.AudioView
                     android:id="@+id/audio_view"
                     android:layout_width="210dp"
@@ -97,6 +88,15 @@
                     android:textColorLink="?conversation_item_sent_text_primary_color"
                     android:textSize="@dimen/conversation_item_body_text_size"
                     tools:text="Mango pickle lorem ipsum" />
+
+            <io.forsta.securesms.components.QuoteView
+                android:id="@+id/quote_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:visibility="visible"
+                app:message_type="outgoing"
+                tools:visibility="visible"/>
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
