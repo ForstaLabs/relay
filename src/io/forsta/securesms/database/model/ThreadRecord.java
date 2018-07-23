@@ -95,7 +95,9 @@ public class ThreadRecord extends DisplayRecord {
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
     }
-    if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
+    if (SmsDatabase.Types.isEndSessionType(type)) {
+      return emphasisAdded(context.getString(R.string.ThreadRecord_secure_session_reset));
+    } else if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
       String time = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.ThreadRecord_disappearing_message_time_updated_to_s, time));
     }
@@ -153,6 +155,14 @@ public class ThreadRecord extends DisplayRecord {
 
   public String getTitle() {
     return title;
+  }
+
+  public String getNormalizedTitle() {
+    if (!TextUtils.isEmpty(title)) {
+      return title;
+    } else {
+      return getRecipients().toCondensedString(context);
+    }
   }
 
   public String getThreadUid() {

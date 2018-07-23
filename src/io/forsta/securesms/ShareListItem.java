@@ -41,6 +41,7 @@ public class ShareListItem extends RelativeLayout
   private Recipients   recipients;
   private long         threadId;
   private FromTextView fromView;
+  private ThreadRecord thread;
 
   private AvatarImageView contactPhotoImage;
 
@@ -64,12 +65,13 @@ public class ShareListItem extends RelativeLayout
   }
 
   public void set(ThreadRecord thread) {
+    this.thread           = thread;
     this.recipients       = thread.getRecipients();
     this.threadId         = thread.getThreadId();
     this.distributionType = thread.getDistributionType();
 
     this.recipients.addListener(this);
-    this.fromView.setText(recipients);
+    this.fromView.setText(thread.getNormalizedTitle());
 
     setBackground();
     this.contactPhotoImage.setAvatar(this.recipients, false);
@@ -83,7 +85,7 @@ public class ShareListItem extends RelativeLayout
     int[]      attributes = new int[]{R.attr.conversation_list_item_background_read};
     TypedArray drawables  = context.obtainStyledAttributes(attributes);
 
-    setBackgroundDrawable(drawables.getDrawable(0));
+    setBackground(drawables.getDrawable(0));
 
     drawables.recycle();
   }
@@ -105,7 +107,7 @@ public class ShareListItem extends RelativeLayout
     handler.post(new Runnable() {
       @Override
       public void run() {
-        fromView.setText(recipients);
+        fromView.setText(thread.getNormalizedTitle());
         contactPhotoImage.setAvatar(recipients, false);
       }
     });

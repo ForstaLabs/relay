@@ -259,7 +259,7 @@ public class Recipient {
 
   public String getGravitarUrl() {
     if (!TextUtils.isEmpty(gravatarHash)) {
-      return "https://www.gravatar.com/avatar/" + gravatarHash;
+      return "https://www.gravatar.com/avatar/" + gravatarHash + "?default=404";
     }
     return null;
   }

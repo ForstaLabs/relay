@@ -116,6 +116,8 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.sms.OutgoingEndSessionMessage;
+import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
@@ -402,6 +404,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       inflater.inflate(R.menu.conversation_group_options, menu);
     }
 
+    inflater.inflate(R.menu.conversation_secure, menu);
+
     super.onPrepareOptionsMenu(menu);
     return true;
   }
@@ -413,6 +417,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_leave_conversation:        handleLeaveConversation();                         return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
+    case R.id.menu_reset_secure_session:      handleResetSecureSession();                        return true;
     case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
     case R.id.menu_invite:                    handleInviteLink();                                return true;
     case R.id.menu_mute_notifications:        handleMuteNotifications();                         return true;
@@ -571,6 +576,34 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     } catch (NoSuchAlgorithmException e) {
       throw new AssertionError(e);
     }
+  }
+
+  private void handleResetSecureSession() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.ConversationActivity_reset_secure_session_question);
+    builder.setIconAttribute(R.attr.dialog_alert_icon);
+    builder.setCancelable(true);
+    builder.setMessage(R.string.ConversationActivity_this_may_help_if_youre_having_encryption_problems);
+    builder.setPositiveButton(R.string.ConversationActivity_reset, (dialog, which) -> {
+      final Context context = getApplicationContext();
+
+      OutgoingTextMessage endTextMessage = new OutgoingTextMessage(recipients, "", 0, -1);
+      OutgoingEndSessionMessage endSessionMessage = new OutgoingEndSessionMessage(endTextMessage);
+
+      new AsyncTask<OutgoingEndSessionMessage, Void, Long>() {
+        @Override
+        protected Long doInBackground(OutgoingEndSessionMessage... messages) {
+          return MessageSender.send(context, masterSecret, messages[0], threadId, false);
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+                                              sendComplete(result);
+                                                                   }
+      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, endSessionMessage);
+    });
+    builder.setNegativeButton(android.R.string.cancel, null);
+    builder.show();
   }
 
   private void handleViewMedia() {
