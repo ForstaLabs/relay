@@ -139,8 +139,8 @@ public class ForstaMessage {
     return vote;
   }
 
-  public void addVote(int count) {
-    vote = vote + count;
+  public void setVote(int count) {
+    vote = count;
   }
 
   public void setMessageRef(String messageRef) {
