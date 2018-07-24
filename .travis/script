@@ -1,0 +1,20 @@
+#!/bin/sh -e
+
+if ["$TRAVIS_BRANCH" == "master"]; then
+    GRADLE_TARGET=assembleDevRelease
+    APK=build/outputs/apk/dev/release/relay-dev-release-unsigned.apk
+    FASTLANE_TARGET=deploy-dev
+elif ["$TRAVIS_BRANCH" == "stage"]; then
+    GRADLE_TARGET=assembleStageRelease
+    APK=build/outputs/apk/stage/release/relay-stage-release-unsigned.apk
+    FASTLANE_TARGET=deploy-stage
+elif ["$TRAVIS_BRANCH" == "prod"]; then
+    GRADLE_TARGET=assembleProdRelease
+    APK=build/outputs/apk/prod/release/relay-prod-release-unsigned.apk
+    FASTLANE_TARGET=deploy-prod
+fi
+./gradlew $GRADLE_TARGET
+jarsigner -verbose -sigalg SHA1withRSA -storepass $storepass -keypass $keypass \
+          -digestalg SHA1 -keystore .keystore.jks $APK release
+zipalign -v 4 $APK deploy.apk
+fastlane $FASTLANE_TARGET
