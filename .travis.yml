@@ -8,7 +8,7 @@ android:
   - extra-android-m2repository
   - addon-google_apis-google-26
 script:
-- "./gradlew assembleRelease"
+- "./gradlew assembleDevRelease"
 - jarsigner -verbose -sigalg SHA1withRSA -storepass $storepass -keypass $keypass -digestalg
   SHA1 -keystore keystore.jks build/outputs/apk/dev/release/relay-dev-release-unsigned.apk release
 - zipalign -v 4 build/outputs/apk/dev/release/relay-dev-release-unsigned.apk build/outputs/apk/dev/release/relay-dev-release-signed-aligned.apk
