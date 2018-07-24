@@ -483,7 +483,7 @@ public class ConversationItem extends LinearLayout
       assert quote != null;
       this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
       this.quoteView.setVisibility(View.VISIBLE);
-      //this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+      this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 
       quoteView.setOnClickListener(view -> {
         if (eventListener != null && batchSelected.isEmpty()) {

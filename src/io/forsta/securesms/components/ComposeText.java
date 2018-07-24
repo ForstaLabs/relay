@@ -101,6 +101,7 @@ public class ComposeText extends EmojiEditText {
 
     if (isLandscape()) setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), EditorInfo.IME_ACTION_SEND);
     else               setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), 0);
+    setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), 0);
 
     if (useSystemEmoji) {
       inputType = (inputType & ~InputType.TYPE_MASK_VARIATION) | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE;
