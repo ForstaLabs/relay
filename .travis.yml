@@ -16,9 +16,9 @@ script:
 - fastlane deploy
 before_install:
 - openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
-  -in .keystore.jks.enc -out .keystore.jks -d
-- openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
   -in .fastlane.json.enc -out .fastlane.json -d
+- openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
+  -in .keystore.jks.enc -out .keystore.jks -d
 env:
   global:
   - secure: AR5kf4BQnVjoiA1elKomwejsgXbKDuN9vT/aFd7pfLb8di1J1yac1jACYLye1qkuri7XcRrAkVI3yqct2pBPQjpoxgaqhHmOswmdKjgT2ZDQ+uBIkXmhWe8MVdYgtZGDD1iuFRO64bFCDFNPj4Ey2a1JmFYz9fKTTLEu5uhIxLKjETCCxoXXVXMemrtfeXmyKFOfH/rGSZ81wuF0vaIUpA2AjPwFnszH25Q5j+chW3z3XIBdT15v9ekkoUo42oDCHZMm6+I/RZ9FqQu7ndSPFLz9Cz1IE1Oa4MVWP81Pq/wUlPMjERKg+y4OaTFgesViixAHYlCuKdZWrWAgkKOliDocQPfFKA72ith5K6UkDxN/RT2IVqkX8TboF1v/LMiQHosNoHD+CKPTh7PzP2FO9w2seLTfhWAL0cOFV9lXaWbcVL/oAC8kNa7HNRsIBDydG+a+HPN3DyT8hCVr9+wbGjoAAE60bEzAN8kLV/Q8/BQItjwcs+zOxw8tDW6D1b4nnAc9ZGc9e7oiC3wRzj+/ktDo9p7YiaOMEBw3/dHqOVWcclygruJDE2+2ggmHtc1bMdLiCO02NodaJGpYAisd8HpMdzHlKI/PE+oKBy+ZnnMeq8uW1ChvsICYglFwrnh8dqsZiTkJ/ol38WykRnh2rCpt6v4TnOIgmB9/zODlq9w=
