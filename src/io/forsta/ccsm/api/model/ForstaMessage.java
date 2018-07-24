@@ -139,6 +139,10 @@ public class ForstaMessage {
     return vote;
   }
 
+  public String getMessageId() {
+    return messageId;
+  }
+
   public void setVote(int count) {
     vote = count;
   }

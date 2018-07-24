@@ -95,6 +95,7 @@ public class MmsDatabase extends MessagingDatabase {
           static final String NETWORK_FAILURE    = "network_failures";
           static final String MESSAGE_REF = "message_ref";
           static final String UP_VOTE = "vote";
+          static final String MESSAGE_ID = "message_id";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
     THREAD_ID + " INTEGER, " + DATE_SENT + " INTEGER, " + DATE_RECEIVED + " INTEGER, " + MESSAGE_BOX + " INTEGER, " +
@@ -111,7 +112,7 @@ public class MmsDatabase extends MessagingDatabase {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + MISMATCHED_IDENTITIES + " TEXT DEFAULT NULL, "     +
     NETWORK_FAILURE + " TEXT DEFAULT NULL," + "d_rpt" + " INTEGER, " +
     SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
-    EXPIRE_STARTED + " INTEGER DEFAULT 0, " + MESSAGE_REF + " TEXT, " + UP_VOTE + " INTEGER DEFAULT 0);";
+    EXPIRE_STARTED + " INTEGER DEFAULT 0, " + MESSAGE_REF + " TEXT, " + UP_VOTE + " INTEGER DEFAULT 0, " + MESSAGE_ID + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS mms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -120,7 +121,8 @@ public class MmsDatabase extends MessagingDatabase {
     "CREATE INDEX IF NOT EXISTS mms_message_box_index ON " + TABLE_NAME + " (" + MESSAGE_BOX + ");",
     "CREATE INDEX IF NOT EXISTS mms_date_sent_index ON " + TABLE_NAME + " (" + DATE_SENT + ");",
     "CREATE INDEX IF NOT EXISTS mms_thread_date_index ON " + TABLE_NAME + " (" + THREAD_ID + ", " + DATE_RECEIVED + ");",
-    "CREATE INDEX IF NOT EXISTS mms_message_ref_index ON " + TABLE_NAME + " (" + MESSAGE_REF + ");"
+    "CREATE INDEX IF NOT EXISTS mms_message_ref_index ON " + TABLE_NAME + " (" + MESSAGE_REF + ");",
+    "CREATE INDEX IF NOT EXISTS mms_message_uid_index ON " + TABLE_NAME + " (" + MESSAGE_ID + ");"
   };
 
   private static final String[] MMS_PROJECTION = new String[] {
@@ -132,7 +134,7 @@ public class MmsDatabase extends MessagingDatabase {
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
       BODY, PART_COUNT, ADDRESS, ADDRESS_DEVICE_ID,
       RECEIPT_COUNT, MISMATCHED_IDENTITIES, NETWORK_FAILURE, SUBSCRIPTION_ID,
-      EXPIRES_IN, EXPIRE_STARTED, MESSAGE_REF, UP_VOTE,
+      EXPIRES_IN, EXPIRE_STARTED, MESSAGE_REF, UP_VOTE, MESSAGE_ID,
       AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
       AttachmentDatabase.UNIQUE_ID,
       AttachmentDatabase.MMS_ID,
@@ -741,6 +743,7 @@ public class MmsDatabase extends MessagingDatabase {
         contentValues.put(UP_VOTE, retrieved.getVoteCount());
       }
     }
+    contentValues.put(MESSAGE_ID, retrieved.getMessageId());
 
     if (!contentValues.containsKey(DATE_SENT)) {
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
@@ -1202,6 +1205,7 @@ public class MmsDatabase extends MessagingDatabase {
       long expireStarted      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRE_STARTED));
       String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
       int voteCount = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
+      String messageId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
 
       Recipients                recipients      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
@@ -1212,7 +1216,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
     }
 
     private Recipients getRecipientsFor(String address) {

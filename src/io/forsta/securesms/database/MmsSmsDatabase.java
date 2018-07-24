@@ -59,6 +59,7 @@ public class MmsSmsDatabase extends Database {
                                               MmsSmsColumns.EXPIRE_STARTED, TRANSPORT,
                                               MmsDatabase.MESSAGE_REF,
                                               MmsDatabase.UP_VOTE,
+                                              MmsDatabase.MESSAGE_ID,
                                               AttachmentDatabase.ATTACHMENT_ID_ALIAS,
                                               AttachmentDatabase.UNIQUE_ID,
                                               AttachmentDatabase.MMS_ID,
@@ -81,6 +82,14 @@ public class MmsSmsDatabase extends Database {
     Cursor cursor = queryTables(PROJECTION, selection, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
 
+    return cursor;
+  }
+
+  public Cursor getMessageReplies(String messageId) {
+    String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
+    String selection = MmsDatabase.MESSAGE_REF + " = " + messageId;
+
+    Cursor cursor = queryTables(PROJECTION, selection, order, null);
     return cursor;
   }
 
@@ -153,6 +162,7 @@ public class MmsSmsDatabase extends Database {
                               MmsDatabase.NETWORK_FAILURE,  TRANSPORT,
                               MmsDatabase.MESSAGE_REF,
                               MmsDatabase.UP_VOTE,
+                              MmsDatabase.MESSAGE_ID,
                               AttachmentDatabase.UNIQUE_ID,
                               AttachmentDatabase.MMS_ID,
                               AttachmentDatabase.SIZE,
@@ -180,6 +190,7 @@ public class MmsSmsDatabase extends Database {
                               MmsDatabase.NETWORK_FAILURE, TRANSPORT,
                               MmsDatabase.MESSAGE_REF,
                               MmsDatabase.UP_VOTE,
+                              MmsDatabase.MESSAGE_ID,
                               AttachmentDatabase.UNIQUE_ID,
                               AttachmentDatabase.MMS_ID,
                               AttachmentDatabase.SIZE,
@@ -231,6 +242,7 @@ public class MmsSmsDatabase extends Database {
     mmsColumnsPresent.add(MmsDatabase.NETWORK_FAILURE);
     mmsColumnsPresent.add(MmsDatabase.MESSAGE_REF);
     mmsColumnsPresent.add(MmsDatabase.UP_VOTE);
+    mmsColumnsPresent.add(MmsDatabase.MESSAGE_ID);
 
     mmsColumnsPresent.add(AttachmentDatabase.ROW_ID);
     mmsColumnsPresent.add(AttachmentDatabase.UNIQUE_ID);

@@ -61,11 +61,11 @@ public class MediaMmsMessageRecord extends MessageRecord {
                                int partCount, long mailbox,
                                List<IdentityKeyMismatch> mismatches,
                                List<NetworkFailure> failures, int subscriptionId,
-                               long expiresIn, long expireStarted, String messageRef, int voteCount)
+                               long expiresIn, long expireStarted, String messageRef, int voteCount, String messageId)
   {
     super(context, id, body, recipients, individualRecipient, recipientDeviceId, dateSent,
           dateReceived, threadId, SmsDatabase.Status.STATUS_NONE, receiptCount, mailbox, mismatches, failures,
-          subscriptionId, expiresIn, expireStarted, messageRef, voteCount);
+          subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
 
     this.context   = context.getApplicationContext();
     this.partCount = partCount;

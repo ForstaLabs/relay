@@ -222,6 +222,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
     }
 
     final MessageRecord messageRecord = db.readerFor(cursor, masterSecret).getCurrent();
+
     messageRecordCache.put(type + messageId, new SoftReference<>(messageRecord));
 
     return messageRecord;
