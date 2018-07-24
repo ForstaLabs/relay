@@ -1170,6 +1170,7 @@ public class MmsDatabase extends MessagingDatabase {
       int subscriptionId         = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
       String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
       int voteCount = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
+      String messageId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
 
       byte[]contentLocationBytes = null;
       byte[]transactionIdBytes   = null;
@@ -1184,7 +1185,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new NotificationMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                               addressDeviceId, dateSent, dateReceived, receiptCount, threadId,
                                               contentLocationBytes, messageSize, expiry, status,
-                                              transactionIdBytes, mailbox, subscriptionId, messageRef, voteCount);
+                                              transactionIdBytes, mailbox, subscriptionId, messageRef, voteCount, messageId);
     }
 
     private MediaMmsMessageRecord getMediaMmsMessageRecord(Cursor cursor) {
