@@ -1,24 +1,27 @@
 language: android
 android:
   components:
-    # Uncomment the lines below if you want to
-    # use the latest revision of Android SDK Tools
-    # - tools
-    # - platform-tools
-
-    # The BuildTools version used by your project
-    - build-tools-26.0.2
-
-    # The SDK version used to compile your project
-    - android-26
-
-    # Additional components
-    - extra-google-google_play_services
-    - extra-google-m2repository
-    - extra-android-m2repository
-    - addon-google_apis-google-26
-
-    # Specify at least one system image,
-    # if you need to run emulator(s) during your tests
-    #- sys-img-armeabi-v7a-android-26
-    #- sys-img-armeabi-v7a-android-17
+  - build-tools-26.0.2
+  - android-26
+  - extra-google-google_play_services
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-26
+script:
+- "./gradlew assembleRelease"
+- jarsigner -verbose -sigalg SHA1withRSA -storepass $storepass -keypass $keypass -digestalg
+  SHA1 -keystore keystore.jks build/outputs/apk/dev/release/relay-dev-release-unsigned.apk release
+- zipalign -v 4 build/outputs/apk/dev/release/relay-dev-release-unsigned.apk build/outputs/apk/dev/release/relay-dev-release-signed-aligned.apk
+- fastlane deploy
+before_install:
+- openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
+  -in keystore.jks.enc -out keystore.jks -d
+- openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
+  -in api-8695599896138642039-143344-ed7003d46635.json.enc -out fastlane/api-8695599896138642039-143344-ed7003d46635.json
+  -d
+- openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
+  -in keystore.jks.enc -out ./keystore.jks -d
+env:
+  global:
+  - secure: AR5kf4BQnVjoiA1elKomwejsgXbKDuN9vT/aFd7pfLb8di1J1yac1jACYLye1qkuri7XcRrAkVI3yqct2pBPQjpoxgaqhHmOswmdKjgT2ZDQ+uBIkXmhWe8MVdYgtZGDD1iuFRO64bFCDFNPj4Ey2a1JmFYz9fKTTLEu5uhIxLKjETCCxoXXVXMemrtfeXmyKFOfH/rGSZ81wuF0vaIUpA2AjPwFnszH25Q5j+chW3z3XIBdT15v9ekkoUo42oDCHZMm6+I/RZ9FqQu7ndSPFLz9Cz1IE1Oa4MVWP81Pq/wUlPMjERKg+y4OaTFgesViixAHYlCuKdZWrWAgkKOliDocQPfFKA72ith5K6UkDxN/RT2IVqkX8TboF1v/LMiQHosNoHD+CKPTh7PzP2FO9w2seLTfhWAL0cOFV9lXaWbcVL/oAC8kNa7HNRsIBDydG+a+HPN3DyT8hCVr9+wbGjoAAE60bEzAN8kLV/Q8/BQItjwcs+zOxw8tDW6D1b4nnAc9ZGc9e7oiC3wRzj+/ktDo9p7YiaOMEBw3/dHqOVWcclygruJDE2+2ggmHtc1bMdLiCO02NodaJGpYAisd8HpMdzHlKI/PE+oKBy+ZnnMeq8uW1ChvsICYglFwrnh8dqsZiTkJ/ol38WykRnh2rCpt6v4TnOIgmB9/zODlq9w=
+  - secure: Fc4X8CyeXQAml31kJPAQSZrd+90NhnprWOojNBQzlRED1E02o7HJAenV5OzXRUndvBxLjuN5REie5MFZ/NqGBT8vAQFjeEWt9qriQKR+J2HPm7ZtY8mR67JBgvkHMdLsuCtdFbbvZsAicfVVmn9kcciTP4+UXA+Pj0/zWHV8Vnd5EunUy3UMH/zvzfltGLFjXwlizWmCIPeq4uLRhqoMKOdYrFMVT4GA3mKwT5nJNi0b4Vu1apvr+57RIaI05pqvhgvaCuRTPFoCCEfTlzfkpyjamAK4/obC6wlUw5n8anz04d7gmw45eJoUIHRQYvuwkM3iIw3MzzOz8KisgVRIn6kzbEjkZ8/jgbIbyBwzZ7ZPtAXSFaUY9fdxnkc6PSN8jsXqirg+i1b8FFHiLcuTs7UaGtQraaxzRs+dHlvN74FLLeo8JNd1mwo4/kvjONfA3uF6veNcUo0vSMpD/+7oCcyokiXhJ4shaoxMbDc4PVpiQ+S1Yl0D8/6CQyqrfjhuAVQUmPfcsC+Qf1r4xvte2kxFxeoQTBsso1PaPyXuZDxUdNvZgoPeQ7TZnhiO+47KziA5Gayzmeg2Xsn4KoSw4qRQ97MHLO99IPEk46L8+u8k14PNhRkOpQ+4wnjotPRYxxD2iSUkU3YCjHBE2KkwF+T58X+LpEM5D3kh9quDLiA=
