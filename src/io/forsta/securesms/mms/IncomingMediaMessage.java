@@ -132,6 +132,14 @@ public class IncomingMediaMessage {
     return expiresIn;
   }
 
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
+  }
+
   public boolean isGroupMessage() {
     return groupId != null || to.size() > 1 || cc.size() > 0;
   }

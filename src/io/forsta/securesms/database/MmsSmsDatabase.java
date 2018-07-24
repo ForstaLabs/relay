@@ -76,7 +76,7 @@ public class MmsSmsDatabase extends Database {
 
   public Cursor getConversation(long threadId, long limit) {
     String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
-    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId;
+    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId + " AND " + MmsDatabase.MESSAGE_REF + " IS NULL";
 
     Cursor cursor = queryTables(PROJECTION, selection, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
@@ -229,6 +229,8 @@ public class MmsSmsDatabase extends Database {
     mmsColumnsPresent.add(MmsDatabase.EXPIRY);
     mmsColumnsPresent.add(MmsDatabase.STATUS);
     mmsColumnsPresent.add(MmsDatabase.NETWORK_FAILURE);
+    mmsColumnsPresent.add(MmsDatabase.MESSAGE_REF);
+    mmsColumnsPresent.add(MmsDatabase.UP_VOTE);
 
     mmsColumnsPresent.add(AttachmentDatabase.ROW_ID);
     mmsColumnsPresent.add(AttachmentDatabase.UNIQUE_ID);

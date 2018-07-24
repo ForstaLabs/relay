@@ -341,7 +341,7 @@ public class MmsDatabase extends MessagingDatabase {
     SQLiteDatabase database = databaseHelper.getReadableDatabase();
     return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
         " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
-        " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ") LIMIT " + count, null);
+        " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ") ORDER BY " + DATE_RECEIVED + " DESC LIMIT " + count, null);
   }
 
   public Cursor getMessages(long threadId) {
@@ -735,6 +735,12 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(SUBSCRIPTION_ID, retrieved.getSubscriptionId());
     contentValues.put(EXPIRES_IN, retrieved.getExpiresIn());
     contentValues.put(READ, retrieved.isExpirationUpdate() ? 1 : 0);
+    if (!TextUtils.isEmpty(retrieved.getMessageRef())) {
+      contentValues.put(MESSAGE_REF, retrieved.getMessageRef());
+      if (retrieved.getVoteCount() > 0) {
+        contentValues.put(UP_VOTE, retrieved.getVoteCount());
+      }
+    }
 
     if (!contentValues.containsKey(DATE_SENT)) {
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
