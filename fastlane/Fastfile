@@ -17,7 +17,7 @@ default_platform(:android)
 
 platform :android do
   desc "Deploy a new version to the Google Play (DEV - Alpha Track)"
-  lane :deploy do
+  lane :deploy_dev do
     upload_to_play_store(
       package_name: "io.forsta.relay.dev",
       track: "alpha",
@@ -30,7 +30,7 @@ platform :android do
   end
 
   desc "Deploy a new version to the Google Play (STAGE - Alpha Track)"
-  lane :deploy do
+  lane :deploy_stage do
     upload_to_play_store(
       package_name: "io.forsta.relay.stage",
       track: "alpha",
@@ -43,7 +43,7 @@ platform :android do
   end
 
   desc "Deploy a new version to the Google Play (Production - BETA Track)"
-  lane :deploy do
+  lane :deploy_prod do
     upload_to_play_store(
       package_name: "io.forsta.relay",
       track: "beta",

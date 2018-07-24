@@ -3,15 +3,15 @@
 if [ "$TRAVIS_BRANCH" == "master" ]; then
     GRADLE_TARGET=assembleDevRelease
     APK=build/outputs/apk/dev/release/relay-dev-release-unsigned.apk
-    FASTLANE_TARGET=deploy-dev
+    FASTLANE_TARGET=deploy_dev
 elif [ "$TRAVIS_BRANCH" == "stage" ]; then
     GRADLE_TARGET=assembleStageRelease
     APK=build/outputs/apk/stage/release/relay-stage-release-unsigned.apk
-    FASTLANE_TARGET=deploy-stage
+    FASTLANE_TARGET=deploy_stage
 elif [ "$TRAVIS_BRANCH" == "prod" ]; then
     GRADLE_TARGET=assembleProdRelease
     APK=build/outputs/apk/prod/release/relay-prod-release-unsigned.apk
-    FASTLANE_TARGET=deploy-prod
+    FASTLANE_TARGET=deploy_prod
 else
     echo "Invalid branch: $TRAVIS_BRANCH"
     exit 1
