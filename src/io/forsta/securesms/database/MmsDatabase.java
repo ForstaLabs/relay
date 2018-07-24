@@ -1159,6 +1159,8 @@ public class MmsDatabase extends MessagingDatabase {
       int status                 = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.STATUS));
       int receiptCount           = cursor.getInt(cursor.getColumnIndexOrThrow(RECEIPT_COUNT));
       int subscriptionId         = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
+      String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
+      int voteCount = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
 
       byte[]contentLocationBytes = null;
       byte[]transactionIdBytes   = null;
@@ -1173,7 +1175,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new NotificationMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                               addressDeviceId, dateSent, dateReceived, receiptCount, threadId,
                                               contentLocationBytes, messageSize, expiry, status,
-                                              transactionIdBytes, mailbox, subscriptionId);
+                                              transactionIdBytes, mailbox, subscriptionId, messageRef, voteCount);
     }
 
     private MediaMmsMessageRecord getMediaMmsMessageRecord(Cursor cursor) {
@@ -1193,6 +1195,7 @@ public class MmsDatabase extends MessagingDatabase {
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
       long expireStarted      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRE_STARTED));
       String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
+      int voteCount = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
 
       Recipients                recipients      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
@@ -1203,7 +1206,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount);
     }
 
     private Recipients getRecipientsFor(String address) {

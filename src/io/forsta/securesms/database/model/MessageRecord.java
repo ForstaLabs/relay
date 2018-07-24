@@ -69,6 +69,8 @@ public abstract class MessageRecord extends DisplayRecord {
   private final int                       subscriptionId;
   private final long                      expiresIn;
   private final long                      expireStarted;
+  private final String messageRef;
+  private final int voteCount;
 
   MessageRecord(Context context, long id, Body body, Recipients recipients,
                 Recipient individualRecipient, int recipientDeviceId,
@@ -76,7 +78,7 @@ public abstract class MessageRecord extends DisplayRecord {
                 int deliveryStatus, int receiptCount, long type,
                 List<IdentityKeyMismatch> mismatches,
                 List<NetworkFailure> networkFailures,
-                int subscriptionId, long expiresIn, long expireStarted)
+                int subscriptionId, long expiresIn, long expireStarted, String messageRef, int voteCount)
   {
     super(context, body, recipients, dateSent, dateReceived, threadId, deliveryStatus, receiptCount,
           type);
@@ -88,6 +90,8 @@ public abstract class MessageRecord extends DisplayRecord {
     this.subscriptionId      = subscriptionId;
     this.expiresIn           = expiresIn;
     this.expireStarted       = expireStarted;
+    this.messageRef = messageRef;
+    this.voteCount = voteCount;
   }
 
   public abstract boolean isMms();
