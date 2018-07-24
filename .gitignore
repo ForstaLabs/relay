@@ -1,3 +1,5 @@
+.fastlane.json
+.keystore.jks
 .classpath
 project.properties
 .project
