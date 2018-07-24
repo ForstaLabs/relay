@@ -17,7 +17,7 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
   -in keystore.jks.enc -out keystore.jks -d
 - openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
-  -in api-8695599896138642039-143344-ed7003d46635.json.enc -out fastlane/api-8695599896138642039-143344-ed7003d46635.json
+  -in fastlane/api-8695599896138642039-143344-ed7003d46635.json.enc -out fastlane/api-8695599896138642039-143344-ed7003d46635.json
   -d
 - openssl aes-256-cbc -K $encrypted_087b984cbde0_key -iv $encrypted_087b984cbde0_iv
   -in keystore.jks.enc -out ./keystore.jks -d
