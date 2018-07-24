@@ -1202,7 +1202,7 @@ public class MmsDatabase extends MessagingDatabase {
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
-                                       networkFailures, subscriptionId, expiresIn, expireStarted, quote);
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, null);
     }
 
     private Recipients getRecipientsFor(String address) {

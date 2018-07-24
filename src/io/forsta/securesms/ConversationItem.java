@@ -26,6 +26,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -34,6 +35,7 @@ import android.util.AttributeSet;
 import android.util.EventLog;
 import android.util.Log;
 import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -222,6 +224,7 @@ public class ConversationItem extends LinearLayout
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
     setQuote(messageRecord);
+    //addReply(messageRecord);
   }
 
   /*public void setEventListener(@Nullable EventListener eventListener) {
@@ -473,17 +476,14 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  //This method is not executing most likely because the final boolean in the if statement is false. Without this part, all messages have quotes set. App will crash due to NullPointerException. getQuote RETURNS NULL
   private void setQuote(@NonNull MessageRecord messageRecord) {
     if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
       SlideDeck slide = new SlideDeck();
       Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
-      //Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
       assert quote != null;
-      this.quoteView.setQuote(/*glideRequests,*/ quote.getId(), quote.getAuthor(), quote.getText(), slide);
-      //this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
+      this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
       this.quoteView.setVisibility(View.VISIBLE);
-      this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+      //this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
 
       quoteView.setOnClickListener(view -> {
         if (eventListener != null && batchSelected.isEmpty()) {
@@ -497,6 +497,18 @@ public class ConversationItem extends LinearLayout
       quoteView.dismiss();
     }
   }
+
+  /*private void addReply(MessageRecord messageRecord) {
+    SlideDeck slide = new SlideDeck();
+    //Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
+    Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
+    //assert quote != null;
+    //this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
+    //this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
+    //this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+    //this.quoteView.setVisibility(VISIBLE);
+    //LayoutInflater.from(getContext()).inflate(R.layout.quote_view, this, true);
+  }*/
 
   private void setFailedStatusIcons() {
     alertView.setFailed();
