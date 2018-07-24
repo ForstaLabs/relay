@@ -24,6 +24,8 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
+  private final String messageRef;
+  private final int voteCount;
 
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
@@ -42,6 +44,8 @@ public class IncomingMediaMessage {
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
     this.expirationUpdate = expirationUpdate;
+    this.messageRef = null;
+    this.voteCount = 0;
 
     this.to.addAll(to);
     this.cc.addAll(cc);
@@ -60,6 +64,21 @@ public class IncomingMediaMessage {
                               Optional<SignalServiceGroup> group,
                               Optional<List<SignalServiceAttachment>> attachments)
   {
+    this(masterSecret, from, to, sentTimeMillis, subscriptionId, expiresIn, expirationUpdate, relay, body, group, attachments, null, 0);
+  }
+
+  public IncomingMediaMessage(MasterSecretUnion masterSecret,
+                              String from,
+                              String to,
+                              long sentTimeMillis,
+                              int subscriptionId,
+                              long expiresIn,
+                              boolean expirationUpdate,
+                              Optional<String> relay,
+                              Optional<String> body,
+                              Optional<SignalServiceGroup> group,
+                              Optional<List<SignalServiceAttachment>> attachments, String messageRef, int voteCount)
+  {
     this.push             = true;
     this.from             = from;
     this.sentTimeMillis   = sentTimeMillis;
@@ -67,6 +86,8 @@ public class IncomingMediaMessage {
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
     this.expirationUpdate = expirationUpdate;
+    this.messageRef = messageRef;
+    this.voteCount = voteCount;
 
     if (group.isPresent()) this.groupId = GroupUtil.getEncodedId(group.get().getGroupId());
     else                   this.groupId = null;

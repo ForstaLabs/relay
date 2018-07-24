@@ -447,7 +447,7 @@ public class PushDecryptJob extends ContextJob {
         Optional.fromNullable(envelope.getRelay()),
         message.getBody(),
         message.getGroupInfo(),
-        message.getAttachments());
+        message.getAttachments(), forstaMessage.getMessageRef(), forstaMessage.getVote());
 
 
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
