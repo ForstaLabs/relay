@@ -155,7 +155,7 @@ android {
         dimension "forsta"
         minSdkVersion 21
         targetSdkVersion 22
-        versionName "1.0.0"
+        versionName "1.5.0"
         versionCode (((new Date().getTime() / 1000) - 1532462941) as Integer)
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
