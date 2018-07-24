@@ -176,7 +176,7 @@ public class ForstaMessageManager {
             forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
             forstaMessage.setControlType(ForstaMessage.ControlTypes.UP_VOTE);
             int vote = data.getInt("vote");
-            forstaMessage.addVote(vote);
+            forstaMessage.setVote(vote);
             Log.w(TAG, "Message UpVote message: " + messageId + " vote: " + vote);
           }
         }
