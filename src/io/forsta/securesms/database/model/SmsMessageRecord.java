@@ -53,7 +53,7 @@ public class SmsMessageRecord extends MessageRecord {
     super(context, id, body, recipients, individualRecipient, recipientDeviceId,
           dateSent, dateReceived, threadId, status, receiptCount, type,
           mismatches, new LinkedList<NetworkFailure>(), subscriptionId,
-          expiresIn, expireStarted, "", 0);
+          expiresIn, expireStarted, null, 0, null);
   }
 
   public long getType() {
