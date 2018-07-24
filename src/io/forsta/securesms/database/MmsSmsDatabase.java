@@ -85,14 +85,6 @@ public class MmsSmsDatabase extends Database {
     return cursor;
   }
 
-  public Cursor getMessageReplies(String messageId) {
-    String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
-    String selection = MmsDatabase.MESSAGE_REF + " = " + messageId;
-
-    Cursor cursor = queryTables(PROJECTION, selection, order, null);
-    return cursor;
-  }
-
   public Cursor getConversation(long threadId) {
     return getConversation(threadId, 0);
   }

@@ -28,6 +28,9 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.util.Conversions;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.CursorRecyclerViewAdapter;
