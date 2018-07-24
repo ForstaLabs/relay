@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -ex
 
 if ["$TRAVIS_BRANCH" == "master"]; then
     GRADLE_TARGET=assembleDevRelease
@@ -13,6 +13,7 @@ elif ["$TRAVIS_BRANCH" == "prod"]; then
     APK=build/outputs/apk/prod/release/relay-prod-release-unsigned.apk
     FASTLANE_TARGET=deploy-prod
 fi
+
 ./gradlew $GRADLE_TARGET
 jarsigner -verbose -sigalg SHA1withRSA -storepass $storepass -keypass $keypass \
           -digestalg SHA1 -keystore .keystore.jks $APK release
