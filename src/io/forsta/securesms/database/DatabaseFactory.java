@@ -82,7 +82,8 @@ public class DatabaseFactory {
   private static final int INTRODUCE_FORSTA_THREAD_PINNING = 35;
   private static final int INTRODUCE_FORSTA_THREAD_TYPE = 36;
   private static final int INTRODUCE_FORSTA_THREAD_CREATOR = 37;
-  private static final int DATABASE_VERSION                                = 37;
+  private static final int INTRODUCE_FORSTA_MESSAGE_REF = 38;
+  private static final int DATABASE_VERSION                                = 38;
 
 
   private static final String DATABASE_NAME    = "messages.db";
@@ -875,6 +876,11 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCE_FORSTA_THREAD_CREATOR) {
         db.execSQL("ALTER TABLE thread ADD COLUMN thread_creator TEXT");
+      }
+
+      if (oldVersion < INTRODUCE_FORSTA_MESSAGE_REF) {
+        db.execSQL("ALTER TABLE mms ADD COLUMN message_ref TEXT");
+        db.execSQL("CREATE INDEX IF NOT EXISTS mms_message_ref_index ON mms (message_ref)");
       }
 
       db.setTransactionSuccessful();

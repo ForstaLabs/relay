@@ -93,6 +93,7 @@ public class MmsDatabase extends MessagingDatabase {
           static final String TRANSACTION_ID     = "tr_id";
           static final String PART_COUNT         = "part_count";
           static final String NETWORK_FAILURE    = "network_failures";
+          static final String MESSAGE_REF = "message_ref";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
     THREAD_ID + " INTEGER, " + DATE_SENT + " INTEGER, " + DATE_RECEIVED + " INTEGER, " + MESSAGE_BOX + " INTEGER, " +
@@ -109,7 +110,7 @@ public class MmsDatabase extends MessagingDatabase {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + MISMATCHED_IDENTITIES + " TEXT DEFAULT NULL, "     +
     NETWORK_FAILURE + " TEXT DEFAULT NULL," + "d_rpt" + " INTEGER, " +
     SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
-    EXPIRE_STARTED + " INTEGER DEFAULT 0);";
+    EXPIRE_STARTED + " INTEGER DEFAULT 0, " + MESSAGE_REF + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS mms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -117,7 +118,8 @@ public class MmsDatabase extends MessagingDatabase {
     "CREATE INDEX IF NOT EXISTS mms_read_and_thread_id_index ON " + TABLE_NAME + "(" + READ + "," + THREAD_ID + ");",
     "CREATE INDEX IF NOT EXISTS mms_message_box_index ON " + TABLE_NAME + " (" + MESSAGE_BOX + ");",
     "CREATE INDEX IF NOT EXISTS mms_date_sent_index ON " + TABLE_NAME + " (" + DATE_SENT + ");",
-    "CREATE INDEX IF NOT EXISTS mms_thread_date_index ON " + TABLE_NAME + " (" + THREAD_ID + ", " + DATE_RECEIVED + ");"
+    "CREATE INDEX IF NOT EXISTS mms_thread_date_index ON " + TABLE_NAME + " (" + THREAD_ID + ", " + DATE_RECEIVED + ");",
+    "CREATE INDEX IF NOT EXISTS mms_message_ref_index ON " + TABLE_NAME + " (" + MESSAGE_REF + ");"
   };
 
   private static final String[] MMS_PROJECTION = new String[] {
@@ -129,7 +131,7 @@ public class MmsDatabase extends MessagingDatabase {
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
       BODY, PART_COUNT, ADDRESS, ADDRESS_DEVICE_ID,
       RECEIPT_COUNT, MISMATCHED_IDENTITIES, NETWORK_FAILURE, SUBSCRIPTION_ID,
-      EXPIRES_IN, EXPIRE_STARTED,
+      EXPIRES_IN, EXPIRE_STARTED, MESSAGE_REF,
       AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
       AttachmentDatabase.UNIQUE_ID,
       AttachmentDatabase.MMS_ID,
@@ -1189,11 +1191,13 @@ public class MmsDatabase extends MessagingDatabase {
       int subscriptionId      = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
       long expiresIn          = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
       long expireStarted      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRE_STARTED));
+      String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
 
       Recipients                recipients      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
+
 
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
