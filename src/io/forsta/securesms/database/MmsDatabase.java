@@ -94,6 +94,7 @@ public class MmsDatabase extends MessagingDatabase {
           static final String PART_COUNT         = "part_count";
           static final String NETWORK_FAILURE    = "network_failures";
           static final String MESSAGE_REF = "message_ref";
+          static final String UP_VOTE = "vote";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
     THREAD_ID + " INTEGER, " + DATE_SENT + " INTEGER, " + DATE_RECEIVED + " INTEGER, " + MESSAGE_BOX + " INTEGER, " +
@@ -110,7 +111,7 @@ public class MmsDatabase extends MessagingDatabase {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + MISMATCHED_IDENTITIES + " TEXT DEFAULT NULL, "     +
     NETWORK_FAILURE + " TEXT DEFAULT NULL," + "d_rpt" + " INTEGER, " +
     SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
-    EXPIRE_STARTED + " INTEGER DEFAULT 0, " + MESSAGE_REF + " TEXT);";
+    EXPIRE_STARTED + " INTEGER DEFAULT 0, " + MESSAGE_REF + " TEXT, " + UP_VOTE + " INTEGER DEFAULT 0);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS mms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -131,7 +132,7 @@ public class MmsDatabase extends MessagingDatabase {
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
       BODY, PART_COUNT, ADDRESS, ADDRESS_DEVICE_ID,
       RECEIPT_COUNT, MISMATCHED_IDENTITIES, NETWORK_FAILURE, SUBSCRIPTION_ID,
-      EXPIRES_IN, EXPIRE_STARTED, MESSAGE_REF,
+      EXPIRES_IN, EXPIRE_STARTED, MESSAGE_REF, UP_VOTE,
       AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
       AttachmentDatabase.UNIQUE_ID,
       AttachmentDatabase.MMS_ID,
