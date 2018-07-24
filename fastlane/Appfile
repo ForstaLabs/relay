@@ -1,0 +1,2 @@
+json_key_file(".fastlane.json")
+package_name("io.forsta.relay.dev")
