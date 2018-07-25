@@ -124,7 +124,7 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             @Override
             public void onClick(View view) {
                 setVisibility(GONE);
-                InputPanel.dismissQuote();
+                InputPanel.returnInputHint();
             }
         });
 

@@ -51,6 +51,8 @@ public class InputPanel extends LinearLayout
   private View          buttonToggle;
   private View          recordingContainer;
 
+  private static boolean quoteExists;
+
   private static ComposeText inputText;
 
   private MicrophoneRecorderView microphoneRecorderView;
@@ -119,15 +121,18 @@ public class InputPanel extends LinearLayout
   public void setQuote(long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
     this.quoteView.setQuote(id, author, body, attachments);
     this.quoteView.setVisibility(View.VISIBLE);
+    quoteExists = true;
     inputText.setHint(getContext().getString(R.string.conversation_activity__type_reply_push), null);
   }
 
-  public static void dismissQuote() {
+  public static void returnInputHint() {
     inputText.setHint("Send Forsta message", null);
+    quoteExists = false;
   }
 
   public void clearQuote() {
     this.quoteView.dismiss();
+    quoteExists = false;
   }
 
   public Optional<QuoteModel> getQuote() {
@@ -136,6 +141,14 @@ public class InputPanel extends LinearLayout
     } else {
       return Optional.absent();
     }
+  }
+
+  public boolean isQuotePresent() {
+    return quoteView.getVisibility() == View.VISIBLE;
+  }
+
+  public interface quoteListener {
+    void onQuoteChanged();
   }
 
   @Override
