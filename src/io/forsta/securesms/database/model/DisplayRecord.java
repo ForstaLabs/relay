@@ -52,6 +52,7 @@ public abstract class DisplayRecord {
   private final Body       body;
   private final int        deliveryStatus;
   private final int        receiptCount;
+
   protected ForstaMessage forstaMessageBody;
 
   public DisplayRecord(Context context, Body body, Recipients recipients, long dateSent,

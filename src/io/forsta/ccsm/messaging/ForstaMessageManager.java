@@ -160,24 +160,18 @@ public class ForstaMessageManager {
         }
         if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for (int i=0; i<mentions.length(); i++) {
+          for (int i = 0; i < mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
           }
         }
 
-        // This is a special case. Message type is CONTENT,
-        // but processing like a control message because
-        // we don't want to save these messages to the message table.
-
         if (data.has("messageRef")) {
           String messageId = data.getString("messageRef");
-          if(data.has("vote")) {
-            forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
-            forstaMessage.setControlType(ForstaMessage.ControlTypes.UP_VOTE);
+          forstaMessage.setMessageRef(messageId);
+          if (data.has("vote")) {
             int vote = data.getInt("vote");
-            forstaMessage.setMessageVote(messageId, vote);
-            Log.w(TAG, "Message UpVote message: " + messageId + " vote: " + vote);
+            forstaMessage.setVote(vote);
           }
           forstaMessage.setMessageRef(messageId);
         }
