@@ -152,10 +152,11 @@ android {
     }
     defaultConfig {
         applicationId 'io.forsta.relay'
+        dimension "forsta"
         minSdkVersion 21
         targetSdkVersion 22
-        versionName "0.2.02"
-        versionCode 202
+        versionName "2.0.0"
+        versionCode (((new Date().getTime() / 1000) - 1532462941) as Integer)
         multiDexEnabled true
         buildConfigField "long", "BUILD_TIMESTAMP", getLastCommitTimestamp() + "L"
         buildConfigField "String", "RECAPTCHA_KEY", "\"6LetY10UAAAAAKugwBLDP31SVLcl1iem9K1fqJlA\""
@@ -165,8 +166,8 @@ android {
     flavorDimensions "forsta"
     productFlavors {
         prototype {
-            dimension "forsta"
             applicationIdSuffix '.prototype'
+            versionNameSuffix "-prototype-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev.forsta.io\""
             buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
@@ -174,8 +175,8 @@ android {
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         dev {
-            dimension "forsta"
             applicationIdSuffix '.dev'
+            versionNameSuffix "-dev-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev.forsta.io\""
             buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
@@ -183,8 +184,8 @@ android {
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         stage {
-            dimension "forsta"
             applicationIdSuffix '.stage'
+            versionNameSuffix "-stage-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-stage.forsta.io\""
             buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a14a-bb802bb0cefb\""
@@ -192,7 +193,7 @@ android {
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
         prod {
-            dimension "forsta"
+            versionNameSuffix "-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas.forsta.io\""
             buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-prod.herokuapp.com\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\""
@@ -304,6 +305,9 @@ def getLastCommitTimestamp() {
     }
 }
 
+def timestamp() {
+    return new Date().format('yyyyMMddHHmmss');
+}
 
 def Properties props = new Properties()
 def propFile = new File('signing.properties')

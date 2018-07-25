@@ -1,6 +1,5 @@
 .fastlane.json
 .keystore.jks
-.travis_secrets.tar
 .classpath
 project.properties
 .project
