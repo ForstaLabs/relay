@@ -13,10 +13,9 @@ public class OutgoingSecureMediaMessage extends OutgoingMediaMessage {
                                     List<Attachment> attachments,
                                     long sentTimeMillis,
                                     int distributionType,
-                                    long expiresIn,
-                                    @Nullable QuoteModel quote)
+                                    long expiresIn)
   {
-    super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, distributionType, quote);
+    super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, distributionType);
   }
 
   public OutgoingSecureMediaMessage(OutgoingMediaMessage base) {

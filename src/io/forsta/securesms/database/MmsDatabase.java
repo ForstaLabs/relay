@@ -645,14 +645,14 @@ public class MmsDatabase extends MessagingDatabase {
         Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, destinations, false);
 
         if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
-          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0, null);
+          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
         } else if (Types.isExpirationTimerUpdate(outboxType)) {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
         OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
                                                                 !addresses.getBcc().isEmpty() ? ThreadDatabase.DistributionTypes.BROADCAST :
-                                                                                                ThreadDatabase.DistributionTypes.DEFAULT, null);
+                                                                                                ThreadDatabase.DistributionTypes.DEFAULT);
         if (Types.isSecureType(outboxType)) {
           return new OutgoingSecureMediaMessage(message);
         }

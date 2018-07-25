@@ -159,7 +159,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         author.addListener(this);
         setQuoteAuthor(author);
         setQuoteText(body, attachments);
-        setQuoteAttachment(attachments, author);
     }
 
     public void dismiss() {
@@ -229,49 +228,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             mediaDescriptionText.setText(R.string.QuoteView_video);
         } else if (!imageSlides.isEmpty()) {
             mediaDescriptionText.setText(R.string.QuoteView_photo);
-        }
-    }
-
-    private void setQuoteAttachment(@NonNull SlideDeck slideDeck,
-                                    @NonNull Recipient author)
-    {
-        List<Slide> imageVideoSlides = Stream.of(slideDeck.getSlides()).filter(s -> s.hasImage() || s.hasVideo()).limit(1).toList();
-        List<Slide> audioSlides = Stream.of(attachments.getSlides()).filter(Slide::hasAudio).limit(1).toList();
-        List<Slide> documentSlides = Stream.of(attachments.getSlides()).filter(Slide::hasDocument).limit(1).toList();
-
-        attachmentVideoOverlayView.setVisibility(GONE);
-
-        if (!imageVideoSlides.isEmpty() && imageVideoSlides.get(0).getThumbnailUri() != null) {
-            attachmentView.setVisibility(VISIBLE);
-            attachmentIconContainerView.setVisibility(GONE);
-            dismissView.setBackgroundResource(R.drawable.dismiss_background);
-            if (imageVideoSlides.get(0).hasVideo()) {
-                attachmentVideoOverlayView.setVisibility(VISIBLE);
-            }
-        } else if (!audioSlides.isEmpty() || !documentSlides.isEmpty()){
-            boolean outgoing = messageType != MESSAGE_TYPE_INCOMING;
-
-            dismissView.setBackgroundResource(R.drawable.circle_alpha);
-            attachmentView.setVisibility(GONE);
-            attachmentIconContainerView.setVisibility(VISIBLE);
-
-            if (!audioSlides.isEmpty()) {
-                attachmentIconView.setImageResource(R.drawable.ic_mic_white_48dp);
-            } else {
-                attachmentIconView.setImageResource(R.drawable.ic_insert_drive_file_white_24dp);
-            }
-
-            attachmentIconView.setColorFilter(author.getColor().toQuoteIconForegroundColor(getContext(), outgoing), PorterDuff.Mode.SRC_IN);
-            attachmentIconBackgroundView.setColorFilter(author.getColor().toQuoteIconBackgroundColor(getContext(), outgoing), PorterDuff.Mode.SRC_IN);
-
-        } else {
-            attachmentView.setVisibility(GONE);
-            attachmentIconContainerView.setVisibility(GONE);
-            dismissView.setBackgroundDrawable(null);
-        }
-
-        if (ThemeUtil.isDarkTheme(getContext())) {
-            dismissView.setBackgroundResource(R.drawable.circle_alpha);
         }
     }
 

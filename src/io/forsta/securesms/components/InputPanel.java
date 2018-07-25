@@ -117,7 +117,7 @@ public class InputPanel extends LinearLayout
   }
 
   public void setQuote(long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
-    this.quoteView.setQuote(/*glideRequests,*/ id, author, body, attachments);
+    this.quoteView.setQuote(id, author, body, attachments);
     this.quoteView.setVisibility(View.VISIBLE);
     inputText.setHint(getContext().getString(R.string.conversation_activity__type_reply_push), null);
   }

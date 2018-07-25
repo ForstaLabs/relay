@@ -223,7 +223,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    setQuote(messageRecord);
+    //setQuote(messageRecord);
     //addReply(messageRecord);
   }
 
@@ -313,9 +313,9 @@ public class ConversationItem extends LinearLayout
     return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
   }
 
-  private boolean hasQuote(MessageRecord messageRecord) {
+  /*private boolean hasQuote(MessageRecord messageRecord) {
     return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null;
-  }
+  }*/
 
   private void setBodyText(MessageRecord messageRecord) {
     bodyText.setClickable(false);
@@ -477,10 +477,10 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  private void setQuote(@NonNull MessageRecord messageRecord) {
-    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null) {
+  /*private void setQuote(@NonNull MessageRecord messageRecord) {
+    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && messageRecord.getMessageRef() != null) {
       SlideDeck slide = new SlideDeck();
-      Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
+      Quote quote = messageRecord.getQuote();
       assert quote != null;
       this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
       this.quoteView.setVisibility(View.VISIBLE);
@@ -499,7 +499,7 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  /*private void addReply(MessageRecord messageRecord) {
+  private void addReply(MessageRecord messageRecord) {
     SlideDeck slide = new SlideDeck();
     //Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
     Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);

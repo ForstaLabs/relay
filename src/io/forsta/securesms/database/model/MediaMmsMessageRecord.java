@@ -63,7 +63,6 @@ public class MediaMmsMessageRecord extends MessageRecord {
                                List<IdentityKeyMismatch> mismatches,
                                List<NetworkFailure> failures, int subscriptionId,
                                long expiresIn, long expireStarted, String messageRef, int voteCount, String messageId)
-
   {
     super(context, id, body, recipients, individualRecipient, recipientDeviceId, dateSent,
           dateReceived, threadId, SmsDatabase.Status.STATUS_NONE, receiptCount, mailbox, mismatches, failures,

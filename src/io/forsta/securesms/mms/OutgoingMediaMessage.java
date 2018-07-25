@@ -1,6 +1,8 @@
 package io.forsta.securesms.mms;
 
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import org.json.JSONArray;
@@ -30,6 +32,7 @@ public class OutgoingMediaMessage {
   private final String messageRef;
   private final int voteCount;
   private final String messageId;
+
 
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,

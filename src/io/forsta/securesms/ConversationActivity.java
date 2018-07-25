@@ -669,31 +669,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
 
     inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
-
-    //Handles mms quotes
-    /*if (messageRecord.isMms() && !((MediaMmsMessageRecord) messageRecord).getSharedContacts().isEmpty()) {
-      ForstaUser user       =
-      //Contact contact     = ((MediaMmsMessageRecord) messageRecord).getSharedContacts().get(0);
-      String    displayName = ContactUtil.getDisplayName(contact);
-      String    body        = getString(R.string.ConversationActivity_quoted_contact_message, EmojiStrings.BUST_IN_SILHOUETTE, displayName);
-      SlideDeck slideDeck   = new SlideDeck();
-
-      if (contact.getAvatarAttachment() != null) {
-        slideDeck.addSlide(MediaUtil.getSlideForAttachment(this, contact.getAvatarAttachment()));
-      }
-
-      inputPanel.setQuote(/*GlideApp.with(this),
-              messageRecord.getDateSent(),
-              author,
-              body,
-              slideDeck);
-    } else {
-      inputPanel.setQuote(/*GlideApp.with(this),
-              messageRecord.getDateSent(),
-              author,
-              messageRecord.getBody().getBody(),
-              messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
-    }*/
   }
 
   private void initializeThread() {
@@ -1130,8 +1105,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                                                                     System.currentTimeMillis(),
                                                                     subscriptionId,
                                                                     expiresIn,
-                                                                    distributionType,
-                                                                    inputPanel.getQuote().orNull());
+                                                                    distributionType);
     outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
 
     attachmentManager.clear();
