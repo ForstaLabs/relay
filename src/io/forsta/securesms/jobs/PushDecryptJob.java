@@ -394,7 +394,7 @@ public class PushDecryptJob extends ContextJob {
           PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
           message.getTimestamp(), -1,
           message.getMessage().getExpiresInSeconds() * 1000,
-          ThreadDatabase.DistributionTypes.DEFAULT);
+          ThreadDatabase.DistributionTypes.DEFAULT, forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
 
       mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
       long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
@@ -447,7 +447,7 @@ public class PushDecryptJob extends ContextJob {
         Optional.fromNullable(envelope.getRelay()),
         message.getBody(),
         message.getGroupInfo(),
-        message.getAttachments());
+        message.getAttachments(), forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
 
 
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());

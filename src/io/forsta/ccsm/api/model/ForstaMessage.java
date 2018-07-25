@@ -25,8 +25,9 @@ public class ForstaMessage {
   private String threadType = ThreadTypes.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
   private ForstaProvisionRequest provisionRequest;
-  private Vote messageVote;
   private List<String> mentions = new ArrayList<>();
+  private String messageRef;
+  private int vote;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -51,23 +52,6 @@ public class ForstaMessage {
   public static class ThreadTypes {
     public static final String CONVERSATION = "conversation";
     public static final String ANNOUNCEMENT = "announcement";
-  }
-
-  public class Vote {
-    private String messageRef;
-    private int vote;
-    public Vote(String messageRef, int vote) {
-      this.messageRef = messageRef;
-      this.vote = vote;
-    }
-
-    public int getVote() {
-      return vote;
-    }
-
-    public String getMessageRef() {
-      return messageRef;
-    }
   }
 
   public ForstaMessage() {
@@ -147,6 +131,26 @@ public class ForstaMessage {
     return "";
   }
 
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public int getVote() {
+    return vote;
+  }
+
+  public String getMessageId() {
+    return messageId;
+  }
+
+  public void setVote(int count) {
+    vote = count;
+  }
+
+  public void setMessageRef(String messageRef) {
+    this.messageRef = messageRef;
+  }
+
   public void setControlType(String controlType) {
     this.controlType = controlType;
   }
@@ -199,16 +203,8 @@ public class ForstaMessage {
     this.provisionRequest = new ForstaProvisionRequest(uuid, key);
   }
 
-  public void setMessageVote(String messageRef, int vote) {
-    messageVote = new Vote(messageRef, vote);
-  }
-
   public ForstaProvisionRequest getProvisionRequest() {
     return provisionRequest;
-  }
-
-  public Vote getMessageVote() {
-    return messageVote;
   }
 
   public void addMention(String mention) { this.mentions.add(mention); }

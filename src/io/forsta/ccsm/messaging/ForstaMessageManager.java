@@ -166,18 +166,12 @@ public class ForstaMessageManager {
           }
         }
 
-        // This is a special case. Message type is CONTENT,
-        // but processing like a control message because
-        // we don't want to save these messages to the message table.
-        if (data.has("vote")) {
-          if (data.has("messageRef")) {
-            String messageId = data.getString("messageRef");
-            // Override message type.
-            forstaMessage.setMessageType(ForstaMessage.MessageTypes.CONTROL);
-            forstaMessage.setControlType(ForstaMessage.ControlTypes.UP_VOTE);
+        if (data.has("messageRef")) {
+          String messageId = data.getString("messageRef");
+          forstaMessage.setMessageRef(messageId);
+          if (data.has("vote")) {
             int vote = data.getInt("vote");
-            forstaMessage.setMessageVote(messageId, vote);
-            Log.w(TAG, "Message UpVote message: " + messageId + " vote: " + vote);
+            forstaMessage.setVote(vote);
           }
         }
 

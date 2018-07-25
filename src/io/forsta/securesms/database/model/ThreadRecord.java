@@ -91,7 +91,11 @@ public class ThreadRecord extends DisplayRecord {
     String body = getBody().getBody();
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
-      body = forstaBody.getTextBody();
+      if (forstaBody.getVote() > 0) {
+        body = "Up Vote";
+      } else {
+        body = forstaBody.getTextBody();
+      }
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
     }
