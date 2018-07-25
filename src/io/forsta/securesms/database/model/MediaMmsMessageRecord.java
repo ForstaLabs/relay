@@ -53,7 +53,6 @@ public class MediaMmsMessageRecord extends MessageRecord {
   private final Context context;
   private final int partCount;
   private final @NonNull SlideDeck slideDeck;
-  private final @Nullable Quote quote;
 
   public MediaMmsMessageRecord(Context context, long id, Recipients recipients,
                                Recipient individualRecipient, int recipientDeviceId,
@@ -63,15 +62,15 @@ public class MediaMmsMessageRecord extends MessageRecord {
                                int partCount, long mailbox,
                                List<IdentityKeyMismatch> mismatches,
                                List<NetworkFailure> failures, int subscriptionId,
-                               long expiresIn, long expireStarted, @Nullable Quote quote)
+                               long expiresIn, long expireStarted, String messageRef, int voteCount, String messageId)
+
   {
     super(context, id, body, recipients, individualRecipient, recipientDeviceId, dateSent,
           dateReceived, threadId, SmsDatabase.Status.STATUS_NONE, receiptCount, mailbox, mismatches, failures,
-          subscriptionId, expiresIn, expireStarted);
+          subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
 
     this.context   = context.getApplicationContext();
     this.partCount = partCount;
-    this.quote = quote;
     this.slideDeck = slideDeck;
   }
 
@@ -106,11 +105,6 @@ public class MediaMmsMessageRecord extends MessageRecord {
     }
 
     return false;
-  }
-
-  public @Nullable
-  Quote getQuote() {
-    return quote;
   }
 
   public String getDocumentAttachmentFileName() {

@@ -320,6 +320,7 @@ public class ConversationItem extends LinearLayout
   private void setBodyText(MessageRecord messageRecord) {
     bodyText.setClickable(false);
     bodyText.setFocusable(false);
+
     if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
       bodyText.setText(messageRecord.getHtmlBody());
     } else {

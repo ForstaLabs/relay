@@ -24,11 +24,15 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
+  private final String messageRef;
+  private final int voteCount;
+  private final String messageId;
 
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
   private final List<Attachment> attachments = new LinkedList<>();
 
+  // Not used. For MMS only messages.
   public IncomingMediaMessage(String from, List<String> to, List<String> cc,
                               String body, long sentTimeMillis,
                               List<Attachment> attachments, int subscriptionId,
@@ -42,6 +46,9 @@ public class IncomingMediaMessage {
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
     this.expirationUpdate = expirationUpdate;
+    this.messageRef = null;
+    this.voteCount = 0;
+    this.messageId = null;
 
     this.to.addAll(to);
     this.cc.addAll(cc);
@@ -60,6 +67,21 @@ public class IncomingMediaMessage {
                               Optional<SignalServiceGroup> group,
                               Optional<List<SignalServiceAttachment>> attachments)
   {
+    this(masterSecret, from, to, sentTimeMillis, subscriptionId, expiresIn, expirationUpdate, relay, body, group, attachments, null, 0, null);
+  }
+
+  public IncomingMediaMessage(MasterSecretUnion masterSecret,
+                              String from,
+                              String to,
+                              long sentTimeMillis,
+                              int subscriptionId,
+                              long expiresIn,
+                              boolean expirationUpdate,
+                              Optional<String> relay,
+                              Optional<String> body,
+                              Optional<SignalServiceGroup> group,
+                              Optional<List<SignalServiceAttachment>> attachments, String messageRef, int voteCount, String messageId)
+  {
     this.push             = true;
     this.from             = from;
     this.sentTimeMillis   = sentTimeMillis;
@@ -67,6 +89,9 @@ public class IncomingMediaMessage {
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
     this.expirationUpdate = expirationUpdate;
+    this.messageRef = messageRef;
+    this.voteCount = voteCount;
+    this.messageId = messageId;
 
     if (group.isPresent()) this.groupId = GroupUtil.getEncodedId(group.get().getGroupId());
     else                   this.groupId = null;
@@ -109,6 +134,18 @@ public class IncomingMediaMessage {
 
   public long getExpiresIn() {
     return expiresIn;
+  }
+
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public String getMessageId() {
+    return messageId;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
   }
 
   public boolean isGroupMessage() {
