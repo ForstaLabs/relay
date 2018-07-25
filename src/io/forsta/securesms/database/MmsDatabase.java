@@ -907,6 +907,13 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(DATE_RECEIVED, System.currentTimeMillis());
     contentValues.put(SUBSCRIPTION_ID, message.getSubscriptionId());
     contentValues.put(EXPIRES_IN, message.getExpiresIn());
+    if (!TextUtils.isEmpty(message.getMessageRef())) {
+      contentValues.put(MESSAGE_REF, message.getMessageRef());
+      if (message.getVoteCount() > 0) {
+        contentValues.put(UP_VOTE, message.getVoteCount());
+      }
+    }
+    contentValues.put(MESSAGE_ID, message.getMessageId());
 
     for (Recipient recipient : message.getRecipients()) {
       try {

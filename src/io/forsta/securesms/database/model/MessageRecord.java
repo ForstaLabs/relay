@@ -147,6 +147,10 @@ public abstract class MessageRecord extends DisplayRecord {
   public String getPlainTextBody() {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
+
+      if (forstaBody.getVote() > 0) {
+        return "Up Vote";
+      }
       return forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
@@ -185,6 +189,14 @@ public abstract class MessageRecord extends DisplayRecord {
       return forstaMessageBody.getMessageId();
     }
     return messageId;
+  }
+
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
   }
 
   @Override

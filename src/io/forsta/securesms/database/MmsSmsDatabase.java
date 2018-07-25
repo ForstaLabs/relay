@@ -77,7 +77,7 @@ public class MmsSmsDatabase extends Database {
 
   public Cursor getConversation(long threadId, long limit) {
     String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
-    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId + " AND " + MmsDatabase.MESSAGE_REF + " IS NULL";
+    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId;
 
     Cursor cursor = queryTables(PROJECTION, selection, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
