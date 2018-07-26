@@ -101,8 +101,8 @@
                     android:autoLink="all"
                     android:linksClickable="true" />
 
-            <io.forsta.securesms.components.QuoteView
-                android:id="@+id/quote_view"
+            <io.forsta.securesms.components.ReplyView
+                android:id="@+id/reply_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
