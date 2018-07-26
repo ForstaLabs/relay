@@ -54,6 +54,7 @@ import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
 import io.forsta.securesms.components.QuoteView;
+import io.forsta.securesms.components.ReplyView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -114,7 +115,7 @@ public class ConversationItem extends LinearLayout
   private Recipient     recipient;
 
   private View               bodyBubble;
-  private QuoteView          quoteView;
+  private ReplyView          replyView;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
@@ -176,7 +177,7 @@ public class ConversationItem extends LinearLayout
     this.documentView            = findViewById(R.id.document_view);
     this.expirationTimer         = findViewById(R.id.expiration_indicator);
     videoView                    = findViewById(R.id.item_video_view);
-    this.quoteView               = findViewById(R.id.quote_view);
+    this.replyView               = findViewById(R.id.reply_view);
 
     setOnClickListener(new ClickListener(null));
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
@@ -223,8 +224,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    //setQuote(messageRecord);
-    //addReply(messageRecord);
+    setReply(messageRecord);
   }
 
   /*public void setEventListener(@Nullable EventListener eventListener) {
@@ -499,6 +499,10 @@ public class ConversationItem extends LinearLayout
     }
   }*/
 
+  private void setReply(MessageRecord messageRecord) {
+    this.replyView.setReply(123, messageRecord.getIndividualRecipient(), "TEST TEXT", 1);
+    this.replyView.setVisibility(VISIBLE);
+  }
   private void setReplies(MessageRecord messageRecord) {
     SlideDeck slide = new SlideDeck();
     //Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
