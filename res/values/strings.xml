@@ -1260,6 +1260,12 @@
     <string name="Permissions_permission_required">Permission required</string>
     <string name="Permissions_continue">Continue</string>
     <string name="Permissions_not_now">Not now</string>
+
+    <string name="Permissions_required">Permissions required</string>
+    <string name="Permissions_required_camera">Camera Permission required</string>
+    <string name="Permissions_required_contacts">Contacts Permission required</string>
+    <string name="Permissions_required_external_storage">External Storage Permission required</string>
+    <string name="Permissions_required_locations">Location Permission required</string>
     <!-- EOF -->
 
 </resources>

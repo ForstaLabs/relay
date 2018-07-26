@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -60,6 +61,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -244,7 +246,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleInvite() {
-    startActivity(new Intent(this, InviteActivity.class));
+    Permissions.with(ConversationListActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          startActivity(new Intent(this, InviteActivity.class));
+        })
+        .execute();
   }
 
   private void handleHelp() {
