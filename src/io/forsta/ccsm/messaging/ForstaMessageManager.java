@@ -160,7 +160,7 @@ public class ForstaMessageManager {
         }
         if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for (int i=0; i<mentions.length(); i++) {
+          for (int i = 0; i < mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
           }
@@ -173,6 +173,7 @@ public class ForstaMessageManager {
             int vote = data.getInt("vote");
             forstaMessage.setVote(vote);
           }
+          forstaMessage.setMessageRef(messageId);
         }
 
         if (data.has("control")) {
