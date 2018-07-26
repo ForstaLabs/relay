@@ -228,7 +228,7 @@ public class ForstaMessage {
       return type;
     }
 
-    public long getSize()  {
+    public long getSize() {
       return size;
     }
   }
