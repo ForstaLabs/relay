@@ -119,9 +119,15 @@ public class AutoProvision {
       public void onStatusChanged(boolean connected) {
         Log.w(TAG, "Socket " + (connected ? "Open" : "Closed"));
         // if socket times out. call provisioningFailed.
-        if (!connected) {
-          provisioningFailed("Timed out waiting for provision response.");
-        }
+//        if (!connected) {
+//          provisioningFailed("Timed out waiting for provision response.");
+//        }
+      }
+
+      @Override
+      public void onFailure(String message) {
+        Log.w(TAG, "Socket failed: " + message);
+        provisioningFailed("Provision response failed.");
       }
     });
     webSocket.connect("/v1/websocket/provisioning/");
