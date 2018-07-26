@@ -497,9 +497,9 @@ public class ConversationItem extends LinearLayout
     } else {
       quoteView.dismiss();
     }
-  }
+  }*/
 
-  private void addReply(MessageRecord messageRecord) {
+  private void setReplies(MessageRecord messageRecord) {
     SlideDeck slide = new SlideDeck();
     //Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
     Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
@@ -509,7 +509,7 @@ public class ConversationItem extends LinearLayout
     //this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
     //this.quoteView.setVisibility(VISIBLE);
     //LayoutInflater.from(getContext()).inflate(R.layout.quote_view, this, true);
-  }*/
+  }
 
   private void setFailedStatusIcons() {
     alertView.setFailed();

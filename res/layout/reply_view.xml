@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/reply_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:visibility="gone"
+    android:layout_margin="3dp"
+    tools:visibility="visible">
+
+    <FrameLayout
+        android:id="@+id/reply_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/reply_background">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/reply_avatar_icon_container"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <io.forsta.securesms.components.AvatarImageView
+                    android:id="@+id/reply_contact_photo"
+                    android:foreground="@drawable/contact_photo_background"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentBottom="true"
+                    android:cropToPadding="true"
+                    android:contentDescription="@string/conversation_item_received__contact_photo_description" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/reply_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:ellipsize="end"
+                    android:textColor="@color/white"
+                    tools:text="Message Text"
+                    tools:visibility="visible" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</merge>
