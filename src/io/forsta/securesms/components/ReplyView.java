@@ -82,8 +82,12 @@ public class ReplyView extends LinearLayout {
     }
 
     private void setReplyVote(int vote) {
-        voteCount.setVisibility(View.VISIBLE);
-        voteCount.setText("(" + vote + ")" );
+        if(vote > 0) {
+            voteCount.setVisibility(View.VISIBLE);
+            voteCount.setText("(" + vote + ")" );
+        } else {
+            voteCount.setVisibility(View.GONE);
+        }
     }
 
     public Recipient getReplyAuthor() {

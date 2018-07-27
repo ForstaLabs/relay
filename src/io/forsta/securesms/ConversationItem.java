@@ -477,30 +477,8 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  /*private void setQuote(@NonNull MessageRecord messageRecord) {
-    if (messageRecord.isMms() && !messageRecord.isMmsNotification() && messageRecord.getMessageRef() != null) {
-      SlideDeck slide = new SlideDeck();
-      Quote quote = messageRecord.getQuote();
-      assert quote != null;
-      this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
-      this.quoteView.setVisibility(View.VISIBLE);
-      this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-
-      quoteView.setOnClickListener(view -> {
-        if (eventListener != null && batchSelected.isEmpty()) {
-          eventListener.onQuoteClicked((MediaMmsMessageRecord) messageRecord);
-        } else {
-          passthroughClickListener.onClick(view);
-        }
-      });
-      quoteView.setOnLongClickListener(passthroughClickListener);
-    } else {
-      quoteView.dismiss();
-    }
-  }*/
-
   private void setReply(MessageRecord messageRecord) {
-    this.replyView.setReply(123, messageRecord.getIndividualRecipient(), "TEST TEXT", 1);
+    this.replyView.setReply(123, recipient, "This is a test", 5);
     this.replyView.setVisibility(VISIBLE);
   }
   private void setReplies(MessageRecord messageRecord) {

@@ -19,43 +19,35 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="8dp">
 
-                <TextView
-                    android:id="@+id/reply_vote"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:textColor="@color/white"
-                    android:paddingTop="9dp"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="3dp"
-                    tools:text="(1)" />
+                    <TextView
+                        android:id="@+id/reply_vote"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textColor="@color/white"
+                        tools:text="(1)" />
 
-            </LinearLayout>
-
-            <FrameLayout
-                android:id="@+id/reply_avatar_icon_container"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:visibility="gone"
-                tools:visibility="visible">
+                </LinearLayout>
 
                 <io.forsta.securesms.components.AvatarImageView
                     android:id="@+id/reply_contact_photo"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentLeft="true"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="center_vertical"
                     android:contentDescription="@string/conversation_item_received__contact_photo_description"
                     android:cropToPadding="true"
-                    android:foreground="@drawable/contact_photo_background" />
-
-            </FrameLayout>
+                    android:foreground="@drawable/contact_photo_background"
+                    android:visibility="visible"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginRight="-6dp"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -63,8 +55,6 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_weight="1"
@@ -72,7 +62,7 @@
 
                 <TextView
                     android:id="@+id/reply_text"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
                     android:ellipsize="end"
