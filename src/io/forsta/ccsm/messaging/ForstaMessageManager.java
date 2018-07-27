@@ -173,7 +173,6 @@ public class ForstaMessageManager {
             int vote = data.getInt("vote");
             forstaMessage.setVote(vote);
           }
-          forstaMessage.setMessageRef(messageId);
         }
 
         if (data.has("control")) {
