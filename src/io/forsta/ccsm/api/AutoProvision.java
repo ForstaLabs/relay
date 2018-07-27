@@ -118,10 +118,6 @@ public class AutoProvision {
       @Override
       public void onStatusChanged(boolean connected) {
         Log.w(TAG, "Socket " + (connected ? "Open" : "Closed"));
-        // if socket times out. call provisioningFailed.
-//        if (!connected) {
-//          provisioningFailed("Timed out waiting for provision response.");
-//        }
       }
 
       @Override
