@@ -1266,7 +1266,7 @@
     <string name="Permissions_required_contacts">Contacts Permission required</string>
     <string name="Permissions_required_external_storage">External Storage Permission required</string>
     <string name="Permissions_required_locations">Location Permission required</string>
-    <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all features.</string>
+    <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all functionality.</string>
     <!-- EOF -->
 
 </resources>
