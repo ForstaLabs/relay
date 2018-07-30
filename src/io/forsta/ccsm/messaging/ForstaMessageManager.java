@@ -175,6 +175,11 @@ public class ForstaMessageManager {
           }
         }
 
+        if (data.has("members")) {
+
+
+        }
+
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
 
@@ -193,8 +198,29 @@ public class ForstaMessageManager {
               String key = data.getString("key");
               forstaMessage.setProvisionRequest(uuid, key);
               break;
+            case ForstaMessage.ControlTypes.CALL_OFFER:
+              if (data.has("offer")) {
+                String originator = data.getString("originator");
+                String callId = data.getString("callId");
+                JSONObject offer = data.getJSONObject("offer");
+                Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
+
+              } else {
+                Log.w(TAG, "Not a valid callOffer control message");
+              }
+              break;
+            case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+              if (data.has("callicecandidates")) {
+                String originator = data.getString("originator");
+                String callId = data.getString("callId");
+                JSONObject callIceCandidates = data.getJSONObject("icecandidates");
+                Log.w(TAG, "Incomming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
+              } else {
+                Log.w(TAG, "Not a valid callIceCandidated control message");
+              }
+              break;
             default:
-              Log.w(TAG, "Not a control message");
+            Log.w(TAG, "Not a control message");
           }
         }
       }

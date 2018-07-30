@@ -28,6 +28,7 @@ public class ForstaMessage {
   private List<String> mentions = new ArrayList<>();
   private String messageRef;
   private int vote;
+  private List<String> members = new ArrayList();
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -42,6 +43,8 @@ public class ForstaMessage {
     public static final String DISCOVER = "discover";
     public static final String DISCOVER_RESPONSE = "discoverResponse";
     public static final String UP_VOTE = "upVote";
+    public static final String CALL_OFFER = "callOffer";
+    public static final String CALL_ICE_CANDIDATES = "callICECandidates";
   }
 
   public static class MessageTypes {
