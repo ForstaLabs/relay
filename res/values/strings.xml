@@ -1273,6 +1273,10 @@
 
     <!--WebRTC-->
     <string name="WebRTC_call_connecting">Incomming call</string>
+    <string name="webrtc_answer_decline_button__swipe_up_to_answer">Swipe up to answer call</string>
+    <string name="webrtc_answer_decline_button__swipe_down_to_reject">Swipe down to reject call</string>
+    <string name="redphone_call_controls__mute">Mute</string>
+    <string name="redphone_call_card__signal_call">Call</string>
     <!-- EOF -->
 
 </resources>

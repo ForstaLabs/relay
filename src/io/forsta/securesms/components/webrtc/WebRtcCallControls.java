@@ -13,8 +13,8 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
-import com.tomergoldst.tooltips.ToolTip;
-import com.tomergoldst.tooltips.ToolTipsManager;
+//import com.tomergoldst.tooltips.ToolTip;
+//import com.tomergoldst.tooltips.ToolTipsManager;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AccessibleToggleButton;
@@ -158,21 +158,21 @@ public class WebRtcCallControls extends LinearLayout {
   }
 
   public void displayVideoTooltip(ViewGroup viewGroup) {
-    if (Build.VERSION.SDK_INT > 15) {
-      final ToolTipsManager toolTipsManager = new ToolTipsManager();
-
-      ToolTip toolTip = new ToolTip.Builder(getContext(), videoMuteButton, viewGroup,
-                                            getContext().getString(R.string.WebRtcCallControls_tap_to_enable_your_video),
-                                            ToolTip.POSITION_BELOW).build();
-      toolTipsManager.show(toolTip);
-
-      videoMuteButton.postDelayed(new Runnable() {
-        @Override
-        public void run() {
-          toolTipsManager.findAndDismiss(videoMuteButton);
-        }
-      }, 4000);
-    }
+//    if (Build.VERSION.SDK_INT > 15) {
+//      final ToolTipsManager toolTipsManager = new ToolTipsManager();
+//
+//      ToolTip toolTip = new ToolTip.Builder(getContext(), videoMuteButton, viewGroup,
+//                                            getContext().getString(R.string.WebRtcCallControls_tap_to_enable_your_video),
+//                                            ToolTip.POSITION_BELOW).build();
+//      toolTipsManager.show(toolTip);
+//
+//      videoMuteButton.postDelayed(new Runnable() {
+//        @Override
+//        public void run() {
+//          toolTipsManager.findAndDismiss(videoMuteButton);
+//        }
+//      }, 4000);
+//    }
   }
 
   public static interface MuteButtonListener {

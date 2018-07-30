@@ -264,33 +264,33 @@ public class WebRtcCallActivity extends Activity {
     dialog.show();
   }
 
-  private void handleUntrustedIdentity(@NonNull WebRtcViewModel event) {
-    final IdentityKey theirIdentity = event.getIdentityKey();
-    final Recipient   recipient     = event.getRecipient();
-
-    callScreen.setUntrustedIdentity(recipient, theirIdentity);
-    callScreen.setAcceptIdentityListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        synchronized (SESSION_LOCK) {
-          TextSecureIdentityKeyStore identityKeyStore = new TextSecureIdentityKeyStore(WebRtcCallActivity.this);
+//  private void handleUntrustedIdentity(@NonNull WebRtcViewModel event) {
+//    final IdentityKey theirIdentity = event.getIdentityKey();
+//    final Recipient   recipient     = event.getRecipient();
+//
+//    callScreen.setUntrustedIdentity(recipient, theirIdentity);
+//    callScreen.setAcceptIdentityListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View v) {
+//        synchronized (SESSION_LOCK) {
+//          TextSecureIdentityKeyStore identityKeyStore = new TextSecureIdentityKeyStore(WebRtcCallActivity.this);
 //          identityKeyStore.saveIdentity(new SignalProtocolAddress(recipient.getAddress(), 1), theirIdentity, true);
-        }
-
-        Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
-        intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
-        intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
-        startService(intent);
-      }
-    });
-
-    callScreen.setCancelIdentityButton(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        handleTerminate(recipient);
-      }
-    });
-  }
+//        }
+//
+//        Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
+//        intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
+//        intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
+//        startService(intent);
+//      }
+//    });
+//
+//    callScreen.setCancelIdentityButton(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View v) {
+//        handleTerminate(recipient);
+//      }
+//    });
+//  }
 
   private void delayedFinish() {
     delayedFinish(STANDARD_DELAY_FINISH);
@@ -318,7 +318,7 @@ public class WebRtcCallActivity extends Activity {
       case CALL_INCOMING:           handleIncomingCall(event);             break;
       case CALL_OUTGOING:           handleOutgoingCall(event);             break;
       case CALL_BUSY:               handleCallBusy(event);                 break;
-      case UNTRUSTED_IDENTITY:      handleUntrustedIdentity(event);        break;
+//      case UNTRUSTED_IDENTITY:      handleUntrustedIdentity(event);        break;
     }
 
     callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());

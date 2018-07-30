@@ -8,7 +8,7 @@ import android.provider.ContactsContract;
 import android.text.TextUtils;
 
 import io.forsta.securesms.WebRtcCallActivity;
-import io.forsta.securesms.database.Address;
+//import io.forsta.securesms.database.Address;
 import io.forsta.securesms.service.WebRtcCallService;
 
 public class VoiceCallShare extends Activity {
@@ -27,18 +27,18 @@ public class VoiceCallShare extends Activity {
 
         if (cursor != null && cursor.moveToNext()) {
           String  destination = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.RawContacts.Data.DATA1));
-          Address address     = Address.fromExternal(this, destination);
-          
-          if (!TextUtils.isEmpty(destination)) {
-            Intent serviceIntent = new Intent(this, WebRtcCallService.class);
-            serviceIntent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
-            serviceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, address);
-            startService(serviceIntent);
-
-            Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
-            activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(activityIntent);
-          }
+//          Address address     = Address.fromExternal(this, destination);
+//
+//          if (!TextUtils.isEmpty(destination)) {
+//            Intent serviceIntent = new Intent(this, WebRtcCallService.class);
+//            serviceIntent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
+//            serviceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, address);
+//            startService(serviceIntent);
+//
+//            Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
+//            activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(activityIntent);
+//          }
         }
       } finally {
         if (cursor != null) cursor.close();
