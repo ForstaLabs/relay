@@ -171,7 +171,7 @@ public class MessageNotifier {
 
     try {
       telcoCursor = DatabaseFactory.getMmsSmsDatabase(context).getUnread();
-      pushCursor  = DatabaseFactory.getPushDatabase(context).getPending();
+      pushCursor  = includePushDatabase ? DatabaseFactory.getPushDatabase(context).getPending() : null;
 
       if ((telcoCursor == null || telcoCursor.isAfterLast()) &&
           (pushCursor == null || pushCursor.isAfterLast()))
