@@ -68,6 +68,9 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- For sending location tiles in the future -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -341,6 +344,7 @@
             android:theme="@style/TextSecure.LightTheme"/>
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
 
+        <service android:enabled="true" android:name=".service.WebRtcCallService"/>
         <service
             android:name=".service.ApplicationMigrationService"
             android:enabled="true"/>
