@@ -53,6 +53,7 @@ import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.libsignal.LegacyMessageException;
 import org.whispersystems.libsignal.NoSessionException;
+import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.UntrustedIdentityException;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
@@ -237,10 +238,10 @@ public class PushDecryptJob extends ContextJob {
                                        @NonNull SignalServiceDataMessage message,
                                        @NonNull Optional<Long>           smsMessageId)
   {
-    String addr = envelope.getSource() + "." + envelope.getSourceDevice();
+    SignalProtocolAddress addr = new SignalProtocolAddress(envelope.getSource(), envelope.getSourceDevice());
     Log.w(TAG, "Deleting session for: " + addr);
     SessionStore sessionStore = new TextSecureSessionStore(context);
-    sessionStore.deleteAllSessions(addr);
+    sessionStore.deleteSession(addr);
     SecurityEvent.broadcastSecurityUpdateEvent(context);
   }
 
