@@ -9,7 +9,7 @@ import android.os.ResultReceiver;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import org.thoughtcrime.securesms.service.WebRtcCallService;
+import io.forsta.securesms.service.WebRtcCallService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
