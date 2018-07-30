@@ -101,13 +101,21 @@
                     android:autoLink="all"
                     android:linksClickable="true" />
 
-            <io.forsta.securesms.components.ReplyView
+            <io.forsta.securesms.components.ReplyListView
                 android:id="@+id/reply_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 app:message_type="incoming"
                 tools:visibility="visible"/>
+
+            <ListView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/conversation_list_view"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+            </ListView>
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"

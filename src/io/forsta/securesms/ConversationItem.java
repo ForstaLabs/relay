@@ -26,23 +26,18 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
-import android.util.EventLog;
 import android.util.Log;
 import android.support.v7.app.AlertDialog;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -53,8 +48,7 @@ import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
-import io.forsta.securesms.components.QuoteView;
-import io.forsta.securesms.components.ReplyView;
+import io.forsta.securesms.components.ReplyListView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -65,16 +59,13 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.database.model.Quote;
-import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
-import io.forsta.securesms.jobs.MmsDownloadJob;
+import io.forsta.securesms.database.model.Reply;
 import io.forsta.securesms.jobs.MmsSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.DocumentSlide;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
-import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -87,9 +78,9 @@ import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
 
-import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
-import java.util.EventListener;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -115,7 +106,8 @@ public class ConversationItem extends LinearLayout
   private Recipient     recipient;
 
   private View               bodyBubble;
-  private ReplyView          replyView;
+  private ReplyListView      replyListView;
+  private ListView           listView;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
@@ -177,7 +169,8 @@ public class ConversationItem extends LinearLayout
     this.documentView            = findViewById(R.id.document_view);
     this.expirationTimer         = findViewById(R.id.expiration_indicator);
     videoView                    = findViewById(R.id.item_video_view);
-    this.replyView               = findViewById(R.id.reply_view);
+    this.listView                = findViewById(R.id.conversation_list_view);
+    this.replyListView           = findViewById(R.id.reply_view);
 
     setOnClickListener(new ClickListener(null));
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
@@ -478,19 +471,22 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReply(MessageRecord messageRecord) {
-    this.replyView.setReply(123, recipient, "This is a test", 5);
-    this.replyView.setVisibility(VISIBLE);
-  }
-  private void setReplies(MessageRecord messageRecord) {
-    SlideDeck slide = new SlideDeck();
-    //Quote quote = ((MediaMmsMessageRecord)messageRecord).getQuote();
-    Quote test = new Quote(1234, messageRecord.getIndividualRecipient(),"TEST TEXT", slide);
-    //assert quote != null;
-    //this.quoteView.setQuote(quote.getId(), quote.getAuthor(), quote.getText(), slide);
-    //this.quoteView.setQuote(test.getId(), messageRecord.getIndividualRecipient(), test.getText(), test.getAttachment());
-    //this.quoteView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-    //this.quoteView.setVisibility(VISIBLE);
-    //LayoutInflater.from(getContext()).inflate(R.layout.quote_view, this, true);
+    this.replyListView.setReply(123, recipient,"This is a reply message. This is a reply message. This is a reply message.", 5);
+    this.replyListView.setVisibility(VISIBLE);
+    /*if(!messageRecord.isOutgoing()){
+
+      Reply first = new Reply(123, recipient, "This is the first reply", 2);
+      Reply second = new Reply(1234, recipient, "This is the second reply", 5);
+      Reply third = new Reply(1,recipient,"This is the third reply", 0);
+
+      ArrayList<Reply> replyList = new ArrayList<>();
+      replyList.add(first);
+      replyList.add(second);
+      replyList.add(third);
+
+      ReplyListAdapter adapter = new ReplyListAdapter(getContext(), R.layout.reply_list_view, replyList);
+      listView.setAdapter(adapter);
+    }*/
   }
 
   private void setFailedStatusIcons() {

@@ -89,7 +89,7 @@
                     android:textSize="@dimen/conversation_item_body_text_size"
                     tools:text="Mango pickle lorem ipsum" />
 
-            <io.forsta.securesms.components.ReplyView
+            <io.forsta.securesms.components.ReplyListView
                 android:id="@+id/reply_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -4,25 +4,22 @@ package io.forsta.securesms.database.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-//import io.forsta.securesms.database.Address;
-import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 
-public class Quote {
-    //maybe add messageRef here?
+public class Reply {
     private final long      id;
     private final Recipient author;
     private final String    text;
-    private SlideDeck attachment;
+    private int             vote;
 
-    public Quote(long id , @NonNull Recipient author, @Nullable String text, @NonNull SlideDeck attachment) {
+    public Reply(long id , @NonNull Recipient author, @Nullable String text, int vote) {
         this.id         = id;
         this.author     = author;
         this.text       = text;
-        this.attachment = attachment;
+        this.vote = vote;
     }
 
-    public Quote(long id , @NonNull Recipient author, @Nullable String text) {
+    public Reply(long id , @NonNull Recipient author, @Nullable String text) {
         this.id         = id;
         this.author     = author;
         this.text       = text;
@@ -40,7 +37,7 @@ public class Quote {
         return text;
     }
 
-    public @NonNull SlideDeck getAttachment() {
-        return attachment;
+    public @NonNull int getVote() {
+        return vote;
     }
 }

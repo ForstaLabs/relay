@@ -90,7 +90,6 @@ public class ConversationFragment extends Fragment
   private Locale       locale;
   private RecyclerView list;
   private View         loadMoreView;
-  private   InputPanel             inputPanel;
 
   @Override
   public void onCreate(Bundle icicle) {

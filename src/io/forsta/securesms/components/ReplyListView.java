@@ -1,21 +1,16 @@
 package io.forsta.securesms.components;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Path;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Attr;
-
 import io.forsta.securesms.R;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.util.Util;
 
-public class ReplyView extends LinearLayout {
+public class ReplyListView extends LinearLayout {
 
     private View            rootView;
     private TextView        bodyView;
@@ -28,22 +23,22 @@ public class ReplyView extends LinearLayout {
     private int       vote;
 
 
-    public ReplyView(Context context) {
+    public ReplyListView(Context context) {
         super(context);
         initialize(null);
     }
 
-    public ReplyView(Context context, AttributeSet attrs) {
+    public ReplyListView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize(attrs);
     }
 
-    public ReplyView(Context context, AttributeSet attrs, int defStyle) {
+    public ReplyListView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
     private void initialize(@Nullable AttributeSet attrs) {
-        inflate(getContext(), R.layout.reply_view, this);
+        inflate(getContext(), R.layout.reply_list_view, this);
 
         this.bodyView     = findViewById(R.id.reply_text);
         this.contactPhoto = findViewById(R.id.reply_contact_photo);

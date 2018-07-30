@@ -25,11 +25,9 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
 
-import com.annimon.stream.Stream;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
 import io.forsta.securesms.ApplicationContext;
@@ -48,7 +46,6 @@ import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
-import io.forsta.securesms.database.model.Quote;
 import io.forsta.securesms.jobs.TrimThreadJob;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
