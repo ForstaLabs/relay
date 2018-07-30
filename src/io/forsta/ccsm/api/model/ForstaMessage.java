@@ -28,7 +28,7 @@ public class ForstaMessage {
   private List<String> mentions = new ArrayList<>();
   private String messageRef;
   private int vote;
-  private List<String> members = new ArrayList();
+  private ForstaCallOffer callOffer;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -146,6 +146,10 @@ public class ForstaMessage {
     return messageId;
   }
 
+  public ForstaProvisionRequest getProvisionRequest() {
+    return provisionRequest;
+  }
+
   public void setVote(int count) {
     vote = count;
   }
@@ -206,10 +210,6 @@ public class ForstaMessage {
     this.provisionRequest = new ForstaProvisionRequest(uuid, key);
   }
 
-  public ForstaProvisionRequest getProvisionRequest() {
-    return provisionRequest;
-  }
-
   public void addMention(String mention) { this.mentions.add(mention); }
 
   public class ForstaAttachment {
@@ -251,6 +251,62 @@ public class ForstaMessage {
 
     public String getKey() {
       return key;
+    }
+  }
+
+  public class ForstaCallOffer {
+    private String callId;
+    private String originator;
+    private String offer;
+    private String peerId;
+    private List<String> iceCandidates = new ArrayList<>();
+
+    public ForstaCallOffer(String callId, String originator, String peerId, String callOffer, List<String> iceCandidates) {
+      this.callId = callId;
+      this.originator = originator;
+      this.peerId = peerId;
+      this.offer = callOffer;
+      this.iceCandidates = iceCandidates;
+    }
+
+    public void setCallId(String callId) {
+      this.callId = callId;
+    }
+
+    public void setIceCandidates(List<String> iceCandidates) {
+      this.iceCandidates = iceCandidates;
+    }
+
+    public void setOriginator(String originator) {
+      this.originator = originator;
+    }
+
+    public void setPeerId(String peerId) {
+      this.peerId = peerId;
+    }
+
+    public void setOffer(String offer) {
+      this.offer = offer;
+    }
+
+    public String getCallId() {
+      return callId;
+    }
+
+    public List<String> getIceCandidates() {
+      return iceCandidates;
+    }
+
+    public String getOriginator() {
+      return originator;
+    }
+
+    public String getPeerId() {
+      return peerId;
+    }
+
+    public String getOffer() {
+      return offer;
     }
   }
 }

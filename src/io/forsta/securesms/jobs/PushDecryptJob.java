@@ -524,6 +524,7 @@ public class PushDecryptJob extends ContextJob {
 //
 //          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
 //          else                                                context.startService(intent);
+          break;
       }
 
     } catch (Exception e) {
