@@ -29,7 +29,7 @@ import io.forsta.securesms.util.Util;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener {
 
@@ -82,7 +82,7 @@ public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener 
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().registerSticky(this);
+    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
   }
 
   @Override

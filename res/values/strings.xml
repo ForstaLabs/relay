@@ -1266,7 +1266,13 @@
     <string name="Permissions_required_contacts">Contacts Permission required</string>
     <string name="Permissions_required_external_storage">External Storage Permission required</string>
     <string name="Permissions_required_locations">Location Permission required</string>
+    <string name="Permissions_required_microphone_answer">To answer the call from %s, give Signal access to your microphone.</string>
+    <string name="Permissions_required_microphone">Microphone Permission required</string>
     <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all functionality.</string>
+
+
+    <!--WebRTC-->
+    <string name="WebRTC_call_connecting">Incomming call</string>
     <!-- EOF -->
 
 </resources>

@@ -27,7 +27,7 @@ import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.ViewUtil;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 public class TransferControlView extends FrameLayout {
   private static final int TRANSITION_MS = 300;
@@ -81,7 +81,7 @@ public class TransferControlView extends FrameLayout {
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().registerSticky(this);
+    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
   }
 
   @Override
