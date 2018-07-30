@@ -210,13 +210,13 @@ public class ForstaMessageManager {
               }
               break;
             case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
-              if (data.has("callicecandidates")) {
+              if (data.has("icecandidates")) {
                 String originator = data.getString("originator");
                 String callId = data.getString("callId");
-                JSONObject callIceCandidates = data.getJSONObject("icecandidates");
+                JSONArray callIceCandidates = data.getJSONArray("icecandidates");
                 Log.w(TAG, "Incomming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
               } else {
-                Log.w(TAG, "Not a valid callIceCandidated control message");
+                Log.w(TAG, "Not a valid callIceCandidate control message");
               }
               break;
             default:
