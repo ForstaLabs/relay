@@ -22,11 +22,11 @@ import io.forsta.securesms.recipients.Recipient;
 public class ReplyListAdapter extends ArrayAdapter<Reply> {
 
     private static final String TAG = "ReplyListAdapter";
-    private final int mResource;
     private Context mContext;
+    private int mResource;
 
 
-    public ReplyListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<Reply> objects) {
+    public ReplyListAdapter(@NonNull Context context, int resource,  @NonNull ArrayList<Reply> objects) {
         super(context, resource, objects);
         mContext = context;
         mResource = resource;
@@ -37,7 +37,7 @@ public class ReplyListAdapter extends ArrayAdapter<Reply> {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         long id = getItem(position).getId();
         Recipient author = getItem(position).getAuthor();
-        String body = getItem(position).getText();
+        String body = getItem(position) .getText();
         int vote = getItem(position).getVote();
 
         LayoutInflater inflater = LayoutInflater.from(mContext);
