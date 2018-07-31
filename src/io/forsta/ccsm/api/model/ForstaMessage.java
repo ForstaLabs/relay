@@ -1,7 +1,5 @@
 package io.forsta.ccsm.api.model;
 
-import android.net.Uri;
-import android.text.Spanned;
 import android.text.TextUtils;
 
 import org.webrtc.IceCandidate;
@@ -30,7 +28,7 @@ public class ForstaMessage {
   private List<String> mentions = new ArrayList<>();
   private String messageRef;
   private int vote;
-  private ForstaCallOffer callOffer;
+  private ForstaCall rtcCall;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -153,8 +151,8 @@ public class ForstaMessage {
     return provisionRequest;
   }
 
-  public ForstaCallOffer getCallOffer() {
-    return callOffer;
+  public ForstaCall getCall() {
+    return rtcCall;
   }
 
   public void setVote(int count) {
@@ -206,11 +204,15 @@ public class ForstaMessage {
   }
 
   public void setCallOffer(String callId, String originator, String peerId, String offer) {
-    this.callOffer = new ForstaCallOffer(callId, originator, peerId, offer);
+    this.rtcCall = new ForstaCall(callId, originator, peerId, offer);
   }
 
   public void setIceCandidates(String callId, String originator, String peerId, List<IceCandidate> candidates) {
-    this.callOffer = new ForstaCallOffer(callId, originator, peerId, candidates);
+    this.rtcCall = new ForstaCall(callId, originator, peerId, candidates);
+  }
+
+  public void setCallLeave(String callId, String originator) {
+    this.rtcCall = new ForstaCall(callId, originator);
   }
 
   public List<ForstaAttachment> getAttachments() {
@@ -269,21 +271,26 @@ public class ForstaMessage {
     }
   }
 
-  public class ForstaCallOffer {
+  public class ForstaCall {
     private String callId;
     private String originator;
     private String offer;
     private String peerId;
     private List<IceCandidate> iceCandidates = new ArrayList<>();
 
-    public ForstaCallOffer(String callId, String originator, String peerId, String callOffer) {
+    public ForstaCall(String callId, String originator) {
+      this.callId = callId;
+      this.originator = originator;
+    }
+
+    public ForstaCall(String callId, String originator, String peerId, String callOffer) {
       this.callId = callId;
       this.originator = originator;
       this.peerId = peerId;
       this.offer = callOffer;
     }
 
-    public ForstaCallOffer(String callId, String originator, String peerId, List<IceCandidate> candidates) {
+    public ForstaCall(String callId, String originator, String peerId, List<IceCandidate> candidates) {
       this.callId = callId;
       this.originator = originator;
       this.peerId = peerId;

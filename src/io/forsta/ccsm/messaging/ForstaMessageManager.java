@@ -235,6 +235,7 @@ public class ForstaMessageManager {
             case ForstaMessage.ControlTypes.CALL_LEAVE:
               String originator = data.getString("originator");
               String callId = data.getString("callId");
+              forstaMessage.setCallLeave(callId, originator);
               Log.w(TAG, "Call leave received: " + callId + " From : " + originator);
             default:
             Log.w(TAG, "Not a control message");

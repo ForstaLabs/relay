@@ -70,7 +70,6 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
 import org.whispersystems.signalservice.api.messages.SignalServiceContent;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
-import org.whispersystems.signalservice.api.messages.SignalServiceGroup;
 import org.whispersystems.signalservice.api.messages.multidevice.ReadMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.RequestMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
@@ -517,7 +516,7 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
-          ForstaMessage.ForstaCallOffer callOffer = forstaMessage.getCallOffer();
+          ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
           intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
@@ -529,7 +528,7 @@ public class PushDecryptJob extends ContextJob {
           else                                                context.startService(intent);
           break;
         case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
-          ForstaMessage.ForstaCallOffer iceUpdate = forstaMessage.getCallOffer();
+          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
           for (IceCandidate ice : iceUpdate.getIceCandidates()) {
             Intent iceIntent = new Intent(context, WebRtcCallService.class);
             iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
@@ -545,9 +544,11 @@ public class PushDecryptJob extends ContextJob {
 
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
+          ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
           Intent iceIntent = new Intent(context, WebRtcCallService.class);
           iceIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
-          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, "call_id");
+          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
+          iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callLeave.getOriginator());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
           else                                                context.startService(iceIntent);
