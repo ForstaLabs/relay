@@ -46,6 +46,7 @@ import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 
+import org.webrtc.IceCandidate;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -526,6 +527,22 @@ public class PushDecryptJob extends ContextJob {
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
           else                                                context.startService(intent);
+          break;
+        case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+          ForstaMessage.ForstaCallOffer iceUpdate = forstaMessage.getCallOffer();
+          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
+            Intent iceIntent = new Intent(context, WebRtcCallService.class);
+            iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
+            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, iceUpdate.getOriginator());
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, "spd");
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, "spd_mid");
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, "spd_line_index");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
+            else                                                context.startService(iceIntent);
+          }
+
           break;
       }
 

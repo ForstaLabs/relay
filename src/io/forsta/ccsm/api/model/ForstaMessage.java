@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.text.Spanned;
 import android.text.TextUtils;
 
+import org.webrtc.IceCandidate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,8 +204,12 @@ public class ForstaMessage {
     this.senderId = senderId;
   }
 
-  public void setCallDetail(String callId, String originator, String peerId, String offer) {
+  public void setCallOffer(String callId, String originator, String peerId, String offer) {
     this.callOffer = new ForstaCallOffer(callId, originator, peerId, offer);
+  }
+
+  public void setIceCandidates(String callId, String originator, String peerId, List<IceCandidate> candidates) {
+    this.callOffer = new ForstaCallOffer(callId, originator, peerId, candidates);
   }
 
   public List<ForstaAttachment> getAttachments() {
@@ -267,21 +273,28 @@ public class ForstaMessage {
     private String originator;
     private String offer;
     private String peerId;
-    private List<String> iceCandidates = new ArrayList<>();
+    private List<IceCandidate> iceCandidates = new ArrayList<>();
 
     public ForstaCallOffer(String callId, String originator, String peerId, String callOffer) {
       this.callId = callId;
       this.originator = originator;
       this.peerId = peerId;
       this.offer = callOffer;
-      this.iceCandidates = iceCandidates;
+    }
+
+    public ForstaCallOffer(String callId, String originator, String peerId, List<IceCandidate> candidates) {
+      this.callId = callId;
+      this.originator = originator;
+      this.peerId = peerId;
+      this.offer = null;
+      this.iceCandidates = candidates;
     }
 
     public void setCallId(String callId) {
       this.callId = callId;
     }
 
-    public void setIceCandidates(List<String> iceCandidates) {
+    public void setIceCandidates(List<IceCandidate> iceCandidates) {
       this.iceCandidates = iceCandidates;
     }
 
@@ -301,7 +314,7 @@ public class ForstaMessage {
       return callId;
     }
 
-    public List<String> getIceCandidates() {
+    public List<IceCandidate> getIceCandidates() {
       return iceCandidates;
     }
 

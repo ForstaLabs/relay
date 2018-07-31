@@ -1,6 +1,7 @@
 package io.forsta.securesms.service;
 
 
+import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,9 +20,13 @@ import org.greenrobot.eventbus.EventBus;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.WebRtcCallActivity;
 
+import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.util.FutureTaskListener;
+import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.webrtc.CallNotificationBuilder;
 import io.forsta.securesms.webrtc.IncomingPstnCallReceiver;
@@ -38,10 +43,12 @@ import org.webrtc.AudioTrack;
 import org.webrtc.DataChannel;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
+import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
+import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoTrack;
@@ -49,6 +56,10 @@ import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -118,12 +129,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private IncomingPstnCallReceiver        callReceiver;
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
-  @Nullable private Long                   callId;
+  @Nullable private String                   callId;
   @Nullable private Recipient              recipient;
+  @Nullable private String              originator;
   @Nullable private PeerConnectionWrapper  peerConnection;
   @Nullable private DataChannel            dataChannel;
 //  @Nullable private List<IceUpdateMessage> pendingOutgoingIceUpdates;
-//  @Nullable private List<IceCandidate>     pendingIncomingIceUpdates;
+  @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
@@ -167,7 +179,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //        else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
 //        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
 //        else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
-//        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleRemoteIceCandidate(intent);
+        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleRemoteIceCandidate(intent);
 //        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleLocalIceCandidate(intent);
 //        else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
@@ -278,11 +290,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
 
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
-    String callId = intent.getStringExtra(EXTRA_CALL_ID);
-//
-//    this.callState                 = CallState.STATE_ANSWERING;
+    this.callId = getCallId(intent);
+    this.callState                 = CallState.STATE_ANSWERING;
 //    this.callId                    = intent.getLongExtra(EXTRA_CALL_ID, -1);
-//    this.pendingIncomingIceUpdates = new LinkedList<>();
+    this.pendingIncomingIceUpdates = new LinkedList<>();
+    this.originator = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
 //    this.recipient                 = getRemoteRecipient(intent);
 //
 //    if (isIncomingMessageExpired(intent)) {
@@ -295,21 +307,21 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //      setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
 //    }
 //
-//    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 2, TimeUnit.MINUTES);
-//
-//    initializeVideo();
-//
+    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 2, TimeUnit.MINUTES);
+
+    initializeVideo();
+
 //    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
 //      @Override
 //      public void onSuccessContinue(List<PeerConnection.IceServer> result) {
 //        try {
 //          boolean isSystemContact = false;
 //
-//          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
-//            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
-//          }
+////          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
+////            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
+////          }
 //
-//          boolean isAlwaysTurn = TextSecurePreferences.isTurnOnly(WebRtcCallService.this);
+//          boolean isAlwaysTurn = true;
 //
 //          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
 //          WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
@@ -319,20 +331,20 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //          Log.w(TAG, "Answer SDP: " + sdp.description);
 //          WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 //
-//          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, SignalServiceCallMessage.forAnswer(new AnswerMessage(WebRtcCallService.this.callId, sdp.description)));
+////          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, SignalServiceCallMessage.forAnswer(new AnswerMessage(WebRtcCallService.this.callId, sdp.description)));
 //
 //          for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
 //          WebRtcCallService.this.pendingIncomingIceUpdates = null;
 //
-//          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
-//            @Override
-//            public void onFailureContinue(Throwable error) {
-//              Log.w(TAG, error);
-//              insertMissedCall(recipient, true);
-//              terminate();
-//            }
-//          });
-//        } catch (PeerConnectionException e) {
+////          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
+////            @Override
+////            public void onFailureContinue(Throwable error) {
+////              Log.w(TAG, error);
+////              insertMissedCall(recipient, true);
+////              terminate();
+////            }
+////          });
+//        } catch (PeerConnectionWrapper.PeerConnectionException e) {
 //          Log.w(TAG, e);
 //          terminate();
 //        }
@@ -443,10 +455,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    }
 //  }
 //
-//  private void handleRemoteIceCandidate(Intent intent) {
-//    Log.w(TAG, "handleRemoteIceCandidate...");
-//
-//    if (Util.isEquals(this.callId, getCallId(intent))) {
+  private void handleRemoteIceCandidate(Intent intent) {
+    Log.w(TAG, "handleRemoteIceCandidate...");
+
+//    if (this.callId.equals(getCallId(intent))) {
 //      IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
 //                                                intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
 //                                                intent.getStringExtra(EXTRA_ICE_SDP));
@@ -454,7 +466,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //      if       (peerConnection != null)           peerConnection.addIceCandidate(candidate);
 //      else if (pendingIncomingIceUpdates != null) pendingIncomingIceUpdates.add(candidate);
 //    }
-//  }
+  }
 //
 //  private void handleLocalIceCandidate(Intent intent) {
 //    if (callState == CallState.STATE_IDLE || !Util.isEquals(this.callId, getCallId(intent))) {
@@ -911,8 +923,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    return Recipient.from(this, remoteAddress, true);
 //  }
 
-  private long getCallId(Intent intent) {
-    return intent.getLongExtra(EXTRA_CALL_ID, -1);
+  private String getCallId(Intent intent) {
+    return intent.hasExtra(EXTRA_CALL_ID) ? intent.getStringExtra(EXTRA_CALL_ID) : "";
   }
 
 
@@ -1064,12 +1076,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    }
   }
 
-//  private ListenableFutureTask<List<PeerConnection.IceServer>> retrieveTurnServers() {
-//    Callable<List<PeerConnection.IceServer>> callable = new Callable<List<PeerConnection.IceServer>>() {
-//      @Override
-//      public List<PeerConnection.IceServer> call() {
-//        LinkedList<PeerConnection.IceServer> results = new LinkedList<>();
-//
+  private ListenableFutureTask<List<PeerConnection.IceServer>> retrieveTurnServers() {
+    Callable<List<PeerConnection.IceServer>> callable = new Callable<List<PeerConnection.IceServer>>() {
+      @Override
+      public List<PeerConnection.IceServer> call() {
+        LinkedList<PeerConnection.IceServer> results = new LinkedList<>();
+
 //        try {
 //          TurnServerInfo turnServerInfo = accountManager.getTurnServerInfo();
 //
@@ -1084,16 +1096,16 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //        } catch (IOException e) {
 //          Log.w(TAG, e);
 //        }
-//
-//        return results;
-//      }
-//    };
-//
-//    ListenableFutureTask<List<PeerConnection.IceServer>> futureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
-//    networkExecutor.execute(futureTask);
-//
-//    return futureTask;
-//  }
+
+        return results;
+      }
+    };
+
+    ListenableFutureTask<List<PeerConnection.IceServer>> futureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(futureTask);
+
+    return futureTask;
+  }
 
   ////
 
@@ -1137,9 +1149,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private class TimeoutRunnable implements Runnable {
 
-    private final long callId;
+    private final String callId;
 
-    private TimeoutRunnable(long callId) {
+    private TimeoutRunnable(String callId) {
       this.callId = callId;
     }
 
@@ -1165,64 +1177,64 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
   }
 
-//  private abstract class StateAwareListener<V> implements FutureTaskListener<V> {
-//
-//    private final CallState expectedState;
-//    private final long      expectedCallId;
-//
-//    StateAwareListener(CallState expectedState, long expectedCallId) {
-//      this.expectedState  = expectedState;
-//      this.expectedCallId = expectedCallId;
-//    }
-//
-//
-//    @Override
-//    public void onSuccess(V result) {
-//      if (!isConsistentState()) {
-//        Log.w(TAG, "State has changed since request, aborting success callback...");
-//      } else {
-//        onSuccessContinue(result);
-//      }
-//    }
-//
-//    @Override
-//    public void onFailure(ExecutionException throwable) {
-//      if (!isConsistentState()) {
-//        Log.w(TAG, throwable);
-//        Log.w(TAG, "State has changed since request, aborting failure callback...");
-//      } else {
-//        onFailureContinue(throwable.getCause());
-//      }
-//    }
-//
-//    private boolean isConsistentState() {
-//      return this.expectedState == callState && Util.isEquals(callId, this.expectedCallId);
-//    }
-//
-//    public abstract void onSuccessContinue(V result);
-//    public abstract void onFailureContinue(Throwable throwable);
-//  }
+  private abstract class StateAwareListener<V> implements FutureTaskListener<V> {
 
-//  private abstract class FailureListener<V> extends StateAwareListener<V> {
-//    FailureListener(CallState expectedState, long expectedCallId) {
-//      super(expectedState, expectedCallId);
-//    }
-//
-//    @Override
-//    public void onSuccessContinue(V result) {}
-//  }
-//
-//  private abstract class SuccessOnlyListener<V> extends StateAwareListener<V> {
-//    SuccessOnlyListener(CallState expectedState, long expectedCallId) {
-//      super(expectedState, expectedCallId);
-//    }
-//
-//    @Override
-//    public void onFailureContinue(Throwable throwable) {
-//      Log.w(TAG, throwable);
-//      throw new AssertionError(throwable);
-//    }
-//  }
+    private final CallState expectedState;
+    private final String      expectedCallId;
+
+    StateAwareListener(CallState expectedState, String expectedCallId) {
+      this.expectedState  = expectedState;
+      this.expectedCallId = expectedCallId;
+    }
+
+
+    @Override
+    public void onSuccess(V result) {
+      if (!isConsistentState()) {
+        Log.w(TAG, "State has changed since request, aborting success callback...");
+      } else {
+        onSuccessContinue(result);
+      }
+    }
+
+    @Override
+    public void onFailure(ExecutionException throwable) {
+      if (!isConsistentState()) {
+        Log.w(TAG, throwable);
+        Log.w(TAG, "State has changed since request, aborting failure callback...");
+      } else {
+        onFailureContinue(throwable.getCause());
+      }
+    }
+
+    private boolean isConsistentState() {
+      return this.expectedState == callState && callId.equals(this.expectedCallId);
+    }
+
+    public abstract void onSuccessContinue(V result);
+    public abstract void onFailureContinue(Throwable throwable);
+  }
+
+  private abstract class FailureListener<V> extends StateAwareListener<V> {
+    FailureListener(CallState expectedState, String expectedCallId) {
+      super(expectedState, expectedCallId);
+    }
+
+    @Override
+    public void onSuccessContinue(V result) {}
+  }
+
+  private abstract class SuccessOnlyListener<V> extends StateAwareListener<V> {
+    SuccessOnlyListener(CallState expectedState, String expectedCallId) {
+      super(expectedState, expectedCallId);
+    }
+
+    @Override
+    public void onFailureContinue(Throwable throwable) {
+      Log.w(TAG, throwable);
+      throw new AssertionError(throwable);
+    }
+  }
 //
 //  @WorkerThread
 //  public static boolean isCallActive(Context context) {

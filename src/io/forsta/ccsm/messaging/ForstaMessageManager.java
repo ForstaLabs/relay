@@ -9,6 +9,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.IceCandidate;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
@@ -204,7 +205,7 @@ public class ForstaMessageManager {
                 String callId = data.getString("callId");
                 JSONObject offer = data.getJSONObject("offer");
                 String peerId = data.getString("peerId");
-                forstaMessage.setCallDetail(callId, originator, peerId, offer.toString());
+                forstaMessage.setCallOffer(callId, originator, peerId, offer.toString());
                 Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
 
               } else {
@@ -217,7 +218,15 @@ public class ForstaMessageManager {
                 String callId = data.getString("callId");
                 String peerId = data.getString("peerId");
                 JSONArray callIceCandidates = data.getJSONArray("icecandidates");
-                forstaMessage.setCallDetail(callId, originator, peerId, callIceCandidates.toString());
+                List<IceCandidate> candidates = new ArrayList<>();
+                for (int i=0; i<callIceCandidates.length(); i++) {
+                  JSONObject iceCandidate = callIceCandidates.getJSONObject(i);
+                  String spdMid = iceCandidate.getString("sdpMid");
+                  int spdLineIndex = iceCandidate.getInt("sdpMLineIndex");
+                  String spd = iceCandidate.getString("candidate");
+                  candidates.add(new IceCandidate(spdMid, spdLineIndex, spd));
+                }
+                forstaMessage.setIceCandidates(callId, originator, peerId, candidates);
                 Log.w(TAG, "Incomming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
               } else {
                 Log.w(TAG, "Not a valid callIceCandidate control message");
