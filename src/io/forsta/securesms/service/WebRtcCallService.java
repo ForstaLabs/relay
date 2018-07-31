@@ -683,6 +683,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 //
   private void handleRemoteHangup(Intent intent) {
+    Log.w(TAG, "handleRemoteHangup");
     if (!this.callId.equals(getCallId(intent))) {
       Log.w(TAG, "hangup for non-active call...");
       return;

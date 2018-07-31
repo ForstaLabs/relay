@@ -277,6 +277,7 @@ public class ForstaMessage {
     private String offer;
     private String peerId;
     private List<IceCandidate> iceCandidates = new ArrayList<>();
+    private List<String> members; // Need to add this to all signatures? Or is this sent now with all messages?
 
     public ForstaCall(String callId, String originator) {
       this.callId = callId;
