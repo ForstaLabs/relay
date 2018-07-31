@@ -170,7 +170,7 @@ public class ConversationItem extends LinearLayout
     this.expirationTimer         = findViewById(R.id.expiration_indicator);
     videoView                    = findViewById(R.id.item_video_view);
     this.listView                = findViewById(R.id.conversation_list_view);
-    this.replyListView           = findViewById(R.id.reply_view);
+    //this.replyListView           = findViewById(R.id.reply_view);
 
     setOnClickListener(new ClickListener(null));
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
@@ -473,22 +473,18 @@ public class ConversationItem extends LinearLayout
   private void setReply(MessageRecord messageRecord) {
     //this.replyListView.setReply(123, recipient,"This is a reply message. This is a reply message. This is a reply message.", 5);
     //this.replyListView.setVisibility(VISIBLE);
-    if(!messageRecord.isOutgoing()){
+    Reply first = new Reply(1235, recipient, "This is the first reply", 2);
+    Reply second = new Reply(1234, recipient, "This is the second reply", 5);
+    Reply third = new Reply(1236, recipient,"This is the third reply", 0);
 
-      Reply first = new Reply(1235, recipient, "This is the first reply", 2);
-      Reply second = new Reply(1234, recipient, "This is the second reply", 5);
-      Reply third = new Reply(1236,recipient,"This is the third reply", 0);
+    ArrayList<Reply> replyList = new ArrayList<>();
+    replyList.add(first);
+    replyList.add(second);
+    replyList.add(third);
 
-      ArrayList<Reply> replyList = new ArrayList<>();
-      replyList.add(third);
-      //replyList.add(second);
-      replyList.add(first);
-
-
-      ReplyListAdapter adapter = new ReplyListAdapter(getContext(), R.layout.reply_list_view, replyList);
-      listView.setAdapter(adapter);
-      this.listView.setVisibility(VISIBLE);
-    }
+    //ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, replyList);
+    //listView.setAdapter(adapter);
+    //this.listView.setVisibility(VISIBLE);
   }
 
   private void setFailedStatusIcons() {

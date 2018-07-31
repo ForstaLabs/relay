@@ -107,12 +107,14 @@
                 app:message_type="incoming"
                 tools:visibility="gone"/-->
 
-            <ListView
+            <io.forsta.securesms.components.CustomListView
+                android:id="@+id/conversation_list_view"
                 android:scrollbars="none"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/conversation_list_view">
-            </ListView>
+                android:divider="@null"
+                android:dividerHeight="-.2dp">
+            </io.forsta.securesms.components.CustomListView>
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"

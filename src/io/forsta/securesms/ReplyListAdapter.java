@@ -21,7 +21,6 @@ import io.forsta.securesms.recipients.Recipient;
 
 public class ReplyListAdapter extends ArrayAdapter<Reply> {
 
-    private static final String TAG = "ReplyListAdapter";
     private Context mContext;
     private int mResource;
 
@@ -47,7 +46,12 @@ public class ReplyListAdapter extends ArrayAdapter<Reply> {
         AvatarImageView contactPhoto = convertView.findViewById(R.id.reply_contact_photo);
         TextView bodyText = convertView.findViewById(R.id.reply_text);
 
-        voteCount.setText(String.valueOf(vote));
+        if(vote > 0) {
+            voteCount.setVisibility(View.VISIBLE);
+            voteCount.setText("(" + String.valueOf(vote) + ")");
+        } else {
+            voteCount.setVisibility(View.GONE);
+        }
         contactPhoto.setAvatar(author, false);
         bodyText.setText(body);
 
