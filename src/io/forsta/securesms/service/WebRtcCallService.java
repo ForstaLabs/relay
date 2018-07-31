@@ -170,8 +170,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
         else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent);
 //        else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
-//        else if (intent.getAction().equals(ACTION_LOCAL_HANGUP))              handleLocalHangup(intent);
-//        else if (intent.getAction().equals(ACTION_REMOTE_HANGUP))             handleRemoteHangup(intent);
+        else if (intent.getAction().equals(ACTION_LOCAL_HANGUP))              handleLocalHangup(intent);
+        else if (intent.getAction().equals(ACTION_REMOTE_HANGUP))             handleRemoteHangup(intent);
 //        else if (intent.getAction().equals(ACTION_SET_MUTE_AUDIO))            handleSetMuteAudio(intent);
 //        else if (intent.getAction().equals(ACTION_SET_MUTE_VIDEO))            handleSetMuteVideo(intent);
 //        else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
@@ -669,7 +669,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    this.terminate();
 //  }
 //
-//  private void handleLocalHangup(Intent intent) {
+  private void handleLocalHangup(Intent intent) {
 //    if (this.dataChannel != null && this.recipient != null && this.callId != null) {
 //      this.accountManager.cancelInFlightRequests();
 //      this.messageSender.cancelInFlightRequests();
@@ -680,9 +680,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    }
 //
 //    terminate();
-//  }
+  }
 //
-//  private void handleRemoteHangup(Intent intent) {
+  private void handleRemoteHangup(Intent intent) {
 //    if (!Util.isEquals(this.callId, getCallId(intent))) {
 //      Log.w(TAG, "hangup for non-active call...");
 //      return;
@@ -703,7 +703,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    }
 //
 //    this.terminate();
-//  }
+  }
 //
 //  private void handleSetMuteAudio(Intent intent) {
 //    boolean muted = intent.getBooleanExtra(EXTRA_MUTE, false);

@@ -544,6 +544,14 @@ public class PushDecryptJob extends ContextJob {
           }
 
           break;
+        case ForstaMessage.ControlTypes.CALL_LEAVE:
+          Intent iceIntent = new Intent(context, WebRtcCallService.class);
+          iceIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
+          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, "call_id");
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
+          else                                                context.startService(iceIntent);
+          break;
       }
 
     } catch (Exception e) {

@@ -232,6 +232,10 @@ public class ForstaMessageManager {
                 Log.w(TAG, "Not a valid callIceCandidate control message");
               }
               break;
+            case ForstaMessage.ControlTypes.CALL_LEAVE:
+              String originator = data.getString("originator");
+              String callId = data.getString("callId");
+              Log.w(TAG, "Call leave received: " + callId + " From : " + originator);
             default:
             Log.w(TAG, "Not a control message");
           }
