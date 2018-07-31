@@ -287,7 +287,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleIncomingCall(final Intent intent) {
     Log.w(TAG, "handleIncomingCall()");
-    if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
+//    if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
 
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
     this.callId = getCallId(intent);
@@ -309,7 +309,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //
     timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 2, TimeUnit.MINUTES);
 
-    initializeVideo();
+//    initializeVideo();
 
 //    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
 //      @Override
