@@ -150,6 +150,10 @@ public class ForstaMessage {
     return provisionRequest;
   }
 
+  public ForstaCallOffer getCallOffer() {
+    return callOffer;
+  }
+
   public void setVote(int count) {
     vote = count;
   }
@@ -196,6 +200,10 @@ public class ForstaMessage {
 
   public void setSenderId(String senderId) {
     this.senderId = senderId;
+  }
+
+  public void setCallDetail(String callId, String originator, String peerId, String offer) {
+    this.callOffer = new ForstaCallOffer(callId, originator, peerId, offer);
   }
 
   public List<ForstaAttachment> getAttachments() {
@@ -261,7 +269,7 @@ public class ForstaMessage {
     private String peerId;
     private List<String> iceCandidates = new ArrayList<>();
 
-    public ForstaCallOffer(String callId, String originator, String peerId, String callOffer, List<String> iceCandidates) {
+    public ForstaCallOffer(String callId, String originator, String peerId, String callOffer) {
       this.callId = callId;
       this.originator = originator;
       this.peerId = peerId;

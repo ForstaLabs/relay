@@ -2,6 +2,7 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -515,15 +516,16 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
-//          Intent intent = new Intent(context, WebRtcCallService.class);
-//          intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
-//          intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, forstaMessage.getCallId());
-//          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-//          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, forstaMessage.getDescription());
+          ForstaMessage.ForstaCallOffer callOffer = forstaMessage.getCallOffer();
+          Intent intent = new Intent(context, WebRtcCallService.class);
+          intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callOffer.getOriginator());
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
 //          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimestamp());
-//
-//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
-//          else                                                context.startService(intent);
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
+          else                                                context.startService(intent);
           break;
       }
 

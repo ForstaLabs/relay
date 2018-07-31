@@ -137,11 +137,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   public void onCreate() {
     super.onCreate();
 
-    initializeResources();
-
-    registerIncomingPstnCallReceiver();
-    registerUncaughtExceptionHandler();
-    registerWiredHeadsetStateReceiver();
+//    initializeResources();
+//
+//    registerIncomingPstnCallReceiver();
+//    registerUncaughtExceptionHandler();
+//    registerWiredHeadsetStateReceiver();
   }
 
   @Override
@@ -277,7 +277,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     Log.w(TAG, "handleIncomingCall()");
     if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
 
-//    final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
+    final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
+    String callId = intent.getStringExtra(EXTRA_CALL_ID);
 //
 //    this.callState                 = CallState.STATE_ANSWERING;
 //    this.callId                    = intent.getLongExtra(EXTRA_CALL_ID, -1);

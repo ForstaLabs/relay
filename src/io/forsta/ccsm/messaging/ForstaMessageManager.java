@@ -203,6 +203,8 @@ public class ForstaMessageManager {
                 String originator = data.getString("originator");
                 String callId = data.getString("callId");
                 JSONObject offer = data.getJSONObject("offer");
+                String peerId = data.getString("peerId");
+                forstaMessage.setCallDetail(callId, originator, peerId, offer.toString());
                 Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
 
               } else {
@@ -213,7 +215,9 @@ public class ForstaMessageManager {
               if (data.has("icecandidates")) {
                 String originator = data.getString("originator");
                 String callId = data.getString("callId");
+                String peerId = data.getString("peerId");
                 JSONArray callIceCandidates = data.getJSONArray("icecandidates");
+                forstaMessage.setCallDetail(callId, originator, peerId, callIceCandidates.toString());
                 Log.w(TAG, "Incomming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
               } else {
                 Log.w(TAG, "Not a valid callIceCandidate control message");
