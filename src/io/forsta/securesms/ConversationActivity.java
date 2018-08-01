@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -110,6 +111,7 @@ import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -1351,21 +1353,35 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleCallRecipient () {
-    String number = recipients.getPrimaryRecipient().getPhone();
-    Intent intent = new Intent(Intent.ACTION_CALL);
-    intent.setData(Uri.parse("tel:" + number));
-    startActivity(intent);
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.CALL_PHONE)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          String number = recipients.getPrimaryRecipient().getPhone();
+          Intent intent = new Intent(Intent.ACTION_CALL);
+          intent.setData(Uri.parse("tel:" + number));
+          startActivity(intent);
+        })
+        .execute();
   }
 
   private void handleAddToContacts() {
-    try {
-      final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-      intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
-      intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-      startActivityForResult(intent, ADD_CONTACT);
-    } catch (ActivityNotFoundException e) {
-      Log.w(TAG, e);
-    }
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          try {
+            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
+            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+            startActivityForResult(intent, ADD_CONTACT);
+          } catch (ActivityNotFoundException e) {
+            Log.w(TAG, e);
+          }
+        })
+        .execute();
   }
 
   private ListenableFuture<Boolean> initializeDirectory()

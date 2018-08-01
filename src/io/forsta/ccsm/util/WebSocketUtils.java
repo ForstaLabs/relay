@@ -105,12 +105,16 @@ public class WebSocketUtils {
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
       Log.d(TAG, "Socket Failed");
-      setSocketState(false);
+      socketOpen = false;
+      if (callback != null) {
+        callback.onFailure(response.message());
+      }
     }
   }
 
   public interface MessageCallbacks {
     void onSocketMessage(WebSocketProtos.WebSocketRequestMessage message);
     void onStatusChanged(boolean connected);
+    void onFailure(String message);
   }
 }

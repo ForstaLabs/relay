@@ -1,6 +1,7 @@
 // vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.api;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.Context;
@@ -40,6 +41,7 @@ import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -180,10 +182,12 @@ public class CcsmApi {
           JSONObject threadUsers = getUserDirectory(context, addresses);
           threadContacts = CcsmApi.parseUsers(context, threadUsers);
         }
-        List<ForstaUser> knownLocalContacts = getKnownLocalContacts(context);
-        for (ForstaUser user : knownLocalContacts) {
-          if (!threadContacts.contains(user)) {
-            threadContacts.add(user);
+        if (Permissions.hasAny(context, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
+          List<ForstaUser> knownLocalContacts = getKnownLocalContacts(context);
+          for (ForstaUser user : knownLocalContacts) {
+            if (!threadContacts.contains(user)) {
+              threadContacts.add(user);
+            }
           }
         }
         syncForstaContactsDb(context, threadContacts, removeInvalidUsers);
