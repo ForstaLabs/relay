@@ -17,6 +17,8 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
+
+import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.WebRtcCallActivity;
 
@@ -39,6 +41,9 @@ import io.forsta.securesms.webrtc.UncaughtExceptionHandlerManager;
 import io.forsta.securesms.webrtc.audio.BluetoothStateManager;
 import io.forsta.securesms.webrtc.audio.SignalAudioManager;
 import io.forsta.securesms.webrtc.locks.LockManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.webrtc.AudioTrack;
 import org.webrtc.DataChannel;
 import org.webrtc.EglBase;
@@ -309,20 +314,20 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //
     timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 2, TimeUnit.MINUTES);
 
-//    initializeVideo();
+    initializeVideo();
 
-//    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
-//      @Override
-//      public void onSuccessContinue(List<PeerConnection.IceServer> result) {
+    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
+      @Override
+      public void onSuccessContinue(List<PeerConnection.IceServer> result) {
 //        try {
 //          boolean isSystemContact = false;
-//
-////          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
-////            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
-////          }
-//
+
+//          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
+//            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
+//          }
+
 //          boolean isAlwaysTurn = true;
-//
+
 //          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
 //          WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 //          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
@@ -330,26 +335,26 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //          SessionDescription sdp = WebRtcCallService.this.peerConnection.createAnswer(new MediaConstraints());
 //          Log.w(TAG, "Answer SDP: " + sdp.description);
 //          WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
-//
-////          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, SignalServiceCallMessage.forAnswer(new AnswerMessage(WebRtcCallService.this.callId, sdp.description)));
-//
+
+//          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, SignalServiceCallMessage.forAnswer(new AnswerMessage(WebRtcCallService.this.callId, sdp.description)));
+
 //          for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
 //          WebRtcCallService.this.pendingIncomingIceUpdates = null;
-//
-////          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
-////            @Override
-////            public void onFailureContinue(Throwable error) {
-////              Log.w(TAG, error);
-////              insertMissedCall(recipient, true);
-////              terminate();
-////            }
-////          });
+
+//          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
+//            @Override
+//            public void onFailureContinue(Throwable error) {
+//              Log.w(TAG, error);
+//              insertMissedCall(recipient, true);
+//              terminate();
+//            }
+//          });
 //        } catch (PeerConnectionWrapper.PeerConnectionException e) {
 //          Log.w(TAG, e);
 //          terminate();
 //        }
-//      }
-//    });
+      }
+    });
   }
 
   private void handleOutgoingCall(Intent intent) {
@@ -1082,6 +1087,14 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       @Override
       public List<PeerConnection.IceServer> call() {
         LinkedList<PeerConnection.IceServer> results = new LinkedList<>();
+
+        try {
+//          JSONArray rtcServers = CcsmApi.getRtcServers(getApplicationContext());
+          Log.w(TAG, "Got TURN Servers");
+
+        } catch (Exception e) {
+          Log.w(TAG, "Error fetching RTC servers from Atlas: " + e.getMessage());
+        }
 
 //        try {
 //          TurnServerInfo turnServerInfo = accountManager.getTurnServerInfo();

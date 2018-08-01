@@ -70,6 +70,7 @@ public class CcsmApi {
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
   private static final String API_USER_RESET_PASSWORD = "/v1/password/reset/";
+  private static final String API_RTC = "/v1/rtc/servers/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -321,6 +322,10 @@ public class CcsmApi {
 
   public static JSONObject getTagPick(Context context) {
     return fetchResource(context, "GET", API_TAG_PICK);
+  }
+
+  public static JSONObject getRtcServers(Context context) {
+    return fetchResource(context, "GET", API_RTC);
   }
 
   public static JSONObject getDistribution(Context context, String expression) {
