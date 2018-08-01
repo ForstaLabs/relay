@@ -116,8 +116,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private boolean   remoteVideoEnabled = false;
   private boolean   bluetoothAvailable = false;
 
-  @Inject public SignalServiceMessageSender  messageSender;
-  @Inject public SignalServiceAccountManager accountManager;
+//  @Inject public SignalServiceMessageSender  messageSender;
+//  @Inject public SignalServiceAccountManager accountManager;
 
   private PeerConnectionFactory      peerConnectionFactory;
   private SignalAudioManager         audioManager;
@@ -149,7 +149,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   public void onCreate() {
     super.onCreate();
 
-//    initializeResources();
+    initializeResources();
 //
 //    registerIncomingPstnCallReceiver();
 //    registerUncaughtExceptionHandler();
@@ -232,13 +232,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   // Initializers
 
   private void initializeResources() {
-    ApplicationContext.getInstance(this).injectDependencies(this);
+//    ApplicationContext.getInstance(this).injectDependencies(this);
 
     this.callState             = CallState.STATE_IDLE;
     this.lockManager           = new LockManager(this);
     this.peerConnectionFactory = new PeerConnectionFactory(new PeerConnectionFactoryOptions());
     this.audioManager          = new SignalAudioManager(this);
-    this.bluetoothStateManager = new BluetoothStateManager(this, this);
+//    this.bluetoothStateManager = new BluetoothStateManager(this, this);
 //    this.messageSender.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
 //    this.accountManager.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
   }
@@ -684,7 +684,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //
   private void handleRemoteHangup(Intent intent) {
     Log.w(TAG, "handleRemoteHangup");
-    if (!this.callId.equals(getCallId(intent))) {
+    if (this.callId == null || (this.callId != null && !this.callId.equals(getCallId(intent)))) {
       Log.w(TAG, "hangup for non-active call...");
       return;
     }
@@ -703,7 +703,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //      insertMissedCall(this.recipient, true);
 //    }
 //
-//    this.terminate();
+    this.terminate();
   }
 //
 //  private void handleSetMuteAudio(Intent intent) {
@@ -845,7 +845,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     stopForeground(true);
 
     audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
-    bluetoothStateManager.setWantsConnection(false);
+//    bluetoothStateManager.setWantsConnection(false);
 
     if (peerConnection != null) {
       peerConnection.dispose();
