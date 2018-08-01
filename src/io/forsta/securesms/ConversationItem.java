@@ -45,6 +45,7 @@ import android.widget.VideoView;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
+import io.forsta.securesms.components.CustomListView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
@@ -106,8 +107,8 @@ public class ConversationItem extends LinearLayout
   private Recipient     recipient;
 
   private View               bodyBubble;
-  private ReplyListView      replyListView;
-  private ListView           listView;
+  private CustomListView     listView;
+  private LinearLayout       replyBox;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
@@ -170,7 +171,7 @@ public class ConversationItem extends LinearLayout
     this.expirationTimer         = findViewById(R.id.expiration_indicator);
     videoView                    = findViewById(R.id.item_video_view);
     this.listView                = findViewById(R.id.conversation_list_view);
-    //this.replyListView           = findViewById(R.id.reply_view);
+    this.replyBox                = findViewById(R.id.reply_box);
 
     setOnClickListener(new ClickListener(null));
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
@@ -469,22 +470,23 @@ public class ConversationItem extends LinearLayout
       this.expirationTimer.setVisibility(View.GONE);
     }
   }
-
+  //This is where we will query the database for matching messageRefs using messageRecord's messageId.
+  //This will somehow return all messageRecords that are actually replies to original message.
+  //We then pass this list into the adapter or whatever I use to help load the replies
   private void setReply(MessageRecord messageRecord) {
-    //this.replyListView.setReply(123, recipient,"This is a reply message. This is a reply message. This is a reply message.", 5);
-    //this.replyListView.setVisibility(VISIBLE);
-    Reply first = new Reply(1235, recipient, "This is the first reply", 2);
-    Reply second = new Reply(1234, recipient, "This is the second reply", 5);
-    Reply third = new Reply(1236, recipient,"This is the third reply", 0);
+    if(messageRecord.getMessageRef() != null) {
+      replyBox.setVisibility(VISIBLE);
+      this.listView.setVisibility(VISIBLE);
+      Reply first = new Reply(1235, recipient, "First reply", 1);
+      Reply second = new Reply(1234, recipient, "Second reply", 7);
 
-    ArrayList<Reply> replyList = new ArrayList<>();
-    replyList.add(first);
-    replyList.add(second);
-    replyList.add(third);
+      ArrayList<Reply> replyList = new ArrayList<>();
+      replyList.add(first);
+      replyList.add(second);
 
-    //ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, replyList);
-    //listView.setAdapter(adapter);
-    //this.listView.setVisibility(VISIBLE);
+      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, replyList);
+      listView.setAdapter(adapter);
+    }
   }
 
   private void setFailedStatusIcons() {

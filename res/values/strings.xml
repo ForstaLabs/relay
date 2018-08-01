@@ -144,6 +144,7 @@
     <string name="ConversationItem_unable_to_open_media">Can\'t find an app able to open this media.</string>
     <string name="ConversationItem_from_s">from %s</string>
     <string name="ConversationItem_to_s">to %s</string>
+    <string name="ConversationItem_replies">REPLIES:</string>
 
     <!-- ConversationActivity -->
     <string name="ConversationActivity_reset_secure_session_question">Reset secure session?</string>

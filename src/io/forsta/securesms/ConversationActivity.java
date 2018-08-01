@@ -1133,7 +1133,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void updateToggleButtonState() {
-    if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent() && !inputPanel.isQuotePresent()) {
+    if (composeText.getText().length() == 0 && !attachmentManager.isAttachmentPresent()) {
       buttonToggle.display(attachButton);
       quickAttachmentToggle.show();
     } else {

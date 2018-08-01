@@ -7,12 +7,11 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:visibility="visible"
-    android:layout_margin="3dp"
     tools:visibility="visible">
 
     <FrameLayout
         android:id="@+id/reply_root"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/reply_background">
 
@@ -25,8 +24,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="8dp">
+                    android:layout_gravity="center_vertical">
 
                     <TextView
                         android:id="@+id/reply_vote"
