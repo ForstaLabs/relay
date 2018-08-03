@@ -448,7 +448,7 @@
             android:exported="false"
             android:grantUriPermissions="true"/>
         <provider
-            android:name=".providers.ConversationListProvider"
+            android:name=".providers.DatabaseProvider"
             android:authorities="${applicationId}.provider.database"
             android:exported="false"
             android:grantUriPermissions="true"
