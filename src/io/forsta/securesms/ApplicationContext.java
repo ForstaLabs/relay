@@ -66,7 +66,6 @@ public class ApplicationContext extends Application implements DependencyInjecto
   @Override
   public void onCreate() {
     super.onCreate();
-    initializeDeveloperBuild();
     initializeRandomNumberFix();
     initializeLogging();
     initializeDependencyInjection();
@@ -89,15 +88,6 @@ public class ApplicationContext extends Application implements DependencyInjecto
 
   public ExpiringMessageManager getExpiringMessageManager() {
     return expiringMessageManager;
-  }
-
-  private void initializeDeveloperBuild() {
-    if (BuildConfig.DEV_BUILD) {
-      StrictMode.setThreadPolicy(new ThreadPolicy.Builder().detectAll()
-                                                           .penaltyLog()
-                                                           .build());
-      StrictMode.setVmPolicy(new VmPolicy.Builder().detectAll().penaltyLog().build());
-    }
   }
 
   private void initializeRandomNumberFix() {

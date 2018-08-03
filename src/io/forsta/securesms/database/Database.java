@@ -28,10 +28,6 @@ import io.forsta.securesms.BuildConfig;
 public abstract class Database {
 
   protected static final String ID_WHERE              = "_id = ?";
-//  public   static final String CONVERSATION_URI      = "content://textsecure/thread/";
-//  private   static final String CONVERSATION_LIST_URI = "content://textsecure/conversation-list";
-//  public static final String THREAD_URI = "content://forsta/thread/";
-
   public   static final String CONVERSATION_URI      = "content://" + BuildConfig.APPLICATION_ID + ".provider.database/conversation/";
   private   static final String CONVERSATION_LIST_URI = "content://" + BuildConfig.APPLICATION_ID + ".provider.database/conversation-list";
   public static final String THREAD_URI = "content://" + BuildConfig.APPLICATION_ID + ".provider.database/thread/";
