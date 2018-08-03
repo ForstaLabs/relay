@@ -107,7 +107,7 @@ public class WebSocketUtils {
       Log.d(TAG, "Socket Failed");
       socketOpen = false;
       if (callback != null) {
-        callback.onFailure(response.message());
+        callback.onFailure(response != null ? response.message() : "Socket timeout.");
       }
     }
   }

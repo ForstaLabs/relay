@@ -18,6 +18,7 @@ package io.forsta.securesms;
 
 import android.app.Application;
 import android.content.Context;
+import android.net.TrafficStats;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
 import android.os.StrictMode.VmPolicy;
