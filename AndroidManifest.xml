@@ -452,6 +452,13 @@
             android:exported="false"
             android:grantUriPermissions="true"/>
         <provider
+            android:name=".providers.DatabaseProvider"
+            android:authorities="${applicationId}.provider.database"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:label="Forsta Empty Database Provider"/>
+
+        <provider
             android:name="io.forsta.ccsm.api.ForstaProvider"
             android:authorities="${applicationId}.provider.ccsm"
             android:exported="false"
