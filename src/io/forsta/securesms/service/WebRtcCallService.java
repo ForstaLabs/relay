@@ -27,6 +27,7 @@ import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.Util;
@@ -300,7 +301,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    this.callId                    = intent.getLongExtra(EXTRA_CALL_ID, -1);
     this.pendingIncomingIceUpdates = new LinkedList<>();
     this.originator = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
-//    this.recipient                 = getRemoteRecipient(intent);
+    this.recipient                 = getRemoteRecipient(intent);
 //
 //    if (isIncomingMessageExpired(intent)) {
 //      insertMissedCall(this.recipient, true);
@@ -319,28 +320,28 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
       @Override
       public void onSuccessContinue(List<PeerConnection.IceServer> result) {
-//        try {
-//          boolean isSystemContact = false;
+        try {
+          boolean isSystemContact = false;
 
 //          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
 //            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
 //          }
 
-//          boolean isAlwaysTurn = true;
+          boolean isAlwaysTurn = true;
 
-//          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
-//          WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
-//          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
-//
-//          SessionDescription sdp = WebRtcCallService.this.peerConnection.createAnswer(new MediaConstraints());
-//          Log.w(TAG, "Answer SDP: " + sdp.description);
-//          WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
+          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
+          WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
+          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
+
+          SessionDescription sdp = WebRtcCallService.this.peerConnection.createAnswer(new MediaConstraints());
+          Log.w(TAG, "Answer SDP: " + sdp.description);
+          WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 
 //          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, SignalServiceCallMessage.forAnswer(new AnswerMessage(WebRtcCallService.this.callId, sdp.description)));
-
+//
 //          for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
 //          WebRtcCallService.this.pendingIncomingIceUpdates = null;
-
+//
 //          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
 //            @Override
 //            public void onFailureContinue(Throwable error) {
@@ -349,10 +350,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //              terminate();
 //            }
 //          });
-//        } catch (PeerConnectionWrapper.PeerConnectionException e) {
-//          Log.w(TAG, e);
-//          terminate();
-//        }
+        } catch (PeerConnectionWrapper.PeerConnectionException e) {
+          Log.w(TAG, e);
+          terminate();
+        }
       }
     });
   }
@@ -922,12 +923,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   ///
 
-//  private @NonNull Recipient getRemoteRecipient(Intent intent) {
-//    Address remoteAddress = intent.getParcelableExtra(EXTRA_REMOTE_ADDRESS);
-//    if (remoteAddress == null) throw new AssertionError("No recipient in intent!");
-//
-//    return Recipient.from(this, remoteAddress, true);
-//  }
+  private @NonNull Recipient getRemoteRecipient(Intent intent) {
+    String remoteAddress = intent.getParcelableExtra(EXTRA_REMOTE_ADDRESS);
+    if (remoteAddress == null) throw new AssertionError("No recipient in intent!");
+
+    return RecipientFactory.getRecipientsFromString(getApplicationContext(), remoteAddress, false).getPrimaryRecipient();
+  }
 
   private String getCallId(Intent intent) {
     return intent.hasExtra(EXTRA_CALL_ID) ? intent.getStringExtra(EXTRA_CALL_ID) : "";
@@ -1089,9 +1090,27 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         LinkedList<PeerConnection.IceServer> results = new LinkedList<>();
 
         try {
-//          JSONArray rtcServers = CcsmApi.getRtcServers(getApplicationContext());
-          Log.w(TAG, "Got TURN Servers");
-
+          JSONObject jsonResults = CcsmApi.getRtcServers(getApplicationContext());
+          if (jsonResults.has("results")) {
+            Log.w(TAG, "Got TURN Servers");
+            JSONArray servers =  jsonResults.getJSONArray("results");
+            for (int i=0; i<servers.length(); i++) {
+              JSONObject server = servers.getJSONObject(i);
+              if (server.has("urls")) {
+                JSONArray urls = server.getJSONArray("urls");
+                String url = urls.getString(0);
+                String username = server.optString("username");
+                String credential = server.optString("credential");
+                if (url.startsWith("turn")) {
+                  results.add(new PeerConnection.IceServer(url, username, credential));
+                } else {
+                  results.add(new PeerConnection.IceServer(url));
+                }
+              }
+            }
+          } else {
+            Log.w(TAG, "Error, No results for TURN Servers");
+          }
         } catch (Exception e) {
           Log.w(TAG, "Error fetching RTC servers from Atlas: " + e.getMessage());
         }
