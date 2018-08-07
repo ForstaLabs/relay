@@ -17,6 +17,9 @@ import android.widget.TextView;
 
 import com.pnikosis.materialishprogress.ProgressWheel;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import io.forsta.securesms.R;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -28,8 +31,6 @@ import io.forsta.securesms.util.Util;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
-import de.greenrobot.event.EventBus;
 
 public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener {
 
@@ -82,7 +83,7 @@ public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener 
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().registerSticky(this);
+    if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
   }
 
   @Override
@@ -238,7 +239,7 @@ public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener 
     }
   }
 
-  @SuppressWarnings("unused")
+  @Subscribe(sticky = true, threadMode = ThreadMode.ASYNC)
   public void onEventAsync(final PartProgressEvent event) {
     if (audioSlidePlayer != null && event.attachment.equals(this.audioSlidePlayer.getAudioSlide().asAttachment())) {
       Util.runOnMain(new Runnable() {
