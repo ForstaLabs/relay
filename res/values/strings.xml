@@ -1262,6 +1262,7 @@
     <string name="Permissions_not_now">Not now</string>
 
     <string name="Permissions_required">Permissions required</string>
+    <string name="Permissions_required_phone">Phone Permissions required</string>
     <string name="Permissions_required_camera">Camera Permission required</string>
     <string name="Permissions_required_contacts">Contacts Permission required</string>
     <string name="Permissions_required_external_storage">External Storage Permission required</string>

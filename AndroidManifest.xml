@@ -345,6 +345,12 @@
             android:theme="@style/TextSecure.LightTheme"/>
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
 
+        <activity android:name=".WebRtcCallActivity"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|fontScale"
+            android:launchMode="singleTask"/>
+
         <service android:enabled="true" android:name=".service.WebRtcCallService"/>
         <service
             android:name=".service.ApplicationMigrationService"

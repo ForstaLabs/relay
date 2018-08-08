@@ -19,15 +19,18 @@ import android.util.Log;
 import org.greenrobot.eventbus.EventBus;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.WebRtcCallActivity;
 
 import io.forsta.securesms.contacts.ContactAccessor;
+import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.Util;
@@ -96,6 +99,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   public static final String EXTRA_ICE_SDP_MID        = "ice_sdp_mid";
   public static final String EXTRA_ICE_SDP_LINE_INDEX = "ice_sdp_line_index";
   public static final String EXTRA_RESULT_RECEIVER    = "result_receiver";
+  public static final String EXTRA_THREAD_UID    = "thread_uid";
 
   public static final String ACTION_INCOMING_CALL        = "CALL_INCOMING";
   public static final String ACTION_OUTGOING_CALL        = "CALL_OUTGOING";
@@ -139,6 +143,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
   @Nullable private String                   callId;
+  @Nullable private String threadUID;
   @Nullable private Recipient              recipient;
   @Nullable private String              originator;
   @Nullable private PeerConnectionWrapper  peerConnection;
@@ -305,6 +310,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.pendingIncomingIceUpdates = new LinkedList<>();
     this.originator = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     this.recipient                 = getRemoteRecipient(intent);
+    this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
 //
 //    if (isIncomingMessageExpired(intent)) {
 //      insertMissedCall(this.recipient, true);
@@ -340,7 +346,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
           Log.w(TAG, "Answer SDP: " + sdp.description);
           WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 
-          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, WebRtcCallService.this.callId, sdp.description);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp.description);
 
           for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
           WebRtcCallService.this.pendingIncomingIceUpdates = null;
@@ -900,12 +906,15 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, recipient, identityKey, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
-  private ListenableFutureTask<Boolean> sendMessage(@NonNull final Recipient recipient,
+  private ListenableFutureTask<Boolean> sendMessage(@NonNull final Recipient recipient, String threadUID,
                                                     @NonNull final String callId, String description)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
+        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
+        ForstaMessageManager.sendCallAccept(getApplicationContext(), masterSecret, recipients, threadUID, callId, description);
         //messageSender.sendCallMessage(new SignalServiceAddress(recipient.getAddress().toPhoneString()), callMessage);
         return true;
       }

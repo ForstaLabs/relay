@@ -46,6 +46,8 @@ public class ForstaMessage {
     public static final String CALL_OFFER = "callOffer";
     public static final String CALL_ICE_CANDIDATES = "callICECandidates";
     public static final String CALL_LEAVE = "callLeave";
+    public static final String CALL_ACCEPT_OFFER = "callAcceptOffer";
+
   }
 
   public static class MessageTypes {
