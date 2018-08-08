@@ -28,6 +28,8 @@ import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.ViewUtil;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class TransferControlView extends FrameLayout {
   private static final int TRANSITION_MS = 300;
@@ -162,7 +164,7 @@ public class TransferControlView extends FrameLayout {
     return anim;
   }
 
-  @SuppressWarnings("unused")
+  @Subscribe(sticky = true, threadMode = ThreadMode.ASYNC)
   public void onEventAsync(final PartProgressEvent event) {
     if (this.slide != null && event.attachment.equals(this.slide.asAttachment())) {
       Util.runOnMain(new Runnable() {

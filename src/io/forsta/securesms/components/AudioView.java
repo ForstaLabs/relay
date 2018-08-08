@@ -17,6 +17,9 @@ import android.widget.TextView;
 
 import com.pnikosis.materialishprogress.ProgressWheel;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import io.forsta.securesms.R;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -28,10 +31,6 @@ import io.forsta.securesms.util.Util;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 public class AudioView extends FrameLayout implements AudioSlidePlayer.Listener {
 
