@@ -642,12 +642,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //    }
 //  }
 
-//  private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
+  private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
 //    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
 //    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
 //                                       messageAndThreadId.second, signal);
-//  }
-//
+  }
+
   private void handleAnswerCall(Intent intent) {
 //    if (callState != CallState.STATE_LOCAL_RINGING) {
 //      Log.w(TAG, "Can only answer from ringing!");
@@ -707,20 +707,20 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       return;
     }
 //
-//    if (this.recipient == null) {
-//      throw new AssertionError("assert");
-//    }
-//
-//    if (this.callState == CallState.STATE_DIALING || this.callState == CallState.STATE_REMOTE_RINGING) {
-//      sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//    } else {
-//      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//    }
-//
-//    if (this.callState == CallState.STATE_ANSWERING || this.callState == CallState.STATE_LOCAL_RINGING) {
-//      insertMissedCall(this.recipient, true);
-//    }
-//
+    if (this.recipient == null) {
+      throw new AssertionError("assert");
+    }
+
+    if (this.callState == CallState.STATE_DIALING || this.callState == CallState.STATE_REMOTE_RINGING) {
+      sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    } else {
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    }
+
+    if (this.callState == CallState.STATE_ANSWERING || this.callState == CallState.STATE_LOCAL_RINGING) {
+      insertMissedCall(this.recipient, true);
+    }
+
     this.terminate();
   }
 //
