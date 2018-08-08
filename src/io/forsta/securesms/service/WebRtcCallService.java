@@ -175,6 +175,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     Log.w(TAG, "onStartCommand...");
     if (intent == null || intent.getAction() == null) return START_NOT_STICKY;
 
+    Log.w(TAG, "Action: " + intent.getAction());
+    Log.w(TAG, "Call State: " + callState.name());
+
     serviceExecutor.execute(new Runnable() {
       @Override
       public void run() {
@@ -301,7 +304,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleIncomingCall(final Intent intent) {
     Log.w(TAG, "handleIncomingCall()");
-//    if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
+    if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
 
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
     this.callId = getCallId(intent);

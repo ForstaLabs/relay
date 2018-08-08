@@ -204,8 +204,9 @@ public class ForstaMessageManager {
                 String originator = data.getString("originator");
                 String callId = data.getString("callId");
                 JSONObject offer = data.getJSONObject("offer");
+                String spd = offer.optString("sdp");
                 String peerId = data.getString("peerId");
-                forstaMessage.setCallOffer(callId, originator, peerId, offer.toString());
+                forstaMessage.setCallOffer(callId, originator, peerId, spd);
                 Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
 
               } else {
@@ -360,7 +361,7 @@ public class ForstaMessageManager {
         }
       }
 
-      if (attachments != null) {
+      if (messageAttachments != null) {
         for (Attachment attachment : messageAttachments) {
           JSONObject attachmentJson = new JSONObject();
           attachmentJson.put("name", MediaUtil.getFileName(context, attachment.getDataUri()));
