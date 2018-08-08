@@ -33,7 +33,7 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 import ws.com.google.android.mms.MmsException;
 
 public class AttachmentDownloadJob extends MasterSecretJob implements InjectableType {

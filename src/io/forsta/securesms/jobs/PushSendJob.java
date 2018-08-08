@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 import ws.com.google.android.mms.ContentType;
 
 public abstract class PushSendJob extends SendJob {
