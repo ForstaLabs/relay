@@ -1,50 +1,44 @@
 package io.forsta.securesms;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.support.v4.widget.CursorAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import io.forsta.securesms.components.AvatarImageView;
-import io.forsta.securesms.components.ReplyListView;
-import io.forsta.securesms.database.model.Reply;
 import io.forsta.securesms.recipients.Recipient;
 
-public class ReplyListAdapter extends ArrayAdapter<Reply> {
+public class ReplyListAdapter extends CursorAdapter {
 
     private Context mContext;
     private int mResource;
+    private Recipient mAuthor;
 
 
-    public ReplyListAdapter(@NonNull Context context, int resource,  @NonNull ArrayList<Reply> objects) {
-        super(context, resource, objects);
+    public ReplyListAdapter(@NonNull Context context, int resource, Cursor cursor, Recipient author) {
+        super(context, cursor);
         mContext = context;
         mResource = resource;
+        mAuthor = author;
     }
 
-    @NonNull
     @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        long id = getItem(position).getId();
-        Recipient author = getItem(position).getAuthor();
-        String body = getItem(position) .getText();
-        int vote = getItem(position).getVote();
+    public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+        return LayoutInflater.from(context).inflate(mResource, viewGroup, false);
+    }
 
-        LayoutInflater inflater = LayoutInflater.from(mContext);
-        convertView = inflater.inflate(mResource, parent,false);
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
+        String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+        int vote = cursor.getInt(cursor.getColumnIndexOrThrow("vote"));
 
-        TextView voteCount = convertView.findViewById(R.id.reply_vote);
-        AvatarImageView contactPhoto = convertView.findViewById(R.id.reply_contact_photo);
-        TextView bodyText = convertView.findViewById(R.id.reply_text);
+        TextView voteCount = view.findViewById(R.id.reply_vote);
+        AvatarImageView contactPhoto = view.findViewById(R.id.reply_contact_photo);
+        TextView bodyText = view.findViewById(R.id.reply_text);
 
         if(vote > 0) {
             voteCount.setVisibility(View.VISIBLE);
@@ -52,10 +46,7 @@ public class ReplyListAdapter extends ArrayAdapter<Reply> {
         } else {
             voteCount.setVisibility(View.GONE);
         }
-        contactPhoto.setAvatar(author, false);
+        contactPhoto.setAvatar(mAuthor, true);
         bodyText.setText(body);
-
-        return convertView;
-
     }
 }

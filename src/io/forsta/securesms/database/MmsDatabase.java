@@ -350,6 +350,12 @@ public class MmsDatabase extends MessagingDatabase {
     return rawQuery(THREAD_ID + " = ? ", new String[] {threadId+ ""});
   }
 
+  public Cursor getReplies(String messageId) {
+    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+    Cursor cursor = db.query(TABLE_NAME, new String[] {MESSAGE_REF}, MESSAGE_REF + " = ?", new String[] {messageId}, null, null, DATE_SENT);
+    return cursor;
+  }
+
   public Cursor getMessage(long messageId) {
     Cursor cursor = rawQuery(RAW_ID_WHERE, new String[] {messageId + ""});
     setNotifyConverationListeners(cursor, getThreadIdForMessage(messageId));

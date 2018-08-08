@@ -21,11 +21,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -37,7 +39,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -81,7 +82,6 @@ import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
 import org.whispersystems.libsignal.util.guava.Optional;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -105,6 +105,7 @@ public class ConversationItem extends LinearLayout
   private Locale        locale;
   private boolean       groupThread;
   private Recipient     recipient;
+  private String        messageId;
 
   private View               bodyBubble;
   private CustomListView     listView;
@@ -202,12 +203,12 @@ public class ConversationItem extends LinearLayout
     this.conversationRecipients = conversationRecipients;
     this.groupThread            = !conversationRecipients.isSingleRecipient() || conversationRecipients.isGroupRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
+    this.messageId              = messageRecord.getMessageId();
 
     this.recipient.addListener(this);
     this.conversationRecipients.addListener(this);
     giphyLoopCounter = 0;
 
-    //here we could check messageRecord for a MessageRef, if it is there, we instead call a method to create a Reply instead and put it under the original message
     setInteractionState(messageRecord);
     setBodyText(messageRecord);
     setBubbleState(messageRecord, recipient);
@@ -349,7 +350,6 @@ public class ConversationItem extends LinearLayout
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
-      documentView.setVisibility(GONE);
       mediaThumbnail.hideVideoPlayButton();
       videoView.setVisibility(GONE);
 
@@ -470,21 +470,21 @@ public class ConversationItem extends LinearLayout
       this.expirationTimer.setVisibility(View.GONE);
     }
   }
+
   //This is where we will query the database for matching messageRefs using messageRecord's messageId.
   //This will somehow return all messageRecords that are actually replies to original message.
-  //We then pass this list into the adapter or whatever I use to help load the replies
+  //We then pass this cursor into the adapter.
   private void setReply(MessageRecord messageRecord) {
-    if(messageRecord.getMessageRef() != null) {
+    MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
+    Cursor cursor = mmsDb.getReplies(messageId);
+
+    if(cursor != null) {
+      listView.setClickable(false);
+      listView.setFocusable(false);
       replyBox.setVisibility(VISIBLE);
       this.listView.setVisibility(VISIBLE);
-      Reply first = new Reply(1235, recipient, "First reply", 1);
-      Reply second = new Reply(1234, recipient, "Second reply", 7);
 
-      ArrayList<Reply> replyList = new ArrayList<>();
-      replyList.add(first);
-      replyList.add(second);
-
-      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, replyList);
+      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, recipient);
       listView.setAdapter(adapter);
     }
   }
