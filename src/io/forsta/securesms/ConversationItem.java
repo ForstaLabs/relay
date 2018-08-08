@@ -50,7 +50,6 @@ import io.forsta.securesms.components.CustomListView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
-import io.forsta.securesms.components.ReplyListView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
@@ -61,7 +60,6 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.database.model.Reply;
 import io.forsta.securesms.jobs.MmsSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.DocumentSlide;
@@ -78,7 +76,6 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
-
 
 import org.whispersystems.libsignal.util.guava.Optional;
 
@@ -126,7 +123,6 @@ public class ConversationItem extends LinearLayout
   private @NonNull  AudioView           audioView;
   private @NonNull DocumentView documentView;
   private @NonNull ExpirationTimerView expirationTimer;
-  private @Nullable EventListener           eventListener;
   private VideoView videoView;
   private int giphyLoopCounter = 0;
 
@@ -222,10 +218,6 @@ public class ConversationItem extends LinearLayout
     setReply(messageRecord);
   }
 
-  /*public void setEventListener(@Nullable EventListener eventListener) {
-    this.eventListener = eventListener;
-  }*/
-
   private void initializeAttributes() {
     final int[]      attributes = new int[] {R.attr.conversation_item_bubble_background,
                                              R.attr.conversation_list_item_background_selected,
@@ -307,10 +299,6 @@ public class ConversationItem extends LinearLayout
   private boolean hasDocument(MessageRecord messageRecord) {
     return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
   }
-
-  /*private boolean hasQuote(MessageRecord messageRecord) {
-    return messageRecord.isMms() && ((MediaMmsMessageRecord)messageRecord).getQuote() != null;
-  }*/
 
   private void setBodyText(MessageRecord messageRecord) {
     bodyText.setClickable(false);
@@ -552,29 +540,6 @@ public class ConversationItem extends LinearLayout
 
     new AcceptIdentityMismatch(getContext(), masterSecret, messageRecord, mismatches.get(0)).execute();
   }
-
-  /*@Override
-  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-    if (hasQuote(messageRecord)) {
-      int quoteWidth = quoteView.getMeasuredWidth();
-
-      int availableWidth;
-      if (hasAudio(messageRecord)) {
-        availableWidth = audioView.getMeasuredWidth();
-      } else if (hasThumbnail(messageRecord)) {
-        availableWidth = mediaThumbnail.getMeasuredWidth();
-      } else {
-        availableWidth = bodyBubble.getMeasuredWidth() - bodyBubble.getPaddingLeft() - bodyBubble.getPaddingRight();
-      }
-
-      if (quoteWidth != availableWidth) {
-        quoteView.getLayoutParams().width = availableWidth;
-        measure(widthMeasureSpec, heightMeasureSpec);
-      }
-    }
-  }*/
 
   @Override
   public void onModified(final Recipient recipient) {

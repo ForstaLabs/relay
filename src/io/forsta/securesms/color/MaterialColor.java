@@ -122,17 +122,6 @@ public enum MaterialColor {
             : R.color.grey_400_transparent);
   }
 
-  public int toQuoteIconForegroundColor(@NonNull Context context, boolean outgoing) {
-    if (outgoing) {
-      return context.getResources().getColor(R.color.white);
-    }
-    return toConversationColor(context);
-  }
-
-  public int toQuoteIconBackgroundColor(@NonNull Context context, boolean outgoing) {
-    return context.getResources().getColor(toQuoteBarColorResource(context, outgoing));
-  }
-
   public boolean represents(Context context, int colorValue) {
     return context.getResources().getColor(conversationColorDark)  == colorValue ||
            context.getResources().getColor(conversationColorLight) == colorValue ||
@@ -155,7 +144,6 @@ public enum MaterialColor {
       return defaultValue;
     }
   }
-
 
   public static MaterialColor fromSerialized(String serialized) throws UnknownColorException {
     for (MaterialColor color : MaterialColor.values()) {

@@ -9,7 +9,6 @@ import io.forsta.securesms.crypto.MediaKey;
 import io.forsta.securesms.database.AttachmentDatabase;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
-import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
 
 import java.util.LinkedList;
 import java.util.List;

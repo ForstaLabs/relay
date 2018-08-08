@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -22,25 +21,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.annimon.stream.Stream;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import org.w3c.dom.Text;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
-import io.forsta.securesms.components.emoji.EmojiEditText;
-import io.forsta.securesms.mms.AudioSlide;
-import io.forsta.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
-import io.forsta.securesms.mms.DocumentSlide;
-import io.forsta.securesms.mms.ImageSlide;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
-import io.forsta.securesms.mms.VideoSlide;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
-import io.forsta.securesms.util.ThemeUtil;
 import io.forsta.securesms.util.Util;
-import io.forsta.securesms.util.ViewUtil;
 
 import java.util.List;
 
@@ -56,11 +44,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
     private TextView  authorView;
     private TextView  bodyView;
     private ImageView quoteBarView;
-    private ImageView attachmentView;
-    private ImageView attachmentVideoOverlayView;
-    private ViewGroup attachmentIconContainerView;
-    private ImageView attachmentIconView;
-    private ImageView attachmentIconBackgroundView;
     private ImageView dismissView;
 
     private long      id;
@@ -102,11 +85,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         this.authorView                   = findViewById(R.id.quote_author);
         this.bodyView                     = findViewById(R.id.quote_text);
         this.quoteBarView                 = findViewById(R.id.quote_bar);
-        this.attachmentView               = findViewById(R.id.quote_attachment);
-        this.attachmentVideoOverlayView   = findViewById(R.id.quote_video_overlay);
-        this.attachmentIconContainerView  = findViewById(R.id.quote_attachment_icon_container);
-        this.attachmentIconView           = findViewById(R.id.quote_attachment_icon);
-        this.attachmentIconBackgroundView = findViewById(R.id.quote_attachment_icon_background);
         this.dismissView                  = findViewById(R.id.quote_dismiss);
         this.mediaDescriptionText         = findViewById(R.id.media_name);
         this.roundedCornerRadiusPx        = getResources().getDimensionPixelSize(R.dimen.quote_corner_radius);
@@ -119,7 +97,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
             dismissView.setVisibility(messageType == MESSAGE_TYPE_PREVIEW ? VISIBLE : GONE);
         }
 
-        //dismissView.setOnClickListener(view -> setVisibility(GONE));
         dismissView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -187,7 +164,6 @@ public class QuoteView extends LinearLayout implements Recipient.RecipientModifi
         authorView.setText(isOwnNumber ? getContext().getString(R.string.QuoteView_you)
                 : author.toShortString());
         authorView.setTextColor(author.getColor().toQuoteTitleColor(getContext()));
-        // We use the raw color resource because Android 4.x was struggling with tints here
         quoteBarView.setImageResource(author.getColor().toQuoteBarColorResource(getContext(), outgoing));
 
         GradientDrawable background = (GradientDrawable) rootView.getBackground();

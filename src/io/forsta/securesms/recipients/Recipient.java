@@ -23,8 +23,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.whispersystems.libsignal.util.guava.Optional;
-
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.contacts.avatars.ContactColors;
 import io.forsta.securesms.contacts.avatars.ContactPhoto;
@@ -143,15 +141,8 @@ public class Recipient {
 
   @SuppressWarnings("ConstantConditions")
     public static @NonNull Recipient from(@NonNull Context context, long recipientId, boolean asynchronous) {
-      //if (address == null) throw new AssertionError(address);
       return provider.getRecipient(context, recipientId, asynchronous);
   }
-
-  /*@SuppressWarnings("ConstantConditions")
-    public static @NonNull Recipient from(@NonNull Context context, @NonNull Address address, @NonNull Optional<RecipientSettings> settings, @NonNull Optional<GroupDatabase.GroupRecord> groupRecord, boolean asynchronous) {
-      //if (address == null) throw new AssertionError(address);
-      return provider.getRecipient(context, address, settings, groupRecord, asynchronous);
-  }*/
 
   public synchronized @NonNull String getAddress() {
     return number;

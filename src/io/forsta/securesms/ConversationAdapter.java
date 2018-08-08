@@ -141,10 +141,10 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   }
 
   @Override
-public void changeCursor(Cursor cursor) {
-  messageRecordCache.clear();
-  super.changeCursor(cursor);
-}
+  public void changeCursor(Cursor cursor) {
+    messageRecordCache.clear();
+    super.changeCursor(cursor);
+  }
 
   @Override
   public void onBindItemViewHolder(ViewHolder viewHolder, @NonNull Cursor cursor) {

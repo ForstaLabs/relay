@@ -1,7 +1,5 @@
 package io.forsta.securesms.mms;
 
-import android.support.annotation.Nullable;
-
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipients;
 

@@ -34,7 +34,6 @@ import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
-import io.forsta.securesms.mms.QuoteModel;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;

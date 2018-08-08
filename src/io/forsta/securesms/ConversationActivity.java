@@ -670,7 +670,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     } else {
       author = messageRecord.getIndividualRecipient();
     }
-
     inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
   }
 

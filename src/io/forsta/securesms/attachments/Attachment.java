@@ -26,9 +26,6 @@ public abstract class Attachment {
   @Nullable
   private final String relay;
 
-  //private final boolean quote;
-
-
   // XXX - This shouldn't be here.
   @Nullable
   private Bitmap thumbnail;
@@ -43,7 +40,6 @@ public abstract class Attachment {
     this.key           = key;
     this.relay         = relay;
     this.fileName      = "";
-    //this.quote         = quote;
   }
 
   @Nullable
@@ -98,9 +94,4 @@ public abstract class Attachment {
   public Bitmap getThumbnail() {
     return thumbnail;
   }
-
-  /*public boolean isQuote() {
-
-  }*/
-
 }
