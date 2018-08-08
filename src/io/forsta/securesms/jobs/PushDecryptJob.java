@@ -534,9 +534,9 @@ public class PushDecryptJob extends ContextJob {
             iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
             iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
             iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, iceUpdate.getOriginator());
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, "spd");
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, "spd_mid");
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, "spd_line_index");
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
             else                                                context.startService(iceIntent);

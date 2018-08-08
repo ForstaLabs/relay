@@ -237,6 +237,7 @@ public class ForstaMessageManager {
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
               Log.w(TAG, "Call leave received: " + callId + " From : " + originator);
+              break;
             default:
             Log.w(TAG, "Not a control message");
           }
@@ -263,6 +264,21 @@ public class ForstaMessageManager {
       message = new OutgoingSecureMediaMessage(message);
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       message.setForstaControlJsonBody(context, threadData);
+      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
+      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
+      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
+    } catch (MmsException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallAccept(Context context, MasterSecret masterSecret, Recipients recipients, String callId, String description) {
+    try {
+      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Accepting call", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
+      message = new OutgoingSecureMediaMessage(message);
+//      message.setForstaControlJsonBody(context, threadData);
       MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
       long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
       MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
