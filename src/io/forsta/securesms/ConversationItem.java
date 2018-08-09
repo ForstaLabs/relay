@@ -57,6 +57,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
@@ -199,7 +200,7 @@ public class ConversationItem extends LinearLayout
     this.conversationRecipients = conversationRecipients;
     this.groupThread            = !conversationRecipients.isSingleRecipient() || conversationRecipients.isGroupRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
-    this.messageId              = messageRecord.getMessageId();
+    //this.messageId              = messageRecord.getMessageId();
 
     this.recipient.addListener(this);
     this.conversationRecipients.addListener(this);
@@ -215,7 +216,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-   //setReply(messageRecord);
+    setReply(messageRecord);
   }
 
   private void initializeAttributes() {
@@ -460,16 +461,19 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReply(MessageRecord messageRecord) {
-    MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
-    Cursor cursor = mmsDb.getReplies(messageId);
+    //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
+    //Cursor cursor = mmsDb.getReplies(messageId);
+    ThreadDatabase tDb = DatabaseFactory.getThreadDatabase(context);
+    Cursor tCursor = tDb.getConvoList();
+    listView.setStackFromBottom(true);
 
-    if(cursor != null) {
+    if(tCursor != null) {
       listView.setClickable(false);
       listView.setFocusable(false);
       replyBox.setVisibility(VISIBLE);
       this.listView.setVisibility(VISIBLE);
 
-      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, recipient);
+      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, tCursor, recipient);
       listView.setAdapter(adapter);
     }
   }
