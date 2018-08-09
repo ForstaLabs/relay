@@ -318,11 +318,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.recipient                 = getRemoteRecipient(intent);
     this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
 
-    if (isIncomingMessageExpired(intent)) {
-      insertMissedCall(this.recipient, true);
-      terminate();
-      return;
-    }
+//    if (isIncomingMessageExpired(intent)) {
+//      insertMissedCall(this.recipient, true);
+//      terminate();
+//      return;
+//    }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
@@ -333,14 +333,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     initializeVideo();
 
     retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
-      @Override
-      public void onFailureContinue(Throwable throwable) {
-        Log.w(TAG, "Turn servers failure!!!!");
-      }
 
       @Override
       public void onSuccessContinue(List<PeerConnection.IceServer> result) {
-        Log.w(TAG, "Turn servers success!!!!");
         try {
           boolean isSystemContact = false;
 
@@ -1113,7 +1108,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         try {
           JSONObject jsonResults = CcsmApi.getRtcServers(getApplicationContext());
           if (jsonResults.has("results")) {
-            Log.w(TAG, "Got TURN Servers");
+            Log.w(TAG, "Got Turn Servers");
             JSONArray servers =  jsonResults.getJSONArray("results");
             for (int i=0; i<servers.length(); i++) {
               JSONObject server = servers.getJSONObject(i);
