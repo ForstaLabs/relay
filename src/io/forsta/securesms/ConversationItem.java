@@ -215,7 +215,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    setReply(messageRecord);
+   //setReply(messageRecord);
   }
 
   private void initializeAttributes() {
@@ -459,9 +459,6 @@ public class ConversationItem extends LinearLayout
     }
   }
 
-  //This is where we will query the database for matching messageRefs using messageRecord's messageId.
-  //This will somehow return all messageRecords that are actually replies to original message.
-  //We then pass this cursor into the adapter.
   private void setReply(MessageRecord messageRecord) {
     MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
     Cursor cursor = mmsDb.getReplies(messageId);

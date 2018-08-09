@@ -73,7 +73,7 @@ public class RecipientProvider {
     PhoneLookup.NUMBER
   };
 
-  @NonNull Recipient  getRecipient(Context context, long recipientId, boolean asynchronous) {
+  @NonNull Recipient getRecipient(Context context, long recipientId, boolean asynchronous) {
     Recipient cachedRecipient = recipientCache.get(recipientId);
     if (cachedRecipient != null && !cachedRecipient.isStale() && !TextUtils.isEmpty(cachedRecipient.getSlug())) {
       return cachedRecipient;

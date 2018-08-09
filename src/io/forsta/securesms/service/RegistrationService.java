@@ -138,6 +138,7 @@ public class RegistrationService extends Service {
       boolean isMultiDevice = CcsmApi.hasDevices(context);
       if (!provisionContinue && isMultiDevice) {
         AutoProvision autoProvision = AutoProvision.getInstance(context);
+        autoProvision.start();
         autoProvision.setProvisionCallbacks(new AutoProvision.ProvisionCallbacks() {
           @Override
           public void onComplete(ProvisioningProtos.ProvisionMessage provisionMessage) {
@@ -173,7 +174,6 @@ public class RegistrationService extends Service {
             broadcastComplete(false);
           }
         });
-        autoProvision.start();
       } else {
         // Normal registration
         accountManager.createAccount(context, addr, password, signalingKey, registrationId);
