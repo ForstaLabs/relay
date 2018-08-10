@@ -33,22 +33,20 @@ public class ReplyListAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
-        //String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-        //int vote = cursor.getInt(cursor.getColumnIndexOrThrow("vote"));
+        String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+        int vote = cursor.getInt(cursor.getColumnIndexOrThrow("vote"));
 
         TextView voteCount = view.findViewById(R.id.reply_vote);
         AvatarImageView contactPhoto = view.findViewById(R.id.reply_contact_photo);
         TextView bodyText = view.findViewById(R.id.reply_text);
 
-        /*if(vote > 0) {
+        if(vote > 0) {
             voteCount.setVisibility(View.VISIBLE);
             voteCount.setText("(" + String.valueOf(vote) + ")");
         } else {
             voteCount.setVisibility(View.GONE);
-        }*/
+        }
         contactPhoto.setAvatar(mAuthor, true);
-        bodyText.setText(title);
-        //bodyText.setText(R.string.conversation_context__menu_forward_message);
+        bodyText.setText(body);
     }
 }

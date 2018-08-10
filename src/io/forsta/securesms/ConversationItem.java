@@ -68,6 +68,7 @@ import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.DateUtils;
@@ -103,7 +104,8 @@ public class ConversationItem extends LinearLayout
   private Locale        locale;
   private boolean       groupThread;
   private Recipient     recipient;
-  private String        messageId;
+  private Recipient     replyAuthor;
+  private String          messageId;
 
   private View               bodyBubble;
   private CustomListView     listView;
@@ -461,19 +463,26 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReply(MessageRecord messageRecord) {
-    //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
-    //Cursor cursor = mmsDb.getReplies(messageId);
-    ThreadDatabase tDb = DatabaseFactory.getThreadDatabase(context);
-    Cursor tCursor = tDb.getConvoList();
+    MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
+    Cursor cursor = mmsDb.getReplies(messageId);
+    //ThreadDatabase tDb = DatabaseFactory.getThreadDatabase(context);
+    //Cursor tCursor = tDb.getConvoList();
     listView.setStackFromBottom(true);
+    long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
 
-    if(tCursor != null) {
+    if (messageRecord.isOutgoing()) {
+      replyAuthor = Recipient.from(context, localId, true);
+    } else {
+      replyAuthor = recipient;
+    }
+
+    if(cursor != null) {
       listView.setClickable(false);
       listView.setFocusable(false);
       replyBox.setVisibility(VISIBLE);
-      this.listView.setVisibility(VISIBLE);
+      listView.setVisibility(VISIBLE);
 
-      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, tCursor, recipient);
+      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, replyAuthor);
       listView.setAdapter(adapter);
     }
   }
