@@ -33,6 +33,7 @@ public class ReplyListAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        //String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
         String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
         int vote = cursor.getInt(cursor.getColumnIndexOrThrow("vote"));
 

@@ -185,14 +185,27 @@ public abstract class MessageRecord extends DisplayRecord {
   }
 
   public String getMessageId() {
-    if (TextUtils.isEmpty(messageId)) {
-      return forstaMessageBody.getMessageId();
+    try {
+      ForstaMessage forstaBody = getForstaMessageBody();
+      if (!TextUtils.isEmpty(forstaBody.getMessageId())) {
+        return forstaBody.getMessageId();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
-    return messageId;
+    return null;
   }
 
   public String getMessageRef() {
-    return messageRef;
+    try {
+      ForstaMessage forstaBody = getForstaMessageBody();
+      if (!TextUtils.isEmpty(forstaBody.getMessageRef())) {
+        return forstaBody.getMessageRef();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public int getVoteCount() {

@@ -53,6 +53,7 @@ import io.forsta.securesms.components.ExpirationTimerView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.database.Database;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
@@ -202,7 +203,7 @@ public class ConversationItem extends LinearLayout
     this.conversationRecipients = conversationRecipients;
     this.groupThread            = !conversationRecipients.isSingleRecipient() || conversationRecipients.isGroupRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
-    //this.messageId              = messageRecord.getMessageId();
+    this.messageId              = messageRecord.getMessageId();
 
     this.recipient.addListener(this);
     this.conversationRecipients.addListener(this);
@@ -463,8 +464,9 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReply(MessageRecord messageRecord) {
-    MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
-    Cursor cursor = mmsDb.getReplies(messageId);
+    MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
+    //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
+    Cursor cursor = db.getReplies(messageId);
     //ThreadDatabase tDb = DatabaseFactory.getThreadDatabase(context);
     //Cursor tCursor = tDb.getConvoList();
     listView.setStackFromBottom(true);

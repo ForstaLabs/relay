@@ -97,6 +97,7 @@
                 android:visibility="gone"
                 android:background="@drawable/reply_background"
                 android:paddingTop="10dp"
+                android:paddingBottom="5dp"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:layout_marginTop="10dp"
@@ -117,8 +118,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/conversation_list_view"
-                    android:divider="@null"
-                    android:dividerHeight="-4dp">
+                    android:divider="@null">
+
                 </io.forsta.securesms.components.CustomListView>
 
             </LinearLayout>

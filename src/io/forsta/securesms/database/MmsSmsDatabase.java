@@ -33,6 +33,8 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.util.HashSet;
 import java.util.Set;
 
+import static io.forsta.securesms.database.MmsDatabase.DATE_SENT;
+
 public class MmsSmsDatabase extends Database {
 
   private static final String TAG = MmsSmsDatabase.class.getSimpleName();
@@ -106,6 +108,12 @@ public class MmsSmsDatabase extends Database {
     return  queryTables(PROJECTION, selection, order, "1");
   }
 
+  public Cursor getReplies(String messageId) {
+    String selection = MmsDatabase.MESSAGE_REF + " = " + messageId;
+
+    return queryTables(PROJECTION, selection, null, null);
+  }
+
   public Cursor getUnread() {
     String order           = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " ASC";
     String selection       = MmsSmsColumns.READ + " = 0";
@@ -137,11 +145,11 @@ public class MmsSmsDatabase extends Database {
   }
 
   private Cursor queryTables(String[] projection, String selection, String order, String limit) {
-    String[] mmsProjection = {MmsDatabase.DATE_SENT + " AS " + MmsSmsColumns.NORMALIZED_DATE_SENT,
+    String[] mmsProjection = {DATE_SENT + " AS " + MmsSmsColumns.NORMALIZED_DATE_SENT,
                               MmsDatabase.DATE_RECEIVED + " AS " + MmsSmsColumns.NORMALIZED_DATE_RECEIVED,
                               MmsDatabase.TABLE_NAME + "." + MmsDatabase.ID + " AS " + MmsSmsColumns.ID,
                               "'MMS::' || " + MmsDatabase.TABLE_NAME + "." + MmsDatabase.ID
-                                  + " || '::' || " + MmsDatabase.DATE_SENT
+                                  + " || '::' || " + DATE_SENT
                                   + " AS " + MmsSmsColumns.UNIQUE_ROW_ID,
                               AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
                               SmsDatabase.BODY, MmsSmsColumns.READ, MmsSmsColumns.THREAD_ID,
@@ -223,7 +231,7 @@ public class MmsSmsDatabase extends Database {
     mmsColumnsPresent.add(MmsSmsColumns.EXPIRE_STARTED);
     mmsColumnsPresent.add(MmsDatabase.MESSAGE_TYPE);
     mmsColumnsPresent.add(MmsDatabase.MESSAGE_BOX);
-    mmsColumnsPresent.add(MmsDatabase.DATE_SENT);
+    mmsColumnsPresent.add(DATE_SENT);
     mmsColumnsPresent.add(MmsDatabase.DATE_RECEIVED);
     mmsColumnsPresent.add(MmsDatabase.PART_COUNT);
     mmsColumnsPresent.add(MmsDatabase.CONTENT_LOCATION);
