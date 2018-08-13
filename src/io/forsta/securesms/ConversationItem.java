@@ -467,8 +467,6 @@ public class ConversationItem extends LinearLayout
     MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
     //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
     Cursor cursor = db.getReplies(messageId);
-    //ThreadDatabase tDb = DatabaseFactory.getThreadDatabase(context);
-    //Cursor tCursor = tDb.getConvoList();
     listView.setStackFromBottom(true);
     long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
 
@@ -478,13 +476,13 @@ public class ConversationItem extends LinearLayout
       replyAuthor = recipient;
     }
 
-    if(cursor != null) {
+    if((cursor != null) && (cursor.getCount() > 0)) {
       listView.setClickable(false);
       listView.setFocusable(false);
       replyBox.setVisibility(VISIBLE);
       listView.setVisibility(VISIBLE);
 
-      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, replyAuthor);
+      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, replyAuthor, masterSecret);
       listView.setAdapter(adapter);
     }
   }

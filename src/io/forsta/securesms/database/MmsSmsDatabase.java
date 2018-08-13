@@ -109,7 +109,7 @@ public class MmsSmsDatabase extends Database {
   }
 
   public Cursor getReplies(String messageId) {
-    String selection = MmsDatabase.MESSAGE_REF + " = " + messageId;
+    String selection = MmsDatabase.MESSAGE_REF + " = " + "\"" + messageId + "\"";
 
     return queryTables(PROJECTION, selection, null, null);
   }
