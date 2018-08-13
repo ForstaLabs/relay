@@ -9,7 +9,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.IceCandidate;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
@@ -37,7 +36,6 @@ import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.GroupUtil;
@@ -177,11 +175,6 @@ public class ForstaMessageManager {
           }
         }
 
-        if (data.has("members")) {
-
-
-        }
-
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
 
@@ -200,48 +193,8 @@ public class ForstaMessageManager {
               String key = data.getString("key");
               forstaMessage.setProvisionRequest(uuid, key);
               break;
-            case ForstaMessage.ControlTypes.CALL_OFFER:
-              if (data.has("offer")) {
-                String originator = data.getString("originator");
-                String callId = data.getString("callId");
-                JSONObject offer = data.getJSONObject("offer");
-                String spd = offer.optString("sdp");
-                String peerId = data.getString("peerId");
-                forstaMessage.setCallOffer(callId, originator, peerId, spd);
-                Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
-
-              } else {
-                Log.w(TAG, "Not a valid callOffer control message");
-              }
-              break;
-            case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
-              if (data.has("icecandidates")) {
-                String originator = data.getString("originator");
-                String callId = data.getString("callId");
-                String peerId = data.getString("peerId");
-                JSONArray callIceCandidates = data.getJSONArray("icecandidates");
-                List<IceCandidate> candidates = new ArrayList<>();
-                for (int i=0; i<callIceCandidates.length(); i++) {
-                  JSONObject iceCandidate = callIceCandidates.getJSONObject(i);
-                  String spdMid = iceCandidate.getString("sdpMid");
-                  int spdLineIndex = iceCandidate.getInt("sdpMLineIndex");
-                  String spd = iceCandidate.getString("candidate");
-                  candidates.add(new IceCandidate(spdMid, spdLineIndex, spd));
-                }
-                forstaMessage.setIceCandidates(callId, originator, peerId, candidates);
-                Log.w(TAG, "Incomming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
-              } else {
-                Log.w(TAG, "Not a valid callIceCandidate control message");
-              }
-              break;
-            case ForstaMessage.ControlTypes.CALL_LEAVE:
-              String originator = data.getString("originator");
-              String callId = data.getString("callId");
-              forstaMessage.setCallLeave(callId, originator);
-              Log.w(TAG, "Call leave received: " + callId + " From : " + originator);
-              break;
             default:
-            Log.w(TAG, "Not a control message");
+              Log.w(TAG, "Not a control message");
           }
         }
       }
@@ -265,9 +218,7 @@ public class ForstaMessageManager {
       OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Thread has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
       message = new OutgoingSecureMediaMessage(message);
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      String threadUpdateBody = createControlMessageBody(context, recipients, null, threadData, ForstaMessage.ControlTypes.THREAD_UPDATE);
-      Log.w(TAG, threadUpdateBody);
-      message.setForstaControlJsonBody(context, threadUpdateBody);
+      message.setForstaControlJsonBody(context, threadData);
       MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
       long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
       MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
@@ -278,106 +229,15 @@ public class ForstaMessageManager {
     }
   }
 
-  public static void sendCallAccept(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, String description) {
-    try {
-      OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Accepting call", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
-      message = new OutgoingSecureMediaMessage(message);
-      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      String callAcceptBody = createControlMessageBody(context, recipients, null, threadData, ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER);
-      Log.w(TAG, callAcceptBody);
-
-      message.setForstaControlJsonBody(context, callAcceptBody);
-      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
-      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
-      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
-    } catch (MmsException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  public static String createControlMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
   }
 
-  private static String createControlCallAccept(Context context, Recipients recipients, ForstaThread forstaThread, String callId, String description) {
-    JSONArray versions = new JSONArray();
-    try {
-      JSONObject version1Body = createBaseMessageBody(context, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL);
-      JSONObject data = new JSONObject();
-      data.put("control", "callAcceptOffer");
-      version1Body.put("data", data);
-      versions.put(version1Body);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
-    return versions.toString();
+  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
   }
 
-  public static String createControlMessageBody(Context context, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String controlType) {
-    return createForstaMessageBody(context, "", recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL, controlType);
-  }
-
-  public static String createForstaContentMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT, null);
-  }
-
-  private static JSONObject createBaseMessageBody(Context context, Recipients messageRecipients, ForstaThread forstaThread, String type) {
-    JSONObject version1 = new JSONObject();
-    ContactDb contactDb = DbFactory.getContactDb(context);
-    String title = forstaThread.getTitle();
-    try {
-      String messageType = "content";
-      if (type.equals(ForstaMessage.MessageTypes.CONTROL)) {
-        messageType = "control";
-      }
-
-      String threadType = forstaThread.getThreadType() == 1 ? "announcement" : "conversation";
-      JSONObject sender = new JSONObject();
-      JSONObject recipients = new JSONObject();
-      JSONArray userIds = new JSONArray();
-
-      String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
-
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      sender.put("tagId", user.tag_id);
-      sender.put("tagPresentation", user.slug);
-      sender.put("userId", user.uid);
-
-      List<String> recipientList = new ArrayList<>();
-      for (String recipient : messageRecipients.toNumberStringList(false)) {
-        try {
-          recipientList.add(Util.canonicalizeNumber(context, recipient));
-        } catch (InvalidNumberException e) {
-          e.printStackTrace();
-        }
-      }
-
-      List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
-      for (ForstaUser x : forstaUsers) {
-        userIds.put(x.getUid());
-      }
-
-      recipients.put("userIds", userIds);
-      recipients.put("expression", forstaThread.getDistribution());
-
-      version1.put("version", 1);
-      version1.put("userAgent", System.getProperty("http.agent", ""));
-      version1.put("messageId", UUID.randomUUID().toString());
-      version1.put("messageType", messageType);
-      version1.put("threadId", threadId);
-      version1.put("threadTitle", title);
-      version1.put("threadType", threadType);
-      version1.put("sendTime", ForstaUtils.formatDateISOUTC(new Date()));
-      version1.put("sender", sender);
-      version1.put("distribution", recipients);
-    } catch (JSONException e) {
-      Log.e(TAG, "createForstaMessageBody JSON exception");
-      Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getAddress());
-      Log.e(TAG, "Thread: "+ forstaThread.getUid());
-      e.printStackTrace();
-    }
-    return version1;
-  }
-
-  private static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type, String control) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -388,17 +248,11 @@ public class ForstaMessageManager {
       String messageType = "content";
       if (type.equals(ForstaMessage.MessageTypes.CONTROL)) {
         messageType = "control";
-
-        if (control.equals(ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER)) {
-          data.put("control", "callAcceptOffer");
-
-        } else if (control.equals(ForstaMessage.ControlTypes.THREAD_UPDATE)) {
-          data.put("control", "threadUpdate");
-          JSONObject threadUpdates = new JSONObject();
-          threadUpdates.put("threadTitle", title);
-          threadUpdates.put("threadId", forstaThread.getUid());
-          data.put("threadUpdates", threadUpdates);
-        }
+        data.put("control", "threadUpdate");
+        JSONObject threadUpdates = new JSONObject();
+        threadUpdates.put("threadTitle", title);
+        threadUpdates.put("threadId", forstaThread.getUid());
+        data.put("threadUpdates", threadUpdates);
       }
 
       String threadType = forstaThread.getThreadType() == 1 ? "announcement" : "conversation";
@@ -439,7 +293,7 @@ public class ForstaMessageManager {
         }
       }
 
-      if (messageAttachments != null) {
+      if (attachments != null) {
         for (Attachment attachment : messageAttachments) {
           JSONObject attachmentJson = new JSONObject();
           attachmentJson.put("name", MediaUtil.getFileName(context, attachment.getDataUri()));
@@ -454,41 +308,37 @@ public class ForstaMessageManager {
         userIds.put(x.getUid());
       }
 
-      recipients.put("userIds", userIds);
-      recipients.put("expression", forstaThread.getDistribution());
-      data.put("attachments", attachments);
-
-      if (type.equals(ForstaMessage.MessageTypes.CONTENT) && !TextUtils.isEmpty(richTextMessage)) {
-        ForstaUser parsedUser;
-        String tagRegex = "@[a-zA-Z0-9(-|.)]+";
-        Pattern tagPattern = Pattern.compile(tagRegex);
-        Matcher tagMatcher = tagPattern.matcher(richTextMessage);
-        while (tagMatcher.find()) {
-          String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
-          parsedUser = contactDb.getUserByTag(parsedTag);
-          if(parsedUser != null) {
-            mentions.put(parsedUser.getUid());
-          }
-        }
-
-        JSONObject bodyHtml = new JSONObject();
-        bodyHtml.put("type", "text/html");
-        bodyHtml.put("value", richTextMessage);
-        body.put(bodyHtml);
-
-        JSONObject bodyPlain = new JSONObject();
-        bodyPlain.put("type", "text/plain");
-        Spanned stripMarkup = Html.fromHtml(richTextMessage);
-        bodyPlain.put("value", stripMarkup);
-        body.put(bodyPlain);
-
-        data.put("body", body);
-
-        if (mentions.length() > 0) {
-          data.put("mentions", mentions );
+      ForstaUser parsedUser;
+      String tagRegex = "@[a-zA-Z0-9(-|.)]+";
+      Pattern tagPattern = Pattern.compile(tagRegex);
+      Matcher tagMatcher = tagPattern.matcher(richTextMessage);
+      while (tagMatcher.find()) {
+        String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
+        parsedUser = contactDb.getUserByTag(parsedTag);
+        if(parsedUser != null) {
+          mentions.put(parsedUser.getUid());
         }
       }
 
+      recipients.put("userIds", userIds);
+      recipients.put("expression", forstaThread.getDistribution());
+
+      JSONObject bodyHtml = new JSONObject();
+      bodyHtml.put("type", "text/html");
+      bodyHtml.put("value", richTextMessage);
+      body.put(bodyHtml);
+
+      JSONObject bodyPlain = new JSONObject();
+      bodyPlain.put("type", "text/plain");
+      Spanned stripMarkup = Html.fromHtml(richTextMessage);
+      bodyPlain.put("value", stripMarkup);
+      body.put(bodyPlain);
+
+      data.put("body", body);
+      data.put("attachments", attachments);
+      if (mentions.length() > 0) {
+        data.put("mentions", mentions );
+      }
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
       version1.put("messageId", UUID.randomUUID().toString());
