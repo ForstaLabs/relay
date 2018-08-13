@@ -964,7 +964,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           draftDatabase.insertDrafts(new MasterCipher(thisMasterSecret), threadId, drafts);
           ForstaThread threadData = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-          String snippet = ForstaMessageManager.createForstaContentMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData);
+          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData);
           threadDatabase.updateSnippet(threadId, snippet,
                                        drafts.getUriSnippet(ConversationActivity.this),
                                        System.currentTimeMillis(), Types.BASE_DRAFT_TYPE, true);

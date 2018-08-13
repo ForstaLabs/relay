@@ -524,6 +524,7 @@ public class PushDecryptJob extends ContextJob {
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
 //          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimestamp());
+          intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
           else                                                context.startService(intent);
@@ -538,6 +539,7 @@ public class PushDecryptJob extends ContextJob {
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
             else                                                context.startService(iceIntent);

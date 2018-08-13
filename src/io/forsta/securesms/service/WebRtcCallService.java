@@ -101,6 +101,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   public static final String EXTRA_ICE_SDP_LINE_INDEX = "ice_sdp_line_index";
   public static final String EXTRA_RESULT_RECEIVER    = "result_receiver";
   public static final String EXTRA_THREAD_UID    = "thread_uid";
+  public static final String EXTRA_PEER_ID    = "peer_id";
 
   public static final String ACTION_INCOMING_CALL        = "CALL_INCOMING";
   public static final String ACTION_OUTGOING_CALL        = "CALL_OUTGOING";
@@ -143,6 +144,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private IncomingPstnCallReceiver        callReceiver;
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
+  @Nullable private String                   peerId;
   @Nullable private String                   callId;
   @Nullable private String threadUID;
   @Nullable private Recipient              recipient;
@@ -317,6 +319,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.originator = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     this.recipient                 = getRemoteRecipient(intent);
     this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
+    this.peerId = intent.getStringExtra(EXTRA_PEER_ID);
 
 //    if (isIncomingMessageExpired(intent)) {
 //      insertMissedCall(this.recipient, true);
@@ -353,7 +356,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
           Log.w(TAG, "Answer SDP: " + sdp.description);
           WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 
-          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp.description);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp, WebRtcCallService.this.peerId);
 
           for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
           WebRtcCallService.this.pendingIncomingIceUpdates = null;
@@ -914,14 +917,14 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private ListenableFutureTask<Boolean> sendMessage(@NonNull final Recipient recipient, String threadUID,
-                                                    @NonNull final String callId, String description)
+                                                    @NonNull final String callId, SessionDescription sdp, String peerId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        ForstaMessageManager.sendCallAccept(getApplicationContext(), masterSecret, recipients, threadUID, callId, description);
+        ForstaMessageManager.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
         //messageSender.sendCallMessage(new SignalServiceAddress(recipient.getAddress().toPhoneString()), callMessage);
         return true;
       }
