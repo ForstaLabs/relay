@@ -298,7 +298,7 @@ public class ForstaMessageManager {
       data.put("originator", user.getUid());
       JSONObject answer = new JSONObject();
       answer.put("sdp", description);
-      answer.put("type", type);
+      answer.put("type", "answer");
       data.put("answer", answer);
     } catch (JSONException e) {
       e.printStackTrace();
