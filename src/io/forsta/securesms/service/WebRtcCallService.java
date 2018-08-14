@@ -185,13 +185,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     Log.w(TAG, "Action: " + intent.getAction());
     Log.w(TAG, "Call State: " + callState.name());
-    Log.w(TAG, "Call ID: " + this.callId);
+    Log.w(TAG, "Call ID: " + callId);
 
     serviceExecutor.execute(new Runnable() {
       @Override
       public void run() {
-        Log.w(TAG, "Running action handler...");
-        Log.w(TAG, "Action: " + intent.getAction());
 //        if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
 //        else if (intent.getAction().equals(ACTION_REMOTE_BUSY))               handleBusyMessage(intent);
         if (intent.getAction().equals(ACTION_INCOMING_CALL))                  handleIncomingCall(intent);
@@ -347,6 +345,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       @Override
       public void onSuccessContinue(List<PeerConnection.IceServer> result) {
         try {
+          Log.w(TAG, "Turn servers success...");
           boolean isSystemContact = false;
 
 //          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
