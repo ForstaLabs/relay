@@ -42,7 +42,7 @@ import io.forsta.securesms.webrtc.UncaughtExceptionHandlerManager;
 //import io.forsta.securesms.webrtc.WebRtcDataProtos.Connected;
 //import io.forsta.securesms.webrtc.WebRtcDataProtos.Data;
 //import io.forsta.securesms.webrtc.WebRtcDataProtos.Hangup;
-import io.forsta.securesms.webrtc.WebRtcDataProtos;
+//import io.forsta.securesms.webrtc.WebRtcDataProtos;
 import io.forsta.securesms.webrtc.audio.BluetoothStateManager;
 import io.forsta.securesms.webrtc.audio.OutgoingRinger;
 import io.forsta.securesms.webrtc.audio.SignalAudioManager;
@@ -352,7 +352,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
 //          }
 
-          boolean isAlwaysTurn = true;
+          boolean isAlwaysTurn = false;
 
           WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
           WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
@@ -364,10 +364,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
           ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp, WebRtcCallService.this.peerId);
 
-          for (IceCandidate candidate : pendingIncomingIceUpdates) WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
+          for (IceCandidate candidate : pendingIncomingIceUpdates) {
+            WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
+          }
           WebRtcCallService.this.pendingIncomingIceUpdates = null;
 
           listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
+
             @Override
             public void onFailureContinue(Throwable error) {
               Log.w(TAG, error);
@@ -376,9 +379,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
             }
           });
         } catch (PeerConnectionWrapper.PeerConnectionException e) {
-          Log.w(TAG, e);
-          terminate();
-        } catch (Exception e) {
           Log.w(TAG, e);
           terminate();
         }
@@ -497,8 +497,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
                                                 intent.getStringExtra(EXTRA_ICE_SDP));
 
-      if       (peerConnection != null)           peerConnection.addIceCandidate(candidate);
-      else if (pendingIncomingIceUpdates != null) pendingIncomingIceUpdates.add(candidate);
+      if (peerConnection != null) {
+        peerConnection.addIceCandidate(candidate);
+      } else if (pendingIncomingIceUpdates != null) {
+        pendingIncomingIceUpdates.add(candidate);
+      }
     }
   }
 //
@@ -934,6 +937,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
+        Log.w(TAG, "Sending callAcceptOffer, callId: " + callId + " to: " + recipient.getAddress());
         ForstaMessageManager.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
         //messageSender.sendCallMessage(new SignalServiceAddress(recipient.getAddress().toPhoneString()), callMessage);
         return true;
@@ -1121,7 +1125,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         try {
           JSONObject jsonResults = CcsmApi.getRtcServers(getApplicationContext());
           if (jsonResults.has("results")) {
-            Log.w(TAG, "Got Turn Servers");
             JSONArray servers =  jsonResults.getJSONArray("results");
             for (int i=0; i<servers.length(); i++) {
               JSONObject server = servers.getJSONObject(i);
