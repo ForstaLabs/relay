@@ -2,6 +2,7 @@ package io.forsta.securesms;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -34,7 +35,6 @@ public class ReplyListAdapter extends CursorAdapter {
 
     private Context mContext;
     private int mResource;
-    private Recipient mAuthor;
     private MasterSecret masterSecret;
     private final @NonNull MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(mContext);
     private static final int MAX_CACHE_SIZE = 40;
@@ -42,11 +42,10 @@ public class ReplyListAdapter extends CursorAdapter {
             Collections.synchronizedMap(new LRUCache<String, SoftReference<MessageRecord>>(MAX_CACHE_SIZE));
 
 
-    public ReplyListAdapter(@NonNull Context context, int resource, Cursor cursor, Recipient author, MasterSecret masterSecret) {
+    public ReplyListAdapter(@NonNull Context context, int resource, Cursor cursor, MasterSecret masterSecret) {
         super(context, cursor);
         mContext = context;
         mResource = resource;
-        mAuthor = author;
         this.masterSecret = masterSecret;
     }
 
@@ -57,13 +56,11 @@ public class ReplyListAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        /*String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-        String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-        int vote = cursor.getInt(cursor.getColumnIndexOrThrow("vote"));
-        Recipient author = getRecipientsFor(address).getPrimaryRecipient();*/
+        String address = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsColumns.ADDRESS));
         long messageId = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
         String type = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
 
+        Recipient author = getRecipientsFor(address).getPrimaryRecipient();
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
 
         String body = messageRecord.getPlainTextBody();
@@ -79,11 +76,11 @@ public class ReplyListAdapter extends CursorAdapter {
         } else {
             voteCount.setVisibility(View.GONE);
         }
-        contactPhoto.setAvatar(mAuthor, true);
+        contactPhoto.setAvatar(author, true);
         bodyText.setText(body);
     }
 
-    /*private Recipients getRecipientsFor(String address) {
+    private Recipients getRecipientsFor(String address) {
         if (TextUtils.isEmpty(address) || address.equals("insert-address-token")) {
             return RecipientFactory.getRecipientsFor(mContext, Recipient.getUnknownRecipient(), true);
         }
@@ -95,7 +92,7 @@ public class ReplyListAdapter extends CursorAdapter {
         }
 
         return recipients;
-    }*/
+    }
 
     private MessageRecord getMessageRecord(long messageId, Cursor cursor, String type) {
         final SoftReference<MessageRecord> reference = messageRecordCache.get(type + messageId);

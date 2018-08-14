@@ -105,7 +105,6 @@ public class ConversationItem extends LinearLayout
   private Locale        locale;
   private boolean       groupThread;
   private Recipient     recipient;
-  private Recipient     replyAuthor;
   private String          messageId;
 
   private View               bodyBubble;
@@ -305,15 +304,19 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setBodyText(MessageRecord messageRecord) {
-    bodyText.setClickable(false);
-    bodyText.setFocusable(false);
+    if(messageRecord.getMessageRef() == null) {
+      bodyText.setClickable(false);
+      bodyText.setFocusable(false);
 
-    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
-      bodyText.setText(messageRecord.getHtmlBody());
+      if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+        bodyText.setText(messageRecord.getHtmlBody());
+      } else {
+        bodyText.setText(messageRecord.getPlainTextBody());
+      }
+      bodyText.setVisibility(View.VISIBLE);
     } else {
-      bodyText.setText(messageRecord.getPlainTextBody());
+      bodyText.setText("");
     }
-    bodyText.setVisibility(View.VISIBLE);
   }
 
   private void setMediaAttributes(MessageRecord messageRecord) {
@@ -464,27 +467,29 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReply(MessageRecord messageRecord) {
-    MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
-    //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
-    Cursor cursor = db.getReplies(messageId);
-    listView.setStackFromBottom(true);
-    long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
+    if(messageRecord.getMessageRef() == null){
+      MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
+      //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
+      Cursor cursor = db.getReplies(messageId);
+      listView.setStackFromBottom(true);
 
-    if (messageRecord.isOutgoing()) {
-      replyAuthor = Recipient.from(context, localId, true);
+      if((cursor != null) && (cursor.getCount() > 0)) {
+        listView.setClickable(false);
+        listView.setFocusable(false);
+        replyBox.setVisibility(VISIBLE);
+        listView.setVisibility(VISIBLE);
+
+        ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, masterSecret);
+        listView.setAdapter(adapter);
+      } else {
+        replyBox.setVisibility(GONE);
+        listView.setVisibility(GONE);
+      }
     } else {
-      replyAuthor = recipient;
+      replyBox.setVisibility(GONE);
+      listView.setVisibility(GONE);
     }
 
-    if((cursor != null) && (cursor.getCount() > 0)) {
-      listView.setClickable(false);
-      listView.setFocusable(false);
-      replyBox.setVisibility(VISIBLE);
-      listView.setVisibility(VISIBLE);
-
-      ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, replyAuthor, masterSecret);
-      listView.setAdapter(adapter);
-    }
   }
 
   private void setFailedStatusIcons() {
