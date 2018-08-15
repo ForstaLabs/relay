@@ -171,7 +171,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     initializeResources();
 //
 //    registerIncomingPstnCallReceiver();
-//    registerUncaughtExceptionHandler();
+    registerUncaughtExceptionHandler();
 //    registerWiredHeadsetStateReceiver();
   }
 
