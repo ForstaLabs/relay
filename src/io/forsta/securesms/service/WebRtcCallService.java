@@ -183,10 +183,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       return START_NOT_STICKY;
     }
 
-    Log.w(TAG, "Action: " + intent.getAction());
-    Log.w(TAG, "Call State: " + callState.name());
-    Log.w(TAG, "Call ID: " + callId);
-
     serviceExecutor.execute(new Runnable() {
       @Override
       public void run() {
@@ -345,17 +341,22 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       @Override
       public void onSuccessContinue(List<PeerConnection.IceServer> result) {
         try {
-          Log.w(TAG, "Turn servers success...");
           boolean isSystemContact = false;
 
 //          if (Permissions.hasAny(WebRtcCallService.this, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
 //            isSystemContact = ContactAccessor.getInstance().isSystemContact(WebRtcCallService.this, recipient.getAddress().serialize());
 //          }
 
+          for(PeerConnection.IceServer server : result) {
+            Log.w(TAG, "Servers: " + server.uri);
+          }
+
           boolean isAlwaysTurn = false;
 
-          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, !isSystemContact || isAlwaysTurn);
+          WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, isAlwaysTurn);
           WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
+          WebRtcCallService.this.dataChannel = WebRtcCallService.this.peerConnection.createDataChannel(DATA_CHANNEL_NAME);
+          WebRtcCallService.this.dataChannel.registerObserver(WebRtcCallService.this);
           WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
 
           SessionDescription sdp = WebRtcCallService.this.peerConnection.createAnswer(new MediaConstraints());
@@ -490,13 +491,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void handleRemoteIceCandidate(Intent intent) {
-    Log.w(TAG, "handleRemoteIceCandidate...");
-
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
                                                 intent.getStringExtra(EXTRA_ICE_SDP));
 
+      Log.w(TAG, "handleRemoteIceCandidate: " + candidate.toString());
       if (peerConnection != null) {
         peerConnection.addIceCandidate(candidate);
       } else if (pendingIncomingIceUpdates != null) {
@@ -1135,7 +1135,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
                 String credential = server.optString("credential");
                 if (url.startsWith("turn")) {
                   results.add(new PeerConnection.IceServer(url, username, credential));
-                } else {
+                }
+                else {
                   results.add(new PeerConnection.IceServer(url));
                 }
               }
