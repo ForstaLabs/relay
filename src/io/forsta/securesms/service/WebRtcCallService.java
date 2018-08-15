@@ -129,8 +129,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private CallState callState          = CallState.STATE_IDLE;
   private boolean   microphoneEnabled  = true;
-  private boolean   localVideoEnabled  = false;
-  private boolean   remoteVideoEnabled = false;
+  private boolean   localVideoEnabled  = true;
+  private boolean   remoteVideoEnabled = true;
   private boolean   bluetoothAvailable = false;
 
 //  @Inject public SignalServiceMessageSender  messageSender;
@@ -363,7 +363,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
           Log.w(TAG, "Answer SDP: " + sdp.description);
           WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 
-          ListenableFutureTask<Boolean> listenableFutureTask = sendMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp, WebRtcCallService.this.peerId);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp, WebRtcCallService.this.peerId);
 
           for (IceCandidate candidate : pendingIncomingIceUpdates) {
             WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
@@ -570,7 +570,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       return;
     }
 
-    if (this.callId != null && this.callId.equals(getCallId(intent))) {
+    if (this.callId != null && !this.callId.equals(getCallId(intent))) {
       Log.w(TAG, "Ignoring connected for unknown call id: " + getCallId(intent));
       return;
     }
@@ -580,7 +580,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
 
     audioManager.startCommunication(callState == CallState.STATE_REMOTE_RINGING);
-    bluetoothStateManager.setWantsConnection(true);
+//    bluetoothStateManager.setWantsConnection(true);
 
     callState = CallState.STATE_CONNECTED;
 
@@ -708,16 +708,17 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //  }
 //
   private void handleLocalHangup(Intent intent) {
-//    if (this.dataChannel != null && this.recipient != null && this.callId != null) {
+    if (this.dataChannel != null && this.recipient != null && this.callId != null) {
 //      this.accountManager.cancelInFlightRequests();
 //      this.messageSender.cancelInFlightRequests();
 //
 //      this.dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(Data.newBuilder().setHangup(Hangup.newBuilder().setId(this.callId)).build().toByteArray()), false));
 //      sendMessage(this.recipient, SignalServiceCallMessage.forHangup(new HangupMessage(this.callId)));
-//      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//    }
-//
-//    terminate();
+      sendCallLeaveMessage(this.recipient, this.threadUID, this.callId);
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    }
+
+    terminate();
   }
 //
   private void handleRemoteHangup(Intent intent) {
@@ -929,7 +930,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, recipient, identityKey, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
-  private ListenableFutureTask<Boolean> sendMessage(@NonNull final Recipient recipient, String threadUID,
+  private ListenableFutureTask<Boolean> sendAcceptOfferMessage(@NonNull final Recipient recipient, String threadUID,
                                                     @NonNull final String callId, SessionDescription sdp, String peerId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
@@ -939,7 +940,26 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         Log.w(TAG, "Sending callAcceptOffer, callId: " + callId + " to: " + recipient.getAddress());
         ForstaMessageManager.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
-        //messageSender.sendCallMessage(new SignalServiceAddress(recipient.getAddress().toPhoneString()), callMessage);
+        return true;
+      }
+    };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> sendCallLeaveMessage(@NonNull final Recipient recipient, String threadUID,
+                                                    @NonNull final String callId)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
+        Log.w(TAG, "Sending callLeave, callId: " + callId + " to: " + recipient.getAddress());
+        ForstaMessageManager.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
         return true;
       }
     };

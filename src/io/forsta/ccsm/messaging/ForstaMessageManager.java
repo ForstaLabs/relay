@@ -276,7 +276,8 @@ public class ForstaMessageManager {
   public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
     try {
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      String payload = createAcceptCallOfferMessage(context, recipients, threadData, callId, sdp.description, sdp.type.name(), peerId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = createAcceptCallOfferMessage(user, recipients, threadData, callId, sdp.description, sdp.type.name(), peerId);
       OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
       MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
       long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
@@ -286,9 +287,40 @@ public class ForstaMessageManager {
     }
   }
 
-  private static String createAcceptCallOfferMessage(Context context, Recipients recipients, ForstaThread forstaThread, String callId, String description, String type, String peerId) {
+  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
+    try {
+      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = createCallLeaveMessage(user, recipients, threadData, callId);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
+      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
+      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static String createCallLeaveMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId) {
     JSONObject data = new JSONObject();
-    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    try {
+      data.put("control", "callLeave");
+      JSONArray members = new JSONArray();
+      for (Recipient x : recipients) {
+        members.put(x.getAddress());
+      }
+      data.put("members", members);
+      data.put("callId", callId);
+      data.put("originator", user.getUid());
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
+    return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
+  }
+
+  private static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String type, String peerId) {
+    JSONObject data = new JSONObject();
     try {
       data.put("control", "callAcceptOffer");
       data.put("peerId", peerId);
