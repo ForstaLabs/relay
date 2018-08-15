@@ -342,7 +342,7 @@ public class PushDecryptJob extends ContextJob {
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
-      handleControlMessage(forstaMessage, message.getBody().get());
+      handleControlMessage(forstaMessage, message.getBody().get(), envelope.getTimestamp());
     }
   }
 
@@ -427,7 +427,7 @@ public class PushDecryptJob extends ContextJob {
 
       return threadId;
     } else {
-      handleControlMessage(forstaMessage, message.getMessage().getBody().get());
+      handleControlMessage(forstaMessage, message.getMessage().getBody().get(), message.getTimestamp());
       return -1;
     }
   }
@@ -478,7 +478,7 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody) {
+  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
       Log.w(TAG, "Got control message: " + messageBody);
       Log.w(TAG, "Control Type: " + forstaMessage.getControlType());
@@ -523,7 +523,7 @@ public class PushDecryptJob extends ContextJob {
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callOffer.getOriginator());
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
-//          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimestamp());
+          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
           intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
