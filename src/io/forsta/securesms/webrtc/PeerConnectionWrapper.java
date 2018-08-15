@@ -51,7 +51,7 @@ public class PeerConnectionWrapper {
                                boolean hideIp)
   {
     List<PeerConnection.IceServer> iceServers = new LinkedList<>();
-    iceServers.add(STUN_SERVER);
+//    iceServers.add(STUN_SERVER);
     iceServers.addAll(turnServers);
 
     MediaConstraints                constraints      = new MediaConstraints();
