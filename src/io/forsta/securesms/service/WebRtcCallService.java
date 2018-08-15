@@ -539,6 +539,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //  }
 //
   private void handleIceConnected(Intent intent) {
+    Log.w(TAG, "handleIceConnected...");
     if (callState == CallState.STATE_ANSWERING) {
       if (this.recipient == null) throw new AssertionError("assert");
 
