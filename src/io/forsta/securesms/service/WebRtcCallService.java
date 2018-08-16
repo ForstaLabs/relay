@@ -9,10 +9,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -25,6 +29,7 @@ import io.forsta.securesms.WebRtcCallActivity;
 
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
@@ -33,7 +38,9 @@ import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.Util;
+import io.forsta.securesms.util.concurrent.SettableFuture;
 import io.forsta.securesms.webrtc.CallNotificationBuilder;
 import io.forsta.securesms.webrtc.IncomingPstnCallReceiver;
 import io.forsta.securesms.webrtc.PeerConnectionFactoryOptions;
@@ -191,22 +198,22 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         if (intent.getAction().equals(ACTION_INCOMING_CALL))                  handleIncomingCall(intent);
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
         else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent);
-//        else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
+        else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
         else if (intent.getAction().equals(ACTION_LOCAL_HANGUP))              handleLocalHangup(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_HANGUP))             handleRemoteHangup(intent);
-//        else if (intent.getAction().equals(ACTION_SET_MUTE_AUDIO))            handleSetMuteAudio(intent);
-//        else if (intent.getAction().equals(ACTION_SET_MUTE_VIDEO))            handleSetMuteVideo(intent);
+        else if (intent.getAction().equals(ACTION_SET_MUTE_AUDIO))            handleSetMuteAudio(intent);
+        else if (intent.getAction().equals(ACTION_SET_MUTE_VIDEO))            handleSetMuteVideo(intent);
 //        else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
 //        else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
-//        else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
-//        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
-//        else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
+        else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
+        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
+        else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
         else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleRemoteIceCandidate(intent);
 //        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleLocalIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
-//        else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
+        else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
       }
     });
 
@@ -457,7 +464,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleResponseMessage(Intent intent) {
 //    try {
-//      Log.w(TAG, "Got response: " + intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION));
+      Log.w(TAG, "Got response: " + intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION));
 //
 //      if (callState != CallState.STATE_DIALING || !getRemoteRecipient(intent).equals(recipient) || !Util.isEquals(this.callId, getCallId(intent))) {
 //        Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + getCallId(intent) + ", " + getRemoteRecipient(intent));
@@ -604,41 +611,41 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //                                                                     .build().toByteArray()), false));
   }
 
-//  private void handleBusyCall(Intent intent) {
-//    Recipient recipient = getRemoteRecipient(intent);
-//    long      callId    = getCallId(intent);
-//
+  private void handleBusyCall(Intent intent) {
+    Recipient recipient = getRemoteRecipient(intent);
+    String      callId    = getCallId(intent);
+
 //    sendMessage(recipient, SignalServiceCallMessage.forBusy(new BusyMessage(callId)));
-//    insertMissedCall(getRemoteRecipient(intent), false);
-//  }
-//
-//  private void handleBusyMessage(Intent intent) {
-//    Log.w(TAG, "handleBusyMessage...");
-//
-//    final Recipient recipient = getRemoteRecipient(intent);
-//    final long      callId    = getCallId(intent);
-//
-//    if (callState != CallState.STATE_DIALING || !Util.isEquals(this.callId, callId) || !recipient.equals(this.recipient)) {
-//      Log.w(TAG, "Got busy message for inactive session...");
-//      return;
-//    }
-//
-//    sendMessage(WebRtcViewModel.State.CALL_BUSY, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//
-//    audioManager.startOutgoingRinger(OutgoingRinger.Type.BUSY);
-//    Util.runOnMainDelayed(new Runnable() {
-//      @Override
-//      public void run() {
-//        Intent intent = new Intent(WebRtcCallService.this, WebRtcCallService.class);
-//        intent.setAction(ACTION_LOCAL_HANGUP);
-//        intent.putExtra(EXTRA_CALL_ID, intent.getLongExtra(EXTRA_CALL_ID, -1));
-//        intent.putExtra(EXTRA_REMOTE_ADDRESS, intent.getStringExtra(EXTRA_REMOTE_ADDRESS));
-//
-//        startService(intent);
-//      }
-//    }, WebRtcCallActivity.BUSY_SIGNAL_DELAY_FINISH);
-//  }
-//
+    insertMissedCall(getRemoteRecipient(intent), false);
+  }
+
+  private void handleBusyMessage(Intent intent) {
+    Log.w(TAG, "handleBusyMessage...");
+
+    final Recipient recipient = getRemoteRecipient(intent);
+    final String      callId    = getCallId(intent);
+
+    if (callState != CallState.STATE_DIALING || this.callId == null || !this.callId.equals(callId) || !recipient.equals(this.recipient)) {
+      Log.w(TAG, "Got busy message for inactive session...");
+      return;
+    }
+
+    sendMessage(WebRtcViewModel.State.CALL_BUSY, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+    audioManager.startOutgoingRinger(OutgoingRinger.Type.BUSY);
+    Util.runOnMainDelayed(new Runnable() {
+      @Override
+      public void run() {
+        Intent intent = new Intent(WebRtcCallService.this, WebRtcCallService.class);
+        intent.setAction(ACTION_LOCAL_HANGUP);
+        intent.putExtra(EXTRA_CALL_ID, intent.getLongExtra(EXTRA_CALL_ID, -1));
+        intent.putExtra(EXTRA_REMOTE_ADDRESS, intent.getStringExtra(EXTRA_REMOTE_ADDRESS));
+
+        startService(intent);
+      }
+    }, WebRtcCallActivity.BUSY_SIGNAL_DELAY_FINISH);
+  }
+
   private void handleCheckTimeout(Intent intent) {
     if (this.callId != null                                   &&
         this.callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) &&
@@ -654,19 +661,24 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       terminate();
     }
   }
-//
-//  private void handleIsInCallQuery(Intent intent) {
-//    ResultReceiver resultReceiver = intent.getParcelableExtra(EXTRA_RESULT_RECEIVER);
-//
-//    if (resultReceiver != null) {
-//      resultReceiver.send(callState != CallState.STATE_IDLE ? 1 : 0, null);
-//    }
-//  }
+
+  private void handleIsInCallQuery(Intent intent) {
+    ResultReceiver resultReceiver = intent.getParcelableExtra(EXTRA_RESULT_RECEIVER);
+
+    if (resultReceiver != null) {
+      resultReceiver.send(callState != CallState.STATE_IDLE ? 1 : 0, null);
+    }
+  }
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
 //    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
 //    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
 //                                       messageAndThreadId.second, signal);
+//    DatabaseFactory.getMmsDatabase(this).insertMessageInbox()
+  }
+
+  private void insertMissedCall() {
+//    DatabaseFactory.getMmsDatabase(this).insertMessageInbox(KeyCachingService.getMasterSecret(this), )
   }
 
   private void handleAnswerCall(Intent intent) {
@@ -690,24 +702,25 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     handleCallConnected(intent);
   }
 
-//  private void handleDenyCall(Intent intent) {
-//    if (callState != CallState.STATE_LOCAL_RINGING) {
-//      Log.w(TAG, "Can only deny from ringing!");
-//      return;
-//    }
-//
-//    if (recipient == null || callId == null || dataChannel == null) {
-//      throw new AssertionError("assert");
-//    }
-//
+  private void handleDenyCall(Intent intent) {
+    if (callState != CallState.STATE_LOCAL_RINGING) {
+      Log.w(TAG, "Can only deny from ringing!");
+      return;
+    }
+
+    if (recipient == null || callId == null || dataChannel == null) {
+      throw new AssertionError("assert");
+    }
+
 //    this.dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(Data.newBuilder().setHangup(Hangup.newBuilder().setId(this.callId)).build().toByteArray()), false));
 //    sendMessage(this.recipient, SignalServiceCallMessage.forHangup(new HangupMessage(this.callId)));
 //
 //    DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
-//
-//    this.terminate();
-//  }
-//
+    sendCallLeaveMessage(recipient, threadUID, callId);
+    insertMissedCall();
+    this.terminate();
+  }
+
   private void handleLocalHangup(Intent intent) {
     if (this.dataChannel != null && this.recipient != null && this.callId != null) {
 //      this.accountManager.cancelInFlightRequests();
@@ -745,102 +758,102 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     this.terminate();
   }
-//
-//  private void handleSetMuteAudio(Intent intent) {
-//    boolean muted = intent.getBooleanExtra(EXTRA_MUTE, false);
-//    this.microphoneEnabled = !muted;
-//
-//    if (this.peerConnection != null) {
-//      this.peerConnection.setAudioEnabled(this.microphoneEnabled);
-//    }
-//  }
-//
-//  private void handleSetMuteVideo(Intent intent) {
-//    AudioManager audioManager = ServiceUtil.getAudioManager(this);
-//    boolean      muted        = intent.getBooleanExtra(EXTRA_MUTE, false);
-//
-//    this.localVideoEnabled = !muted;
-//
-//    if (this.peerConnection != null) {
-//      this.peerConnection.setVideoEnabled(this.localVideoEnabled);
-//    }
-//
-//    if (this.callId != null && this.dataChannel != null) {
+
+  private void handleSetMuteAudio(Intent intent) {
+    boolean muted = intent.getBooleanExtra(EXTRA_MUTE, false);
+    this.microphoneEnabled = !muted;
+
+    if (this.peerConnection != null) {
+      this.peerConnection.setAudioEnabled(this.microphoneEnabled);
+    }
+  }
+
+  private void handleSetMuteVideo(Intent intent) {
+    AudioManager audioManager = ServiceUtil.getAudioManager(this);
+    boolean      muted        = intent.getBooleanExtra(EXTRA_MUTE, false);
+
+    this.localVideoEnabled = !muted;
+
+    if (this.peerConnection != null) {
+      this.peerConnection.setVideoEnabled(this.localVideoEnabled);
+    }
+
+    if (this.callId != null && this.dataChannel != null) {
 //      this.dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(Data.newBuilder()
 //                                                                       .setVideoStreamingStatus(WebRtcDataProtos.VideoStreamingStatus.newBuilder()
 //                                                                                                                                     .setId(this.callId)
 //                                                                                                                                     .setEnabled(localVideoEnabled))
 //                                                                       .build().toByteArray()), false));
-//    }
-//
-//    if (callState == CallState.STATE_CONNECTED) {
-//      if (localVideoEnabled) this.lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
-//      else                   this.lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
-//    }
-//
-//    if (localVideoEnabled &&
-//        !audioManager.isSpeakerphoneOn() &&
-//        !audioManager.isBluetoothScoOn() &&
-//        !audioManager.isWiredHeadsetOn())
-//    {
-//      audioManager.setSpeakerphoneOn(true);
-//    }
-//
-//    sendMessage(viewModelStateFor(callState), this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//  }
-//
-//  private void handleBluetoothChange(Intent intent) {
-//    this.bluetoothAvailable = intent.getBooleanExtra(EXTRA_AVAILABLE, false);
-//
-//    if (recipient != null) {
-//      sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//    }
-//  }
-//
-//  private void handleWiredHeadsetChange(Intent intent) {
-//    Log.w(TAG, "handleWiredHeadsetChange...");
-//
-//    if (callState == CallState.STATE_CONNECTED ||
-//        callState == CallState.STATE_DIALING   ||
-//        callState == CallState.STATE_REMOTE_RINGING)
-//    {
-//      AudioManager audioManager = ServiceUtil.getAudioManager(this);
-//      boolean      present      = intent.getBooleanExtra(EXTRA_AVAILABLE, false);
-//
-//      if (present && audioManager.isSpeakerphoneOn()) {
-//        audioManager.setSpeakerphoneOn(false);
-//        audioManager.setBluetoothScoOn(false);
-//      } else if (!present && !audioManager.isSpeakerphoneOn() && !audioManager.isBluetoothScoOn() && localVideoEnabled) {
-//        audioManager.setSpeakerphoneOn(true);
-//      }
-//
-//      if (recipient != null) {
-//        sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//      }
-//    }
-//  }
-//
-//  private void handleScreenOffChange(Intent intent) {
-//    if (callState == CallState.STATE_ANSWERING ||
-//        callState == CallState.STATE_LOCAL_RINGING)
-//    {
-//      Log.w(TAG, "Silencing incoming ringer...");
-//      audioManager.silenceIncomingRinger();
-//    }
-//  }
-//
-//  private void handleRemoteVideoMute(Intent intent) {
-//    boolean muted  = intent.getBooleanExtra(EXTRA_MUTE, false);
-//    long    callId = intent.getLongExtra(EXTRA_CALL_ID, -1);
-//
-//    if (this.recipient == null || this.callState != CallState.STATE_CONNECTED || !Util.isEquals(this.callId, callId)) {
-//      Log.w(TAG, "Got video toggle for inactive call, ignoring...");
-//      return;
-//    }
-//
-//    this.remoteVideoEnabled = !muted;
-//    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//  }
+    }
+
+    if (callState == CallState.STATE_CONNECTED) {
+      if (localVideoEnabled) this.lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
+      else                   this.lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
+    }
+
+    if (localVideoEnabled &&
+        !audioManager.isSpeakerphoneOn() &&
+        !audioManager.isBluetoothScoOn() &&
+        !audioManager.isWiredHeadsetOn())
+    {
+      audioManager.setSpeakerphoneOn(true);
+    }
+
+    sendMessage(viewModelStateFor(callState), this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+  }
+
+  private void handleBluetoothChange(Intent intent) {
+    this.bluetoothAvailable = intent.getBooleanExtra(EXTRA_AVAILABLE, false);
+
+    if (recipient != null) {
+      sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    }
+  }
+
+  private void handleWiredHeadsetChange(Intent intent) {
+    Log.w(TAG, "handleWiredHeadsetChange...");
+
+    if (callState == CallState.STATE_CONNECTED ||
+        callState == CallState.STATE_DIALING   ||
+        callState == CallState.STATE_REMOTE_RINGING)
+    {
+      AudioManager audioManager = ServiceUtil.getAudioManager(this);
+      boolean      present      = intent.getBooleanExtra(EXTRA_AVAILABLE, false);
+
+      if (present && audioManager.isSpeakerphoneOn()) {
+        audioManager.setSpeakerphoneOn(false);
+        audioManager.setBluetoothScoOn(false);
+      } else if (!present && !audioManager.isSpeakerphoneOn() && !audioManager.isBluetoothScoOn() && localVideoEnabled) {
+        audioManager.setSpeakerphoneOn(true);
+      }
+
+      if (recipient != null) {
+        sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      }
+    }
+  }
+
+  private void handleScreenOffChange(Intent intent) {
+    if (callState == CallState.STATE_ANSWERING ||
+        callState == CallState.STATE_LOCAL_RINGING)
+    {
+      Log.w(TAG, "Silencing incoming ringer...");
+      audioManager.silenceIncomingRinger();
+    }
+  }
+
+  private void handleRemoteVideoMute(Intent intent) {
+    boolean muted  = intent.getBooleanExtra(EXTRA_MUTE, false);
+    long    callId = intent.getLongExtra(EXTRA_CALL_ID, -1);
+
+    if (this.recipient == null || this.callState != CallState.STATE_CONNECTED || this.callId == null || !this.callId.equals(callId)) {
+      Log.w(TAG, "Got video toggle for inactive call, ignoring...");
+      return;
+    }
+
+    this.remoteVideoEnabled = !muted;
+    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+  }
 
   /// Helper Methods
 
@@ -1303,41 +1316,41 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       throw new AssertionError(throwable);
     }
   }
-//
-//  @WorkerThread
-//  public static boolean isCallActive(Context context) {
-//    Log.w(TAG, "isCallActive()");
-//
-//    HandlerThread handlerThread = null;
-//
-//    try {
-//      handlerThread = new HandlerThread("webrtc-callback");
-//      handlerThread.start();
-//
-//      final SettableFuture<Boolean> future = new SettableFuture<>();
-//
-//      ResultReceiver resultReceiver = new ResultReceiver(new Handler(handlerThread.getLooper())) {
-//        protected void onReceiveResult(int resultCode, Bundle resultData) {
-//          Log.w(TAG, "Got result...");
-//          future.set(resultCode == 1);
-//        }
-//      };
-//
-//      Intent intent = new Intent(context, WebRtcCallService.class);
-//      intent.setAction(ACTION_IS_IN_CALL_QUERY);
-//      intent.putExtra(EXTRA_RESULT_RECEIVER, resultReceiver);
-//
-//      context.startService(intent);
-//
-//      Log.w(TAG, "Blocking on result...");
-//      return future.get();
-//    } catch (InterruptedException | ExecutionException e) {
-//      Log.w(TAG, e);
-//      return false;
-//    } finally {
-//      if (handlerThread != null) handlerThread.quit();
-//    }
-//  }
+
+  @WorkerThread
+  public static boolean isCallActive(Context context) {
+    Log.w(TAG, "isCallActive()");
+
+    HandlerThread handlerThread = null;
+
+    try {
+      handlerThread = new HandlerThread("webrtc-callback");
+      handlerThread.start();
+
+      final SettableFuture<Boolean> future = new SettableFuture<>();
+
+      ResultReceiver resultReceiver = new ResultReceiver(new Handler(handlerThread.getLooper())) {
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+          Log.w(TAG, "Got result...");
+          future.set(resultCode == 1);
+        }
+      };
+
+      Intent intent = new Intent(context, WebRtcCallService.class);
+      intent.setAction(ACTION_IS_IN_CALL_QUERY);
+      intent.putExtra(EXTRA_RESULT_RECEIVER, resultReceiver);
+
+      context.startService(intent);
+
+      Log.w(TAG, "Blocking on result...");
+      return future.get();
+    } catch (InterruptedException | ExecutionException e) {
+      Log.w(TAG, e);
+      return false;
+    } finally {
+      if (handlerThread != null) handlerThread.quit();
+    }
+  }
 
   public static void isCallActive(Context context, ResultReceiver resultReceiver) {
     Intent intent = new Intent(context, WebRtcCallService.class);
