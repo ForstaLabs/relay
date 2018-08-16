@@ -193,8 +193,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     serviceExecutor.execute(new Runnable() {
       @Override
       public void run() {
-//        if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
-//        else if (intent.getAction().equals(ACTION_REMOTE_BUSY))               handleBusyMessage(intent);
+        if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
+        else if (intent.getAction().equals(ACTION_REMOTE_BUSY))               handleBusyMessage(intent);
         if (intent.getAction().equals(ACTION_INCOMING_CALL))                  handleIncomingCall(intent);
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
         else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent);
@@ -209,7 +209,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
         else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleRemoteIceCandidate(intent);
-//        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleLocalIceCandidate(intent);
+        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleLocalIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
@@ -329,17 +329,17 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
     this.peerId = intent.getStringExtra(EXTRA_PEER_ID);
 
-//    if (isIncomingMessageExpired(intent)) {
-//      insertMissedCall(this.recipient, true);
-//      terminate();
-//      return;
-//    }
+    if (isIncomingMessageExpired(intent)) {
+      insertMissedCall(this.recipient, true);
+      terminate();
+      return;
+    }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
     }
 
-    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 2, TimeUnit.MINUTES);
+    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 1, TimeUnit.MINUTES);
 
     initializeVideo();
 
@@ -512,15 +512,15 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
   }
 //
-//  private void handleLocalIceCandidate(Intent intent) {
-//    if (callState == CallState.STATE_IDLE || !Util.isEquals(this.callId, getCallId(intent))) {
-//      Log.w(TAG, "State is now idle, ignoring ice candidate...");
-//      return;
-//    }
-//
-//    if (recipient == null || callId == null) {
-//      throw new AssertionError("assert: " + callState + ", " + callId);
-//    }
+  private void handleLocalIceCandidate(Intent intent) {
+    if (callState == CallState.STATE_IDLE || this.callId == null || this.callId.equals(getCallId(intent))) {
+      Log.w(TAG, "State is now idle, ignoring ice candidate...");
+      return;
+    }
+
+    if (recipient == null || callId == null) {
+      throw new AssertionError("assert: " + callState + ", " + callId);
+    }
 //
 //    IceUpdateMessage iceUpdateMessage = new IceUpdateMessage(this.callId, intent.getStringExtra(EXTRA_ICE_SDP_MID),
 //                                                             intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
@@ -543,8 +543,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //        terminate();
 //      }
 //    });
-//  }
-//
+  }
+
   private void handleIceConnected(Intent intent) {
     Log.w(TAG, "handleIceConnected...");
     if (callState == CallState.STATE_ANSWERING) {
@@ -671,13 +671,15 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
+    Log.w(TAG, "Missed call from: " + recipient.getAddress());
 //    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
 //    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
 //                                       messageAndThreadId.second, signal);
 //    DatabaseFactory.getMmsDatabase(this).insertMessageInbox()
   }
 
-  private void insertMissedCall() {
+  private void insertMissedCall(Recipient recipient, String threadUID) {
+    Log.w(TAG, "Missed call");
 //    DatabaseFactory.getMmsDatabase(this).insertMessageInbox(KeyCachingService.getMasterSecret(this), )
   }
 
@@ -717,7 +719,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //
 //    DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
     sendCallLeaveMessage(recipient, threadUID, callId);
-    insertMissedCall();
+    insertMissedCall(recipient, threadUID);
     this.terminate();
   }
 
