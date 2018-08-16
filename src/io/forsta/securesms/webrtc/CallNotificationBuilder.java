@@ -32,6 +32,7 @@ public class CallNotificationBuilder {
   public static final int TYPE_OUTGOING_RINGING    = 2;
   public static final int TYPE_ESTABLISHED         = 3;
   public static final int TYPE_INCOMING_CONNECTING = 4;
+  public static final int TYPE_INCOMING_MISSED = 5;
 
 
   public static Notification getCallInProgressNotification(Context context, int type, Recipient recipient) {
@@ -56,6 +57,9 @@ public class CallNotificationBuilder {
     } else if (type == TYPE_OUTGOING_RINGING) {
       builder.setContentText(context.getString(R.string.NotificationBarManager__establishing_signal_call));
       builder.addAction(getServiceNotificationAction(context, WebRtcCallService.ACTION_LOCAL_HANGUP, R.drawable.ic_call_end_grey600_32dp, R.string.NotificationBarManager__cancel_call));
+    } else if (type == TYPE_INCOMING_MISSED) {
+      builder.setContentText(context.getString(R.string.NotificationBarManager__missed_call));
+      builder.setOngoing(false);
     } else {
       builder.setContentText(context.getString(R.string.NotificationBarManager_signal_call_in_progress));
       builder.addAction(getServiceNotificationAction(context, WebRtcCallService.ACTION_LOCAL_HANGUP, R.drawable.ic_call_end_grey600_32dp, R.string.NotificationBarManager__end_call));

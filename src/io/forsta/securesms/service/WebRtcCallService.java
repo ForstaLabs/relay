@@ -89,6 +89,8 @@ import javax.inject.Inject;
 
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_RINGING;
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_CONNECTING;
+import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_MISSED;
+import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_ESTABLISHED;
 
 public class WebRtcCallService extends Service implements InjectableType, PeerConnection.Observer, DataChannel.Observer, BluetoothStateManager.BluetoothStateListener {
 
@@ -336,11 +338,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       return;
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
-    }
-
-    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 1, TimeUnit.MINUTES);
+    setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
+    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 30, TimeUnit.SECONDS);
 
     initializeVideo();
 
@@ -673,13 +672,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
     Log.w(TAG, "Missed call from: " + recipient.getAddress());
-    // This needs to create a thread if there is not one that already exists for the threadUid being passed from the other client.
-    // We only handle one to one calls right now.
-
-//    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
-//    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
-//                                       messageAndThreadId.second, signal);
-//    DatabaseFactory.getMmsDatabase(this).insertMessageInbox()
+    setCallInProgressNotification(TYPE_INCOMING_MISSED, recipient);
   }
 
   private void handleAnswerCall(Intent intent) {
@@ -890,13 +883,14 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void setCallInProgressNotification(int type, Recipient recipient) {
+    Log.w(TAG, "Starting notification: " + String.valueOf(type));
     startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION,
                     CallNotificationBuilder.getCallInProgressNotification(this, type, recipient));
   }
 
   private synchronized void terminate() {
     lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
-    stopForeground(true);
+    stopForeground(false);
 
     audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     bluetoothStateManager.setWantsConnection(false);
