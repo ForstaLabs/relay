@@ -30,6 +30,7 @@ import io.forsta.securesms.WebRtcCallActivity;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
@@ -672,9 +673,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
     Log.w(TAG, "Missed call from: " + recipient.getAddress());
-    // This needs to create a thread if there is not one that already exists.
+    // This needs to create a thread if there is not one that already exists for the threadUid being passed from the other client.
     // We only handle one to one calls right now.
-    
+
 //    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
 //    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
 //                                       messageAndThreadId.second, signal);
