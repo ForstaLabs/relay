@@ -176,10 +176,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     super.onCreate();
 
     initializeResources();
-//
-//    registerIncomingPstnCallReceiver();
+
+    registerIncomingPstnCallReceiver();
     registerUncaughtExceptionHandler();
-//    registerWiredHeadsetStateReceiver();
+    registerWiredHeadsetStateReceiver();
   }
 
   @Override
@@ -203,8 +203,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         else if (intent.getAction().equals(ACTION_REMOTE_HANGUP))             handleRemoteHangup(intent);
         else if (intent.getAction().equals(ACTION_SET_MUTE_AUDIO))            handleSetMuteAudio(intent);
         else if (intent.getAction().equals(ACTION_SET_MUTE_VIDEO))            handleSetMuteVideo(intent);
-//        else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
-//        else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
+        else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
+        else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
@@ -268,7 +268,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.lockManager           = new LockManager(this);
     this.peerConnectionFactory = new PeerConnectionFactory(new PeerConnectionFactoryOptions());
     this.audioManager          = new SignalAudioManager(this);
-//    this.bluetoothStateManager = new BluetoothStateManager(this, this);
+    this.bluetoothStateManager = new BluetoothStateManager(this, this);
 //    this.messageSender.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
 //    this.accountManager.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
   }
@@ -588,7 +588,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
 
     audioManager.startCommunication(callState == CallState.STATE_REMOTE_RINGING);
-//    bluetoothStateManager.setWantsConnection(true);
+    bluetoothStateManager.setWantsConnection(true);
 
     callState = CallState.STATE_CONNECTED;
 
@@ -898,7 +898,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     stopForeground(true);
 
     audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
-//    bluetoothStateManager.setWantsConnection(false);
+    bluetoothStateManager.setWantsConnection(false);
 
     if (peerConnection != null) {
       peerConnection.dispose();

@@ -548,13 +548,25 @@ public class PushDecryptJob extends ContextJob {
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
           ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
-          Intent iceIntent = new Intent(context, WebRtcCallService.class);
-          iceIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
-          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
-          iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callLeave.getOriginator());
+          Intent leaveIntent = new Intent(context, WebRtcCallService.class);
+          leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
+          leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
+          leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callLeave.getOriginator());
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
-          else                                                context.startService(iceIntent);
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
+          else                                                context.startService(leaveIntent);
+          break;
+
+        case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+          ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
+          Intent acceptIntent = new Intent(context, WebRtcCallService.class);
+          acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callAcceptOffer.getOriginator());
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
+          else                                                context.startService(acceptIntent);
           break;
       }
 
