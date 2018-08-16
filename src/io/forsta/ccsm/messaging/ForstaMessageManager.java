@@ -167,6 +167,13 @@ public class ForstaMessageManager {
             forstaMessage.addAttachment(name, type, size);
           }
         }
+        if (data.has("mentions")) {
+          JSONArray mentions = data.getJSONArray(("mentions"));
+          for (int i = 0; i < mentions.length(); i++) {
+            String id = mentions.getString(i);
+            forstaMessage.addMention(id);
+          }
+        }
 
         if (data.has("control")) {
           forstaMessage.setControlType(data.getString("control"));
