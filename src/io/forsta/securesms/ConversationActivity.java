@@ -72,6 +72,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -496,10 +497,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           @Override
           protected Void doInBackground(Void... params) {
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
-            OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
-            ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-            outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
-            MessageSender.send(ConversationActivity.this, masterSecret, outgoingMessage, threadId, false);
+            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
+            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
 
             invalidateOptionsMenu();
             return null;
@@ -1079,24 +1078,23 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-                                                                    slideDeck,
-                                                                    body,
-                                                                    System.currentTimeMillis(),
-                                                                    subscriptionId,
-                                                                    expiresIn,
-                                                                    distributionType);
-    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
+//    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
+//                                                                    slideDeck,
+//                                                                    body,
+//                                                                    System.currentTimeMillis(),
+//                                                                    subscriptionId,
+//                                                                    expiresIn,
+//                                                                    distributionType);
+//    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
 
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();
     composeText.setText("");
 
-    new AsyncTask<OutgoingMediaMessage, Void, Long>() {
+    new AsyncTask<OutgoingMessage, Void, Long>() {
       @Override
-      protected Long doInBackground(OutgoingMediaMessage... messages) {
-        OutgoingMediaMessage message = messages[0];
-        // TODO is using forstaThread and threadId inside async task a problem?
-        message.setForstaJsonBody(context, forstaThread);
+      protected Long doInBackground(OutgoingMessage... messages) {
+        OutgoingMessage message = messages[0];
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
@@ -1105,7 +1103,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
         future.set(null);
       }
-    }.execute(outgoingMessage);
+    }.execute(message);
 
     return future;
   }

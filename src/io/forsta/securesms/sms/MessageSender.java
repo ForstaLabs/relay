@@ -20,6 +20,7 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -99,6 +100,7 @@ public class MessageSender {
       Recipients recipients = message.getRecipients();
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, forceSms);
 
+      Log.w(TAG, "Sending Content: " + message.getBody());
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
     } catch (MmsException e) {
@@ -107,6 +109,26 @@ public class MessageSender {
       Log.w(TAG, "Message send exception: " + e);
     }
     return threadId;
+  }
+
+  public static void sendControlMessage(final Context context,
+                          final MasterSecret masterSecret,
+                          final OutgoingMessage message)
+  {
+    try {
+      MmsDatabase    database       = DatabaseFactory.getMmsDatabase(context);
+
+      Recipients recipients = message.getRecipients();
+      long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
+
+      Log.w(TAG, "Sending Control: " + message.getBody());
+      sendMediaMessage(context, masterSecret, recipients, false, messageId, message.getExpiresIn());
+
+    } catch (MmsException e) {
+      Log.w(TAG, e);
+    } catch (Exception e) {
+      Log.w(TAG, "Message send exception: " + e);
+    }
   }
 
   public static void sendSmsInvite(final Context context, final MasterSecret masterSecret, final OutgoingTextMessage message) {
@@ -119,11 +141,6 @@ public class MessageSender {
     sendSms(context, recipients, messageId);
   }
 
-  public static void sendControlMessage(final Context context,
-                                        final MasterSecret masterSecret,
-                                        final OutgoingMediaMessage message) {
-
-  }
 
   public static void resendGroupMessage(Context context, MasterSecret masterSecret, MessageRecord messageRecord, long filterRecipientId) {
     if (!messageRecord.isMms()) throw new AssertionError("Not Group");

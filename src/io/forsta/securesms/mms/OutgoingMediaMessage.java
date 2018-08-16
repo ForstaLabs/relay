@@ -148,23 +148,4 @@ public class OutgoingMediaMessage {
       return slideDeck.getBody();
     }
   }
-
-  public void updateMessageDistribution(Context context, ForstaDistribution distribution) {
-    try {
-      JSONObject jsonBody = ForstaMessageManager.getMessageVersion(1, this.body);
-      JSONObject recipients = new JSONObject();
-      recipients.put("userIds", distribution.getRecipientsArray(context));
-      recipients.put("expression", distribution.universal);
-      jsonBody.put("distribution", recipients);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
-    this.body = ForstaMessageManager.createForstaMessageBody(context, this.body, recipients, attachments, forstaThread);
-  }
-
 }

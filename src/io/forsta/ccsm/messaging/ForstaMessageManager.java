@@ -6,6 +6,8 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.zxing.common.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +39,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
@@ -69,43 +72,6 @@ public class ForstaMessageManager {
       Log.w(TAG, body);
     }
     throw new InvalidMessagePayloadException(body);
-  }
-
-  private static boolean isContentType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.getString("messageType").equals(ForstaMessage.MessageTypes.CONTENT)) {
-      return true;
-    }
-    return false;
-  }
-
-  private static boolean isControlType(JSONObject jsonBody) throws JSONException {
-    if (jsonBody.has("messageType")) {
-      if (jsonBody.getString("messageType").equals(ForstaMessage.MessageTypes.CONTROL)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean isJsonBody(String body) {
-    try {
-      getMessageVersion(1, body);
-    } catch (InvalidMessagePayloadException e) {
-      return false;
-    }
-    return true;
-  }
-
-  public static ForstaMessage fromJsonString(String messageBody) {
-    ForstaMessage forstaMessage = new ForstaMessage();
-    try {
-      forstaMessage = fromMessagBodyString(messageBody);
-    } catch (InvalidMessagePayloadException e) {
-      Log.e(TAG, "Invalid message payload!");
-      Log.e(TAG, messageBody);
-      forstaMessage.setTextBody(messageBody);
-    }
-    return forstaMessage;
   }
 
   public static ForstaMessage fromMessagBodyString(String messageBody) throws InvalidMessagePayloadException {
@@ -260,50 +226,6 @@ public class ForstaMessageManager {
     return forstaMessage;
   }
 
-
-  // Move these methods into MessageSender? This class is for creating message payloads and should not include
-  // message sending mechanisms
-  public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
-    try {
-      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      String payload = createThreadUpdateMessage(context, recipients, threadData);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
-      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
-      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
-    try {
-      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = createAcceptCallOfferMessage(user, recipients, threadData, callId, sdp.description, sdp.type.name(), peerId);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
-      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
-      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
-    try {
-      ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = createCallLeaveMessage(user, recipients, threadData, callId);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
-      long messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
-      MessageSender.sendMediaMessage(context, masterSecret, recipients, false, messageId, 0);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   private static String createCallLeaveMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId) {
     JSONObject data = new JSONObject();
     try {
@@ -345,7 +267,7 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  private static String createThreadUpdateMessage(Context context, Recipients recipients, ForstaThread forstaThread) {
+  private static String createThreadUpdateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "threadUpdate");
@@ -356,11 +278,9 @@ public class ForstaMessageManager {
     } catch (JSONException e) {
       e.printStackTrace();
     }
-    ForstaUser user = ForstaUser.getLocalForstaUser(context);
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  // Standard version 1 body with no data section.
   private static String createBaseMessageBody(ForstaUser user, Recipients messageRecipients, ForstaThread forstaThread, String type, JSONObject data) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
@@ -430,7 +350,7 @@ public class ForstaMessageManager {
       Matcher tagMatcher = tagPattern.matcher(message);
       while (tagMatcher.find()) {
         String parsedTag = message.substring(tagMatcher.start(), tagMatcher.end());
-        parsedUser = DbFactory.getContactDb(context).getUserByTag(parsedTag);
+        parsedUser = DbFactory.getContactDb(context).getUserByTag(parsedTag.replace("@", ""));
         if(parsedUser != null) {
           mentions.put(parsedUser.getUid());
         }
@@ -460,131 +380,60 @@ public class ForstaMessageManager {
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    return createContentMessage(context, message, user, recipients, messageAttachments, forstaThread);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type) {
-    JSONArray versions = new JSONArray();
-    JSONObject version1 = new JSONObject();
-    ContactDb contactDb = DbFactory.getContactDb(context);
-    String title = forstaThread.getTitle();
+  public static OutgoingMessage createOutgoingContentMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    String jsonPayload = createContentMessage(context, message, user, recipients, attachments, thread);
+    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn);
+  }
+
+  public static OutgoingExpirationUpdateMessage createOutgoingExpirationUpdateMessage(Context context, Recipients recipients, long threadId, long expiresIn) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    String jsonPayload = createContentMessage(context, "", user, recipients, new LinkedList<Attachment>(), thread);
+    return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
+  }
+
+  // Move these methods into MessageSender? This class is for creating message payloads and should not include
+  // message sending mechanisms
+
+  public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
     try {
-      JSONObject data = new JSONObject();
-      JSONArray body = new JSONArray();
-      String messageType = "content";
-      if (type.equals(ForstaMessage.MessageTypes.CONTROL)) {
-        messageType = "control";
-        data.put("control", "threadUpdate");
-        JSONObject threadUpdates = new JSONObject();
-        threadUpdates.put("threadTitle", title);
-        threadUpdates.put("threadId", forstaThread.getUid());
-        data.put("threadUpdates", threadUpdates);
-      }
-
-      String threadType = forstaThread.getThreadType() == 1 ? "announcement" : "conversation";
-      JSONObject sender = new JSONObject();
-      JSONObject recipients = new JSONObject();
-      JSONArray userIds = new JSONArray();
-      JSONArray mentions = new JSONArray();
-      JSONArray attachments = new JSONArray();
-
-      String threadId = !TextUtils.isEmpty(forstaThread.getUid()) ? forstaThread.getUid() : "";
-
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      sender.put("tagId", user.tag_id);
-      sender.put("tagPresentation", user.slug);
-      sender.put("userId", user.uid);
-
-      List<String> recipientList = new ArrayList<>();
-      if (messageRecipients.isGroupRecipient()) {
-        // XXX Obsolete. REMOVE.
-        Log.e(TAG, "ERROR: Group message received!!!!");
-        try {
-          GroupDatabase groupDb = DatabaseFactory.getGroupDatabase(context);
-          String endcodedGroupId = messageRecipients.getPrimaryRecipient().getAddress();
-          GroupDatabase.GroupRecord group = groupDb.getGroup(GroupUtil.getDecodedId(endcodedGroupId));
-          title = group.getTitle();
-          recipientList = group.getMembers();
-        } catch (IOException e) {
-          Log.e(TAG, "createForstaMessageBody exception decoding group ID.");
-          e.printStackTrace();
-        }
-      } else {
-        for (String recipient : messageRecipients.toNumberStringList(false)) {
-          try {
-            recipientList.add(Util.canonicalizeNumber(context, recipient));
-          } catch (InvalidNumberException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-
-      if (attachments != null) {
-        for (Attachment attachment : messageAttachments) {
-          JSONObject attachmentJson = new JSONObject();
-          attachmentJson.put("name", MediaUtil.getFileName(context, attachment.getDataUri()));
-          attachmentJson.put("size", attachment.getSize());
-          attachmentJson.put("type", attachment.getContentType());
-          attachments.put(attachmentJson);
-        }
-      }
-
-      List<ForstaUser> forstaUsers = contactDb.getUsersByAddresses(recipientList);
-      for (ForstaUser x : forstaUsers) {
-        userIds.put(x.getUid());
-      }
-
-      ForstaUser parsedUser;
-      String tagRegex = "@[a-zA-Z0-9(-|.)]+";
-      Pattern tagPattern = Pattern.compile(tagRegex);
-      Matcher tagMatcher = tagPattern.matcher(richTextMessage);
-      while (tagMatcher.find()) {
-        String parsedTag = richTextMessage.substring(tagMatcher.start(), tagMatcher.end());
-        parsedUser = contactDb.getUserByTag(parsedTag);
-        if(parsedUser != null) {
-          mentions.put(parsedUser.getUid());
-        }
-      }
-
-      recipients.put("userIds", userIds);
-      recipients.put("expression", forstaThread.getDistribution());
-
-      JSONObject bodyHtml = new JSONObject();
-      bodyHtml.put("type", "text/html");
-      bodyHtml.put("value", richTextMessage);
-      body.put(bodyHtml);
-
-      JSONObject bodyPlain = new JSONObject();
-      bodyPlain.put("type", "text/plain");
-      Spanned stripMarkup = Html.fromHtml(richTextMessage);
-      bodyPlain.put("value", stripMarkup);
-      body.put(bodyPlain);
-
-      data.put("body", body);
-      data.put("attachments", attachments);
-      if (mentions.length() > 0) {
-        data.put("mentions", mentions );
-      }
-      version1.put("version", 1);
-      version1.put("userAgent", System.getProperty("http.agent", ""));
-      version1.put("messageId", UUID.randomUUID().toString());
-      version1.put("messageType", messageType);
-      version1.put("threadId", threadId);
-      version1.put("threadTitle", title);
-      version1.put("threadType", threadType);
-      version1.put("sendTime", ForstaUtils.formatDateISOUTC(new Date()));
-      version1.put("data", data);
-      version1.put("sender", sender);
-      version1.put("distribution", recipients);
-      versions.put(version1);
-    } catch (JSONException e) {
-      Log.e(TAG, "createForstaMessageBody JSON exception");
-      Log.e(TAG, "Recipient: "+ messageRecipients.getPrimaryRecipient().getAddress());
-      Log.e(TAG, "Thread: "+ forstaThread.getUid());
+      String payload = createThreadUpdateMessage(context, user, recipients, thread);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      MessageSender.sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
       e.printStackTrace();
-      // Something failed. Return original message body
-      return richTextMessage;
     }
-    return versions.toString();
+  }
+
+  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, sdp.type.name(), peerId);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      MessageSender.sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = createCallLeaveMessage(user, recipients, thread, callId);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      MessageSender.sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }
