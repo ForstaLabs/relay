@@ -672,15 +672,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
     Log.w(TAG, "Missed call from: " + recipient.getAddress());
+    // This needs to create a thread if there is not one that already exists.
+    // We only handle one to one calls right now.
+    
 //    Pair<Long, Long> messageAndThreadId = DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
 //    MessageNotifier.updateNotification(this, KeyCachingService.getMasterSecret(this),
 //                                       messageAndThreadId.second, signal);
 //    DatabaseFactory.getMmsDatabase(this).insertMessageInbox()
-  }
-
-  private void insertMissedCall(Recipient recipient, String threadUID) {
-    Log.w(TAG, "Missed call");
-//    DatabaseFactory.getMmsDatabase(this).insertMessageInbox(KeyCachingService.getMasterSecret(this), )
   }
 
   private void handleAnswerCall(Intent intent) {
@@ -719,7 +717,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 //
 //    DatabaseFactory.getSmsDatabase(this).insertMissedCall(recipient.getAddress());
     sendCallLeaveMessage(recipient, threadUID, callId);
-    insertMissedCall(recipient, threadUID);
+    insertMissedCall(recipient, true);
     this.terminate();
   }
 
