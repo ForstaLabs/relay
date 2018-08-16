@@ -33,6 +33,7 @@ import io.forsta.securesms.util.LRUCache;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ReplyListAdapter extends CursorAdapter {
+    private final static String TAG = ReplyListAdapter.class.getSimpleName();
 
     private Context mContext;
     private int mResource;
@@ -61,7 +62,7 @@ public class ReplyListAdapter extends CursorAdapter {
         String address = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsColumns.ADDRESS));
         long messageId = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
         String type = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
-
+        int vote = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.UP_VOTE));
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
         long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
         if (messageRecord.isOutgoing()) {
@@ -71,7 +72,7 @@ public class ReplyListAdapter extends CursorAdapter {
         }
 
         String body = messageRecord.getPlainTextBody();
-        int vote = messageRecord.getVoteCount();
+        //int vote = messageRecord.getVoteCount();
 
         TextView voteCount = view.findViewById(R.id.reply_vote);
         AvatarImageView contactPhoto = view.findViewById(R.id.reply_contact_photo);
@@ -81,7 +82,7 @@ public class ReplyListAdapter extends CursorAdapter {
             voteCount.setVisibility(View.VISIBLE);
             voteCount.setText("(" + String.valueOf(vote) + ")");
         } else {
-            voteCount.setVisibility(View.GONE);
+            voteCount.setText("(0)");
         }
         contactPhoto.setAvatar(author, true);
         bodyText.setText(body);

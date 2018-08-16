@@ -24,6 +24,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import org.w3c.dom.Text;
 
@@ -58,6 +59,8 @@ import static android.R.attr.filter;
  *
  */
 public abstract class MessageRecord extends DisplayRecord {
+
+  private final String TAG = MessageRecord.class.getSimpleName();
 
   private static final int MAX_DISPLAY_LENGTH = 2000;
 
@@ -147,8 +150,8 @@ public abstract class MessageRecord extends DisplayRecord {
   public String getPlainTextBody() {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
-
-      if (forstaBody.getVote() > 0) {
+      int vote = forstaBody.getVote();
+      if(vote > 0) {
         return "Up Vote";
       }
       return forstaBody.getTextBody();

@@ -134,11 +134,12 @@ public class ForstaMessageManager {
         forstaMessage.setUniversalExpression(distribution.getString("expression"));
       }
 
+      int vote = 0;
       if (jsonBody.has("messageRef")) {
         String messageId = jsonBody.getString("messageRef");
         forstaMessage.setMessageRef(messageId);
         if (jsonBody.has("vote")) {
-          int vote = jsonBody.getInt("vote");
+          vote = jsonBody.getInt("vote");
           forstaMessage.setVote(vote);
         }
       }
@@ -165,6 +166,13 @@ public class ForstaMessageManager {
             String type = object.getString("type");
             long size = object.getLong("size");
             forstaMessage.addAttachment(name, type, size);
+          }
+        }
+        if (data.has("mentions")) {
+          JSONArray mentions = data.getJSONArray(("mentions"));
+          for (int i = 0; i < mentions.length(); i++) {
+            String id = mentions.getString(i);
+            forstaMessage.addMention(id);
           }
         }
 
