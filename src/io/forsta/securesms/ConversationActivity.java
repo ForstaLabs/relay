@@ -146,6 +146,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
@@ -219,6 +220,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
+
+  private String messageRef = null;
 
   @Override
   protected void onPreCreate() {
@@ -664,6 +667,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author;
+    this.messageRef = messageRecord.getMessageId();
     long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
     if (messageRecord.isOutgoing()) {
       author = Recipient.from(this, localId, true);
@@ -986,7 +990,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           draftDatabase.insertDrafts(new MasterCipher(thisMasterSecret), threadId, drafts);
           ForstaThread threadData = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData);
+          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData,null);
           threadDatabase.updateSnippet(threadId, snippet,
                                        drafts.getUriSnippet(ConversationActivity.this),
                                        System.currentTimeMillis(), Types.BASE_DRAFT_TYPE, true);
@@ -1080,6 +1084,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       if (recipients == null) {
         Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_recipient_is_not_valid, Toast.LENGTH_LONG).show();
+      } else if(inputPanel.hasQuoteVisible()){
+        sendReplyMessage(forceSms, expiresIn, subscriptionId, messageRef);
       } else {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
       }
@@ -1094,6 +1100,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       throws InvalidMessageException
   {
     sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
+  }
+
+  private void sendReplyMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    sendReplyMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId, messageRef);
   }
 
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
@@ -1113,6 +1125,46 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
+    this.messageRef = null;
+
+    new AsyncTask<OutgoingMediaMessage, Void, Long>() {
+      @Override
+      protected Long doInBackground(OutgoingMediaMessage... messages) {
+        OutgoingMediaMessage message = messages[0];
+        // TODO is using forstaThread and threadId inside async task a problem?
+        message.setForstaJsonBody(context, forstaThread);
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      }
+
+      @Override
+      protected void onPostExecute(Long result) {
+        sendComplete(result);
+        future.set(null);
+      }
+    }.execute(outgoingMessage);
+
+
+    return future;
+  }
+
+  private ListenableFuture<Void> sendReplyMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    final SettableFuture<Void> future          = new SettableFuture<>();
+    final Context              context         = getApplicationContext();
+    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
+                                                                    slideDeck,
+                                                                    body,
+                                                                    System.currentTimeMillis(),
+                                                                    subscriptionId,
+                                                                    expiresIn,
+                                                                    distributionType, messageRef, 0, null);
+    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
+
+    attachmentManager.clear();
+    composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
 
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override

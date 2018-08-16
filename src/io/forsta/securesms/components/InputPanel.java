@@ -122,6 +122,13 @@ public class InputPanel extends LinearLayout
     inputText.setHint(getContext().getString(R.string.conversation_activity__type_reply_push), null);
   }
 
+  public boolean hasQuoteVisible() {
+    if(quoteView.getVisibility() == VISIBLE) {
+      return true;
+    }
+    return false;
+  }
+
   public static void returnInputHint() {
     inputText.setHint("Send Forsta message", null);
   }

@@ -30,12 +30,14 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.LRUCache;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ReplyListAdapter extends CursorAdapter {
 
     private Context mContext;
     private int mResource;
     private MasterSecret masterSecret;
+    private Recipient author;
     private final @NonNull MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(mContext);
     private static final int MAX_CACHE_SIZE = 40;
     private final Map<String,SoftReference<MessageRecord>> messageRecordCache =
@@ -60,8 +62,13 @@ public class ReplyListAdapter extends CursorAdapter {
         long messageId = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
         String type = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
 
-        Recipient author = getRecipientsFor(address).getPrimaryRecipient();
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
+        long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
+        if (messageRecord.isOutgoing()) {
+            author = Recipient.from(context, localId, true);
+        } else {
+            author = messageRecord.getIndividualRecipient();
+        }
 
         String body = messageRecord.getPlainTextBody();
         int vote = messageRecord.getVoteCount();

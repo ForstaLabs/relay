@@ -304,19 +304,15 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setBodyText(MessageRecord messageRecord) {
-    if(messageRecord.getMessageRef() == null) {
-      bodyText.setClickable(false);
-      bodyText.setFocusable(false);
+    bodyText.setClickable(false);
+    bodyText.setFocusable(false);
 
-      if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
-        bodyText.setText(messageRecord.getHtmlBody());
-      } else {
-        bodyText.setText(messageRecord.getPlainTextBody());
-      }
-      bodyText.setVisibility(View.VISIBLE);
+    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+      bodyText.setText(messageRecord.getHtmlBody());
     } else {
-      bodyText.setText("");
+      bodyText.setText(messageRecord.getPlainTextBody());
     }
+    bodyText.setVisibility(View.VISIBLE);
   }
 
   private void setMediaAttributes(MessageRecord messageRecord) {
@@ -469,7 +465,6 @@ public class ConversationItem extends LinearLayout
   private void setReply(MessageRecord messageRecord) {
     if(messageRecord.getMessageRef() == null){
       MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
-      //MmsDatabase mmsDb  = DatabaseFactory.getMmsDatabase(context);
       Cursor cursor = db.getReplies(messageId);
       listView.setStackFromBottom(true);
 
@@ -484,12 +479,12 @@ public class ConversationItem extends LinearLayout
       } else {
         replyBox.setVisibility(GONE);
         listView.setVisibility(GONE);
+        cursor.close();
       }
     } else {
       replyBox.setVisibility(GONE);
       listView.setVisibility(GONE);
     }
-
   }
 
   private void setFailedStatusIcons() {
