@@ -260,6 +260,9 @@ public class ForstaMessageManager {
     return forstaMessage;
   }
 
+
+  // Move these methods into MessageSender? This class is for creating message payloads and should not include
+  // message sending mechanisms
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
     try {
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
@@ -405,8 +408,55 @@ public class ForstaMessageManager {
     return versions.toString();
   }
 
-  public static String createControlMessageBody(Context context, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, "", recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
+  private static String createContentMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread) {
+    JSONObject data = new JSONObject();
+    JSONArray body = new JSONArray();
+    JSONArray mentions = new JSONArray();
+    JSONArray attachments = new JSONArray();
+    try {
+      if (attachments != null) {
+        for (Attachment attachment : messageAttachments) {
+          JSONObject attachmentJson = new JSONObject();
+          attachmentJson.put("name", MediaUtil.getFileName(context, attachment.getDataUri()));
+          attachmentJson.put("size", attachment.getSize());
+          attachmentJson.put("type", attachment.getContentType());
+          attachments.put(attachmentJson);
+        }
+      }
+
+      ForstaUser parsedUser;
+      String tagRegex = "@[a-zA-Z0-9(-|.)]+";
+      Pattern tagPattern = Pattern.compile(tagRegex);
+      Matcher tagMatcher = tagPattern.matcher(message);
+      while (tagMatcher.find()) {
+        String parsedTag = message.substring(tagMatcher.start(), tagMatcher.end());
+        parsedUser = DbFactory.getContactDb(context).getUserByTag(parsedTag);
+        if(parsedUser != null) {
+          mentions.put(parsedUser.getUid());
+        }
+      }
+
+      JSONObject bodyHtml = new JSONObject();
+      bodyHtml.put("type", "text/html");
+      bodyHtml.put("value", message);
+      body.put(bodyHtml);
+
+      JSONObject bodyPlain = new JSONObject();
+      bodyPlain.put("type", "text/plain");
+      Spanned stripMarkup = Html.fromHtml(message);
+      bodyPlain.put("value", stripMarkup);
+      body.put(bodyPlain);
+
+      data.put("body", body);
+      data.put("attachments", attachments);
+      if (mentions.length() > 0) {
+        data.put("mentions", mentions );
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
+    return createBaseMessageBody(user, recipients, thread, ForstaMessage.MessageTypes.CONTENT, data);
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
