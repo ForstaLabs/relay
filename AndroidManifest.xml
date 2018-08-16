@@ -98,6 +98,7 @@
         android:protectionLevel="signature"/>
 
     <uses-permission android:name="io.forsta.securesms.${applicationId}.permission.C2D_MESSAGE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
         android:name=".ApplicationContext"

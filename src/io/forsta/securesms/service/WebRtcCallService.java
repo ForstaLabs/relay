@@ -71,8 +71,8 @@ import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoTrack;
 import org.whispersystems.libsignal.IdentityKey;
-import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-import org.whispersystems.signalservice.api.SignalServiceMessageSender;
+//import org.whispersystems.signalservice.api.SignalServiceAccountManager;
+//import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -599,7 +599,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     unregisterPowerButtonReceiver();
 
-//    setCallInProgressNotification(TYPE_ESTABLISHED, recipient);
+    setCallInProgressNotification(CallNotificationBuilder.TYPE_ESTABLISHED, recipient);
 
     this.peerConnection.setAudioEnabled(microphoneEnabled);
     this.peerConnection.setVideoEnabled(localVideoEnabled);
@@ -919,8 +919,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.recipient                 = null;
     this.callId                    = null;
     this.microphoneEnabled         = true;
-    this.localVideoEnabled         = false;
-    this.remoteVideoEnabled        = false;
+    this.localVideoEnabled         = true;
+    this.remoteVideoEnabled        = true;
 //    this.pendingOutgoingIceUpdates = null;
     this.pendingIncomingIceUpdates = null;
     lockManager.updatePhoneState(LockManager.PhoneState.IDLE);
