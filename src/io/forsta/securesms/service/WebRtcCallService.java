@@ -658,7 +658,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         insertMissedCall(this.recipient, true);
       }
 
-      terminate();
+      terminate(false);
     }
   }
 
@@ -883,14 +883,17 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void setCallInProgressNotification(int type, Recipient recipient) {
-    Log.w(TAG, "Starting notification: " + String.valueOf(type));
     startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION,
                     CallNotificationBuilder.getCallInProgressNotification(this, type, recipient));
   }
 
   private synchronized void terminate() {
+    terminate(true);
+  }
+
+  private synchronized void terminate(boolean removeNotification) {
     lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
-    stopForeground(false);
+    stopForeground(removeNotification);
 
     audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     bluetoothStateManager.setWantsConnection(false);
