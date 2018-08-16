@@ -334,7 +334,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     if (isIncomingMessageExpired(intent)) {
       insertMissedCall(this.recipient, true);
-      terminate();
+      terminate(false);
       return;
     }
 
