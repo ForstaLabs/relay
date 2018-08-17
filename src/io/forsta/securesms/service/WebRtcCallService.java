@@ -453,7 +453,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleResponseMessage(Intent intent) {
     try {
-      Log.w(TAG, "handleResponseMessage: " + intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION));
+      Log.w(TAG, "handleResponseMessage: " + getCallId(intent));
 
       if (callState != CallState.STATE_DIALING || !getRemoteRecipient(intent).equals(recipient) || this.callId == null ||!this.callId.equals(getCallId(intent))) {
         Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + getCallId(intent) + ", " + getRemoteRecipient(intent));
@@ -480,7 +480,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
       this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       this.pendingOutgoingIceUpdates = null;
-      Log.i(TAG, "hasConnected...");
+
       Intent connectedIntent = new Intent(this, WebRtcCallService.class);
       intent.setAction(ACTION_CALL_CONNECTED);
       intent.putExtra(EXTRA_CALL_ID, getCallId(intent));
