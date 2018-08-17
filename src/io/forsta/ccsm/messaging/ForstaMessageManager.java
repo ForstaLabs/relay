@@ -244,7 +244,7 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String type, String peerId) {
+  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callAcceptOffer");
@@ -267,6 +267,29 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
+  public static String createCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
+    JSONObject data = new JSONObject();
+    try {
+      data.put("control", "callOffer");
+      data.put("peerId", peerId);
+      JSONArray members = new JSONArray();
+      for (Recipient x : recipients) {
+        members.put(x.getAddress());
+      }
+      data.put("members", members);
+      data.put("callId", callId);
+      data.put("originator", user.getUid());
+      JSONObject offer = new JSONObject();
+      offer.put("sdp", description);
+      offer.put("type", "offer");
+      data.put("offer", offer);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
+    return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
+  }
+
   public static String createThreadUpdateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread) {
     JSONObject data = new JSONObject();
     try {
@@ -281,11 +304,19 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createIceCandidateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread, JSONArray candidates) {
+  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, JSONArray candidates) {
     JSONObject data = new JSONObject();
     try {
-      data.put("control", "icecandidates");
+      data.put("control", "callICECandidates");
       data.put("icecandidates", candidates);
+      data.put("peerId", peerId);
+      JSONArray members = new JSONArray();
+      for (Recipient x : recipients) {
+        members.put(x.getAddress());
+      }
+      data.put("members", members);
+      data.put("callId", callId);
+      data.put("originator", user.getUid());
     } catch (JSONException e) {
       e.printStackTrace();
     }

@@ -59,6 +59,7 @@ public class CallNotificationBuilder {
       builder.addAction(getServiceNotificationAction(context, WebRtcCallService.ACTION_LOCAL_HANGUP, R.drawable.ic_call_end_grey600_32dp, R.string.NotificationBarManager__cancel_call));
     } else if (type == TYPE_INCOMING_MISSED) {
       builder.setContentText(context.getString(R.string.NotificationBarManager__missed_call));
+      builder.setSmallIcon(R.drawable.ic_call_missed_grey600_24dp);
       builder.setOngoing(false);
     } else {
       builder.setContentText(context.getString(R.string.NotificationBarManager_signal_call_in_progress));
