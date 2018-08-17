@@ -98,12 +98,8 @@ public class ComposeText extends EmojiEditText {
     int imeOptions = (getImeOptions() & ~EditorInfo.IME_MASK_ACTION) | EditorInfo.IME_ACTION_SEND;
     int inputType  = getInputType();
 
-    if (isLandscape()) {
-      setImeActionLabel(getContext().getString(R.string.Landscape), EditorInfo.IME_ACTION_SEND);
-    }
-    else {
-      setImeActionLabel(getContext().getString(R.string.Portrait), 0);
-    }
+    if (isLandscape()) setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), EditorInfo.IME_ACTION_SEND);
+    else               setImeActionLabel(getContext().getString(R.string.conversation_activity__type_message_push), 0);
 
     if (useSystemEmoji) {
       inputType = (inputType & ~InputType.TYPE_MASK_VARIATION) | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE;

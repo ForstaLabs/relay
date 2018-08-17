@@ -59,12 +59,11 @@ public class ReplyListAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        String address = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsColumns.ADDRESS));
-        long messageId = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
-        String type = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
-        int vote = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.UP_VOTE));
+        long messageId              = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
+        String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
-        long localId = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
+        long localId                = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
+
         if (messageRecord.isOutgoing()) {
             author = Recipient.from(context, localId, true);
         } else {
@@ -72,7 +71,7 @@ public class ReplyListAdapter extends CursorAdapter {
         }
 
         String body = messageRecord.getPlainTextBody();
-        //int vote = messageRecord.getVoteCount();
+        int vote = messageRecord.getVoteCount();
 
         TextView voteCount = view.findViewById(R.id.reply_vote);
         AvatarImageView contactPhoto = view.findViewById(R.id.reply_contact_photo);
@@ -82,24 +81,10 @@ public class ReplyListAdapter extends CursorAdapter {
             voteCount.setVisibility(View.VISIBLE);
             voteCount.setText("(" + String.valueOf(vote) + ")");
         } else {
-            voteCount.setText("(0)");
+            voteCount.setVisibility(View.GONE);
         }
         contactPhoto.setAvatar(author, true);
         bodyText.setText(body);
-    }
-
-    private Recipients getRecipientsFor(String address) {
-        if (TextUtils.isEmpty(address) || address.equals("insert-address-token")) {
-            return RecipientFactory.getRecipientsFor(mContext, Recipient.getUnknownRecipient(), true);
-        }
-
-        Recipients recipients =  RecipientFactory.getRecipientsFromString(mContext, address, true);
-
-        if (recipients == null || recipients.isEmpty()) {
-            return RecipientFactory.getRecipientsFor(mContext, Recipient.getUnknownRecipient(), true);
-        }
-
-        return recipients;
     }
 
     private MessageRecord getMessageRecord(long messageId, Cursor cursor, String type) {
