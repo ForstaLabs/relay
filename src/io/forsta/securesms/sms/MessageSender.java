@@ -20,9 +20,13 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -45,12 +49,15 @@ import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+
+import org.webrtc.SessionDescription;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import ws.com.google.android.mms.MmsException;
@@ -59,6 +66,8 @@ public class MessageSender {
 
   private static final String TAG = MessageSender.class.getSimpleName();
 
+  // This is only used for sending Session End Messages.
+  // OutgoingEndSessionMessage
   public static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingTextMessage message,
@@ -100,7 +109,6 @@ public class MessageSender {
       Recipients recipients = message.getRecipients();
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, threadId, forceSms);
 
-      Log.w(TAG, "Sending Content: " + message.getBody());
       sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, message.getExpiresIn());
 
     } catch (MmsException e) {
@@ -121,7 +129,6 @@ public class MessageSender {
       Recipients recipients = message.getRecipients();
       long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
 
-      Log.w(TAG, "Sending Control: " + message.getBody());
       sendMediaMessage(context, masterSecret, recipients, false, messageId, message.getExpiresIn());
 
     } catch (MmsException e) {
@@ -175,8 +182,6 @@ public class MessageSender {
   {
     if (isSelfSend(context, recipients)) {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
-    } else if (isGroupPushSend(recipients)) {
-      sendGroupPush(context, recipients, messageId, -1);
     } else {
       sendMediaPush(context, recipients, messageId);
     }
@@ -352,4 +357,39 @@ public class MessageSender {
     return result;
   }
 
+  public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createThreadUpdateMessage(context, user, recipients, thread);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, sdp.type.name(), peerId);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

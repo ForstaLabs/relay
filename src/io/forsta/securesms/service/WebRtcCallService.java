@@ -1,7 +1,6 @@
 package io.forsta.securesms.service;
 
 
-import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,20 +22,15 @@ import android.util.Log;
 import org.greenrobot.eventbus.EventBus;
 
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.WebRtcCallActivity;
 
-import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
-import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.ServiceUtil;
@@ -75,7 +69,6 @@ import org.whispersystems.libsignal.IdentityKey;
 //import org.whispersystems.signalservice.api.SignalServiceAccountManager;
 //import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 
-import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -85,12 +78,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_RINGING;
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_CONNECTING;
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_MISSED;
-import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_ESTABLISHED;
 
 public class WebRtcCallService extends Service implements InjectableType, PeerConnection.Observer, DataChannel.Observer, BluetoothStateManager.BluetoothStateListener {
 
@@ -951,7 +941,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         Log.w(TAG, "Sending callAcceptOffer, callId: " + callId + " to: " + recipient.getAddress());
-        ForstaMessageManager.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
+        MessageSender.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
         return true;
       }
     };
@@ -971,7 +961,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         Log.w(TAG, "Sending callLeave, callId: " + callId + " to: " + recipient.getAddress());
-        ForstaMessageManager.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
+        MessageSender.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
         return true;
       }
     };

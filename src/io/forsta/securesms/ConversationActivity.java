@@ -95,8 +95,6 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
-import io.forsta.securesms.database.NotInDirectoryException;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -106,8 +104,6 @@ import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
@@ -139,7 +135,6 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -470,7 +465,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           if (distribution != null && distribution.isValid()) {
             DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
             initializeThread();
-            ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
+            MessageSender.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
           } else {
             Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
           }

@@ -226,7 +226,7 @@ public class ForstaMessageManager {
     return forstaMessage;
   }
 
-  private static String createCallLeaveMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId) {
+  public static String createCallLeaveMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callLeave");
@@ -244,7 +244,7 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  private static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String type, String peerId) {
+  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String type, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callAcceptOffer");
@@ -267,7 +267,7 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  private static String createThreadUpdateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread) {
+  public static String createThreadUpdateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "threadUpdate");
@@ -275,6 +275,17 @@ public class ForstaMessageManager {
       threadUpdates.put("threadTitle", forstaThread.getTitle());
       threadUpdates.put("threadId", forstaThread.getUid());
       data.put("threadUpdates", threadUpdates);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
+  }
+
+  public static String createIceCandidateMessage(Context context, ForstaUser user, Recipients recipients, ForstaThread forstaThread, JSONArray candidates) {
+    JSONObject data = new JSONObject();
+    try {
+      data.put("control", "icecandidates");
+      data.put("icecandidates", candidates);
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -398,42 +409,4 @@ public class ForstaMessageManager {
     return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
   }
 
-  // Move these methods into MessageSender? This class is for creating message payloads and should not include
-  // message sending mechanisms
-
-  public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
-    try {
-      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = createThreadUpdateMessage(context, user, recipients, thread);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MessageSender.sendControlMessage(context, masterSecret, message);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
-    try {
-      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, sdp.type.name(), peerId);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MessageSender.sendControlMessage(context, masterSecret, message);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
-    try {
-      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
-      ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = createCallLeaveMessage(user, recipients, thread, callId);
-      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-      MessageSender.sendControlMessage(context, masterSecret, message);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 }
