@@ -1272,6 +1272,7 @@
     <string name="Permissions_required_microphone">Microphone Permission required</string>
     <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all functionality.</string>
 
+    <string name="ConversationActivity_to_call_needs_access_to_your_microphone_and_camera">Forsta needs access to your microphone and camera in order to make video calls</string>
 
     <!--WebRTC-->
     <string name="WebRTC_call_connecting">Incomming call</string>

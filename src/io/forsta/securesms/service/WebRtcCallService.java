@@ -391,6 +391,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     try {
       this.callState                 = CallState.STATE_DIALING;
       this.recipient                 = getRemoteRecipient(intent);
+      this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
       this.callId                    = UUID.randomUUID().toString();
       this.peerId                    = UUID.randomUUID().toString();
       this.pendingOutgoingIceUpdates = new LinkedList<>();
@@ -649,7 +650,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         insertMissedCall(this.recipient, true);
       }
 
-      terminate(false);
+      terminate(this.callState == CallState.STATE_DIALING);
     }
   }
 
@@ -719,14 +720,14 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     terminate();
   }
-//
+
   private void handleRemoteHangup(Intent intent) {
     Log.w(TAG, "handleRemoteHangup");
     if (this.callId == null || (this.callId != null && !this.callId.equals(getCallId(intent)))) {
       Log.w(TAG, "hangup for non-active call...");
       return;
     }
-//
+
     if (this.recipient == null) {
       throw new AssertionError("assert");
     }
@@ -741,7 +742,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       insertMissedCall(this.recipient, true);
     }
 
-    this.terminate();
+    this.terminate(this.callState == CallState.STATE_DIALING);
   }
 
   private void handleSetMuteAudio(Intent intent) {

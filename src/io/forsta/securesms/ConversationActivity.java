@@ -114,6 +114,7 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
+import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
@@ -423,7 +424,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
-    case R.id.menu_call_recipient:            handleCallRecipient();                             return true;
+    case R.id.menu_call_recipient:            handleDial();                             return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -615,6 +616,62 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void handleDisplayGroupRecipients() {
     new GroupMembersDialog(this, getRecipients()).display();
+  }
+
+  private void handleDial() {
+    Recipient recipient = recipients.getPrimaryRecipient();
+    if (recipient == null) return;
+
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+        .ifNecessary()
+        .withRationaleDialog(getString(R.string.ConversationActivity_to_call_needs_access_to_your_microphone_and_camera),
+            R.drawable.ic_mic_white_48dp, R.drawable.ic_videocam_white_48dp)
+        .withPermanentDenialDialog(getString(R.string.ConversationActivity_to_call_needs_access_to_your_microphone_and_camera))
+        .onAllGranted(() -> {
+          Intent intent = new Intent(this, WebRtcCallService.class);
+          intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
+          intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaThread.getUid());
+          startService(intent);
+
+          Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
+          activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          startActivity(activityIntent);
+        })
+        .execute();
+  }
+
+  private void handleCallRecipient () {
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.CALL_PHONE)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_phone))
+        .onAllGranted(() -> {
+          String number = recipients.getPrimaryRecipient().getPhone();
+          Intent intent = new Intent(Intent.ACTION_CALL);
+          intent.setData(Uri.parse("tel:" + number));
+          startActivity(intent);
+        })
+        .execute();
+  }
+
+  private void handleAddToContacts() {
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          try {
+            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
+            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+            startActivityForResult(intent, ADD_CONTACT);
+          } catch (ActivityNotFoundException e) {
+            Log.w(TAG, e);
+          }
+        })
+        .execute();
   }
 
   ///// Initializers
@@ -1343,38 +1400,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {}
-  }
-
-  private void handleCallRecipient () {
-    Permissions.with(ConversationActivity.this)
-        .request(Manifest.permission.CALL_PHONE)
-        .ifNecessary()
-        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_phone))
-        .onAllGranted(() -> {
-          String number = recipients.getPrimaryRecipient().getPhone();
-          Intent intent = new Intent(Intent.ACTION_CALL);
-          intent.setData(Uri.parse("tel:" + number));
-          startActivity(intent);
-        })
-        .execute();
-  }
-
-  private void handleAddToContacts() {
-    Permissions.with(ConversationActivity.this)
-        .request(Manifest.permission.WRITE_CONTACTS)
-        .ifNecessary()
-        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
-        .onAllGranted(() -> {
-          try {
-            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
-            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-            startActivityForResult(intent, ADD_CONTACT);
-          } catch (ActivityNotFoundException e) {
-            Log.w(TAG, e);
-          }
-        })
-        .execute();
   }
 
   private ListenableFuture<Boolean> initializeDirectory()

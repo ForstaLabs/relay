@@ -170,13 +170,26 @@ public class ForstaMessageManager {
                 JSONObject offer = data.getJSONObject("offer");
                 String spd = offer.optString("sdp");
                 String peerId = data.getString("peerId");
+                Log.w(TAG, "Call offer callId: " + callId + " peerId: " + peerId);
                 forstaMessage.setCallOffer(callId, originator, peerId, spd);
-                Log.w(TAG, "Incomming call offer from: " + originator + " :" + offer.toString());
-
               } else {
                 Log.w(TAG, "Not a valid callOffer control message");
               }
               break;
+            case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+              if (data.has("answer")) {
+                String originator = data.getString("originator");
+                String callId = data.getString("callId");
+                JSONObject answer = data.getJSONObject("answer");
+                String spd = answer.optString("sdp");
+                String peerId = data.getString("peerId");
+                Log.w(TAG, "Call accept offer callId: " + callId + " peerId: " + peerId);
+                forstaMessage.setCallOffer(callId, originator, peerId, spd);
+              } else {
+                Log.w(TAG, "Not a valid callAcceptOffer control message");
+              }
+              break;
+
             case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
               if (data.has("icecandidates")) {
                 String originator = data.getString("originator");
@@ -192,7 +205,6 @@ public class ForstaMessageManager {
                   candidates.add(new IceCandidate(spdMid, spdLineIndex, spd));
                 }
                 forstaMessage.setIceCandidates(callId, originator, peerId, candidates);
-                Log.w(TAG, "Incoming call ICE candidates from: " + originator + " :" + callIceCandidates.toString());
               } else {
                 Log.w(TAG, "Not a valid callIceCandidate control message");
               }
@@ -201,10 +213,7 @@ public class ForstaMessageManager {
               String originator = data.getString("originator");
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
-              Log.w(TAG, "Call leave received: " + callId + " From : " + originator);
-              break;
-            case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
-              Log.w(TAG, "Call accept offer: " + data.getString("callId"));
+              Log.w(TAG, "Call leave from: " + callId + " From : " + originator);
               break;
             default:
               Log.w(TAG, "Not a control message");
@@ -271,7 +280,6 @@ public class ForstaMessageManager {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callOffer");
-      data.put("peerId", peerId);
       JSONArray members = new JSONArray();
       for (Recipient x : recipients) {
         members.put(x.getAddress());
@@ -283,6 +291,7 @@ public class ForstaMessageManager {
       offer.put("sdp", description);
       offer.put("type", "offer");
       data.put("offer", offer);
+      data.put("peerId", peerId);
     } catch (JSONException e) {
       e.printStackTrace();
     }
