@@ -86,7 +86,6 @@
     <string name="DraftDatabase_Draft_video_snippet">(video)</string>
     <string name="DraftDatabase_Draft_location_snippet">(location)</string>
     <string name="DraftDatabase_Draft_document_snippet">(document)</string>
-    <string name="DraftDatabase_Draft_quote_snippet">(quote)</string>
 
     <!-- AttchmentManager -->
     <string name="AttachmentManager_cant_open_media_selection">Can\'t find an app to select media.</string>
@@ -623,8 +622,6 @@
     <string name="ApplicationMigrationService_importing_text_messages">Importing text messages</string>
     <string name="ApplicationMigrationService_import_complete">Import complete</string>
     <string name="ApplicationMigrationService_system_database_import_is_complete">System database import is complete.</string>
-
-    <string name="Button_pressed">Button Pressed</string>
 
     <!-- KeyCachingService -->
     <string name="KeyCachingService_signal_passphrase_cached">Touch to open.</string>

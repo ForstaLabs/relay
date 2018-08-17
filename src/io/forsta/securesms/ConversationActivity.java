@@ -41,8 +41,6 @@ import android.os.Vibrator;
 import android.provider.Browser;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.AlertDialog;
@@ -114,7 +112,6 @@ import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
-import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -144,9 +141,7 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
@@ -185,8 +180,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int PICK_LOCATION     = 8;
   private static final int PICK_DOCUMENT     = 9;
 
-  private static final RecipientProvider provider = new RecipientProvider();
-
   private   MasterSecret          masterSecret;
   protected ComposeText           composeText;
   private   AnimatingToggle       buttonToggle;
@@ -211,6 +204,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private Recipients recipients;
   private long       threadId;
+  private String messageRef;
   private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
@@ -220,8 +214,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private DynamicTheme    dynamicTheme    = new DynamicTheme();
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
-
-  private String messageRef = null;
 
   @Override
   protected void onPreCreate() {
@@ -667,7 +659,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author;
-    this.messageRef = messageRecord.getMessageId();
+    messageRef = messageRecord.getMessageId();
+
     long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
     if (messageRecord.isOutgoing()) {
       author = Recipient.from(this, localId, true);
@@ -1147,6 +1140,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
+  //This may be why votes are not appearing, being set to 0. But new replies being set should always have vote set to 0
   private ListenableFuture<Void> sendReplyMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId, final String messageRef)
           throws InvalidMessageException
   {

@@ -144,7 +144,7 @@ public class MmsDatabase extends MessagingDatabase {
       AttachmentDatabase.CONTENT_LOCATION,
       AttachmentDatabase.CONTENT_DISPOSITION,
       AttachmentDatabase.NAME,
-      AttachmentDatabase.TRANSFER_STATE,
+      AttachmentDatabase.TRANSFER_STATE
   };
 
   private static final String RAW_ID_WHERE = TABLE_NAME + "._id = ?";
@@ -1221,9 +1221,9 @@ public class MmsDatabase extends MessagingDatabase {
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
 
       return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
-              addressDeviceId, dateSent, dateReceived, receiptCount,
-              threadId, body, slideDeck, partCount, box, mismatches,
-              networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
+                                       addressDeviceId, dateSent, dateReceived, receiptCount,
+                                       threadId, body, slideDeck, partCount, box, mismatches,
+                                       networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
     }
 
     private Recipients getRecipientsFor(String address) {

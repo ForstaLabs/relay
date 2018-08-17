@@ -2,17 +2,12 @@ package io.forsta.securesms;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.Telephony;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.CursorAdapter;
 import android.widget.TextView;
-
-import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.lang.ref.SoftReference;
 import java.util.Collections;
@@ -21,25 +16,22 @@ import java.util.Map;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.LRUCache;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ReplyListAdapter extends CursorAdapter {
     private final static String TAG = ReplyListAdapter.class.getSimpleName();
 
-    private Context mContext;
-    private int mResource;
+    private Context      mContext;
+    private int          mResource;
     private MasterSecret masterSecret;
-    private Recipient author;
-    private final @NonNull MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(mContext);
+    private final @NonNull MmsSmsDatabase db;
+
     private static final int MAX_CACHE_SIZE = 40;
     private final Map<String,SoftReference<MessageRecord>> messageRecordCache =
             Collections.synchronizedMap(new LRUCache<String, SoftReference<MessageRecord>>(MAX_CACHE_SIZE));
@@ -50,6 +42,7 @@ public class ReplyListAdapter extends CursorAdapter {
         mContext = context;
         mResource = resource;
         this.masterSecret = masterSecret;
+        db = DatabaseFactory.getMmsSmsDatabase(mContext);
     }
 
     @Override
@@ -61,9 +54,11 @@ public class ReplyListAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         long messageId              = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
         String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
+
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
         long localId                = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
 
+        Recipient author;
         if (messageRecord.isOutgoing()) {
             author = Recipient.from(context, localId, true);
         } else {

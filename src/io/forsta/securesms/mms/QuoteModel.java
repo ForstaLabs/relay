@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.recipients.Recipient;
-//import io.forsta.securesms.database.Address;
 
 import java.util.List;
 

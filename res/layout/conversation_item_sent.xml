@@ -113,14 +113,14 @@
                     android:textSize="10sp"
                     android:textColor="@color/white"/>
 
-                <io.forsta.securesms.components.CustomListView
+                <io.forsta.securesms.components.ReplyListView
                     android:scrollbars="none"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/conversation_list_view"
                     android:divider="@null">
 
-                </io.forsta.securesms.components.CustomListView>
+                </io.forsta.securesms.components.ReplyListView>
 
             </LinearLayout>
 

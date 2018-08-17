@@ -150,6 +150,7 @@ public abstract class MessageRecord extends DisplayRecord {
   public String getPlainTextBody() {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
+
       if(forstaBody.getVote() > 0) {
         return "Up Vote";
       }

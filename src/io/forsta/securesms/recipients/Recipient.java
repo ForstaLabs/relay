@@ -64,11 +64,6 @@ public class Recipient {
 
   @Nullable private MaterialColor color;
 
-  public Recipient(long recipientId, String number) {
-    this.recipientId = recipientId;
-    this.number = number;
-  }
-
   Recipient(long recipientId,
             @NonNull  String number,
             @Nullable Recipient stale,

@@ -18,13 +18,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.whispersystems.libsignal.util.guava.Optional;
-
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.components.emoji.EmojiToggle;
-import io.forsta.securesms.mms.QuoteModel;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -128,7 +125,10 @@ public class InputPanel extends LinearLayout
     }
     return false;
   }
-
+  //I wanted the hint inside the input panel to say "Reply to message" when a quote was visible and disappear when
+  //it was dismissed. I created a static field called inputText that could be referenced by QuoteView, since the
+  //dismiss button logic is there, so that when the "x" was pressed to remove the quote, the hint would return to the
+  //original message
   public static void returnInputHint() {
     inputText.setHint("Send Forsta message", null);
   }

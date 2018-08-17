@@ -27,7 +27,6 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -46,19 +45,17 @@ import android.widget.VideoView;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
-import io.forsta.securesms.components.CustomListView;
+import io.forsta.securesms.components.ReplyListView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
 import io.forsta.securesms.components.ThumbnailView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
-import io.forsta.securesms.database.Database;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.SmsDatabase;
-import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
@@ -69,7 +66,6 @@ import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideClickListener;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.DateUtils;
@@ -105,10 +101,10 @@ public class ConversationItem extends LinearLayout
   private Locale        locale;
   private boolean       groupThread;
   private Recipient     recipient;
-  private String          messageId;
+  private String        messageId;
 
   private View               bodyBubble;
-  private CustomListView     listView;
+  private ReplyListView      listView;
   private LinearLayout       replyBox;
   private TextView           bodyText;
   private TextView           dateText;
@@ -462,6 +458,8 @@ public class ConversationItem extends LinearLayout
     }
   }
 
+  //Checking for messageRef inside messages could be redundant since the query for getConversation inside MmsSmsDatabase
+  //has already been changed to not display messages with messageRefs.
   private void setReply(MessageRecord messageRecord) {
     if(messageRecord.getMessageRef() == null){
       MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
@@ -469,7 +467,7 @@ public class ConversationItem extends LinearLayout
       listView.setStackFromBottom(true);
 
       if((cursor != null) && (cursor.getCount() > 0)) {
-        listView.setClickable(false);
+        listView.setClickable(false);  //Could set up long click to bring up option to upvote
         listView.setFocusable(false);
         replyBox.setVisibility(VISIBLE);
         listView.setVisibility(VISIBLE);

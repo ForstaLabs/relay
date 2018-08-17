@@ -46,8 +46,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsDatabase;
