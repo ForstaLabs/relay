@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.database.ContentObserver;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
@@ -115,8 +116,11 @@ import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.RecipientProvider;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
+import io.forsta.securesms.database.model.MessageRecord;
+import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
@@ -138,7 +142,6 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -176,35 +179,37 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int TAKE_PHOTO        = 6;
   private static final int ADD_CONTACT       = 7;
   private static final int PICK_LOCATION     = 8;
-  private static final int PICK_DOCUMENT = 9;
+  private static final int PICK_DOCUMENT     = 9;
 
-  private MasterSecret masterSecret;
+  private   MasterSecret          masterSecret;
   protected ComposeText           composeText;
   private   AnimatingToggle       buttonToggle;
-  private SendButton sendButton;
+  private   SendButton            sendButton;
   private   ImageButton           attachButton;
   protected ConversationTitleView titleView;
   private   TextView              charactersLeft;
   private   ConversationFragment  fragment;
   private   Button                unblockButton;
-  private InputAwareLayout container;
+  private   InputAwareLayout      container;
   private   View                  composePanel;
-  protected ReminderView reminderView;
+  protected ReminderView          reminderView;
 
-  private AttachmentTypeSelector attachmentTypeSelector;
+  private   AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver recipientsClearReceiver;
+  private   BroadcastReceiver      recipientsClearReceiver;
   private   EmojiDrawer            emojiDrawer;
-  protected HidingLinearLayout quickAttachmentToggle;
+  protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
 
   private Recipients recipients;
   private long       threadId;
+  private String messageRef;
   private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
+  private boolean    isSecureText;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -652,6 +657,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
+  @Override
+  public void handleReplyMessage(MessageRecord messageRecord) {
+    Recipient author;
+    messageRef = messageRecord.getMessageId();
+
+    long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
+    if (messageRecord.isOutgoing()) {
+      author = Recipient.from(this, localId, true);
+    } else {
+      author = messageRecord.getIndividualRecipient();
+    }
+    inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
+  }
+
   private void initializeThread() {
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
@@ -737,6 +756,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }.execute();
   }
+
 
   private void initializeViews() {
     titleView             = (ConversationTitleView) getSupportActionBar().getCustomView();
@@ -964,7 +984,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           draftDatabase.insertDrafts(new MasterCipher(thisMasterSecret), threadId, drafts);
           ForstaThread threadData = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData);
+          String snippet = ForstaMessageManager.createForstaMessageBody(ConversationActivity.this, drafts.getSnippet(ConversationActivity.this), recipients, attachmentManager.buildSlideDeck().asAttachments(), threadData,null);
           threadDatabase.updateSnippet(threadId, snippet,
                                        drafts.getUriSnippet(ConversationActivity.this),
                                        System.currentTimeMillis(), Types.BASE_DRAFT_TYPE, true);
@@ -1058,6 +1078,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       if (recipients == null) {
         Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_recipient_is_not_valid, Toast.LENGTH_LONG).show();
+      } else if(inputPanel.hasQuoteVisible()){
+        sendReplyMessage(forceSms, expiresIn, subscriptionId, messageRef);
       } else {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
       }
@@ -1072,6 +1094,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       throws InvalidMessageException
   {
     sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
+  }
+
+  private void sendReplyMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    sendReplyMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId, messageRef);
   }
 
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
@@ -1090,6 +1118,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     attachmentManager.clear();
     composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
 
     new AsyncTask<OutgoingMediaMessage, Void, Long>() {
       @Override
@@ -1106,6 +1136,47 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         future.set(null);
       }
     }.execute(outgoingMessage);
+
+
+    return future;
+  }
+
+  //This may be why votes are not appearing, being set to 0. But new replies being set should always have vote set to 0
+  private ListenableFuture<Void> sendReplyMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    final SettableFuture<Void> future          = new SettableFuture<>();
+    final Context              context         = getApplicationContext();
+    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
+                                                                    slideDeck,
+                                                                    body,
+                                                                    System.currentTimeMillis(),
+                                                                    subscriptionId,
+                                                                    expiresIn,
+                                                                    distributionType, messageRef, 0, null);
+    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
+
+    attachmentManager.clear();
+    composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
+
+    new AsyncTask<OutgoingMediaMessage, Void, Long>() {
+      @Override
+      protected Long doInBackground(OutgoingMediaMessage... messages) {
+        OutgoingMediaMessage message = messages[0];
+        // TODO is using forstaThread and threadId inside async task a problem?
+        message.setForstaJsonBody(context, forstaThread);
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      }
+
+      @Override
+      protected void onPostExecute(Long result) {
+        sendComplete(result);
+        future.set(null);
+      }
+    }.execute(outgoingMessage);
+
 
     return future;
   }

@@ -440,7 +440,6 @@ public class AttachmentDatabase extends Database {
                                   cursor.getString(cursor.getColumnIndexOrThrow(NAME)));
   }
 
-
   private AttachmentId insertAttachment(MasterSecretUnion masterSecret, long mmsId, Attachment attachment)
       throws MmsException
   {

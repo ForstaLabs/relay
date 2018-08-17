@@ -24,6 +24,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import org.w3c.dom.Text;
 
@@ -58,6 +59,8 @@ import static android.R.attr.filter;
  *
  */
 public abstract class MessageRecord extends DisplayRecord {
+
+  private final String TAG = MessageRecord.class.getSimpleName();
 
   private static final int MAX_DISPLAY_LENGTH = 2000;
 
@@ -148,7 +151,7 @@ public abstract class MessageRecord extends DisplayRecord {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
 
-      if (forstaBody.getVote() > 0) {
+      if(forstaBody.getVote() > 0) {
         return "Up Vote";
       }
       return forstaBody.getTextBody();
@@ -185,14 +188,27 @@ public abstract class MessageRecord extends DisplayRecord {
   }
 
   public String getMessageId() {
-    if (TextUtils.isEmpty(messageId)) {
-      return forstaMessageBody.getMessageId();
+    try {
+      ForstaMessage forstaBody = getForstaMessageBody();
+      if (!TextUtils.isEmpty(forstaBody.getMessageId())) {
+        return forstaBody.getMessageId();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
-    return messageId;
+    return null;
   }
 
   public String getMessageRef() {
-    return messageRef;
+    try {
+      ForstaMessage forstaBody = getForstaMessageBody();
+      if (!TextUtils.isEmpty(forstaBody.getMessageRef())) {
+        return forstaBody.getMessageRef();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public int getVoteCount() {

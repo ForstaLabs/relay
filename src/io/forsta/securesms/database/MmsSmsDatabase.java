@@ -77,7 +77,7 @@ public class MmsSmsDatabase extends Database {
 
   public Cursor getConversation(long threadId, long limit) {
     String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
-    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId;
+    String selection = MmsSmsColumns.THREAD_ID + " = " + threadId + " AND " + MmsDatabase.MESSAGE_REF + " IS NULL" ;
 
     Cursor cursor = queryTables(PROJECTION, selection, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
@@ -104,6 +104,13 @@ public class MmsSmsDatabase extends Database {
     String selection = MmsSmsColumns.THREAD_ID + " = " + threadId;
 
     return  queryTables(PROJECTION, selection, order, "1");
+  }
+
+  public Cursor getReplies(String messageId) {
+    String order = MmsSmsColumns.NORMALIZED_DATE_SENT + " ASC";
+    String selection = MmsDatabase.MESSAGE_REF + " = " + "\"" + messageId + "\"";
+
+    return queryTables(PROJECTION, selection, order, null);
   }
 
   public Cursor getUnread() {

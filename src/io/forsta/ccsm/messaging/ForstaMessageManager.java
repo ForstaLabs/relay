@@ -134,6 +134,15 @@ public class ForstaMessageManager {
         forstaMessage.setUniversalExpression(distribution.getString("expression"));
       }
 
+      if (jsonBody.has("messageRef")) {
+        String messageId = jsonBody.getString("messageRef");
+        forstaMessage.setMessageRef(messageId);
+        if (jsonBody.has("vote")) {
+          int vote = jsonBody.getInt("vote");
+          forstaMessage.setVote(vote);
+        }
+      }
+
       if (jsonBody.has("data")) {
         JSONObject data = jsonBody.getJSONObject("data");
         if (data.has("body")) {
@@ -160,18 +169,9 @@ public class ForstaMessageManager {
         }
         if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for (int i=0; i<mentions.length(); i++) {
+          for (int i = 0; i < mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
-          }
-        }
-
-        if (data.has("messageRef")) {
-          String messageId = data.getString("messageRef");
-          forstaMessage.setMessageRef(messageId);
-          if (data.has("vote")) {
-            int vote = data.getInt("vote");
-            forstaMessage.setVote(vote);
           }
         }
 
@@ -215,6 +215,7 @@ public class ForstaMessageManager {
 
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
     try {
+
       OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, "Thread has been updated.", new LinkedList<Attachment>(),  System.currentTimeMillis(), -1, 0, ThreadDatabase.DistributionTypes.DEFAULT);
       message = new OutgoingSecureMediaMessage(message);
       ForstaThread threadData = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
@@ -233,11 +234,11 @@ public class ForstaMessageManager {
     return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTROL);
   }
 
-  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
-    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT);
+  public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String messageRef) {
+    return createForstaMessageBody(context, message, recipients, messageAttachments, forstaThread, ForstaMessage.MessageTypes.CONTENT, messageRef);
   }
 
-  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type) {
+  public static String createForstaMessageBody(Context context, String richTextMessage, Recipients messageRecipients, List<Attachment> messageAttachments, ForstaThread forstaThread, String type, String messageRef) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     ContactDb contactDb = DbFactory.getContactDb(context);
@@ -350,6 +351,7 @@ public class ForstaMessageManager {
       version1.put("data", data);
       version1.put("sender", sender);
       version1.put("distribution", recipients);
+      version1.put("messageRef", messageRef);
       versions.put(version1);
     } catch (JSONException e) {
       Log.e(TAG, "createForstaMessageBody JSON exception");
