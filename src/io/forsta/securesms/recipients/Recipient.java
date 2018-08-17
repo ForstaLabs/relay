@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms.recipients;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -41,6 +42,7 @@ import java.util.WeakHashMap;
 public class Recipient {
 
   private final static String TAG = Recipient.class.getSimpleName();
+  private static final RecipientProvider provider = new RecipientProvider();
 
   private final Set<RecipientModifiedListener> listeners = Collections.newSetFromMap(new WeakHashMap<RecipientModifiedListener, Boolean>());
 
@@ -130,6 +132,11 @@ public class Recipient {
     this.phone = details.phone;
     this.isActive = details.isActive;
     this.userType = details.userType;
+  }
+
+  @SuppressWarnings("ConstantConditions")
+    public static @NonNull Recipient from(@NonNull Context context, long recipientId, boolean asynchronous) {
+      return provider.getRecipient(context, recipientId, asynchronous);
   }
 
   public synchronized @NonNull String getAddress() {

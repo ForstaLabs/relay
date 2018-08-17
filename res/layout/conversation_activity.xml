@@ -8,7 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<io.forsta.securesms.components.camera.QuickAttachmentDrawer
+    <io.forsta.securesms.components.camera.QuickAttachmentDrawer
         android:id="@+id/quick_attachment_drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
