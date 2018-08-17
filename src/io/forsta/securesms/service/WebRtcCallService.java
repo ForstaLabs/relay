@@ -453,7 +453,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleResponseMessage(Intent intent) {
     try {
-      Log.w(TAG, "Got response: " + intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION));
+      Log.w(TAG, "handleResponseMessage: " + intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION));
 
       if (callState != CallState.STATE_DIALING || !getRemoteRecipient(intent).equals(recipient) || this.callId == null ||!this.callId.equals(getCallId(intent))) {
         Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + getCallId(intent) + ", " + getRemoteRecipient(intent));
@@ -480,6 +480,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
       this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       this.pendingOutgoingIceUpdates = null;
+      Log.i(TAG, "hasConnected...");
+      Intent connectedIntent = new Intent(this, WebRtcCallService.class);
+      intent.setAction(ACTION_CALL_CONNECTED);
+      intent.putExtra(EXTRA_CALL_ID, getCallId(intent));
+      startService(intent);
     } catch (PeerConnectionWrapper.PeerConnectionException e) {
       Log.w(TAG, e);
       terminate();
@@ -503,7 +508,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleLocalIceCandidate(Intent intent) {
     Log.w(TAG, "handleLocalIceCandidate");
-    if (callState == CallState.STATE_IDLE || this.callId == null || this.callId.equals(getCallId(intent))) {
+    if (callState == CallState.STATE_IDLE || this.callId == null || !this.callId.equals(getCallId(intent))) {
       Log.w(TAG, "State is now idle, ignoring ice candidate...");
       return;
     }
@@ -1150,6 +1155,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       buffer.data.get(data);
 
 //      Data dataMessage = Data.parseFrom(data);
+//      Data dataMessage = Data.parseFrom(data
 //
 //      if (dataMessage.hasConnected()) {
 //        Log.w(TAG, "hasConnected...");

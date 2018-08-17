@@ -261,7 +261,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       Toast.makeText(this, R.string.ConversationListActivity_there_is_no_browser_installed_on_your_device, Toast.LENGTH_LONG).show();
     }
   }
-  
+
   private class ContactsSyncReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

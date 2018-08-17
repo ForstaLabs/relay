@@ -284,6 +284,9 @@ public class ForstaMessageManager {
       for (Recipient x : recipients) {
         members.put(x.getAddress());
       }
+      if (recipients.isSingleRecipient()) {
+        members.put(user.getUid());
+      }
       data.put("members", members);
       data.put("callId", callId);
       data.put("originator", user.getUid());

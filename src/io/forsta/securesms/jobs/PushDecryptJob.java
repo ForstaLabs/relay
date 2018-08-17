@@ -480,6 +480,8 @@ public class PushDecryptJob extends ContextJob {
 
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
+      Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+      Log.w(TAG, "" + messageBody);
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
@@ -557,6 +559,7 @@ public class PushDecryptJob extends ContextJob {
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
           ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
+          Log.w(TAG, "" + callAcceptOffer.toString());
           Intent acceptIntent = new Intent(context, WebRtcCallService.class);
           acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
           acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());

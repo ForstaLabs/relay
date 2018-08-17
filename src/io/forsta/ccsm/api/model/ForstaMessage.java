@@ -340,5 +340,10 @@ public class ForstaMessage {
     public String getOffer() {
       return offer;
     }
+
+    @Override
+    public String toString() {
+      return "Call: " + callId + " originator: " + originator + " peerId:" + peerId;
+    }
   }
 }
