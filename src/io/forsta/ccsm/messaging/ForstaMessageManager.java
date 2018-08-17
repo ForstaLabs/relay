@@ -134,12 +134,11 @@ public class ForstaMessageManager {
         forstaMessage.setUniversalExpression(distribution.getString("expression"));
       }
 
-      int vote = 0;
       if (jsonBody.has("messageRef")) {
         String messageId = jsonBody.getString("messageRef");
         forstaMessage.setMessageRef(messageId);
         if (jsonBody.has("vote")) {
-          vote = jsonBody.getInt("vote");
+          int vote = jsonBody.getInt("vote");
           forstaMessage.setVote(vote);
         }
       }
