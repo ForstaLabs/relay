@@ -167,7 +167,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();          return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
-      case R.id.menu_call:              handleCall();            return true;
       case R.id.menu_archive:           onSwitchToArchive();     return true;
     }
 
@@ -262,12 +261,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       Toast.makeText(this, R.string.ConversationListActivity_there_is_no_browser_installed_on_your_device, Toast.LENGTH_LONG).show();
     }
   }
-
-  private void handleCall() {
-    Intent intent = new Intent(this, WebRtcCallActivity.class);
-    startActivity(intent);
-  }
-
+  
   private class ContactsSyncReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {

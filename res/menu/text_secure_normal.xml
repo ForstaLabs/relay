@@ -30,9 +30,6 @@
     <item android:title="@string/arrays__import_export"
           android:id="@+id/menu_import_export" />
 
-    <item android:title="Video Call"
-        android:id="@+id/menu_call"/>
-
     <item android:title="@string/text_secure_normal__help"
           android:id="@+id/menu_help"/>
 
