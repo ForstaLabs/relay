@@ -58,7 +58,7 @@ public class ReplyListAdapter extends CursorAdapter {
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
+    public void bindView(View view,  Context context, Cursor cursor) {
         long messageId              = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
         String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
