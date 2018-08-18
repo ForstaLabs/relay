@@ -421,7 +421,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
             SessionDescription sdp = WebRtcCallService.this.peerConnection.createOffer(new MediaConstraints());
             WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
 
-            Log.w(TAG, "Sending offer: " + sdp.description);
+            Log.w(TAG, "Sending callOffer: " + sdp.description);
 
             ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(recipient, threadUID, callId, sdp, peerId);
             listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -495,10 +495,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
                                                 intent.getStringExtra(EXTRA_ICE_SDP));
 
-      Log.w(TAG, "handleRemoteIceCandidate: " + candidate.toString());
+
       if (peerConnection != null) {
+        Log.w(TAG, "handleRemoteIceCandidate peerConnection: " + candidate.toString());
         peerConnection.addIceCandidate(candidate);
       } else if (pendingIncomingIceUpdates != null) {
+        Log.w(TAG, "handleRemoteIceCandidate pending: " + candidate.toString());
         pendingIncomingIceUpdates.add(candidate);
       }
     }
@@ -520,13 +522,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
                                                              intent.getStringExtra(EXTRA_ICE_SDP));
     List<IceCandidate> candidates = new LinkedList<>();
     if (pendingOutgoingIceUpdates != null) {
-      Log.w(TAG, "Adding to pending outgoing ice candidates...");
+      Log.w(TAG, "handleLocalIceCandidate pending: " + iceUpdateMessage.toString());
       this.pendingOutgoingIceUpdates.add(iceUpdateMessage);
       return;
     } else {
       candidates.add(iceUpdateMessage);
     }
-
+    Log.w(TAG, "handleLocalIceCandidate sendIceUpdateMessage: " + iceUpdateMessage.toString());
     ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(recipient, threadUID, callId, peerId, candidates);
 
     listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -541,8 +543,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void handleIceConnected(Intent intent) {
-    Log.w(TAG, "handleIceConnected...");
     if (callState == CallState.STATE_ANSWERING) {
+      Log.w(TAG, "handleIceConnected answering...");
       if (this.recipient == null) throw new AssertionError("assert");
 
       this.callState = CallState.STATE_LOCAL_RINGING;
@@ -557,6 +559,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
       setCallInProgressNotification(TYPE_INCOMING_RINGING, recipient);
     } else if (callState == CallState.STATE_DIALING) {
+      Log.w(TAG, "handleIceConnected dialing...");
       if (this.recipient == null) throw new AssertionError("assert");
 
       this.callState = CallState.STATE_REMOTE_RINGING;
