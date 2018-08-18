@@ -465,6 +465,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       }
 
       if (!pendingOutgoingIceUpdates.isEmpty()) {
+        Log.w(TAG, "handleResponseMessage pendingOutgoingIceUpdates sendIceUpdateMessage");
         ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(recipient, threadUID, callId, peerId, pendingOutgoingIceUpdates);
 
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
