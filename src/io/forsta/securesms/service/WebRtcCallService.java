@@ -562,10 +562,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       this.callState = CallState.STATE_REMOTE_RINGING;
       this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
 
-      Intent connectIntent = new Intent(this, WebRtcCallService.class);
-      connectIntent.setAction(ACTION_CALL_CONNECTED);
-      connectIntent.putExtra(EXTRA_CALL_ID, this.callId);
-      startService(intent);
+      intent.putExtra(EXTRA_CALL_ID, callId);
+      handleCallConnected(intent);
     }
   }
 
