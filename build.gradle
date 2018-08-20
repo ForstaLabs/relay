@@ -245,6 +245,7 @@ android {
                     'proguard-shortcutbadger.pro',
                     'proguard-retrofit.pro',
                     'proguard-retrolambda.pro',
+                    'proguard-webrtc.pro',
                     'proguard.cfg'
             debuggable false
             jniDebuggable false
