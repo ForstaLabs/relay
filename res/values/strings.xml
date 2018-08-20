@@ -414,6 +414,7 @@
     <string name="NotificationBarManager__answer_call">Answer call</string>
     <string name="NotificationBarManager__end_call">End call</string>
     <string name="NotificationBarManager__cancel_call">Cancel call</string>
+    <string name="NotificationBarManager__missed_call">Missed call</string>
 
     <!-- NotificationMmsMessageRecord -->
     <string name="NotificationMmsMessageRecord_multimedia_message">Multimedia message</string>
@@ -1262,11 +1263,23 @@
     <string name="Permissions_not_now">Not now</string>
 
     <string name="Permissions_required">Permissions required</string>
+    <string name="Permissions_required_phone">Phone Permissions required</string>
     <string name="Permissions_required_camera">Camera Permission required</string>
     <string name="Permissions_required_contacts">Contacts Permission required</string>
     <string name="Permissions_required_external_storage">External Storage Permission required</string>
     <string name="Permissions_required_locations">Location Permission required</string>
+    <string name="Permissions_required_microphone_answer">To answer the call from %s, give Signal access to your microphone.</string>
+    <string name="Permissions_required_microphone">Microphone Permission required</string>
     <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all functionality.</string>
+
+    <string name="ConversationActivity_to_call_needs_access_to_your_microphone_and_camera">Forsta needs access to your microphone and camera in order to make video calls</string>
+
+    <!--WebRTC-->
+    <string name="WebRTC_call_connecting">Incomming call</string>
+    <string name="webrtc_answer_decline_button__swipe_up_to_answer">Swipe up to answer call</string>
+    <string name="webrtc_answer_decline_button__swipe_down_to_reject">Swipe down to reject call</string>
+    <string name="redphone_call_controls__mute">Mute</string>
+    <string name="redphone_call_card__signal_call">Call</string>
     <!-- EOF -->
 
 </resources>

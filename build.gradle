@@ -72,6 +72,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     }
     compile 'org.whispersystems:curve25519-android:0.3.0'
+    compile 'org.whispersystems:webrtc-android:M63'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile "me.leolin:ShortcutBadger:1.1.16"
     compile 'se.emilsjolander:stickylistheaders:2.7.0'
