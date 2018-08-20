@@ -455,6 +455,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     try {
       Log.w(TAG, "handleResponseMessage: " + getCallId(intent));
 
+
+      Recipient remoteRecipient = getRemoteRecipient(intent);
+      String remoteCallId = getCallId(intent);
       if (callState != CallState.STATE_DIALING || !getRemoteRecipient(intent).equals(recipient) || this.callId == null ||!this.callId.equals(getCallId(intent))) {
         Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + getCallId(intent) + ", " + getRemoteRecipient(intent));
         return;

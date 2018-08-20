@@ -563,7 +563,7 @@ public class PushDecryptJob extends ContextJob {
           Intent acceptIntent = new Intent(context, WebRtcCallService.class);
           acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
           acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
-          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callAcceptOffer.getOriginator());
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
