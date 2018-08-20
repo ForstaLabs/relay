@@ -746,7 +746,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       insertMissedCall(this.recipient, true);
     }
 
-    this.terminate(this.callState == CallState.STATE_DIALING);
+    this.terminate(this.callState == CallState.STATE_DIALING || this.callState == CallState.STATE_CONNECTED);
   }
 
   private void handleSetMuteAudio(Intent intent) {
