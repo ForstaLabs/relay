@@ -355,26 +355,18 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
           WebRtcCallService.this.dataChannel.registerObserver(WebRtcCallService.this);
           WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
 
-          SessionDescription sdp = WebRtcCallService.this.peerConnection.createAnswer(new MediaConstraints());
-          Log.w(TAG, "Answer SDP: " + sdp.description);
-          WebRtcCallService.this.peerConnection.setLocalDescription(sdp);
+          WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
+          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
 
-          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(recipient, threadUID, WebRtcCallService.this.callId, sdp, WebRtcCallService.this.peerId);
+          sendMessage(WebRtcViewModel.State.CALL_INCOMING, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+          startCallCardActivity();
+          audioManager.initializeAudioForCall();
+          audioManager.startIncomingRinger();
 
-          for (IceCandidate candidate : pendingIncomingIceUpdates) {
-            WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
-          }
-          WebRtcCallService.this.pendingIncomingIceUpdates = null;
+          registerPowerButtonReceiver();
 
-          listenableFutureTask.addListener(new FailureListener<Boolean>(WebRtcCallService.this.callState, WebRtcCallService.this.callId) {
+          setCallInProgressNotification(TYPE_INCOMING_RINGING, recipient);
 
-            @Override
-            public void onFailureContinue(Throwable error) {
-              Log.w(TAG, error);
-              insertMissedCall(recipient, true);
-              terminate();
-            }
-          });
         } catch (PeerConnectionWrapper.PeerConnectionException e) {
           Log.w(TAG, e);
           terminate();
@@ -454,7 +446,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private void handleResponseMessage(Intent intent) {
     try {
       Log.w(TAG, "handleResponseMessage: " + getCallId(intent));
-
 
       Recipient remoteRecipient = getRemoteRecipient(intent);
       String remoteCallId = getCallId(intent);
@@ -550,18 +541,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     if (callState == CallState.STATE_ANSWERING) {
       Log.w(TAG, "handleIceConnected answering...");
       if (this.recipient == null) throw new AssertionError("assert");
-
-      this.callState = CallState.STATE_LOCAL_RINGING;
-      this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
-
-      sendMessage(WebRtcViewModel.State.CALL_INCOMING, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-      startCallCardActivity();
-      audioManager.initializeAudioForCall();
-      audioManager.startIncomingRinger();
-
-      registerPowerButtonReceiver();
-
-      setCallInProgressNotification(TYPE_INCOMING_RINGING, recipient);
+      
+      intent.putExtra(EXTRA_CALL_ID, callId);
+      handleCallConnected(intent);
     } else if (callState == CallState.STATE_DIALING) {
       Log.w(TAG, "handleIceConnected dialing...");
       if (this.recipient == null) throw new AssertionError("assert");
@@ -682,6 +664,29 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     if (peerConnection == null || dataChannel == null || recipient == null || callId == null) {
       throw new AssertionError("assert");
+    }
+
+    try {
+      SessionDescription sdp = this.peerConnection.createAnswer(new MediaConstraints());
+      Log.w(TAG, "Answer SDP: " + sdp.description);
+      this.peerConnection.setLocalDescription(sdp);
+      ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(recipient, threadUID, this.callId, sdp, this.peerId);
+      listenableFutureTask.addListener(new FailureListener<Boolean>(this.callState, this.callId) {
+
+        @Override
+        public void onFailureContinue(Throwable error) {
+          Log.w(TAG, error);
+          insertMissedCall(recipient, true);
+          terminate();
+        }
+      });
+
+      for (IceCandidate candidate : pendingIncomingIceUpdates) {
+        WebRtcCallService.this.peerConnection.addIceCandidate(candidate);
+      }
+      WebRtcCallService.this.pendingIncomingIceUpdates = null;
+    } catch (PeerConnectionWrapper.PeerConnectionException e) {
+      e.printStackTrace();
     }
 
     this.peerConnection.setAudioEnabled(true);
