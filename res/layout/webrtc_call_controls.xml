@@ -28,7 +28,7 @@
                 android:background="@drawable/webrtc_mute_button"
                 android:contentDescription="@string/redphone_call_controls__mute"
                 android:layout_marginRight="15dp"
-                tools:checked="false"
+                tools:checked="true"
                 />
 
         <io.forsta.securesms.components.AccessibleToggleButton

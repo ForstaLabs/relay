@@ -159,7 +159,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     Permissions.with(LoginActivity.this)
         .request(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA)
+            Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
         .ifNecessary()
         .withRationaleDialog(getString(R.string.Permissions_required_initial))
         .execute();
