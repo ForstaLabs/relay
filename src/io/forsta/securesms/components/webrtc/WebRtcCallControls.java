@@ -130,7 +130,7 @@ public class WebRtcCallControls extends LinearLayout {
   }
 
   public void setMicrophoneEnabled(boolean enabled) {
-    audioMuteButton.setChecked(!enabled, false);
+    audioMuteButton.setChecked(enabled, false);
   }
 
   public void setControlsEnabled(boolean enabled) {
