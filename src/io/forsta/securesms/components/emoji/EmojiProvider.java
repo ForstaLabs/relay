@@ -30,6 +30,7 @@ import io.forsta.securesms.util.Util;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,7 +116,7 @@ public class EmojiProvider {
         });
       }
 
-      @Override public void onFailure(Throwable error) {
+      @Override public void onFailure(ExecutionException error) {
         Log.w(TAG, error);
       }
     });

@@ -3,6 +3,8 @@ package io.forsta.ccsm.util;
 
 import android.text.TextUtils;
 import android.util.Log;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -91,8 +93,15 @@ public class NetworkUtils {
       int status = conn.getResponseCode();
       if (status >= 200 && status < 300) {
         String result = readResult(conn.getInputStream());
-        JSONObject jsonResult = new JSONObject(result);
-        return jsonResult;
+        if (result.startsWith("[")) {
+          JSONArray jsonArray = new JSONArray(result);
+          JSONObject jsonResult = new JSONObject();
+          jsonResult.put("results", jsonArray);
+          return jsonResult;
+        } else {
+          JSONObject jsonResult = new JSONObject(result);
+          return jsonResult;
+        }
       } else {
         String result = readResult(conn.getErrorStream());
         throw new IOException("{\"" + status + "\": " + result + "}");

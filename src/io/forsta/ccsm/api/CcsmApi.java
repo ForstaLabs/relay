@@ -1,6 +1,7 @@
 // vim: ts=2:sw=2:expandtab
 package io.forsta.ccsm.api;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.Context;
@@ -40,6 +41,7 @@ import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -68,6 +70,7 @@ public class CcsmApi {
   private static final String API_PROVISION_ACCOUNT = "/v1/provision/account/";
   private static final String API_PROVISION_REQUEST = "/v1/provision/request/";
   private static final String API_USER_RESET_PASSWORD = "/v1/password/reset/";
+  private static final String API_RTC = "/v1/rtc/servers/";
   private static final long EXPIRE_REFRESH_DELTA = 7L;
 
   private CcsmApi() {
@@ -180,10 +183,12 @@ public class CcsmApi {
           JSONObject threadUsers = getUserDirectory(context, addresses);
           threadContacts = CcsmApi.parseUsers(context, threadUsers);
         }
-        List<ForstaUser> knownLocalContacts = getKnownLocalContacts(context);
-        for (ForstaUser user : knownLocalContacts) {
-          if (!threadContacts.contains(user)) {
-            threadContacts.add(user);
+        if (Permissions.hasAny(context, Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)) {
+          List<ForstaUser> knownLocalContacts = getKnownLocalContacts(context);
+          for (ForstaUser user : knownLocalContacts) {
+            if (!threadContacts.contains(user)) {
+              threadContacts.add(user);
+            }
           }
         }
         syncForstaContactsDb(context, threadContacts, removeInvalidUsers);
@@ -317,6 +322,10 @@ public class CcsmApi {
 
   public static JSONObject getTagPick(Context context) {
     return fetchResource(context, "GET", API_TAG_PICK);
+  }
+
+  public static JSONObject getRtcServers(Context context) {
+    return fetchResource(context, "GET", API_RTC);
   }
 
   public static JSONObject getDistribution(Context context, String expression) {
