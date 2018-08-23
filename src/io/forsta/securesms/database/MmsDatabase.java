@@ -162,6 +162,20 @@ public class MmsDatabase extends MessagingDatabase {
     return TABLE_NAME;
   }
 
+  public Cursor getConversation(long threadId, long limit) {
+    String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
+    String selection = MmsSmsColumns.THREAD_ID + " = ?";
+
+    Cursor cursor = rawQuery(selection, new String[] {threadId + ""}, order, limit > 0 ? String.valueOf(limit) : null);
+    setNotifyConverationListeners(cursor, threadId);
+
+    return cursor;
+  }
+
+  public Cursor getConversation(long threadId) {
+    return getConversation(threadId, 0);
+  }
+
   public int getMessageCountForThread(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;
@@ -271,7 +285,7 @@ public class MmsDatabase extends MessagingDatabase {
       return DatabaseFactory.getThreadDatabase(context).getThreadIdFor(groupRecipients);
     }
 
-    String      localNumber;
+    String      localNumber = TextSecurePreferences.getLocalNumber(context);
     Set<String> group       = new HashSet<>();
 
     if (retrieved.getAddresses().getFrom() == null) {
@@ -279,12 +293,6 @@ public class MmsDatabase extends MessagingDatabase {
     }
 
     group.add(retrieved.getAddresses().getFrom());
-
-    if (TextSecurePreferences.isPushRegistered(context)) {
-      localNumber = TextSecurePreferences.getLocalNumber(context);
-    } else {
-      localNumber = ServiceUtil.getTelephonyManager(context).getLine1Number();
-    }
 
     for (String cc : retrieved.getAddresses().getCc()) {
       PhoneNumberUtil.MatchType match;
@@ -331,6 +339,16 @@ public class MmsDatabase extends MessagingDatabase {
     return DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
   }
 
+  private Cursor rawQuery(@NonNull String where, @Nullable String[] arguments, String order, String limit) {
+    order = TextUtils.isEmpty(order) ? DATE_RECEIVED + " DESC" : order;
+    limit = TextUtils.isEmpty(limit) ? "" : " LIMIT " + limit;
+    SQLiteDatabase database = databaseHelper.getReadableDatabase();
+    return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
+        " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
+        " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ")" +
+        " WHERE " + where + " " + order + limit, arguments);
+  }
+
   private Cursor rawQuery(@NonNull String where, @Nullable String[] arguments) {
     SQLiteDatabase database = databaseHelper.getReadableDatabase();
     return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
@@ -344,10 +362,6 @@ public class MmsDatabase extends MessagingDatabase {
     return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
         " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
         " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ") ORDER BY " + DATE_RECEIVED + " DESC LIMIT " + count, null);
-  }
-
-  public Cursor getMessages(long threadId) {
-    return rawQuery(THREAD_ID + " = ? ", new String[] {threadId+ ""});
   }
 
   public Cursor getMessage(long messageId) {
@@ -1226,6 +1240,8 @@ public class MmsDatabase extends MessagingDatabase {
                                        threadId, body, slideDeck, partCount, box, mismatches,
                                        networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
     }
+
+
 
     private Recipients getRecipientsFor(String address) {
       if (TextUtils.isEmpty(address) || address.equals("insert-address-token")) {
