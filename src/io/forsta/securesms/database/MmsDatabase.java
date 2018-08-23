@@ -176,6 +176,45 @@ public class MmsDatabase extends MessagingDatabase {
     return getConversation(threadId, 0);
   }
 
+  public Cursor getIdentityConflictMessagesForThread(long threadId) {
+    String order           = NORMALIZED_DATE_RECEIVED + " ASC";
+    String selection       = THREAD_ID + " = ? AND " + MISMATCHED_IDENTITIES + " ?";
+
+    Cursor cursor = rawQuery(selection, new String[] {threadId + "", "IS NOT NULL"}, order, null);
+    setNotifyConverationListeners(cursor, threadId);
+
+    return cursor;
+  }
+
+  public Cursor getConversationSnippet(long threadId) {
+    String order     = NORMALIZED_DATE_RECEIVED + " DESC";
+    String selection = THREAD_ID + " = ?";
+
+    return  rawQuery(selection, new String[] {threadId + ""}, order, "1");
+  }
+
+  public Cursor getUnread() {
+    String order           = NORMALIZED_DATE_RECEIVED + " ASC";
+    String selection       = READ + " = ?";
+
+    return rawQuery(selection, new String[] {"0"}, order, null);
+  }
+
+  public int getUnreadCount(long threadId) {
+    String selection = READ + " = ? AND " + THREAD_ID + " = ?";
+    Cursor cursor    = rawQuery(selection, new String[] {"0", threadId + ""}, null, null);
+
+    try {
+      return cursor != null ? cursor.getCount() : 0;
+    } finally {
+      if (cursor != null) cursor.close();;
+    }
+  }
+
+  public int getConversationCount(long threadId) {
+    return getMessageCountForThread(threadId);
+  }
+
   public int getMessageCountForThread(long threadId) {
     SQLiteDatabase db = databaseHelper.getReadableDatabase();
     Cursor cursor     = null;
