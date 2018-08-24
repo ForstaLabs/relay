@@ -222,10 +222,6 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden"/>
         <activity
-            android:name=".GroupCreateActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:windowSoftInputMode="stateVisible"/>
-        <activity
             android:name=".DatabaseMigrationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
@@ -259,11 +255,6 @@
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.LightNoActionBar"
             android:windowSoftInputMode="stateVisible"/>
-        <activity
-            android:name=".PushContactSelectionActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:label="@string/AndroidManifest__select_contacts"
-            android:windowSoftInputMode="stateHidden"/>
         <activity
             android:name=".PassphraseChangeActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
@@ -336,14 +327,6 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.io.forsta.securesms.contact"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name=".RecipientPreferenceActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:theme="@style/TextSecure.LightNoActionBar"/>
-        <activity
-            android:name=".BlockedContactsActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:theme="@style/TextSecure.LightTheme"/>
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
 
         <activity android:name=".WebRtcCallActivity"
