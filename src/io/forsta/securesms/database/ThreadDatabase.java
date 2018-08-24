@@ -272,7 +272,7 @@ public class ThreadDatabase extends Database {
     Cursor cursor = null;
 
     try {
-      cursor = DatabaseFactory.getMmsSmsDatabase(context).getConversation(threadId);
+      cursor = DatabaseFactory.getMmsDatabase(context).getConversation(threadId);
 
       if (cursor != null && length > 0 && cursor.getCount() > length) {
         Log.w("ThreadDatabase", "Cursor count is greater than length!");
@@ -282,7 +282,6 @@ public class ThreadDatabase extends Database {
 
         Log.w("ThreadDatabase", "Cut off tweet date: " + lastTweetDate);
 
-        DatabaseFactory.getSmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, lastTweetDate);
         DatabaseFactory.getMmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, lastTweetDate);
 
         update(threadId, false);
@@ -301,7 +300,6 @@ public class ThreadDatabase extends Database {
 
     db.update(TABLE_NAME, contentValues, null, null);
 
-    DatabaseFactory.getSmsDatabase(context).setAllMessagesRead();
     DatabaseFactory.getMmsDatabase(context).setAllMessagesRead();
     notifyConversationListListeners();
   }
@@ -313,13 +311,11 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, contentValues, ID_WHERE, new String[] {threadId+""});
 
-    final List<MarkedMessageInfo> smsRecords = DatabaseFactory.getSmsDatabase(context).setMessagesRead(threadId);
     final List<MarkedMessageInfo> mmsRecords = DatabaseFactory.getMmsDatabase(context).setMessagesRead(threadId);
 
     notifyConversationListListeners();
 
     return new LinkedList<MarkedMessageInfo>() {{
-      addAll(smsRecords);
       addAll(mmsRecords);
     }};
   }
@@ -429,7 +425,6 @@ public class ThreadDatabase extends Database {
   }
 
   public void deleteConversations(Set<Long> selectedConversations) {
-    DatabaseFactory.getSmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getMmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getDraftDatabase(context).clearDrafts(selectedConversations);
     DatabaseFactory.getThreadPreferenceDatabase(context).deleteThreadPreferences(selectedConversations);
@@ -439,7 +434,6 @@ public class ThreadDatabase extends Database {
   }
 
   public void deleteAllConversations() {
-    DatabaseFactory.getSmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getMmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getDraftDatabase(context).clearAllDrafts();
     DatabaseFactory.getThreadPreferenceDatabase(context).deleteAllPreferences();
@@ -632,7 +626,7 @@ public class ThreadDatabase extends Database {
   }
 
   public void updateReadState(long threadId) {
-    int unreadCount = DatabaseFactory.getMmsSmsDatabase(context).getUnreadCount(threadId);
+    int unreadCount = DatabaseFactory.getMmsDatabase(context).getUnreadCount(threadId);
 
     ContentValues contentValues = new ContentValues();
     contentValues.put(READ, unreadCount == 0);
