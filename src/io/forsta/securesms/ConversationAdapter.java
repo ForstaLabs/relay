@@ -80,7 +80,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   MasterSecret masterSecret;
   private final @NonNull  Locale            locale;
   private final @NonNull  Recipients        recipients;
-  private final @NonNull  MmsSmsDatabase    db;
+  private final @NonNull  MmsDatabase    db;
   private final @NonNull  LayoutInflater    inflater;
   private final @NonNull  MessageDigest     digest;
 
@@ -131,7 +131,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
       this.clickListener = clickListener;
       this.recipients    = recipients;
       this.inflater      = LayoutInflater.from(context);
-      this.db            = DatabaseFactory.getMmsSmsDatabase(context);
+      this.db            = DatabaseFactory.getMmsDatabase(context);
       this.digest        = MessageDigest.getInstance("SHA1");
 
       setHasStableIds(true);
@@ -149,7 +149,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   @Override
   public void onBindItemViewHolder(ViewHolder viewHolder, @NonNull Cursor cursor) {
     long          id            = cursor.getLong(cursor.getColumnIndexOrThrow(SmsDatabase.ID));
-    String        type          = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
+    String        type          = "mms";
     MessageRecord messageRecord = getMessageRecord(id, cursor, type);
 
     viewHolder.getView().bind(masterSecret, messageRecord, locale, batchSelected, recipients);
@@ -196,7 +196,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   @Override
   public int getItemViewType(@NonNull Cursor cursor) {
     long          id            = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
-    String        type          = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
+    String        type          = "mms";
     MessageRecord messageRecord = getMessageRecord(id, cursor, type);
 
     if (messageRecord.isGroupAction() || messageRecord.isCallLog() || messageRecord.isJoined() || 
@@ -212,7 +212,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
 
   @Override
   public long getItemId(@NonNull Cursor cursor) {
-    final String unique = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsColumns.UNIQUE_ROW_ID));
+    final String unique = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
     final byte[] bytes  = digest.digest(unique.getBytes());
     return Conversions.byteArrayToLong(bytes);
   }
@@ -224,7 +224,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
       if (record != null) return record;
     }
 
-    final MessageRecord messageRecord = db.readerFor(cursor, masterSecret).getCurrent();
+    final MessageRecord messageRecord = db.readerFor(masterSecret, cursor).getCurrent();
 
     messageRecordCache.put(type + messageId, new SoftReference<>(messageRecord));
 

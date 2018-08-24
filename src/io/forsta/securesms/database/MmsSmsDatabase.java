@@ -331,7 +331,7 @@ public class MmsSmsDatabase extends Database {
     }
 
     public MessageRecord getCurrent() {
-      String type = cursor.getString(cursor.getColumnIndexOrThrow(TRANSPORT));
+      String type = "mms";
 
       if      (MmsSmsDatabase.MMS_TRANSPORT.equals(type)) return getMmsReader().getCurrent();
       else if (MmsSmsDatabase.SMS_TRANSPORT.equals(type)) return getSmsReader().getCurrent();

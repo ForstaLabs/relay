@@ -644,8 +644,8 @@ public class ThreadDatabase extends Database {
   }
 
   public boolean update(long threadId, boolean unarchive) {
-    MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(context);
-    long count                    = mmsSmsDatabase.getConversationCount(threadId);
+    MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
+    long count                    = mmsDatabase.getConversationCount(threadId);
 
     if (count == 0) {
       deleteThread(threadId);
@@ -653,10 +653,10 @@ public class ThreadDatabase extends Database {
       return true;
     }
 
-    MmsSmsDatabase.Reader reader = null;
+    MmsDatabase.Reader reader = null;
 
     try {
-      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId));
+      reader = mmsDatabase.readerFor(mmsDatabase.getConversationSnippet(threadId));
       MessageRecord record;
 
       if (reader != null && (record = reader.getNext()) != null) {

@@ -127,8 +127,8 @@ public class MmsDatabase extends MessagingDatabase {
 
   private static final String[] MMS_PROJECTION = new String[] {
       MmsDatabase.TABLE_NAME + "." + ID + " AS " + ID,
-      THREAD_ID, DATE_SENT + " AS " + NORMALIZED_DATE_SENT,
-      DATE_RECEIVED + " AS " + NORMALIZED_DATE_RECEIVED,
+      THREAD_ID, DATE_SENT,
+      DATE_RECEIVED,
       MESSAGE_BOX, READ,
       CONTENT_LOCATION, EXPIRY, MESSAGE_TYPE,
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
@@ -163,8 +163,8 @@ public class MmsDatabase extends MessagingDatabase {
   }
 
   public Cursor getConversation(long threadId, long limit) {
-    String order     = MmsSmsColumns.NORMALIZED_DATE_RECEIVED + " DESC";
-    String selection = MmsSmsColumns.THREAD_ID + " = ?";
+    String order     = DATE_RECEIVED + " DESC";
+    String selection = THREAD_ID + " = ?";
 
     Cursor cursor = rawQuery(selection, new String[] {threadId + ""}, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
@@ -177,7 +177,7 @@ public class MmsDatabase extends MessagingDatabase {
   }
 
   public Cursor getIdentityConflictMessagesForThread(long threadId) {
-    String order           = NORMALIZED_DATE_RECEIVED + " ASC";
+    String order           = DATE_RECEIVED + " ASC";
     String selection       = THREAD_ID + " = ? AND " + MISMATCHED_IDENTITIES + " ?";
 
     Cursor cursor = rawQuery(selection, new String[] {threadId + "", "IS NOT NULL"}, order, null);
@@ -187,14 +187,14 @@ public class MmsDatabase extends MessagingDatabase {
   }
 
   public Cursor getConversationSnippet(long threadId) {
-    String order     = NORMALIZED_DATE_RECEIVED + " DESC";
+    String order     = DATE_RECEIVED + " DESC";
     String selection = THREAD_ID + " = ?";
 
     return  rawQuery(selection, new String[] {threadId + ""}, order, "1");
   }
 
   public Cursor getUnread() {
-    String order           = NORMALIZED_DATE_RECEIVED + " ASC";
+    String order           = DATE_RECEIVED + " ASC";
     String selection       = READ + " = ?";
 
     return rawQuery(selection, new String[] {"0"}, order, null);
@@ -385,7 +385,7 @@ public class MmsDatabase extends MessagingDatabase {
     return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
         " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
         " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ")" +
-        " WHERE " + where + " " + order + limit, arguments);
+        " WHERE " + where + " ORDER BY " + order + limit, arguments);
   }
 
   private Cursor rawQuery(@NonNull String where, @Nullable String[] arguments) {
@@ -394,13 +394,6 @@ public class MmsDatabase extends MessagingDatabase {
                              " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
                              " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ")" +
                              " WHERE " + where, arguments);
-  }
-
-  public Cursor getMessages(int count) {
-    SQLiteDatabase database = databaseHelper.getReadableDatabase();
-    return database.rawQuery("SELECT " + Util.join(MMS_PROJECTION, ",") +
-        " FROM " + MmsDatabase.TABLE_NAME +  " LEFT OUTER JOIN " + AttachmentDatabase.TABLE_NAME +
-        " ON (" + MmsDatabase.TABLE_NAME + "." + ID + " = " + AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.MMS_ID + ") ORDER BY " + DATE_RECEIVED + " DESC LIMIT " + count, null);
   }
 
   public Cursor getMessage(long messageId) {
@@ -680,7 +673,7 @@ public class MmsDatabase extends MessagingDatabase {
       if (cursor != null && cursor.moveToNext()) {
         long             outboxType     = cursor.getLong(cursor.getColumnIndexOrThrow(MESSAGE_BOX));
         String           messageText    = cursor.getString(cursor.getColumnIndexOrThrow(BODY));
-        long             timestamp      = cursor.getLong(cursor.getColumnIndexOrThrow(NORMALIZED_DATE_SENT));
+        long             timestamp      = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_SENT));
         int              subscriptionId = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
         long             expiresIn      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
         List<Attachment> attachments    = new LinkedList<Attachment>(attachmentDatabase.getAttachmentsForMessage(messageId));
@@ -1149,6 +1142,10 @@ public class MmsDatabase extends MessagingDatabase {
     return new Reader(masterSecret, cursor);
   }
 
+  public Reader readerFor(@NonNull Cursor cursor) {
+    return new Reader(cursor);
+  }
+
   public static class Status {
     public static final int DOWNLOAD_INITIALIZED     = 1;
     public static final int DOWNLOAD_NO_CONNECTIVITY = 2;
@@ -1194,6 +1191,10 @@ public class MmsDatabase extends MessagingDatabase {
       else                      masterCipher = null;
     }
 
+    public Reader(Cursor cursor) {
+      this(null, cursor);
+    }
+
     public MessageRecord getNext() {
       if (cursor == null || !cursor.moveToNext())
         return null;
@@ -1213,8 +1214,8 @@ public class MmsDatabase extends MessagingDatabase {
 
     private NotificationMmsMessageRecord getNotificationMmsMessageRecord(Cursor cursor) {
       long id                    = cursor.getLong(cursor.getColumnIndexOrThrow(ID));
-      long dateSent              = cursor.getLong(cursor.getColumnIndexOrThrow(NORMALIZED_DATE_SENT));
-      long dateReceived          = cursor.getLong(cursor.getColumnIndexOrThrow(NORMALIZED_DATE_RECEIVED));
+      long dateSent              = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_SENT));
+      long dateReceived          = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_RECEIVED));
       long threadId              = cursor.getLong(cursor.getColumnIndexOrThrow(THREAD_ID));
       long mailbox               = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.MESSAGE_BOX));
       String address             = cursor.getString(cursor.getColumnIndexOrThrow(ADDRESS));
@@ -1250,8 +1251,8 @@ public class MmsDatabase extends MessagingDatabase {
 
     private MediaMmsMessageRecord getMediaMmsMessageRecord(Cursor cursor) {
       long id                 = cursor.getLong(cursor.getColumnIndexOrThrow(ID));
-      long dateSent           = cursor.getLong(cursor.getColumnIndexOrThrow(NORMALIZED_DATE_SENT));
-      long dateReceived       = cursor.getLong(cursor.getColumnIndexOrThrow(NORMALIZED_DATE_RECEIVED));
+      long dateSent           = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_SENT));
+      long dateReceived       = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_RECEIVED));
       long box                = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.MESSAGE_BOX));
       long threadId           = cursor.getLong(cursor.getColumnIndexOrThrow(THREAD_ID));
       String address          = cursor.getString(cursor.getColumnIndexOrThrow(ADDRESS));
