@@ -396,18 +396,6 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".service.SmsListener"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="1001">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_DELIVER"/>
-            </intent-filter>
-        </receiver>
-        <receiver
             android:name=".service.SmsDeliveryListener"
             android:exported="true">
             <intent-filter>
@@ -422,15 +410,6 @@
                 <action android:name="io.forsta.securesms.notifications.CLEAR"/>
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".notifications.WearReplyReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.notifications.WEAR_REPLY"/>
-            </intent-filter>
-        </receiver>
-
         <provider
             android:name=".providers.PartProvider"
             android:authorities="${applicationId}.provider.securesms"
