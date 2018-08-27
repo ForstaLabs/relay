@@ -349,21 +349,6 @@
             android:name=".service.MessageRetrievalService"
             android:enabled="true"/>
         <service
-            android:name=".service.QuickResponseService"
-            android:exported="true"
-            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
-            <intent-filter>
-                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:scheme="sms"/>
-                <data android:scheme="smsto"/>
-                <data android:scheme="mms"/>
-                <data android:scheme="mmsto"/>
-            </intent-filter>
-        </service>
-        <service
             android:name=".service.AccountAuthenticatorService"
             android:exported="true">
             <intent-filter>
