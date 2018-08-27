@@ -401,11 +401,6 @@
             android:exported="false"
             android:grantUriPermissions="true"/>
         <provider
-            android:name=".providers.MmsBodyProvider"
-            android:authorities="${applicationId}.provider.securesms.mms"
-            android:exported="false"
-            android:grantUriPermissions="true"/>
-        <provider
             android:name=".providers.DatabaseProvider"
             android:authorities="${applicationId}.provider.database"
             android:exported="false"
