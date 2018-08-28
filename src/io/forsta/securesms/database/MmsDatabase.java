@@ -263,10 +263,10 @@ public class MmsDatabase extends MessagingDatabase {
 
           for (String storedAddress : addresses) {
             try {
-              String ourAddress   = Util.canonicalizeNumber(context, messageId.getAddress());
-              String theirAddress = Util.canonicalizeNumberOrGroup(context, storedAddress);
+              String ourAddress   = messageId.getAddress();
+              String theirAddress = storedAddress;
 
-              if (ourAddress.equals(theirAddress) || GroupUtil.isEncodedGroup(theirAddress)) {
+              if (ourAddress.equals(theirAddress)) {
                 long id       = cursor.getLong(cursor.getColumnIndexOrThrow(ID));
                 long threadId = cursor.getLong(cursor.getColumnIndexOrThrow(THREAD_ID));
 
@@ -279,7 +279,7 @@ public class MmsDatabase extends MessagingDatabase {
                 DatabaseFactory.getThreadDatabase(context).update(threadId, false);
                 notifyConversationListeners(threadId);
               }
-            } catch (InvalidNumberException e) {
+            } catch (Exception e) {
               Log.w("MmsDatabase", e);
             }
           }
@@ -1269,13 +1269,13 @@ public class MmsDatabase extends MessagingDatabase {
       int voteCount = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
       String messageId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
 
-      Recipients                recipients      = getRecipientsFor(address);
+      Recipients                sender      = getRecipientsFor(address);
       List<IdentityKeyMismatch> mismatches      = getMismatchedIdentities(mismatchDocument);
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
 
 
-      return new MediaMmsMessageRecord(context, id, recipients, recipients.getPrimaryRecipient(),
+      return new MediaMmsMessageRecord(context, id, sender, sender.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
                                        networkFailures, subscriptionId, expiresIn, expireStarted, messageRef, voteCount, messageId);
