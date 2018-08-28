@@ -160,14 +160,7 @@ public class ConversationListItem extends RelativeLayout
     threadDisplayBody = thread.getDisplayBody();
     String senderAddress = thread.getSenderAddress();
     sender = RecipientFactory.getRecipientsFromString(getContext(), senderAddress, true).getPrimaryRecipient();
-    if (sender != null) {
-      sender.addListener(this);
-      setSubjectView(recipients, sender, threadDisplayBody, read);
-    } else {
-      subjectView.setText(threadDisplayBody);
-    }
-
-    this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
+    setSubjectView(recipients, sender, threadDisplayBody, read);
 
     if (thread.getDate() > 0) {
       CharSequence date = DateUtils.getBriefRelativeTimeSpanString(getContext(), locale, thread.getDate());
@@ -314,12 +307,19 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setSubjectView(Recipients recipients, Recipient sender, SpannableString body, boolean read) {
-    String name = TextSecurePreferences.getLocalNumber(getContext()).equals(sender.getAddress()) ? "" : sender.getName();
-    if (!TextUtils.isEmpty(name) && recipients.getRecipientsList().size() > 1) {
-      subjectView.setText(name + ": " + body);
+    if (sender != null) {
+      sender.addListener(this);
+      String name = TextSecurePreferences.getLocalNumber(getContext()).equals(sender.getAddress()) ? "" : sender.getName();
+      if (!TextUtils.isEmpty(name) && recipients.getRecipientsList().size() > 1) {
+        subjectView.setText(name + ": " + body);
+      } else {
+        subjectView.setText(body);
+      }
     } else {
-      subjectView.setText(body);
+      subjectView.setText(threadDisplayBody);
     }
+
+    this.subjectView.setTypeface(read ? LIGHT_TYPEFACE : BOLD_TYPEFACE);
   }
 
   @Override

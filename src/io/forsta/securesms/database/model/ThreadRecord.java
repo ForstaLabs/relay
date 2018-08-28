@@ -36,6 +36,7 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import static com.doomonafireball.betterpickers.timezonepicker.TimeZoneFilterTypeAdapter.TAG;
 
