@@ -51,10 +51,9 @@ public class ForstaSyncAdapter extends AbstractThreadedSyncAdapter {
     Log.w(TAG, "onPerformSync(" + s +")");
 
     if (TextSecurePreferences.isPushRegistered(getContext())) {
-      MasterSecret masterSecret = KeyCachingService.getMasterSecret(getContext());
       try {
-        DirectoryHelper.refreshDirectory(getContext(), masterSecret);
-      } catch (IOException e) {
+        DirectoryHelper.refreshDirectory(getContext());
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }

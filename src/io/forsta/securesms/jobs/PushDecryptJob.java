@@ -20,6 +20,7 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
+import io.forsta.securesms.crypto.InvalidPassphraseException;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.crypto.MasterSecretUtil;
@@ -116,19 +117,25 @@ public class PushDecryptJob extends ContextJob {
       return;
     }
 
-    MasterSecret          masterSecret         = KeyCachingService.getMasterSecret(context);
+
     PushDatabase          database             = DatabaseFactory.getPushDatabase(context);
     SignalServiceEnvelope envelope             = database.get(messageId);
     Optional<Long>        optionalSmsMessageId = smsMessageId > 0 ? Optional.of(smsMessageId) :
                                                                  Optional.<Long>absent();
 
-    MasterSecretUnion masterSecretUnion;
+    try {
+      MasterSecretUnion masterSecretUnion;
+//    MasterSecret          masterSecret         = KeyCachingService.getMasterSecret(context);
+      MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
+      if (masterSecret == null) masterSecretUnion = new MasterSecretUnion(MasterSecretUtil.getAsymmetricMasterSecret(context, null));
+      else                      masterSecretUnion = new MasterSecretUnion(masterSecret);
 
-    if (masterSecret == null) masterSecretUnion = new MasterSecretUnion(MasterSecretUtil.getAsymmetricMasterSecret(context, null));
-    else                      masterSecretUnion = new MasterSecretUnion(masterSecret);
-
-    handleMessage(masterSecretUnion, envelope, optionalSmsMessageId);
-    database.delete(messageId);
+      handleMessage(masterSecretUnion, envelope, optionalSmsMessageId);
+      database.delete(messageId);
+    } catch (Exception e) {
+      Log.e(TAG, "Exception: " + e.getMessage());
+      e.printStackTrace();
+    }
   }
 
   @Override
