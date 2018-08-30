@@ -7,8 +7,13 @@
     <string name="please_wait">Please wait...</string>
 
     <!-- Forsta Strings -->
-    <string name="forsta_login_title">Join Forsta</string>
+    <string name="forsta_login_title">Login to Forsta</string>
+    <string name="forsta_login_title_join">Join Forsta</string>
     <string name="forsta_login_account_firstname_label">First Name</string>
+    <string name="forsta_login_account_fullname_label">Full Name</string>
+    <string name="forsta_login_account_username_label">Username</string>
+    <string name="forsta_login_account_password_label">Password</string>
+    <string name="forsta_login_account_password_verify_label">Verify Password</string>
     <string name="forsta_login_account_lastname_label">Last Name</string>
     <string name="forsta_login_account_email_label">Email</string>
     <string name="forsta_login_account_phone_label">Phone</string>
@@ -17,6 +22,12 @@
     <string name="forsta_login_password_label">Password</string>
     <string name="forsta_login_org_label">Organization</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
+    <string name="forsta_login_password_instructions_label">Please enter your password.</string>
+    <string name="forsta_login_totp_instructions_label">Enter your 6-digit authenticator code.</string>
+    <string name="forsta_login_tryagain_instructions_label">If you do not receive an sms or you are having trouble with your password, click below to try to login again.</string>
+    <string name="forsta_login_tryagain_link_label">Try Login Again</string>
+    <string name="forsta_login_forgotpassword_instructions_label">Forgot your password?</string>
+    <string name="forsta_login_forgotpassword_link_label">Reset Password</string>
     <string name="forsta_login_send_link_button">Login</string>
     <string name="forsta_login_create_account_button">Create Account</string>
     <string name="forsta_login_account_submit_button">Submit</string>
@@ -24,6 +35,9 @@
     <string name="forsta_login_login_button">Submit</string>
     <string name="forsta_login_verify_token_button">Verify Token</string>
     <string name="forsta_login_tryagain_button">Try Again</string>
+    <string name="forsta_login_provision_error_title">Unable to communicate with any other registered devices.</string>
+    <string name="forsta_login_provision_error">If you have another registered phone or web app, please make sure one of them is running and try again. If you choose to continue, other phone devices will no longer be registered.</string>
+    <string name="forsta_login_provision_continue">Continue Registration</string>
     <!-- AbstractNotificationBuilder -->
     <string name="AbstractNotificationBuilder_new_message">New message</string>
 
@@ -149,6 +163,7 @@
     <string name="ConversationActivity_group_members">Group members</string>
     <string name="ConversationActivity_group_conversation">Group conversation</string>
     <string name="ConversationActivity_unnamed_group">Unnamed group</string>
+    <string name="ConversationActivity_conversation_members">Conversation members</string>
     <string name="ConversationActivity_announcement">Announcement</string>
 
     <plurals name="ConversationActivity_d_recipients_in_group">
@@ -399,6 +414,7 @@
     <string name="NotificationBarManager__answer_call">Answer call</string>
     <string name="NotificationBarManager__end_call">End call</string>
     <string name="NotificationBarManager__cancel_call">Cancel call</string>
+    <string name="NotificationBarManager__missed_call">Missed call</string>
 
     <!-- NotificationMmsMessageRecord -->
     <string name="NotificationMmsMessageRecord_multimedia_message">Multimedia message</string>
@@ -926,6 +942,7 @@
     <string name="AndroidManifest__media_overview_named">All images with %1$s</string>
     <string name="AndroidManifest__message_details">Message details</string>
     <string name="AndroidManifest__linked_devices">Linked devices</string>
+    <string name="AndroidManifest__authentication">Authentication</string>
     <string name="AndroidManifest__invite_friends">Invite friends</string>
     <string name="AndroidManifest_archived_conversations">Archived conversations</string>
 
@@ -934,6 +951,7 @@
     <string name="arrays__use_default">Use default</string>
     <string name="arrays__use_custom">Use custom</string>
 
+    <string name="arrays__mute_for_permanent">Mute permanently</string>
     <string name="arrays__mute_for_one_hour">Mute for 1 hour</string>
     <string name="arrays__mute_for_two_hours">Mute for 2 hours</string>
     <string name="arrays__mute_for_one_day">Mute for 1 day</string>
@@ -1010,6 +1028,10 @@
     <string name="preferences__also_vibrate_when_notified">Also vibrate when notified</string>
     <string name="preferences__minutes">minutes</string>
     <string name="preferences__hours">hours</string>
+    <string name="preferences__notifications_all">All</string>
+    <string name="preferences__notifications_mention">\@Mentions</string>
+    <string name="preferences__notifications_name">Named Reference</string>
+    <string name="preferences__notifications_dm">Direct Messages</string>
     <string name="preferences__green">Green</string>
     <string name="preferences__red">Red</string>
     <string name="preferences__blue">Blue</string>
@@ -1022,6 +1044,7 @@
     <string name="preferences__normal">Normal</string>
     <string name="preferences__slow">Slow</string>
     <string name="preferences__custom">Custom</string>
+    <string name="preferences__auth">Authentication</string>
     <string name="preferences__advanced">Advanced</string>
     <string name="preferences__privacy">Privacy</string>
     <string name="preferences__mms_user_agent">MMS User Agent</string>
@@ -1235,6 +1258,28 @@
     <string name="DocumentView_unknown_file">Unknown file</string>
     <string name="title_activity_recipient_details">RecipientDetailsActivity</string>
 
+    <string name="Permissions_permission_required">Permission required</string>
+    <string name="Permissions_continue">Continue</string>
+    <string name="Permissions_not_now">Not now</string>
+
+    <string name="Permissions_required">Permissions required</string>
+    <string name="Permissions_required_phone">Phone Permissions required</string>
+    <string name="Permissions_required_camera">Camera Permission required</string>
+    <string name="Permissions_required_contacts">Contacts Permission required</string>
+    <string name="Permissions_required_external_storage">External Storage Permission required</string>
+    <string name="Permissions_required_locations">Location Permission required</string>
+    <string name="Permissions_required_microphone_answer">To answer the call from %s, give Signal access to your microphone.</string>
+    <string name="Permissions_required_microphone">Microphone Permission required</string>
+    <string name="Permissions_required_initial">Forsta needs access to several features of your device in order to enable all functionality.</string>
+
+    <string name="ConversationActivity_to_call_needs_access_to_your_microphone_and_camera">Forsta needs access to your microphone and camera in order to make video calls</string>
+
+    <!--WebRTC-->
+    <string name="WebRTC_call_connecting">Incomming call</string>
+    <string name="webrtc_answer_decline_button__swipe_up_to_answer">Swipe up to answer call</string>
+    <string name="webrtc_answer_decline_button__swipe_down_to_reject">Swipe down to reject call</string>
+    <string name="redphone_call_controls__mute">Mute</string>
+    <string name="redphone_call_card__signal_call">Call</string>
     <!-- EOF -->
 
 </resources>

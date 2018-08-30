@@ -119,6 +119,7 @@ public class RegistrationService extends Service {
 
   private void handleCcsmRegistrationIntent(Intent intent) {
     markAsVerifying(true);
+    boolean provisionContinue = intent.getBooleanExtra("provision_continue", false);
     int registrationId = TextSecurePreferences.getLocalRegistrationId(this);
     if (registrationId == 0) {
       registrationId = KeyHelper.generateRegistrationId(false);
@@ -135,9 +136,8 @@ public class RegistrationService extends Service {
     try {
       final ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(this);
       boolean isMultiDevice = CcsmApi.hasDevices(context);
-      if (isMultiDevice) {
+      if (!provisionContinue && isMultiDevice) {
         AutoProvision autoProvision = AutoProvision.getInstance(context);
-        autoProvision.start();
         autoProvision.setProvisionCallbacks(new AutoProvision.ProvisionCallbacks() {
           @Override
           public void onComplete(ProvisioningProtos.ProvisionMessage provisionMessage) {
@@ -168,11 +168,12 @@ public class RegistrationService extends Service {
 
           @Override
           public void onFailure(String message) {
-            Log.w(TAG, "Provisioning FAILED! : " + message);
-            setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR));
+            Log.w(TAG, "Failed to contact any devices for provisioning! : " + message);
+            setState(new RegistrationState(RegistrationState.STATE_PROVISION_ERROR));
             broadcastComplete(false);
           }
         });
+        autoProvision.start();
       } else {
         // Normal registration
         accountManager.createAccount(context, addr, password, signalingKey, registrationId);
@@ -284,6 +285,7 @@ public class RegistrationService extends Service {
     public static final int STATE_TIMER                =  3;
     public static final int STATE_COMPLETE             =  4;
     public static final int STATE_NETWORK_ERROR        =  6;
+    public static final int STATE_PROVISION_ERROR      =  16;
 
     public static final int STATE_GCM_UNSUPPORTED      =  8;
     public static final int STATE_GCM_REGISTERING      =  9;

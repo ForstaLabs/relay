@@ -92,6 +92,18 @@
       <item>dark</item>
   </string-array>
 
+    <string-array name="pref_notification_filter_entries">
+        <item>@string/preferences__notifications_mention</item>
+        <item>@string/preferences__notifications_name</item>
+        <item>@string/preferences__notifications_dm</item>
+    </string-array>
+
+    <string-array name="pref_notification_filter_values" translatable="false">
+        <item>mention</item>
+        <item>name</item>
+        <item>dm</item>
+    </string-array>
+
   <string-array name="pref_led_color_entries">
     <item>@string/preferences__green</item>
     <item>@string/preferences__red</item>
@@ -158,6 +170,7 @@
   </string-array>
 
   <string-array name="mute_durations">
+      <item>@string/arrays__mute_for_permanent</item>
       <item>@string/arrays__mute_for_one_hour</item>
       <item>@string/arrays__mute_for_two_hours</item>
       <item>@string/arrays__mute_for_one_day</item>

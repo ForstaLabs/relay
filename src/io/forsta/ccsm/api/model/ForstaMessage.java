@@ -1,8 +1,8 @@
 package io.forsta.ccsm.api.model;
 
-import android.net.Uri;
-import android.text.Spanned;
 import android.text.TextUtils;
+
+import org.webrtc.IceCandidate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +25,10 @@ public class ForstaMessage {
   private String threadType = ThreadTypes.CONVERSATION;
   private List<ForstaAttachment> attachments = new ArrayList<>();
   private ForstaProvisionRequest provisionRequest;
+  private List<String> mentions = new ArrayList<>();
+  private String messageRef;
+  private int vote;
+  private ForstaCall rtcCall;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -38,6 +42,12 @@ public class ForstaMessage {
     public static final String SYNC_RESPONSE = "syncResponse";
     public static final String DISCOVER = "discover";
     public static final String DISCOVER_RESPONSE = "discoverResponse";
+    public static final String UP_VOTE = "upVote";
+    public static final String CALL_OFFER = "callOffer";
+    public static final String CALL_ICE_CANDIDATES = "callICECandidates";
+    public static final String CALL_LEAVE = "callLeave";
+    public static final String CALL_ACCEPT_OFFER = "callAcceptOffer";
+
   }
 
   public static class MessageTypes {
@@ -106,6 +116,8 @@ public class ForstaMessage {
     return threadType;
   }
 
+  public List<String> getMentions() { return mentions; }
+
   public String getGiphyUrl() {
     String html = getHtmlBody();
     if (!TextUtils.isEmpty(html)) {
@@ -123,6 +135,34 @@ public class ForstaMessage {
       }
     }
     return "";
+  }
+
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public int getVote() {
+    return vote;
+  }
+
+  public String getMessageId() {
+    return messageId;
+  }
+
+  public ForstaProvisionRequest getProvisionRequest() {
+    return provisionRequest;
+  }
+
+  public ForstaCall getCall() {
+    return rtcCall;
+  }
+
+  public void setVote(int count) {
+    vote = count;
+  }
+
+  public void setMessageRef(String messageRef) {
+    this.messageRef = messageRef;
   }
 
   public void setControlType(String controlType) {
@@ -165,6 +205,18 @@ public class ForstaMessage {
     this.senderId = senderId;
   }
 
+  public void setCallOffer(String callId, String originator, String peerId, String offer) {
+    this.rtcCall = new ForstaCall(callId, originator, peerId, offer);
+  }
+
+  public void setIceCandidates(String callId, String originator, String peerId, List<IceCandidate> candidates) {
+    this.rtcCall = new ForstaCall(callId, originator, peerId, candidates);
+  }
+
+  public void setCallLeave(String callId, String originator) {
+    this.rtcCall = new ForstaCall(callId, originator);
+  }
+
   public List<ForstaAttachment> getAttachments() {
     return attachments;
   }
@@ -177,9 +229,7 @@ public class ForstaMessage {
     this.provisionRequest = new ForstaProvisionRequest(uuid, key);
   }
 
-  public ForstaProvisionRequest getProvisionRequest() {
-    return provisionRequest;
-  }
+  public void addMention(String mention) { this.mentions.add(mention); }
 
   public class ForstaAttachment {
     private String name;
@@ -220,6 +270,80 @@ public class ForstaMessage {
 
     public String getKey() {
       return key;
+    }
+  }
+
+  public class ForstaCall {
+    private String callId;
+    private String originator;
+    private String offer;
+    private String peerId;
+    private List<IceCandidate> iceCandidates = new ArrayList<>();
+    private List<String> members;
+
+    public ForstaCall(String callId, String originator) {
+      this.callId = callId;
+      this.originator = originator;
+    }
+
+    public ForstaCall(String callId, String originator, String peerId, String callOffer) {
+      this.callId = callId;
+      this.originator = originator;
+      this.peerId = peerId;
+      this.offer = callOffer;
+    }
+
+    public ForstaCall(String callId, String originator, String peerId, List<IceCandidate> candidates) {
+      this.callId = callId;
+      this.originator = originator;
+      this.peerId = peerId;
+      this.offer = null;
+      this.iceCandidates = candidates;
+    }
+
+    public void setCallId(String callId) {
+      this.callId = callId;
+    }
+
+    public void setIceCandidates(List<IceCandidate> iceCandidates) {
+      this.iceCandidates = iceCandidates;
+    }
+
+    public void setOriginator(String originator) {
+      this.originator = originator;
+    }
+
+    public void setPeerId(String peerId) {
+      this.peerId = peerId;
+    }
+
+    public void setOffer(String offer) {
+      this.offer = offer;
+    }
+
+    public String getCallId() {
+      return callId;
+    }
+
+    public List<IceCandidate> getIceCandidates() {
+      return iceCandidates;
+    }
+
+    public String getOriginator() {
+      return originator;
+    }
+
+    public String getPeerId() {
+      return peerId;
+    }
+
+    public String getOffer() {
+      return offer;
+    }
+
+    @Override
+    public String toString() {
+      return "Call: " + callId + " originator: " + originator + " peerId:" + peerId;
     }
   }
 }

@@ -37,6 +37,8 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
 
+import static com.doomonafireball.betterpickers.timezonepicker.TimeZoneFilterTypeAdapter.TAG;
+
 /**
  * The message record model which represents thread heading messages.
  *
@@ -44,6 +46,7 @@ import io.forsta.securesms.util.GroupUtil;
  *
  */
 public class ThreadRecord extends DisplayRecord {
+  private static final String TAG = ThreadRecord.class.getSimpleName();
 
   private @NonNull  final Context context;
   private @Nullable final Uri     snippetUri;
@@ -91,11 +94,17 @@ public class ThreadRecord extends DisplayRecord {
     String body = getBody().getBody();
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
-      body = forstaBody.getTextBody();
+      if (forstaBody.getVote() > 0) {
+        body = "Up Vote";
+      } else {
+        body = forstaBody.getTextBody();
+      }
     } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
+      Log.w(TAG, "Invalid message payload: " + body);
     }
-    if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
+    if (SmsDatabase.Types.isEndSessionType(type)) {
+      return emphasisAdded(context.getString(R.string.ThreadRecord_secure_session_reset));
+    } else if (SmsDatabase.Types.isExpirationTimerUpdate(type)) {
       String time = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.ThreadRecord_disappearing_message_time_updated_to_s, time));
     }
@@ -107,7 +116,7 @@ public class ThreadRecord extends DisplayRecord {
       ForstaMessage forstaMessage = getForstaMessageBody();
       return forstaMessage.getSenderId();
     } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
+      Log.w(TAG, "getSenderAddress Error. Body: " + getBody().getBody());
     }
     return "";
   }
@@ -153,6 +162,14 @@ public class ThreadRecord extends DisplayRecord {
 
   public String getTitle() {
     return title;
+  }
+
+  public String getNormalizedTitle() {
+    if (!TextUtils.isEmpty(title)) {
+      return title;
+    } else {
+      return getRecipients().toCondensedString(context);
+    }
   }
 
   public String getThreadUid() {

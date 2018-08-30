@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -71,6 +72,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -93,8 +95,6 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
-import io.forsta.securesms.database.NotInDirectoryException;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.mms.AttachmentManager;
@@ -104,18 +104,20 @@ import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
+import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.sms.OutgoingEndSessionMessage;
+import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
@@ -134,7 +136,6 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -388,7 +389,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       inflater.inflate(R.menu.conversation, menu);
       if (recipients.isSingleRecipient()) {
         Recipient recipient = recipients.getPrimaryRecipient();
-        if (!TextUtils.isEmpty(recipient.getPhone())) {
+        if (!TextUtils.isEmpty(recipient.getAddress())) {
           final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
           callItem.setVisible(true);
         }
@@ -402,6 +403,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       inflater.inflate(R.menu.conversation_group_options, menu);
     }
 
+    inflater.inflate(R.menu.conversation_secure, menu);
+
     super.onPrepareOptionsMenu(menu);
     return true;
   }
@@ -410,9 +413,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     super.onOptionsItemSelected(item);
     switch (item.getItemId()) {
-    case R.id.menu_leave_conversation:        handleLeaveConversation();                          return true;
+    case R.id.menu_leave_conversation:        handleLeaveConversation();                         return true;
     case R.id.menu_add_attachment:            handleAddAttachment();                             return true;
     case R.id.menu_view_media:                handleViewMedia();                                 return true;
+    case R.id.menu_reset_secure_session:      handleResetSecureSession();                        return true;
     case R.id.menu_group_recipients:          handleDisplayGroupRecipients();                    return true;
     case R.id.menu_invite:                    handleInviteLink();                                return true;
     case R.id.menu_mute_notifications:        handleMuteNotifications();                         return true;
@@ -420,7 +424,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_conversation_settings:     handleConversationSettings();                      return true;
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
-    case R.id.menu_call_recipient:            handleCallRecipient();                             return true;
+    case R.id.menu_call_recipient:            handleDial();                             return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -447,10 +451,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected ForstaDistribution doInBackground(Void... voids) {
         try {
           ForstaUser self = ForstaUser.getLocalForstaUser(ConversationActivity.this);
-          List<String> addresses = recipients.getAddresses();
-          addresses.remove(self.getUid());
-          Recipients newRecipients = RecipientFactory.getRecipientsFromStrings(ConversationActivity.this, addresses, false);
-          return CcsmApi.getMessageDistribution(ConversationActivity.this, newRecipients.getRecipientExpression());
+          String expression = recipients.getRecipientExpression();
+          expression = "(" + expression + ")-@" + self.getFullTag();
+          return CcsmApi.getMessageDistribution(ConversationActivity.this, expression);
         } catch (Exception e) {
           Log.w(TAG, "Exception leaving conversation: " + e.getMessage());
         }
@@ -459,12 +462,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       @Override
       protected void onPostExecute(ForstaDistribution distribution) {
-        if (distribution != null && distribution.isValid()) {
-          DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
-          initializeThread();
-          ForstaMessageManager.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
-        } else {
-          Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
+        try {
+          if (distribution != null && distribution.isValid()) {
+            DatabaseFactory.getThreadDatabase(ConversationActivity.this).updateForstaThread(threadId, distribution);
+            initializeThread();
+            MessageSender.sendThreadUpdate(ConversationActivity.this, masterSecret, recipients, threadId);
+          } else {
+            Toast.makeText(ConversationActivity.this, "Unable to leave conversation. Check your network connection and try again.", Toast.LENGTH_LONG);
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          Toast.makeText(ConversationActivity.this, "Unable to leave conversation. An exception has occurred.", Toast.LENGTH_LONG);
         }
       }
     }.execute();
@@ -485,10 +493,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           @Override
           protected Void doInBackground(Void... params) {
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
-            OutgoingExpirationUpdateMessage outgoingMessage = new OutgoingExpirationUpdateMessage(getRecipients(), System.currentTimeMillis(), expirationTime * 1000);
-            ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(ConversationActivity.this).getForstaThread(threadId);
-            outgoingMessage.setForstaJsonBody(ConversationActivity.this, forstaThread);
-            MessageSender.send(ConversationActivity.this, masterSecret, outgoingMessage, threadId, false);
+            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
+            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
 
             invalidateOptionsMenu();
             return null;
@@ -569,6 +575,34 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
+  private void handleResetSecureSession() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.ConversationActivity_reset_secure_session_question);
+    builder.setIconAttribute(R.attr.dialog_alert_icon);
+    builder.setCancelable(true);
+    builder.setMessage(R.string.ConversationActivity_this_may_help_if_youre_having_encryption_problems);
+    builder.setPositiveButton(R.string.ConversationActivity_reset, (dialog, which) -> {
+      final Context context = getApplicationContext();
+
+      OutgoingTextMessage endTextMessage = new OutgoingTextMessage(recipients, "", 0, -1);
+      OutgoingEndSessionMessage endSessionMessage = new OutgoingEndSessionMessage(endTextMessage);
+
+      new AsyncTask<OutgoingEndSessionMessage, Void, Long>() {
+        @Override
+        protected Long doInBackground(OutgoingEndSessionMessage... messages) {
+          return MessageSender.send(context, masterSecret, messages[0], threadId, false);
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+                                              sendComplete(result);
+                                                                   }
+      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, endSessionMessage);
+    });
+    builder.setNegativeButton(android.R.string.cancel, null);
+    builder.show();
+  }
+
   private void handleViewMedia() {
     Intent intent = new Intent(this, MediaOverviewActivity.class);
     intent.putExtra(MediaOverviewActivity.THREAD_ID_EXTRA, threadId);
@@ -584,39 +618,63 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new GroupMembersDialog(this, getRecipients()).display();
   }
 
-  ///// Initializers
+  private void handleDial() {
+    Recipient recipient = recipients.getPrimaryRecipient();
+    if (recipient == null) return;
 
-  private void warnInvalidRecipients() {
-    if (recipients == null || recipients.isEmpty()) {
-      recipients = RecipientFactory.getRecipientsFromString(ConversationActivity.this, TextSecurePreferences.getLocalNumber(ConversationActivity.this), false);
-    }
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+        .ifNecessary()
+        .withRationaleDialog(getString(R.string.ConversationActivity_to_call_needs_access_to_your_microphone_and_camera),
+            R.drawable.ic_mic_white_48dp, R.drawable.ic_videocam_white_48dp)
+        .withPermanentDenialDialog(getString(R.string.ConversationActivity_to_call_needs_access_to_your_microphone_and_camera))
+        .onAllGranted(() -> {
+          Intent intent = new Intent(this, WebRtcCallService.class);
+          intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
+          intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaThread.getUid());
+          startService(intent);
 
-    TextSecureDirectory directory = TextSecureDirectory.getInstance(ConversationActivity.this);
-    List<Recipient> invalidRecipients = new ArrayList<>();
-    for (Recipient recipient : recipients) {
-      try {
-        if (!directory.isSecureTextSupported(recipient.getAddress())) {
-          invalidRecipients.add(recipient);
-        }
-      } catch (NotInDirectoryException e) {
-        invalidRecipients.add(recipient);
-      }
-    }
-    if (invalidRecipients.size() > 0) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("This conversation contains ").append(invalidRecipients.size()).append(" invalid recipients.");
-      sb.append("\n").append("These recipients will not receive messages.").append("\n");
-      for (Recipient recipient : invalidRecipients) {
-        sb.append("\n");
-        sb.append(recipient.getName());
-      }
-      new AlertDialog.Builder(ConversationActivity.this)
-          .setTitle("WARNING")
-          .setMessage(sb.toString())
-          .setPositiveButton("OK", null)
-          .show();
-    }
+          Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
+          activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          startActivity(activityIntent);
+        })
+        .execute();
   }
+
+  private void handleCallRecipient () {
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.CALL_PHONE)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_phone))
+        .onAllGranted(() -> {
+          String number = recipients.getPrimaryRecipient().getPhone();
+          Intent intent = new Intent(Intent.ACTION_CALL);
+          intent.setData(Uri.parse("tel:" + number));
+          startActivity(intent);
+        })
+        .execute();
+  }
+
+  private void handleAddToContacts() {
+    Permissions.with(ConversationActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          try {
+            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
+            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
+            startActivityForResult(intent, ADD_CONTACT);
+          } catch (ActivityNotFoundException e) {
+            Log.w(TAG, e);
+          }
+        })
+        .execute();
+  }
+
+  ///// Initializers
 
   private void updateDistribution() {
     ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -655,7 +713,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), true);
     recipients.addListener(this);
 
-    if (recipients == null || recipients.isEmpty() || !recipients.includesSelf(ConversationActivity.this)) {
+    if (recipients == null || recipients.isEmpty() || (!recipients.isSingleRecipient() && !recipients.includesSelf(ConversationActivity.this))) {
       inputPanel.setVisibility(View.GONE);
     }
 
@@ -1072,24 +1130,23 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-                                                                    slideDeck,
-                                                                    body,
-                                                                    System.currentTimeMillis(),
-                                                                    subscriptionId,
-                                                                    expiresIn,
-                                                                    distributionType);
-    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
+//    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
+//                                                                    slideDeck,
+//                                                                    body,
+//                                                                    System.currentTimeMillis(),
+//                                                                    subscriptionId,
+//                                                                    expiresIn,
+//                                                                    distributionType);
+//    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
 
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();
     composeText.setText("");
 
-    new AsyncTask<OutgoingMediaMessage, Void, Long>() {
+    new AsyncTask<OutgoingMessage, Void, Long>() {
       @Override
-      protected Long doInBackground(OutgoingMediaMessage... messages) {
-        OutgoingMediaMessage message = messages[0];
-        // TODO is using forstaThread and threadId inside async task a problem?
-        message.setForstaJsonBody(context, forstaThread);
+      protected Long doInBackground(OutgoingMessage... messages) {
+        OutgoingMessage message = messages[0];
         return MessageSender.send(context, masterSecret, message, threadId, forceSms);
       }
 
@@ -1098,7 +1155,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
         future.set(null);
       }
-    }.execute(outgoingMessage);
+    }.execute(message);
 
     return future;
   }
@@ -1343,24 +1400,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {}
-  }
-
-  private void handleCallRecipient () {
-    String number = recipients.getPrimaryRecipient().getPhone();
-    Intent intent = new Intent(Intent.ACTION_CALL);
-    intent.setData(Uri.parse("tel:" + number));
-    startActivity(intent);
-  }
-
-  private void handleAddToContacts() {
-    try {
-      final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-      intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
-      intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-      startActivityForResult(intent, ADD_CONTACT);
-    } catch (ActivityNotFoundException e) {
-      Log.w(TAG, e);
-    }
   }
 
   private ListenableFuture<Boolean> initializeDirectory()

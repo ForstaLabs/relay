@@ -46,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
 
@@ -117,7 +118,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       }
 
       @Override
-      public void onFailure(Throwable error) {
+      public void onFailure(ExecutionException error) {
         Log.w(TAG, error);
       }
     });

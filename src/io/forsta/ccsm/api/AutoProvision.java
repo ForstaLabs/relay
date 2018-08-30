@@ -29,7 +29,6 @@ import io.forsta.securesms.push.TextSecureCommunicationFactory;
  * Created by john on 2/2/2018.
  */
 
-// Rename this to AutoProvision or something else.
 public class AutoProvision {
   private static final String TAG = AutoProvision.class.getSimpleName();
 
@@ -38,6 +37,7 @@ public class AutoProvision {
   private Context context;
   private static final Object lock = new Object();
   private ProvisionCallbacks callbacks;
+  private boolean success = false;
 
   private AutoProvision(Context context) {
     this.context = context;
@@ -108,6 +108,8 @@ public class AutoProvision {
           } catch (InvalidKeyException e) {
             e.printStackTrace();
             provisioningFailed(e.getMessage());
+          } catch (Exception e) {
+            provisioningFailed(e.getMessage());
           }
 
           if (webSocket.socketOpen) {
@@ -119,22 +121,30 @@ public class AutoProvision {
       @Override
       public void onStatusChanged(boolean connected) {
         Log.w(TAG, "Socket " + (connected ? "Open" : "Closed"));
-        // if socket times out. call provisioningFailed.
-        if (!connected) {
-          provisioningFailed("Timed out waiting for provision response.");
+        if (!connected && !success) {
+          provisioningFailed("Provision time out waiting for response.");
         }
+      }
+
+      @Override
+      public void onFailure(String message) {
+        Log.w(TAG, "Socket failed: " + message);
+        success = false;
+        provisioningFailed("Provision response failed.");
       }
     });
     webSocket.connect("/v1/websocket/provisioning/");
   }
 
   private void provisioningComplete(org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage) {
+    success = true;
     if (callbacks != null) {
       callbacks.onComplete(provisionMessage);
     }
   }
 
   private void provisioningFailed(String message) {
+    success = false;
     if (callbacks != null) {
       callbacks.onFailure(message);
     }

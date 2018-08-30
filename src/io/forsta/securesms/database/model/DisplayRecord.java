@@ -52,6 +52,7 @@ public abstract class DisplayRecord {
   private final Body       body;
   private final int        deliveryStatus;
   private final int        receiptCount;
+
   protected ForstaMessage forstaMessageBody;
 
   public DisplayRecord(Context context, Body body, Recipients recipients, long dateSent,
@@ -72,7 +73,7 @@ public abstract class DisplayRecord {
     return body;
   }
 
-  protected ForstaMessage getForstaMessageBody() throws InvalidMessagePayloadException {
+  protected synchronized ForstaMessage getForstaMessageBody() throws InvalidMessagePayloadException {
     if (forstaMessageBody == null) {
       forstaMessageBody = ForstaMessageManager.fromMessagBodyString(getBody().getBody());
     }

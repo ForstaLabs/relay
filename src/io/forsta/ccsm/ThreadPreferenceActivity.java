@@ -19,50 +19,34 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MuteDialog;
 import io.forsta.securesms.PassphraseRequiredActionBarActivity;
 import io.forsta.securesms.R;
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.color.MaterialColors;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
 import io.forsta.securesms.preferences.ColorPreference;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
 import io.forsta.securesms.util.DynamicTheme;
-import ws.com.google.android.mms.MmsException;
 
 public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivity {
   public static final String TAG = ThreadPreferenceActivity.class.getSimpleName();
@@ -215,7 +199,7 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
         @Override
         protected Void doInBackground(String... params) {
           DatabaseFactory.getThreadDatabase(ThreadPreferenceActivity.this).updateThreadTitle(threadId, params[0]);
-          ForstaMessageManager.sendThreadUpdate(ThreadPreferenceActivity.this, masterSecret, recipients, threadId);
+          MessageSender.sendThreadUpdate(ThreadPreferenceActivity.this, masterSecret, recipients, threadId);
           return null;
         }
 
@@ -277,6 +261,8 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
       colorPreference.setValue(threadPreference.getColor().toConversationColor(getActivity()));
       pinnedPreference.setChecked(forstaThead.isPinned());
       mutePreference.setChecked(threadPreference.isMuted());
+      setMuteSummary();
+
       if (threadPreference.getColor() == null) {
         db.setColor(threadId, MaterialColors.getRandomConversationColor());
       }
@@ -292,6 +278,22 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
 //          }
 //        }
 
+    }
+
+    private void setMuteSummary() {
+      ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(getActivity()).getThreadPreferences(threadId);
+      long muteSetting = threadPreference.getMuteUntil();
+      if (muteSetting != 0) {
+        if (muteSetting == -1) {
+          mutePreference.setSummary("Mute permanently");
+        } else {
+          SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy HH:mm");
+          Date muteUntil = new Date(muteSetting);
+          mutePreference.setSummary("Mute until " + df.format(muteUntil));
+        }
+      } else {
+        mutePreference.setSummary(R.string.thread_preferences__disable_notifications_for_this_conversation);
+      }
     }
 
     private class RingtoneChangeListener implements Preference.OnPreferenceChangeListener {
@@ -369,6 +371,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
               DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
               return null;
             }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+              setMuteSummary();
+            }
           }.execute(0L);
         } else {
           MuteDialog.show(getActivity(), new MuteDialog.MuteSelectionListener() {
@@ -380,6 +387,11 @@ public class ThreadPreferenceActivity extends PassphraseRequiredActionBarActivit
                 protected Void doInBackground(Long... params) {
                   DatabaseFactory.getThreadPreferenceDatabase(getActivity()).setMuteUntil(threadId, params[0]);
                   return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                  setMuteSummary();
                 }
               }.execute(until);
             }

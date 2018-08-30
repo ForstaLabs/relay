@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -60,6 +61,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
@@ -163,11 +165,9 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_import_export:     handleImportExport();    return true;
       case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
-      case R.id.menu_logout:            handleLogout();            return true;
+      case R.id.menu_logout:            handleLogout();          return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
-      case R.id.menu_archive:
-        onSwitchToArchive();
-        return true;
+      case R.id.menu_archive:           onSwitchToArchive();     return true;
     }
 
     return false;
@@ -244,7 +244,14 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   }
 
   private void handleInvite() {
-    startActivity(new Intent(this, InviteActivity.class));
+    Permissions.with(ConversationListActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS)
+        .ifNecessary()
+        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
+        .onAllGranted(() -> {
+          startActivity(new Intent(this, InviteActivity.class));
+        })
+        .execute();
   }
 
   private void handleHelp() {
@@ -253,10 +260,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     } catch (ActivityNotFoundException e) {
       Toast.makeText(this, R.string.ConversationListActivity_there_is_no_browser_installed_on_your_device, Toast.LENGTH_LONG).show();
     }
-  }
-
-  private void showValidationError() {
-    Toast.makeText(ConversationListActivity.this, "An error has occured validating login.", Toast.LENGTH_LONG).show();
   }
 
   private class ContactsSyncReceiver extends BroadcastReceiver {
@@ -291,12 +294,18 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     protected void onPostExecute(JSONObject errorResponse) {
       if (errorResponse != null) {
         try {
-          if (errorResponse.getString("error").equals("401")) {
+          String errorResult = errorResponse.getString("error");
+          JSONObject error = new JSONObject(errorResult);
+          if (error.has("401")) {
             Log.e(TAG, "Not Authorized");
             handleLogout();
+          } else {
+            Log.e(TAG, "Error: " + errorResult);
+            Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
           }
         } catch (JSONException e) {
-          showValidationError();
+          Log.d(TAG, "Error: " + e.getMessage());
+          Toast.makeText(ConversationListActivity.this, "Invalid response from server. Check your network connection.", Toast.LENGTH_LONG).show();
         }
       } else {
         ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));

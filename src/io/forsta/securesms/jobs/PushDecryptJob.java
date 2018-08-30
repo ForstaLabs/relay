@@ -1,6 +1,8 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,7 +17,6 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
-import io.forsta.securesms.DeviceActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -26,13 +27,11 @@ import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
 import io.forsta.securesms.crypto.storage.TextSecureSessionStore;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.groups.GroupMessageProcessor;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -42,15 +41,12 @@ import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
-import io.forsta.securesms.sms.IncomingEncryptedMessage;
-import io.forsta.securesms.sms.IncomingEndSessionMessage;
-import io.forsta.securesms.sms.IncomingPreKeyBundleMessage;
-import io.forsta.securesms.sms.IncomingTextMessage;
+import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.Base64;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
+import org.webrtc.IceCandidate;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
@@ -61,6 +57,7 @@ import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.libsignal.LegacyMessageException;
 import org.whispersystems.libsignal.NoSessionException;
+import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.UntrustedIdentityException;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
@@ -73,17 +70,12 @@ import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
 import org.whispersystems.signalservice.api.messages.SignalServiceContent;
 import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
-import org.whispersystems.signalservice.api.messages.SignalServiceGroup;
 import org.whispersystems.signalservice.api.messages.multidevice.ReadMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.RequestMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptMessage;
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
-import org.whispersystems.signalservice.api.push.exceptions.NotFoundException;
-import org.whispersystems.signalservice.internal.push.DeviceLimitExceededException;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -166,7 +158,8 @@ public class PushDecryptJob extends ContextJob {
       if (content.getDataMessage().isPresent()) {
         SignalServiceDataMessage message = content.getDataMessage().get();
 
-        if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
+        if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
+        else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
         else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
       } else if (content.getSyncMessage().isPresent()) {
         SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
@@ -244,6 +237,31 @@ public class PushDecryptJob extends ContextJob {
     }
   }
 
+  private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
+                                       @NonNull SignalServiceDataMessage message,
+                                       @NonNull Optional<Long>           smsMessageId)
+  {
+    SignalProtocolAddress addr = new SignalProtocolAddress(envelope.getSource(), envelope.getSourceDevice());
+    Log.w(TAG, "Deleting session for: " + addr);
+    SessionStore sessionStore = new TextSecureSessionStore(context);
+    sessionStore.deleteSession(addr);
+    SecurityEvent.broadcastSecurityUpdateEvent(context);
+  }
+
+  private long handleSynchronizeSentEndSessionMessage(@NonNull SentTranscriptMessage message)
+  {
+    String destination = message.getDestination().get();
+    if (destination == null) {
+      Log.e(TAG, "Invalid recipeint for end session");
+    } else {
+      Log.w(TAG, "Deleting sessions for: " + destination);
+      SessionStore sessionStore = new TextSecureSessionStore(context);
+      sessionStore.deleteAllSessions(destination);
+      SecurityEvent.broadcastSecurityUpdateEvent(context);
+    }
+    return -1;
+  }
+
   private void handleSynchronizeSentMessage(@NonNull MasterSecretUnion masterSecret,
                                             @NonNull SignalServiceEnvelope envelope,
                                             @NonNull SentTranscriptMessage message,
@@ -251,7 +269,11 @@ public class PushDecryptJob extends ContextJob {
       throws MmsException, InvalidMessagePayloadException {
     Long threadId;
 
-    if (message.getMessage().isExpirationUpdate()) {
+    if (message.getMessage().isEndSession()) {
+      Log.e(TAG, "Sync end session is invalid: Only send to directly to peers");
+      //threadId = handleSynchronizeSentEndSessionMessage(message);
+      threadId = -1L;
+    } else if (message.getMessage().isExpirationUpdate()) {
       threadId = handleSynchronizeSentExpirationUpdate(masterSecret, message, smsMessageId);
     } else {
       threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
@@ -320,7 +342,7 @@ public class PushDecryptJob extends ContextJob {
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
-      handleControlMessage(forstaMessage, message.getBody().get());
+      handleControlMessage(forstaMessage, message.getBody().get(), envelope.getTimestamp());
     }
   }
 
@@ -376,7 +398,7 @@ public class PushDecryptJob extends ContextJob {
           PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
           message.getTimestamp(), -1,
           message.getMessage().getExpiresInSeconds() * 1000,
-          ThreadDatabase.DistributionTypes.DEFAULT);
+          ThreadDatabase.DistributionTypes.DEFAULT, forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
 
       mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
       long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
@@ -405,7 +427,7 @@ public class PushDecryptJob extends ContextJob {
 
       return threadId;
     } else {
-      handleControlMessage(forstaMessage, message.getMessage().getBody().get());
+      handleControlMessage(forstaMessage, message.getMessage().getBody().get(), message.getTimestamp());
       return -1;
     }
   }
@@ -429,7 +451,7 @@ public class PushDecryptJob extends ContextJob {
         Optional.fromNullable(envelope.getRelay()),
         message.getBody(),
         message.getGroupInfo(),
-        message.getAttachments());
+        message.getAttachments(), forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
 
 
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
@@ -456,10 +478,10 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody) {
+  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
-      Log.w(TAG, "Got control message: " + messageBody);
-      Log.w(TAG, "Control Type: " + forstaMessage.getControlType());
+      Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+      Log.w(TAG, "" + messageBody);
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
@@ -492,6 +514,60 @@ public class PushDecryptJob extends ContextJob {
           IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
           accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
           TextSecurePreferences.setMultiDevice(context, true);
+          break;
+        case ForstaMessage.ControlTypes.CALL_OFFER:
+          ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
+          Intent intent = new Intent(context, WebRtcCallService.class);
+          intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callOffer.getOriginator());
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
+          intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
+          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
+          intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
+          else                                                context.startService(intent);
+          break;
+        case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
+          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
+            Intent iceIntent = new Intent(context, WebRtcCallService.class);
+            iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
+            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, iceUpdate.getOriginator());
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
+            iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
+            else                                                context.startService(iceIntent);
+          }
+
+          break;
+        case ForstaMessage.ControlTypes.CALL_LEAVE:
+          ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
+          Intent leaveIntent = new Intent(context, WebRtcCallService.class);
+          leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
+          leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
+          leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callLeave.getOriginator());
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
+          else                                                context.startService(leaveIntent);
+          break;
+
+        case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+          ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
+          Log.w(TAG, "" + callAcceptOffer.toString());
+          Intent acceptIntent = new Intent(context, WebRtcCallService.class);
+          acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
+          else                                                context.startService(acceptIntent);
           break;
       }
 

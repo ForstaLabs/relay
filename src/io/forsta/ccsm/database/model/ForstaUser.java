@@ -36,6 +36,7 @@ public class ForstaUser {
   public boolean isActive = true;
   public boolean isMonitor = false;
   public RecipientType type = RecipientType.PERSON;
+  public boolean has_password = false;
 
   public enum RecipientType {
     PERSON,
@@ -69,7 +70,6 @@ public class ForstaUser {
       if (TextUtils.isEmpty(this.uid)) {
         throw new InvalidUserException("UID is empty of null");
       }
-      this.username = userObj.getString("username");
       String name = getContactName(userObj);
       this.name = name;
       if (userObj.has("tag")) {
@@ -79,6 +79,7 @@ public class ForstaUser {
         }
         if (tag.has("slug")) {
           this.slug = tag.getString("slug");
+          this.username = this.slug;
         }
       }
       JSONObject org = userObj.getJSONObject("org");
@@ -102,6 +103,9 @@ public class ForstaUser {
         this.phone = userObj.getString("phone");
       }
       this.tsRegistered = false;
+      if (userObj.has("has_password")) {
+        this.has_password = userObj.getBoolean("has_password");
+      }
 
     } catch (JSONException e) {
       e.printStackTrace();
@@ -153,7 +157,7 @@ public class ForstaUser {
   private String getContactName(JSONObject userObject) throws JSONException {
     StringBuilder name = new StringBuilder();
     String firstName = userObject.getString("first_name");
-    String middleName = userObject.getString("middle_name");
+    String middleName = userObject.has("middle_name") ? userObject.getString("middle_name") : "";
     String lastName = userObject.getString("last_name");
     name.append(firstName).append(" ");
     if (!middleName.equals("")) {
@@ -185,6 +189,10 @@ public class ForstaUser {
 
   public String getAvatar() {
     return avatar;
+  }
+
+  public boolean hasPassword() {
+    return has_password;
   }
 
   @Override

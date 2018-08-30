@@ -27,6 +27,9 @@ public class OutgoingMediaMessage {
   private   final int              distributionType;
   private   final int              subscriptionId;
   private   final long             expiresIn;
+  private final String messageRef;
+  private final int voteCount;
+  private final String messageId;
 
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,
@@ -40,6 +43,26 @@ public class OutgoingMediaMessage {
     this.attachments      = attachments;
     this.subscriptionId   = subscriptionId;
     this.expiresIn        = expiresIn;
+    this.messageRef = null;
+    this.voteCount = 0;
+    this.messageId = null;
+  }
+
+  public OutgoingMediaMessage(Recipients recipients, String message,
+                              List<Attachment> attachments, long sentTimeMillis,
+                              int subscriptionId, long expiresIn,
+                              int distributionType, String messageRef, int voteCount, String messageId)
+  {
+    this.recipients       = recipients;
+    this.body             = message;
+    this.sentTimeMillis   = sentTimeMillis;
+    this.distributionType = distributionType;
+    this.attachments      = attachments;
+    this.subscriptionId   = subscriptionId;
+    this.expiresIn        = expiresIn;
+    this.messageRef = messageRef;
+    this.voteCount = voteCount;
+    this.messageId = messageId;
   }
 
   public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType)
@@ -59,6 +82,9 @@ public class OutgoingMediaMessage {
     this.sentTimeMillis   = that.sentTimeMillis;
     this.subscriptionId   = that.subscriptionId;
     this.expiresIn        = that.expiresIn;
+    this.messageRef = null;
+    this.voteCount = 0;
+    this.messageId = null;
   }
 
   public Recipients getRecipients() {
@@ -101,6 +127,18 @@ public class OutgoingMediaMessage {
     return expiresIn;
   }
 
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public String getMessageId() {
+    return messageId;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
+  }
+
   private static String buildMessage(SlideDeck slideDeck, String message) {
     if (!TextUtils.isEmpty(message) && !TextUtils.isEmpty(slideDeck.getBody())) {
       return slideDeck.getBody() + "\n\n" + message;
@@ -109,27 +147,5 @@ public class OutgoingMediaMessage {
     } else {
       return slideDeck.getBody();
     }
-  }
-
-  public void updateMessageDistribution(Context context, ForstaDistribution distribution) {
-    try {
-      JSONObject jsonBody = ForstaMessageManager.getMessageVersion(1, this.body);
-      JSONObject recipients = new JSONObject();
-      recipients.put("userIds", distribution.getRecipientsArray(context));
-      recipients.put("expression", distribution.universal);
-      jsonBody.put("distribution", recipients);
-    } catch (JSONException e) {
-      e.printStackTrace();
-    } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void setForstaJsonBody(Context context, ForstaThread forstaThread) {
-    this.body = ForstaMessageManager.createForstaMessageBody(context, this.body, recipients, attachments, forstaThread);
-  }
-
-  public void setForstaControlJsonBody(Context context, ForstaThread forstaThread) {
-    this.body = ForstaMessageManager.createControlMessageBody(context, this.body, recipients, attachments, forstaThread);
   }
 }

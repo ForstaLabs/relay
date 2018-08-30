@@ -29,6 +29,7 @@ import android.support.v4.preference.PreferenceFragment;
 import android.support.v7.app.ActionBar;
 
 import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.PasswordActivity;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.preferences.AdvancedPreferenceFragment;
 import io.forsta.securesms.preferences.AppProtectionPreferenceFragment;
@@ -59,6 +60,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
   private static final String PREFERENCE_CATEGORY_APPEARANCE     = "preference_category_appearance";
   private static final String PREFERENCE_CATEGORY_CHATS          = "preference_category_chats";
   private static final String PREFERENCE_CATEGORY_DEVICES        = "preference_category_devices";
+  private static final String PREFERENCE_AUTH                    = "preference_auth";
   private static final String PREFERENCE_CATEGORY_ADVANCED       = "preference_category_advanced";
 
   private final DynamicTheme dynamicTheme    = new DynamicTheme();
@@ -136,6 +138,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_NOTIFICATIONS));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APP_PROTECTION));
+//      this.findPreference(PREFERENCE_AUTH)
+//          .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_AUTH));
       this.findPreference(PREFERENCE_CATEGORY_APPEARANCE)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APPEARANCE));
       this.findPreference(PREFERENCE_CATEGORY_CHATS)
@@ -201,6 +205,10 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
           Intent intent = new Intent(getActivity(), DeviceActivity.class);
           startActivity(intent);
           break;*/
+        case PREFERENCE_AUTH:
+          Intent intent = new Intent(getActivity(), PasswordActivity.class);
+          startActivity(intent);
+          break;
         case PREFERENCE_CATEGORY_ADVANCED:
           fragment = new AdvancedPreferenceFragment();
           break;

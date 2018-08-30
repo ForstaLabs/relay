@@ -28,9 +28,12 @@ import android.text.style.StyleSpan;
 import org.w3c.dom.Text;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.R;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.NetworkFailure;
@@ -39,8 +42,12 @@ import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.List;
+import java.util.Set;
+
+import static android.R.attr.filter;
 
 /**
  * The base class for message record models that are displayed in
@@ -62,6 +69,9 @@ public abstract class MessageRecord extends DisplayRecord {
   private final int                       subscriptionId;
   private final long                      expiresIn;
   private final long                      expireStarted;
+  private final String messageRef;
+  private final int voteCount;
+  private final String messageId;
 
   MessageRecord(Context context, long id, Body body, Recipients recipients,
                 Recipient individualRecipient, int recipientDeviceId,
@@ -69,7 +79,7 @@ public abstract class MessageRecord extends DisplayRecord {
                 int deliveryStatus, int receiptCount, long type,
                 List<IdentityKeyMismatch> mismatches,
                 List<NetworkFailure> networkFailures,
-                int subscriptionId, long expiresIn, long expireStarted)
+                int subscriptionId, long expiresIn, long expireStarted, String messageRef, int voteCount, String messageId)
   {
     super(context, body, recipients, dateSent, dateReceived, threadId, deliveryStatus, receiptCount,
           type);
@@ -81,6 +91,9 @@ public abstract class MessageRecord extends DisplayRecord {
     this.subscriptionId      = subscriptionId;
     this.expiresIn           = expiresIn;
     this.expireStarted       = expireStarted;
+    this.messageRef = messageRef;
+    this.voteCount = voteCount;
+    this.messageId = messageId;
   }
 
   public abstract boolean isMms();
@@ -98,9 +111,46 @@ public abstract class MessageRecord extends DisplayRecord {
     return MmsSmsColumns.Types.isAsymmetricEncryption(type);
   }
 
+  public boolean isMentioned(Context context) {
+    try {
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      ForstaMessage forstaBody = getForstaMessageBody();
+      if (forstaBody.getMentions().contains(user.getUid())) {
+        return true;
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+  public boolean isNamed(Context context) {
+    try {
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      ForstaMessage forstaBody = getForstaMessageBody();
+      String plainTextBody = forstaBody.getTextBody().toLowerCase();
+      String name = user.getName();
+      if (name != null) {
+        String[] parts = name.split(" ");
+        for (String part : parts) {
+          if (plainTextBody.contains(part.toLowerCase())) {
+            return true;
+          }
+        }
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
   public String getPlainTextBody() {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
+
+      if (forstaBody.getVote() > 0) {
+        return "Up Vote";
+      }
       return forstaBody.getTextBody();
     } catch (InvalidMessagePayloadException e) {
       e.printStackTrace();
@@ -132,6 +182,21 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public String getMessagePayloadBody() {
     return getBody().getBody();
+  }
+
+  public String getMessageId() {
+    if (TextUtils.isEmpty(messageId)) {
+      return forstaMessageBody.getMessageId();
+    }
+    return messageId;
+  }
+
+  public String getMessageRef() {
+    return messageRef;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
   }
 
   @Override
