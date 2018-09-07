@@ -94,8 +94,12 @@ public class ForstaMessageManager {
         forstaMessage.setMessageType(jsonBody.getString("messageType"));
       }
 
-      JSONObject sender = jsonBody.getJSONObject("sender");
-      forstaMessage.setSenderId(sender.getString("userId"));
+      // Get sender from Signal envelope and mmsdatabase address field.
+      if (!forstaMessage.isControlMessage()) {
+        JSONObject sender = jsonBody.getJSONObject("sender");
+        forstaMessage.setSenderId(sender.getString("userId"));
+      }
+
       forstaMessage.setMessageId(jsonBody.getString("messageId"));
 
       JSONObject distribution = jsonBody.getJSONObject("distribution");

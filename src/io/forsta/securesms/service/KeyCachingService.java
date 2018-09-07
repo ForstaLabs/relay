@@ -44,6 +44,7 @@ import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.jobs.MasterSecretDecryptJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.util.DynamicLanguage;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.concurrent.TimeUnit;
@@ -84,7 +85,11 @@ public class KeyCachingService extends Service {
         MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
         Intent       intent       = new Intent(context, KeyCachingService.class);
 
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          context.startForegroundService(intent);
+        } else {
+          context.startService(intent);
+        }
 
         return masterSecret;
       } catch (InvalidPassphraseException e) {
@@ -176,7 +181,7 @@ public class KeyCachingService extends Service {
   private void handleActivityStarted() {
     Log.w("KeyCachingService", "Incrementing activity count...");
 
-    AlarmManager alarmManager = (AlarmManager)this.getSystemService(ALARM_SERVICE);
+    AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
     alarmManager.cancel(pending);
     activitiesRunning++;
   }
@@ -226,7 +231,8 @@ public class KeyCachingService extends Service {
 
       Log.w("KeyCachingService", "Starting timeout: " + timeoutMillis);
 
-      AlarmManager alarmManager = (AlarmManager)this.getSystemService(ALARM_SERVICE);
+      AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
+
       alarmManager.cancel(pending);
       alarmManager.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + timeoutMillis, pending);
     }

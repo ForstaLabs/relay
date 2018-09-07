@@ -43,10 +43,10 @@ public abstract class PushReceivedJob extends ContextJob {
   }
 
   private void handleMessage(SignalServiceEnvelope envelope, boolean sendExplicitReceipt) {
-    Recipients recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
+    Recipients sender = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
 
-    if (!recipients.isBlocked()) {
+    if (!sender.isBlocked()) {
       long messageId = DatabaseFactory.getPushDatabase(context).insert(envelope);
       jobManager.add(new PushDecryptJob(context, messageId, envelope.getSource()));
     } else {
@@ -62,7 +62,7 @@ public abstract class PushReceivedJob extends ContextJob {
 
   private void handleReceipt(SignalServiceEnvelope envelope) {
     Log.w(TAG, String.format("Received receipt: (XXXXX, %d, %s)", envelope.getTimestamp(), envelope.getSource()));
-    DatabaseFactory.getMmsSmsDatabase(context).incrementDeliveryReceiptCount(new SyncMessageId(envelope.getSource(),
+    DatabaseFactory.getMmsDatabase(context).incrementDeliveryReceiptCount(new SyncMessageId(envelope.getSource(),
                                                                                                envelope.getTimestamp()));
   }
 

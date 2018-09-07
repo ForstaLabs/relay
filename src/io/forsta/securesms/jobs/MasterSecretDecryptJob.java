@@ -35,20 +35,6 @@ public class MasterSecretDecryptJob extends MasterSecretJob {
 
   @Override
   public void onRun(MasterSecret masterSecret) {
-    EncryptingSmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
-    SmsDatabase.Reader smsReader   = smsDatabase.getDecryptInProgressMessages(masterSecret);
-
-    SmsMessageRecord smsRecord;
-
-    while ((smsRecord = smsReader.getNext()) != null) {
-      try {
-        String body = getAsymmetricDecryptedBody(masterSecret, smsRecord.getBody().getBody());
-        smsDatabase.updateMessageBody(new MasterSecretUnion(masterSecret), smsRecord.getId(), body);
-      } catch (InvalidMessageException e) {
-        Log.w(TAG, e);
-      }
-    }
-
     MmsDatabase        mmsDatabase = DatabaseFactory.getMmsDatabase(context);
     MmsDatabase.Reader mmsReader   = mmsDatabase.getDecryptInProgressMessages(masterSecret);
 
@@ -63,7 +49,6 @@ public class MasterSecretDecryptJob extends MasterSecretJob {
       }
     }
 
-    smsReader.close();
     mmsReader.close();
 
     MessageNotifier.updateNotification(context, masterSecret);

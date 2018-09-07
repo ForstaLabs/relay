@@ -32,7 +32,7 @@ public class ContactsSyncAdapter extends AbstractThreadedSyncAdapter {
 
     if (TextSecurePreferences.isPushRegistered(getContext())) {
       try {
-        DirectoryHelper.refreshDirectory(getContext(), KeyCachingService.getMasterSecret(getContext()));
+        DirectoryHelper.refreshDirectory(getContext());
       } catch (IOException e) {
         Log.w(TAG, e);
       }

@@ -37,10 +37,8 @@ import android.widget.TextView;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.loaders.MessageDetailsLoader;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.notifications.MessageNotifier;
@@ -273,10 +271,6 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
 
   private @Nullable MessageRecord getMessageRecord(Context context, Cursor cursor, String type) {
     switch (type) {
-      case MmsSmsDatabase.SMS_TRANSPORT:
-        EncryptingSmsDatabase smsDatabase = DatabaseFactory.getEncryptingSmsDatabase(context);
-        SmsDatabase.Reader reader      = smsDatabase.readerFor(masterSecret, cursor);
-        return reader.getNext();
       case MmsSmsDatabase.MMS_TRANSPORT:
         MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
         MmsDatabase.Reader mmsReader   = mmsDatabase.readerFor(masterSecret, cursor);

@@ -47,6 +47,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
@@ -170,7 +171,7 @@ public class MessageNotifier {
     Cursor pushCursor  = null;
 
     try {
-      telcoCursor = DatabaseFactory.getMmsSmsDatabase(context).getUnread();
+      telcoCursor = DatabaseFactory.getMmsDatabase(context).getUnread();
       pushCursor  = includePushDatabase ? DatabaseFactory.getPushDatabase(context).getPending() : null;
 
       if ((telcoCursor == null || telcoCursor.isAfterLast()) &&
@@ -381,11 +382,11 @@ public class MessageNotifier {
   {
     NotificationState notificationState = new NotificationState();
     MessageRecord record;
-    MmsSmsDatabase.Reader reader;
+    MmsDatabase.Reader reader;
     Set<String> filters = TextSecurePreferences.getNotificationPreferences(context);
 
-    if (masterSecret == null) reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor);
-    else                      reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor, masterSecret);
+    if (masterSecret == null) reader = DatabaseFactory.getMmsDatabase(context).readerFor(cursor);
+    else                      reader = DatabaseFactory.getMmsDatabase(context).readerFor(masterSecret, cursor);
 
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
@@ -403,9 +404,7 @@ public class MessageNotifier {
       boolean threadNotification = showThreadNotification(context, threadId);
       boolean messageNotification = showFilteredNotification(filters, isDirectMessage, isNamed, isMentioned);
 
-      if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
-        body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
-      } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
+      if (record.isMediaPending() && TextUtils.isEmpty(body)) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_media_message));
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       } else if (record.isMediaPending() && !record.isMmsNotification()) {

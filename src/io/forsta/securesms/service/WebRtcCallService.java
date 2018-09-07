@@ -336,7 +336,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       return;
     }
 
-    setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      setCallInProgressNotification(TYPE_INCOMING_CONNECTING, this.recipient);
+    }
+
     timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 30, TimeUnit.SECONDS);
 
     initializeVideo();
