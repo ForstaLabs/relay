@@ -19,6 +19,8 @@ package io.forsta.securesms.service;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -57,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 
 public class KeyCachingService extends Service {
 
+  public static final String TAG = KeyCachingService.class.getSimpleName();
   public static final int SERVICE_RUNNING_ID = 4141;
 
   public  static final String KEY_PERMISSION           = "io.forsta.securesms.ACCESS_SECRETS";
@@ -80,7 +83,9 @@ public class KeyCachingService extends Service {
   public KeyCachingService() {}
 
   public static synchronized @Nullable MasterSecret getMasterSecret(Context context) {
+    Log.w(TAG, "getMasterSecret");
     if (masterSecret == null && TextSecurePreferences.isPasswordDisabled(context)) {
+      Log.w(TAG, "masterSecret is null");
       try {
         MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
         Intent       intent       = new Intent(context, KeyCachingService.class);
@@ -93,7 +98,7 @@ public class KeyCachingService extends Service {
 
         return masterSecret;
       } catch (InvalidPassphraseException e) {
-        Log.w("KeyCachingService", e);
+        Log.w(TAG, e);
       }
     }
 
@@ -147,6 +152,21 @@ public class KeyCachingService extends Service {
   public void onCreate() {
     Log.w("KeyCachingService", "onCreate()");
     super.onCreate();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      String CHANNEL_ID = "forsta_channel_01";
+      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+          "Channel human readable title",
+          NotificationManager.IMPORTANCE_DEFAULT);
+
+      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+      Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+          .setContentTitle("")
+          .setContentText("").build();
+
+      startForeground(1, notification);
+    }
+
     this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
                                                                 this, KeyCachingService.class), 0);
 

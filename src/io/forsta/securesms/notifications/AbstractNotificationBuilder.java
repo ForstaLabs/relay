@@ -21,12 +21,14 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
 
   protected Context                       context;
   protected NotificationPrivacyPreference privacy;
+  protected final String CHANNEL_ID = "forsta_channel_01";
 
   public AbstractNotificationBuilder(Context context, NotificationPrivacyPreference privacy) {
     super(context);
 
     this.context = context;
     this.privacy = privacy;
+    this.setChannelId(CHANNEL_ID);
 
     setLed();
   }

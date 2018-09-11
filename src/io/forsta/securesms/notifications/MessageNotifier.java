@@ -17,6 +17,8 @@
 package io.forsta.securesms.notifications;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -112,7 +114,7 @@ public class MessageNotifier {
   }
 
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
-    if (!TextSecurePreferences.isNotificationsEnabled(context)) {
+    if (!TextSecurePreferences.isNotificationsEnabled(context) || masterSecret == null) {
       return;
     }
 
@@ -257,8 +259,8 @@ public class MessageNotifier {
                         notifications.get(0).getText());
     }
 
-    ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
-      .notify(NOTIFICATION_ID, builder.build());
+    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.notify(NOTIFICATION_ID, builder.build());
 
     lastUpdate = System.currentTimeMillis();
   }
