@@ -5,6 +5,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.MediaActionSound;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -65,8 +68,16 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     String  defaultRingtoneName = TextSecurePreferences.getNotificationRingtone(context);
     boolean defaultVibrate      = TextSecurePreferences.isNotificationVibrateEnabled(context);
 
-    if      (ringtone != null)                        setSound(ringtone);
-    else if (!TextUtils.isEmpty(defaultRingtoneName)) setSound(Uri.parse(defaultRingtoneName));
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channel != null) {
+       channel.setSound(null, null);
+    }
+
+    if      (ringtone != null)                        {
+      setSound(ringtone);
+    }
+    else if (!TextUtils.isEmpty(defaultRingtoneName)) {
+      setSound(Uri.parse(defaultRingtoneName));
+    }
 
     if (vibrate == RecipientPreferenceDatabase.VibrateState.ENABLED ||
         (vibrate == RecipientPreferenceDatabase.VibrateState.DEFAULT && defaultVibrate))
