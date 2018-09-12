@@ -252,7 +252,6 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      Log.w(TAG, "Debounce diff: " + (System.currentTimeMillis() - lastUpdate));
       if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
         builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       }

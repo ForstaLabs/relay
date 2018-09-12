@@ -44,7 +44,6 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
           "Channel human readable title",
           NotificationManager.IMPORTANCE_DEFAULT);
       channel.setDescription("Forsta Channel");
-      channel.setName("Forsta");
     }
     this.setChannelId(CHANNEL_ID);
 

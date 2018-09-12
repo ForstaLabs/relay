@@ -276,43 +276,13 @@ public class KeyCachingService extends Service {
     startForeground(SERVICE_RUNNING_ID, builder.build());
   }
 
-  private void foregroundServiceICS() {
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-    RemoteViews remoteViews            = new RemoteViews(getPackageName(), R.layout.key_caching_notification);
-
-    remoteViews.setOnClickPendingIntent(R.id.lock_cache_icon, buildLockIntent());
-
-    builder.setSmallIcon(R.drawable.icon_cached);
-    builder.setContent(remoteViews);
-    builder.setContentIntent(buildLaunchIntent());
-
-    stopForeground(true);
-    startForeground(SERVICE_RUNNING_ID, builder.build());
-  }
-
-  private void foregroundServiceLegacy() {
-    Notification.Builder builder = new Notification.Builder(getApplicationContext());
-    builder.setContentIntent(buildLaunchIntent());
-    builder.setContentTitle(getString(R.string.KeyCachingService_passphrase_cached));
-    builder.setContentText(getString(R.string.KeyCachingService_signal_passphrase_cached));
-
-    stopForeground(true);
-    startForeground(SERVICE_RUNNING_ID, builder.build());
-  }
-
   private void foregroundService() {
     if (TextSecurePreferences.isPasswordDisabled(this)) {
       stopForeground(true);
       return;
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      foregroundServiceModern();
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-      foregroundServiceICS();
-    } else {
-      foregroundServiceLegacy();
-    }
+    foregroundServiceModern();
   }
 
   private void broadcastNewSecret() {
