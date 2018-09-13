@@ -67,11 +67,7 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     String  defaultRingtoneName = TextSecurePreferences.getNotificationRingtone(context);
     boolean defaultVibrate      = TextSecurePreferences.isNotificationVibrateEnabled(context);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channel != null) {
-       channel.setSound(null, null);
-    }
-
-    if      (ringtone != null)                        {
+    if (ringtone != null)                        {
       setSound(ringtone);
     }
     else if (!TextUtils.isEmpty(defaultRingtoneName)) {

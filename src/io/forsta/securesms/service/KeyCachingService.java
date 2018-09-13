@@ -44,6 +44,7 @@ import io.forsta.securesms.crypto.InvalidPassphraseException;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.jobs.MasterSecretDecryptJob;
+import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.ServiceUtil;
@@ -153,16 +154,16 @@ public class KeyCachingService extends Service {
     Log.w("KeyCachingService", "onCreate()");
     super.onCreate();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      String CHANNEL_ID = "forsta_channel_01";
+      String CHANNEL_ID = AbstractNotificationBuilder.CHANNEL_ID;
       NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-          "Channel human readable title",
+          "Forsta",
           NotificationManager.IMPORTANCE_DEFAULT);
 
       ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
 
       Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-          .setContentTitle("")
-          .setContentText("").build();
+          .setContentTitle("Forsta")
+          .setContentText("Service running...").build();
 
       startForeground(1, notification);
     }
