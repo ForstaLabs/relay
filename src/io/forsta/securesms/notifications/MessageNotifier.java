@@ -17,6 +17,8 @@
 package io.forsta.securesms.notifications;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -32,6 +34,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -112,7 +115,7 @@ public class MessageNotifier {
   }
 
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
-    if (!TextSecurePreferences.isNotificationsEnabled(context)) {
+    if (!TextSecurePreferences.isNotificationsEnabled(context) || masterSecret == null) {
       return;
     }
 
@@ -249,7 +252,6 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      Log.w(TAG, "Debounce diff: " + (System.currentTimeMillis() - lastUpdate));
       if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
         builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       }
@@ -257,8 +259,12 @@ public class MessageNotifier {
                         notifications.get(0).getText());
     }
 
-    ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
-      .notify(NOTIFICATION_ID, builder.build());
+    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      notificationManager.createNotificationChannel(builder.getChannel());
+    }
+
+    notificationManager.notify(NOTIFICATION_ID, builder.build());
 
     lastUpdate = System.currentTimeMillis();
   }
