@@ -63,8 +63,7 @@ public class GroupMembersDialog extends AsyncTask<Void, Void, Recipients> {
   }
 
   public void display() {
-    if (recipients.isGroupRecipient()) execute();
-    else                               onPostExecute(recipients);
+    onPostExecute(recipients);
   }
 
   private static class GroupMembersOnClickListener implements DialogInterface.OnClickListener {

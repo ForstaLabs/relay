@@ -17,6 +17,8 @@
 package io.forsta.securesms.notifications;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -32,6 +34,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -47,6 +50,7 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.SmsDatabase;
@@ -111,7 +115,7 @@ public class MessageNotifier {
   }
 
   public static void updateNotification(@NonNull Context context, @Nullable MasterSecret masterSecret) {
-    if (!TextSecurePreferences.isNotificationsEnabled(context)) {
+    if (!TextSecurePreferences.isNotificationsEnabled(context) || masterSecret == null) {
       return;
     }
 
@@ -170,7 +174,7 @@ public class MessageNotifier {
     Cursor pushCursor  = null;
 
     try {
-      telcoCursor = DatabaseFactory.getMmsSmsDatabase(context).getUnread();
+      telcoCursor = DatabaseFactory.getMmsDatabase(context).getUnread();
       pushCursor  = includePushDatabase ? DatabaseFactory.getPushDatabase(context).getPending() : null;
 
       if ((telcoCursor == null || telcoCursor.isAfterLast()) &&
@@ -248,7 +252,6 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      Log.w(TAG, "Debounce diff: " + (System.currentTimeMillis() - lastUpdate));
       if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
         builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       }
@@ -256,8 +259,12 @@ public class MessageNotifier {
                         notifications.get(0).getText());
     }
 
-    ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE))
-      .notify(NOTIFICATION_ID, builder.build());
+    NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      notificationManager.createNotificationChannel(builder.getChannel());
+    }
+
+    notificationManager.notify(NOTIFICATION_ID, builder.build());
 
     lastUpdate = System.currentTimeMillis();
   }
@@ -381,11 +388,11 @@ public class MessageNotifier {
   {
     NotificationState notificationState = new NotificationState();
     MessageRecord record;
-    MmsSmsDatabase.Reader reader;
+    MmsDatabase.Reader reader;
     Set<String> filters = TextSecurePreferences.getNotificationPreferences(context);
 
-    if (masterSecret == null) reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor);
-    else                      reader = DatabaseFactory.getMmsSmsDatabase(context).readerFor(cursor, masterSecret);
+    if (masterSecret == null) reader = DatabaseFactory.getMmsDatabase(context).readerFor(cursor);
+    else                      reader = DatabaseFactory.getMmsDatabase(context).readerFor(masterSecret, cursor);
 
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
@@ -403,9 +410,7 @@ public class MessageNotifier {
       boolean threadNotification = showThreadNotification(context, threadId);
       boolean messageNotification = showFilteredNotification(filters, isDirectMessage, isNamed, isMentioned);
 
-      if (SmsDatabase.Types.isDecryptInProgressType(record.getType()) || !record.getBody().isPlaintext()) {
-        body = SpanUtil.italic(context.getString(R.string.MessageNotifier_locked_message));
-      } else if (record.isMediaPending() && TextUtils.isEmpty(body)) {
+      if (record.isMediaPending() && TextUtils.isEmpty(body)) {
         body = SpanUtil.italic(context.getString(R.string.MessageNotifier_media_message));
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       } else if (record.isMediaPending() && !record.isMmsNotification()) {

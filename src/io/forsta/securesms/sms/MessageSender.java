@@ -319,10 +319,6 @@ public class MessageSender {
       return false;
     }
 
-    if (recipients.isGroupRecipient()) {
-      return false;
-    }
-
     return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
   }
 

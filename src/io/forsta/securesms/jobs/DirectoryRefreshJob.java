@@ -52,7 +52,7 @@ public class DirectoryRefreshJob extends ContextJob {
     try {
       wakeLock.acquire();
       if (recipients == null) {
-        DirectoryHelper.refreshDirectory(context, KeyCachingService.getMasterSecret(context));
+        DirectoryHelper.refreshDirectory(context);
       } else {
         DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
       }

@@ -222,10 +222,6 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden"/>
         <activity
-            android:name=".GroupCreateActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:windowSoftInputMode="stateVisible"/>
-        <activity
             android:name=".DatabaseMigrationActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:launchMode="singleTask"
@@ -259,11 +255,6 @@
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.LightNoActionBar"
             android:windowSoftInputMode="stateVisible"/>
-        <activity
-            android:name=".PushContactSelectionActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:label="@string/AndroidManifest__select_contacts"
-            android:windowSoftInputMode="stateHidden"/>
         <activity
             android:name=".PassphraseChangeActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
@@ -336,14 +327,6 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.io.forsta.securesms.contact"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name=".RecipientPreferenceActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:theme="@style/TextSecure.LightNoActionBar"/>
-        <activity
-            android:name=".BlockedContactsActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:theme="@style/TextSecure.LightTheme"/>
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
 
         <activity android:name=".WebRtcCallActivity"
@@ -365,21 +348,6 @@
         <service
             android:name=".service.MessageRetrievalService"
             android:enabled="true"/>
-        <service
-            android:name=".service.QuickResponseService"
-            android:exported="true"
-            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
-            <intent-filter>
-                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:scheme="sms"/>
-                <data android:scheme="smsto"/>
-                <data android:scheme="mms"/>
-                <data android:scheme="mmsto"/>
-            </intent-filter>
-        </service>
         <service
             android:name=".service.AccountAuthenticatorService"
             android:exported="true">
@@ -413,18 +381,6 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".service.SmsListener"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="1001">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_DELIVER"/>
-            </intent-filter>
-        </receiver>
-        <receiver
             android:name=".service.SmsDeliveryListener"
             android:exported="true">
             <intent-filter>
@@ -439,23 +395,9 @@
                 <action android:name="io.forsta.securesms.notifications.CLEAR"/>
             </intent-filter>
         </receiver>
-        <receiver
-            android:name=".notifications.WearReplyReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.notifications.WEAR_REPLY"/>
-            </intent-filter>
-        </receiver>
-
         <provider
             android:name=".providers.PartProvider"
             android:authorities="${applicationId}.provider.securesms"
-            android:exported="false"
-            android:grantUriPermissions="true"/>
-        <provider
-            android:name=".providers.MmsBodyProvider"
-            android:authorities="${applicationId}.provider.securesms.mms"
             android:exported="false"
             android:grantUriPermissions="true"/>
         <provider

@@ -182,7 +182,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
         if (reset) {
           DirectoryHelper.resetDirectory(params[0]);
         } else {
-          DirectoryHelper.refreshDirectory(params[0], masterSecret);
+          DirectoryHelper.refreshDirectory(params[0]);
         }
 
       } catch (IOException e) {

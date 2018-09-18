@@ -41,7 +41,7 @@ public class AvatarImageView extends ImageView {
   }
 
   public void setAvatar(final @Nullable Recipients recipients, final MaterialColor backgroundColor) {
-    setAvatar(recipients, backgroundColor, false);
+    setAvatar(recipients, backgroundColor, true);
   }
 
   public void setAvatar(final @Nullable Recipients recipients, boolean quickContactEnabled) {
@@ -53,7 +53,7 @@ public class AvatarImageView extends ImageView {
   }
 
   private void setAvatar(Recipients recipients, final MaterialColor backgroundColor, boolean enableDetails) {
-    if (recipients.isSingleRecipient() && !recipients.isGroupRecipient()) {
+    if (recipients.isSingleRecipient()) {
       setAvatarClickHandler(recipients, enableDetails);
       final Recipient recipient = recipients.getPrimaryRecipient();
       if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
@@ -76,7 +76,7 @@ public class AvatarImageView extends ImageView {
   }
 
   private void setAvatarClickHandler(final Recipients recipients, boolean quickContactEnabled) {
-    if (!recipients.isGroupRecipient() && quickContactEnabled) {
+    if (recipients.isSingleRecipient() && quickContactEnabled) {
       setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {

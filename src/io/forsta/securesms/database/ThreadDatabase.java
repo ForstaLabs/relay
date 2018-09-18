@@ -84,6 +84,7 @@ public class ThreadDatabase extends Database {
   public static final String PINNED = "pinned";
   public static final String THREAD_TYPE = "thread_type";
   public static final String THREAD_CREATOR = "thread_creator";
+  public static final String SNIPPET_SENDER = "snippet_sender";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " ("                    +
     ID + " INTEGER PRIMARY KEY, " + DATE + " INTEGER DEFAULT 0, "                                  +
@@ -95,7 +96,7 @@ public class ThreadDatabase extends Database {
     RECEIPT_COUNT + " INTEGER DEFAULT 0, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
       DISTRIBUTION + " TEXT, " +
       TITLE + " TEXT, " +
-      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0, " + THREAD_CREATOR + " TEXT);";
+      UID + " TEXT, " + PRETTY_EXPRESSION + " TEXT, " + PINNED + " INTEGER DEFAULT 0, " + THREAD_TYPE + " INTEGER DEFAULT 0, " + THREAD_CREATOR + " TEXT, " + SNIPPET_SENDER + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS thread_recipient_ids_index ON " + TABLE_NAME + " (" + RECIPIENT_IDS + ");",
@@ -115,7 +116,9 @@ public class ThreadDatabase extends Database {
       SNIPPET_TYPE,
       SNIPPET_URI,
       ARCHIVED,
-
+      THREAD_TYPE,
+      THREAD_CREATOR,
+      SNIPPET_SENDER
   };
 
   public ThreadDatabase(Context context, SQLiteOpenHelper databaseHelper) {
@@ -179,7 +182,7 @@ public class ThreadDatabase extends Database {
 
   private void updateThread(long threadId, long count, String body, @Nullable Uri attachment,
                             long date, int status, int receiptCount, long type, boolean unarchive,
-                            long expiresIn)
+                            long expiresIn, String senderAddress)
   {
     ContentValues contentValues = new ContentValues(7);
     contentValues.put(DATE, date - date % 1000);
@@ -190,6 +193,7 @@ public class ThreadDatabase extends Database {
     contentValues.put(STATUS, status);
     contentValues.put(RECEIPT_COUNT, receiptCount);
     contentValues.put(EXPIRES_IN, expiresIn);
+    contentValues.put(SNIPPET_SENDER, senderAddress);
 
     if (unarchive) {
       contentValues.put(ARCHIVED, 0);
@@ -201,13 +205,14 @@ public class ThreadDatabase extends Database {
     notifyConversationListeners(threadId);
   }
 
-  public void updateSnippet(long threadId, String snippet, @Nullable Uri attachment, long date, long type, boolean unarchive) {
+  public void updateDraftSnippet(long threadId, String snippet, @Nullable Uri attachment, long date, long type, boolean unarchive) {
     ContentValues contentValues = new ContentValues(4);
 
     contentValues.put(DATE, date - date % 1000);
     contentValues.put(SNIPPET, snippet);
     contentValues.put(SNIPPET_TYPE, type);
     contentValues.put(SNIPPET_URI, attachment == null ? null : attachment.toString());
+    contentValues.put(SNIPPET_SENDER, TextSecurePreferences.getLocalNumber(context));
 
     if (unarchive) {
       contentValues.put(ARCHIVED, 0);
@@ -272,7 +277,7 @@ public class ThreadDatabase extends Database {
     Cursor cursor = null;
 
     try {
-      cursor = DatabaseFactory.getMmsSmsDatabase(context).getConversation(threadId);
+      cursor = DatabaseFactory.getMmsDatabase(context).getConversation(threadId);
 
       if (cursor != null && length > 0 && cursor.getCount() > length) {
         Log.w("ThreadDatabase", "Cursor count is greater than length!");
@@ -282,7 +287,6 @@ public class ThreadDatabase extends Database {
 
         Log.w("ThreadDatabase", "Cut off tweet date: " + lastTweetDate);
 
-        DatabaseFactory.getSmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, lastTweetDate);
         DatabaseFactory.getMmsDatabase(context).deleteMessagesInThreadBeforeDate(threadId, lastTweetDate);
 
         update(threadId, false);
@@ -301,7 +305,6 @@ public class ThreadDatabase extends Database {
 
     db.update(TABLE_NAME, contentValues, null, null);
 
-    DatabaseFactory.getSmsDatabase(context).setAllMessagesRead();
     DatabaseFactory.getMmsDatabase(context).setAllMessagesRead();
     notifyConversationListListeners();
   }
@@ -313,13 +316,11 @@ public class ThreadDatabase extends Database {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     db.update(TABLE_NAME, contentValues, ID_WHERE, new String[] {threadId+""});
 
-    final List<MarkedMessageInfo> smsRecords = DatabaseFactory.getSmsDatabase(context).setMessagesRead(threadId);
     final List<MarkedMessageInfo> mmsRecords = DatabaseFactory.getMmsDatabase(context).setMessagesRead(threadId);
 
     notifyConversationListListeners();
 
     return new LinkedList<MarkedMessageInfo>() {{
-      addAll(smsRecords);
       addAll(mmsRecords);
     }};
   }
@@ -429,7 +430,6 @@ public class ThreadDatabase extends Database {
   }
 
   public void deleteConversations(Set<Long> selectedConversations) {
-    DatabaseFactory.getSmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getMmsDatabase(context).deleteThreads(selectedConversations);
     DatabaseFactory.getDraftDatabase(context).clearDrafts(selectedConversations);
     DatabaseFactory.getThreadPreferenceDatabase(context).deleteThreadPreferences(selectedConversations);
@@ -439,7 +439,6 @@ public class ThreadDatabase extends Database {
   }
 
   public void deleteAllConversations() {
-    DatabaseFactory.getSmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getMmsDatabase(context).deleteAllThreads();
     DatabaseFactory.getDraftDatabase(context).clearAllDrafts();
     DatabaseFactory.getThreadPreferenceDatabase(context).deleteAllPreferences();
@@ -511,7 +510,7 @@ public class ThreadDatabase extends Database {
   public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution, int threadType) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
-    ContentValues contentValues = new ContentValues(5);
+    ContentValues contentValues = new ContentValues();
     long date                   = System.currentTimeMillis();
 
     contentValues.put(DATE, date - date % 1000);
@@ -533,7 +532,7 @@ public class ThreadDatabase extends Database {
   public long allocateThreadId(Recipients recipients, ForstaMessage forstaMessage, ForstaDistribution distribution) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
-    ContentValues contentValues = new ContentValues(5);
+    ContentValues contentValues = new ContentValues();
     long date                   = System.currentTimeMillis();
 
     contentValues.put(DATE, date - date % 1000);
@@ -632,7 +631,7 @@ public class ThreadDatabase extends Database {
   }
 
   public void updateReadState(long threadId) {
-    int unreadCount = DatabaseFactory.getMmsSmsDatabase(context).getUnreadCount(threadId);
+    int unreadCount = DatabaseFactory.getMmsDatabase(context).getUnreadCount(threadId);
 
     ContentValues contentValues = new ContentValues();
     contentValues.put(READ, unreadCount == 0);
@@ -644,8 +643,8 @@ public class ThreadDatabase extends Database {
   }
 
   public boolean update(long threadId, boolean unarchive) {
-    MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(context);
-    long count                    = mmsSmsDatabase.getConversationCount(threadId);
+    MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
+    long count                    = mmsDatabase.getConversationCount(threadId);
 
     if (count == 0) {
       deleteThread(threadId);
@@ -653,16 +652,16 @@ public class ThreadDatabase extends Database {
       return true;
     }
 
-    MmsSmsDatabase.Reader reader = null;
+    MmsDatabase.Reader reader = null;
 
     try {
-      reader = mmsSmsDatabase.readerFor(mmsSmsDatabase.getConversationSnippet(threadId));
+      reader = mmsDatabase.readerFor(mmsDatabase.getConversationSnippet(threadId));
       MessageRecord record;
 
       if (reader != null && (record = reader.getNext()) != null) {
         updateThread(threadId, count, record.getBody().getBody(), getAttachmentUriFor(record),
                      record.getTimestamp(), record.getDeliveryStatus(), record.getReceiptCount(),
-                     record.getType(), unarchive, record.getExpiresIn());
+                     record.getType(), unarchive, record.getExpiresIn(), record.getIndividualRecipient().getAddress());
         notifyConversationListListeners();
         return false;
       } else {
@@ -848,10 +847,11 @@ public class ThreadDatabase extends Database {
       String expression = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.PRETTY_EXPRESSION));
       boolean pinned = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.PINNED)) != 0;
       int threadType = cursor.getInt(cursor.getColumnIndexOrThrow(ThreadDatabase.THREAD_TYPE));
+      String sender = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.SNIPPET_SENDER));
 
       return new ThreadRecord(context, body, snippetUri, recipients, date, count, read == 1,
                               threadId, receiptCount, status, type, distributionType, archived,
-                              expiresIn, distribution, title, threadUid, color, expression, pinned, threadType);
+                              expiresIn, distribution, title, threadUid, color, expression, pinned, threadType, sender);
     }
 
     private DisplayRecord.Body getPlaintextBody(Cursor cursor) {
