@@ -335,30 +335,7 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
         return null;
       }
 
-      Recipients recipients;
-
-      final Recipients intermediaryRecipients;
-      if (messageRecord.isMms()) {
-        intermediaryRecipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageRecord.getId());
-      } else {
-        intermediaryRecipients = messageRecord.getRecipients();
-      }
-
-      if (!intermediaryRecipients.isGroupRecipient()) {
-        Log.w(TAG, "Recipient is not a group, resolving members immediately.");
-        recipients = intermediaryRecipients;
-      } else {
-        try {
-          String groupId = intermediaryRecipients.getPrimaryRecipient().getAddress();
-          recipients = DatabaseFactory.getGroupDatabase(context)
-                                      .getGroupMembers(GroupUtil.getDecodedId(groupId), false);
-        } catch (IOException e) {
-          Log.w(TAG, e);
-          recipients = RecipientFactory.getRecipientsFor(MessageDetailsActivity.this, new LinkedList<Recipient>(), false);
-        }
-      }
-
-      return recipients;
+      return messageRecord.getRecipients();
     }
 
     @Override

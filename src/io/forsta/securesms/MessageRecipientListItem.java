@@ -183,11 +183,8 @@ public class MessageRecipientListItem extends RelativeLayout
       MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(getContext());
       mmsDatabase.removeFailure(record.getId(), failure);
 
-      if (record.getRecipients().isGroupRecipient()) {
-        MessageSender.resendGroupMessage(getContext(), masterSecret, record, failure.getRecipientId());
-      } else {
-        MessageSender.resend(getContext(), masterSecret, record);
-      }
+      MessageSender.resend(getContext(), masterSecret, record);
+
       return null;
     }
   }

@@ -42,22 +42,12 @@ public class FromTextView extends EmojiTextView {
   public void setText(Recipients recipients, boolean read) {
     int        attributes[]   = new int[]{R.attr.conversation_list_item_count_color};
     TypedArray colors         = getContext().obtainStyledAttributes(attributes);
-    boolean    isUnnamedGroup = recipients.isGroupRecipient() && TextUtils.isEmpty(recipients.getPrimaryRecipient().getName());
 
-    String fromString = "";
-
-    if (isUnnamedGroup) {
-      fromString = getContext().getString(R.string.ConversationActivity_unnamed_group);
-    } else {
-      fromString = recipients.toCondensedString(getContext());
-    }
+    String fromString = recipients != null ? recipients.toCondensedString(getContext()) : "No Recipients";
 
     int typeface;
 
-    if (isUnnamedGroup) {
-      if (!read) typeface = Typeface.BOLD_ITALIC;
-      else       typeface = Typeface.ITALIC;
-    } else if (!read) {
+    if (!read) {
       typeface = Typeface.BOLD;
     } else {
       typeface = Typeface.NORMAL;
