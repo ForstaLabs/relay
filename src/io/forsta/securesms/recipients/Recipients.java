@@ -376,12 +376,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     if(addresses.size() > 2) {
       return addresses.get(0) + " and " + addresses.size() + " others";
     } else {
-      if (addresses.size() == 0) {
-        return "No Recipients";
-      } else {
-        return TextUtils.join(", ", addresses);
-      }
-
+      return TextUtils.join(", ", addresses);
     }
   }
 
