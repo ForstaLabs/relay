@@ -346,7 +346,7 @@ public class RecipientPreferenceActivity extends PassphraseRequiredActionBarActi
         vibratePreference.setValueIndex(2);
       }
 
-      if (!recipients.isSingleRecipient() || recipients.isGroupRecipient()) {
+      if (!recipients.isSingleRecipient()) {
         if (colorPreference    != null) getPreferenceScreen().removePreference(colorPreference);
         if (blockPreference    != null) getPreferenceScreen().removePreference(blockPreference);
         if (identityPreference != null) getPreferenceScreen().removePreference(identityPreference);

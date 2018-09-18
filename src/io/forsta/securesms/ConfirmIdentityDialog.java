@@ -139,22 +139,11 @@ public class ConfirmIdentityDialog extends AlertDialog {
           MmsDatabase        mmsDatabase        = DatabaseFactory.getMmsDatabase(getContext());
           MmsAddressDatabase mmsAddressDatabase = DatabaseFactory.getMmsAddressDatabase(getContext());
 
-          if (messageRecord.isMms()) {
-            mmsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-                                                 mismatch.getRecipientId(),
-                                                 mismatch.getIdentityKey());
+          smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
+              mismatch.getRecipientId(),
+              mismatch.getIdentityKey());
 
-            Recipients recipients = mmsAddressDatabase.getRecipientsForId(messageRecord.getId());
-
-            if (recipients.isGroupRecipient()) MessageSender.resendGroupMessage(getContext(), masterSecret, messageRecord, mismatch.getRecipientId());
-            else                               MessageSender.resend(getContext(), masterSecret, messageRecord);
-          } else {
-            smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-                                                 mismatch.getRecipientId(),
-                                                 mismatch.getIdentityKey());
-
-            MessageSender.resend(getContext(), masterSecret, messageRecord);
-          }
+          MessageSender.resend(getContext(), masterSecret, messageRecord);
         }
 
         private void processIncomingMessageRecord(MessageRecord messageRecord) {

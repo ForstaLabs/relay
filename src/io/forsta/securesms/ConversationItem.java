@@ -193,7 +193,7 @@ public class ConversationItem extends LinearLayout
     this.locale                 = locale;
     this.batchSelected          = batchSelected;
     this.conversationRecipients = conversationRecipients;
-    this.groupThread            = !conversationRecipients.isSingleRecipient() || conversationRecipients.isGroupRecipient();
+    this.groupThread            = !conversationRecipients.isSingleRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
 
     this.recipient.addListener(this);
