@@ -88,7 +88,7 @@ public class DirectoryHelper {
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
-      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses, true);
+      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
     }
     notifyRefresh(context);
   }

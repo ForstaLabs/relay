@@ -243,13 +243,13 @@ public class ContactDb extends DbBase {
     }
   }
 
-  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses, boolean registered) {
+  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
     for (ContactTokenDetails token : activeTokens) {
       String address = token.getNumber();
       ContentValues values = new ContentValues();
-      values.put(TSREGISTERED, registered);
+      values.put(TSREGISTERED, true);
       db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
     }
 
