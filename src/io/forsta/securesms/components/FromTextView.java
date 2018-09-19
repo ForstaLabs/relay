@@ -42,7 +42,7 @@ public class FromTextView extends EmojiTextView {
   public void setText(Recipients recipients, boolean read) {
     int        attributes[]   = new int[]{R.attr.conversation_list_item_count_color};
     TypedArray colors         = getContext().obtainStyledAttributes(attributes);
-    String fromString = recipients.toCondensedString(getContext());
+    String fromString = recipients != null ? recipients.toCondensedString(getContext()) : "No Recipients";
 
     int typeface;
 

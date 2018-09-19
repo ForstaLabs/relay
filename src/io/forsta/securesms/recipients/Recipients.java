@@ -179,13 +179,13 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   }
 
   public synchronized @NonNull MaterialColor getColor() {
-    if      (!isSingleRecipient() || isGroupRecipient()) return MaterialColor.GROUP;
+    if      (!isSingleRecipient()) return MaterialColor.GROUP;
     else if (isEmpty())                                  return ContactColors.UNKNOWN_COLOR;
     else                                                 return recipients.get(0).getColor();
   }
 
   public synchronized void setColor(@NonNull MaterialColor color) {
-    if      (!isSingleRecipient() || isGroupRecipient()) throw new AssertionError("Groups don't have colors!");
+    if      (!isSingleRecipient()) throw new AssertionError("Groups don't have colors!");
     else if (!isEmpty())                                 recipients.get(0).setColor(color);
   }
 
@@ -219,19 +219,6 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
         recipient.removeListener(this);
       }
     }
-  }
-
-  public boolean isEmailRecipient() {
-    for (Recipient recipient : recipients) {
-      if (NumberUtil.isValidEmail(recipient.getAddress()))
-        return true;
-    }
-
-    return false;
-  }
-
-  public boolean isGroupRecipient() {
-    return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getAddress());
   }
 
   public boolean includesSelf(Context context) {

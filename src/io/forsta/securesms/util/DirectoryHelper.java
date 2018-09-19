@@ -163,10 +163,6 @@ public class DirectoryHelper {
         return UserCapabilities.UNKNOWN;
       }
 
-      if (recipients.isGroupRecipient()) {
-        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
-      }
-
       final String number = recipients.getPrimaryRecipient().getAddress();
 
       if (number == null) {

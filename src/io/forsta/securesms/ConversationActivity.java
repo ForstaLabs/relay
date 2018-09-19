@@ -1053,7 +1053,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private boolean isGroupConversation() {
     return getRecipients() != null &&
-        (!getRecipients().isSingleRecipient() || getRecipients().isGroupRecipient());
+        (!getRecipients().isSingleRecipient());
   }
 
   protected Recipients getRecipients() {

@@ -104,7 +104,7 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
   {
     SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
 
-    if (privacy.isDisplayContact() && (threadRecipients.isGroupRecipient() || !threadRecipients.isSingleRecipient())) {
+    if (privacy.isDisplayContact() && (!threadRecipients.isSingleRecipient())) {
       stringBuilder.append(Util.getBoldedString(individualRecipient.toShortString() + ": "));
     }
 
@@ -155,7 +155,7 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
   {
     SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
 
-    if (privacy.isDisplayContact() && (threadRecipients.isGroupRecipient() || !threadRecipients.isSingleRecipient())) {
+    if (privacy.isDisplayContact() && (!threadRecipients.isSingleRecipient())) {
       stringBuilder.append(Util.getBoldedString(individualRecipient.toShortString() + ": "));
     }
 
