@@ -208,7 +208,11 @@ public class Recipient {
   }
 
   public synchronized String toShortString() {
-    return (name == null ? "Unknown Recipient" : name);
+    String nameString = name != null ? name : "Unknown Recipient";
+    if (!this.isActive) {
+      nameString += " (Removed User)";
+    }
+    return nameString;
   }
 
   public synchronized @NonNull ContactPhoto getContactPhoto() {

@@ -33,13 +33,10 @@ import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.support.v7.app.AlertDialog;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -60,7 +57,6 @@ import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.database.model.NotificationMmsMessageRecord;
 import io.forsta.securesms.jobs.MmsSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.DocumentSlide;
@@ -78,7 +74,6 @@ import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.dualsim.SubscriptionInfoCompat;
 import io.forsta.securesms.util.dualsim.SubscriptionManagerCompat;
 
-import org.w3c.dom.Text;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.HashSet;
@@ -110,7 +105,7 @@ public class ConversationItem extends LinearLayout
   private TextView           dateText;
   private TextView           simInfoText;
   private TextView           indicatorText;
-  private TextView           groupStatusText;
+  private TextView recipientText;
   private ImageView          secureImage;
   private AvatarImageView contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
@@ -153,7 +148,7 @@ public class ConversationItem extends LinearLayout
     this.dateText                = (TextView)           findViewById(R.id.conversation_item_date);
     this.simInfoText             = (TextView)           findViewById(R.id.sim_info);
     this.indicatorText           = (TextView)           findViewById(R.id.indicator_text);
-    this.groupStatusText         = (TextView)           findViewById(R.id.group_message_status);
+    this.recipientText = (TextView)           findViewById(R.id.group_message_status);
     this.secureImage             = (ImageView)          findViewById(R.id.secure_indicator);
     this.deliveryStatusIndicator = (DeliveryStatusView) findViewById(R.id.delivery_status);
     this.alertView               = (AlertView)          findViewById(R.id.indicators_parent);
@@ -205,7 +200,7 @@ public class ConversationItem extends LinearLayout
     setBubbleState(messageRecord, recipient);
     setStatusIcons(messageRecord);
     setContactPhoto(recipient);
-    setGroupMessageStatus(messageRecord, recipient);
+    setRecipientText(messageRecord, recipient);
     setMinimumWidth();
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
@@ -497,12 +492,12 @@ public class ConversationItem extends LinearLayout
             messageRecord.isBundleKeyExchange());
   }
 
-  private void setGroupMessageStatus(MessageRecord messageRecord, Recipient recipient) {
+  private void setRecipientText(MessageRecord messageRecord, Recipient recipient) {
     if (groupThread && !messageRecord.isOutgoing()) {
-      this.groupStatusText.setText(recipient.toShortString());
-      this.groupStatusText.setVisibility(View.VISIBLE);
+      this.recipientText.setText(recipient.toShortString());
+      this.recipientText.setVisibility(View.VISIBLE);
     } else {
-      this.groupStatusText.setVisibility(View.GONE);
+      this.recipientText.setVisibility(View.GONE);
     }
   }
 
@@ -534,7 +529,7 @@ public class ConversationItem extends LinearLayout
       public void run() {
         setBubbleState(messageRecord, recipient);
         setContactPhoto(recipient);
-        setGroupMessageStatus(messageRecord, recipient);
+        setRecipientText(messageRecord, recipient);
       }
     });
   }
