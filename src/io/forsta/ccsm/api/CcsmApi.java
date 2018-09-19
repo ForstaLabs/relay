@@ -203,11 +203,17 @@ public class CcsmApi {
         }
         if (addresses.size() > 0) {
           JSONObject threadUsers = getUserDirectory(context, addresses);
-          List<ForstaUser> threadContacts = CcsmApi.parseUsers(context, threadUsers);
+          List<ForstaUser> threadContacts = parseUsers(context, threadUsers);
+          for (ForstaUser user : threadContacts) {
+            addresses.remove(user.getUid());
+          }
+          if (addresses.size() > 0) {
+            DbFactory.getContactDb(context).setInactiveAddresses(addresses);
+          }
           orgContacts.addAll(threadContacts);
         }
         syncForstaContactsDb(context, orgContacts, removeInvalidUsers);
-        CcsmApi.syncOrgTags(context);
+        syncOrgTags(context);
       }
       ForstaPreferences.setForstaContactSync(context, new Date().getTime());
     } catch (Exception e) {
