@@ -153,7 +153,7 @@ public class Recipient {
     return this.orgSlug;
   }
 
-  public synchronized boolean getIsActive() {
+  public synchronized boolean isActive() {
     return this.isActive;
   }
 

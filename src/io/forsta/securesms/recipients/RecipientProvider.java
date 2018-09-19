@@ -134,8 +134,7 @@ public class RecipientProvider {
   }
 
   private @NonNull RecipientDetails getRecipientDetailsSync(Context context, long recipientId, @NonNull String number) {
-    if (GroupUtil.isEncodedGroup(number)) return getGroupRecipientDetails(context, number);
-    else                                  return getIndividualRecipientDetails(context, recipientId, number);
+    return getIndividualRecipientDetails(context, recipientId, number);
   }
 
   private @NonNull RecipientDetails getIndividualRecipientDetails(Context context, long recipientId, @NonNull String number) {
@@ -153,7 +152,7 @@ public class RecipientProvider {
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
 
-          boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.ISACTIVE)) != 0;
+          boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.TSREGISTERED)) != 0;
           String email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
           String phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
           String userType= cursor.getString(cursor.getColumnIndex(ContactDb.USERTYPE));
