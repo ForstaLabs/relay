@@ -152,7 +152,7 @@ public class RecipientProvider {
           String slug = cursor.getString(cursor.getColumnIndex(ContactDb.SLUG));
           String orgSlug = cursor.getString(cursor.getColumnIndex(ContactDb.ORGSLUG));
 
-          boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.TSREGISTERED)) != 0;
+          boolean isActive = cursor.getInt(cursor.getColumnIndex(ContactDb.ISACTIVE)) != 0;
           String email = cursor.getString(cursor.getColumnIndex(ContactDb.EMAIL));
           String phone = cursor.getString(cursor.getColumnIndex(ContactDb.NUMBER));
           String userType= cursor.getString(cursor.getColumnIndex(ContactDb.USERTYPE));
