@@ -493,7 +493,7 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setRecipientText(MessageRecord messageRecord, Recipient recipient) {
-    if (groupThread && !messageRecord.isOutgoing()) {
+    if (!messageRecord.isOutgoing()) {
       this.recipientText.setText(recipient.toShortString());
       this.recipientText.setVisibility(View.VISIBLE);
     } else {
