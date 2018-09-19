@@ -85,11 +85,10 @@ public class DirectoryHelper {
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
         eligibleContactAddresses.remove(activeToken.getNumber());
-
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
-      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
+      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses, true);
     }
     notifyRefresh(context);
   }

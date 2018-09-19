@@ -232,9 +232,11 @@ public class ContactDb extends DbBase {
       Log.w(TAG, "Reseting directory. Removing " + uids.size() + " entries.");
       db.beginTransaction();
       try {
-        // Now remove entries that are no longer valid.
+        ContentValues values = new ContentValues();
+        values.put(TSREGISTERED, false);
+        values.put(ISACTIVE, false);
         for (String uid : uids.keySet()) {
-          db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
+          db.update(TABLE_NAME, values, UID + "=?", new String[] { uid });
         }
         db.setTransactionSuccessful();
       } finally {
@@ -243,13 +245,13 @@ public class ContactDb extends DbBase {
     }
   }
 
-  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
+  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses, boolean registered) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
     for (ContactTokenDetails token : activeTokens) {
       String address = token.getNumber();
       ContentValues values = new ContentValues();
-      values.put(TSREGISTERED, true);
+      values.put(TSREGISTERED, registered);
       db.update(TABLE_NAME, values, UID + "=?", new String[] { address });
     }
 
