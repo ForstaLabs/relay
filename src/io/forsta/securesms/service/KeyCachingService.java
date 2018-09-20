@@ -84,9 +84,7 @@ public class KeyCachingService extends Service {
   public KeyCachingService() {}
 
   public static synchronized @Nullable MasterSecret getMasterSecret(Context context) {
-    Log.w(TAG, "getMasterSecret");
     if (masterSecret == null && TextSecurePreferences.isPasswordDisabled(context)) {
-      Log.w(TAG, "masterSecret is null");
       try {
         MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
         Intent       intent       = new Intent(context, KeyCachingService.class);

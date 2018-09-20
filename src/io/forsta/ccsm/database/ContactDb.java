@@ -243,6 +243,23 @@ public class ContactDb extends DbBase {
     }
   }
 
+  public void setInactiveAddresses(List<String> addresses) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+    db.beginTransaction();
+    try {
+      // Now remove entries that are no longer valid.
+      for (String uid : addresses) {
+        ContentValues values = new ContentValues();
+        values.put(ISACTIVE, false);
+        db.update(TABLE_NAME, values, UID + "=?", new String[] { uid });
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
   public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)

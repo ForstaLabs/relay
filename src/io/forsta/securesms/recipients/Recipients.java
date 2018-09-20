@@ -346,15 +346,19 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     List<String> addresses = new ArrayList<>();
 
     if (recipients.size() == 1) {
-      return getPrimaryRecipient().getName() != null ? getPrimaryRecipient().getName() : "Unknown recipient";
+      String name = !TextUtils.isEmpty(getPrimaryRecipient().getName()) ? getPrimaryRecipient().getName() : "Unknown Recipient";
+      if (!getPrimaryRecipient().isActive()) {
+        name += " (Removed User)";
+      }
+      return name;
     }
 
     for (int i=0; i<recipients.size(); i++) {
       String address = recipients.get(i).getAddress();
       if (!address.equals(TextSecurePreferences.getLocalNumber(context))) {
-        String name = recipients.get(i).getName();
-        if (TextUtils.isEmpty(name)) {
-          name = "Unknown Recipient";
+        String name = !TextUtils.isEmpty(recipients.get(i).getName()) ? recipients.get(i).getName() : "Unknown Recipient";
+        if (!recipients.get(i).isActive()) {
+          name += " (Removed User)";
         }
         addresses.add(name);
       }
@@ -363,6 +367,9 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     if(addresses.size() > 2) {
       return addresses.get(0) + " and " + addresses.size() + " others";
     } else {
+      if (addresses.size() == 0) {
+        return "Unknown Recipient";
+      }
       return TextUtils.join(", ", addresses);
     }
   }
