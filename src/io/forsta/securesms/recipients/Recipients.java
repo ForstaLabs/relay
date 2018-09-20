@@ -350,6 +350,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       if (!getPrimaryRecipient().isActive()) {
         name += " (Removed User)";
       }
+      return name;
     }
 
     for (int i=0; i<recipients.size(); i++) {
