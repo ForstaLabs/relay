@@ -232,7 +232,6 @@ public class ContactDb extends DbBase {
       Log.w(TAG, "Reseting directory. Removing " + uids.size() + " entries.");
       db.beginTransaction();
       try {
-        // Now remove entries that are no longer valid.
         for (String uid : uids.keySet()) {
           db.delete(TABLE_NAME, UID + "=?", new String[] { uid });
         }
