@@ -164,7 +164,7 @@ public class MmsDatabase extends MessagingDatabase {
 
   public Cursor getConversation(long threadId, long limit) {
     String order     = DATE_RECEIVED + " DESC";
-    String selection = THREAD_ID + " = ?";
+    String selection = THREAD_ID + " = ?"; // " AND MESSAGE_REF + " IS NULL"
 
     Cursor cursor = rawQuery(selection, new String[] {threadId + ""}, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
