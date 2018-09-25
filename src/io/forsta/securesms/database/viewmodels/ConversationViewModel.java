@@ -45,6 +45,7 @@ public class ConversationViewModel extends AndroidViewModel {
 
   @Override
   protected void onCleared() {
+    super.onCleared();
     Log.i(TAG, "onCleared");
   }
 }

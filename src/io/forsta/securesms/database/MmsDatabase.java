@@ -176,6 +176,13 @@ public class MmsDatabase extends MessagingDatabase {
     return getConversation(threadId, 0);
   }
 
+  public Cursor getReplies(String messageId) {
+    String order = DATE_SENT + " ASC";
+    String selection = MmsDatabase.MESSAGE_REF + " = ?";
+    Cursor cursor = rawQuery(selection, new String[] {messageId + ""}, order, null);
+    return cursor;
+  }
+
   public Cursor getIdentityConflictMessagesForThread(long threadId) {
     String order           = DATE_RECEIVED + " ASC";
     String selection       = THREAD_ID + " = ? AND " + MISMATCHED_IDENTITIES + " ?";
