@@ -1130,14 +1130,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-//    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-//                                                                    slideDeck,
-//                                                                    body,
-//                                                                    System.currentTimeMillis(),
-//                                                                    subscriptionId,
-//                                                                    expiresIn,
-//                                                                    distributionType);
-//    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
 
     OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();

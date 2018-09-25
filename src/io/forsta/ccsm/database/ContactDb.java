@@ -248,7 +248,6 @@ public class ContactDb extends DbBase {
 
     db.beginTransaction();
     try {
-      // Now remove entries that are no longer valid.
       for (String uid : addresses) {
         ContentValues values = new ContentValues();
         values.put(ISACTIVE, false);
