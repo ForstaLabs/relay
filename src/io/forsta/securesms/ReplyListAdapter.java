@@ -56,11 +56,9 @@ public class ReplyListAdapter extends CursorAdapter {
         String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
 
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
-        long localId                = RecipientFactory.getRecipientIdFromNum(context,TextSecurePreferences.getLocalNumber(context));
-
         Recipient author;
         if (messageRecord.isOutgoing()) {
-            author = Recipient.from(context, localId, true);
+            author = RecipientFactory.getRecipient(context, TextSecurePreferences.getLocalNumber(context), true);
         } else {
             author = messageRecord.getIndividualRecipient();
         }

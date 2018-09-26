@@ -715,10 +715,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author;
     messageRef = messageRecord.getMessageId();
-
-    long localId = RecipientFactory.getRecipientIdFromNum(this,TextSecurePreferences.getLocalNumber(this));
+    
     if (messageRecord.isOutgoing()) {
-      author = Recipient.from(this, localId, true);
+      author = RecipientFactory.getRecipient(this, TextSecurePreferences.getLocalNumber(this), true);
     } else {
       author = messageRecord.getIndividualRecipient();
     }

@@ -41,14 +41,9 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
 
 public class Recipient {
-
   private final static String TAG = Recipient.class.getSimpleName();
-  private static final RecipientProvider provider = new RecipientProvider();
-
   private final Set<RecipientModifiedListener> listeners = Collections.newSetFromMap(new WeakHashMap<RecipientModifiedListener, Boolean>());
-
   private final long recipientId;
-
   private @NonNull  String  number;
   private @Nullable String  name;
   private @Nullable String slug;
@@ -58,7 +53,6 @@ public class Recipient {
   private boolean isActive;
   private String userType;
   private boolean stale;
-
   private ContactPhoto contactPhoto;
   private Uri          contactUri;
   private @Nullable String gravatarHash;
@@ -133,11 +127,6 @@ public class Recipient {
     this.phone = details.phone;
     this.isActive = details.isActive;
     this.userType = details.userType;
-  }
-
-  @SuppressWarnings("ConstantConditions")
-    public static @NonNull Recipient from(@NonNull Context context, long recipientId, boolean asynchronous) {
-      return provider.getRecipient(context, recipientId, asynchronous);
   }
 
   public synchronized @NonNull String getAddress() {

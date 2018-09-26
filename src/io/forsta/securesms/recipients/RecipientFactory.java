@@ -118,28 +118,10 @@ public class RecipientFactory {
 
     return Optional.of(CanonicalAddressDatabase.getInstance(context).getCanonicalAddressId(number));
   }
-
-  @Nullable public static long getRecipientIdFromNum(Context context, String number) {
-    number = number.trim();
-
-    if (number.isEmpty()) return -1;
-
-    return CanonicalAddressDatabase.getInstance(context).getCanonicalAddressId(number);
-  }
-
-  private static boolean hasBracketedNumber(String recipient) {
-    int openBracketIndex = recipient.indexOf('<');
-
-    return (openBracketIndex != -1) &&
-           (recipient.indexOf('>', openBracketIndex) != -1);
-  }
-
-  private static String parseBracketedNumber(String recipient) {
-    int begin    = recipient.indexOf('<');
-    int end      = recipient.indexOf('>', begin);
-    String value = recipient.substring(begin + 1, end);
-
-    return value;
+  
+  public static Recipient getRecipient(Context context, String uid, boolean async) {
+    long id = getRecipientIdFromNumber(context, uid).get();
+    return provider.getRecipient(context, id, async);
   }
 
   public static void clearCache(Context context) {
