@@ -1191,38 +1191,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-//    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-//                                                                    slideDeck,
-//                                                                    body,
-//                                                                    System.currentTimeMillis(),
-//                                                                    subscriptionId,
-//                                                                    expiresIn,
-//                                                                    distributionType, messageRef, 0, null);
-//    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
-//
-//    attachmentManager.clear();
-//    composeText.setText("");
-//    inputPanel.clearQuote();
-//    this.messageRef = null;
-//
-//    new AsyncTask<OutgoingMediaMessage, Void, Long>() {
-//      @Override
-//      protected Long doInBackground(OutgoingMediaMessage... messages) {
-//        OutgoingMediaMessage message = messages[0];
-//        // TODO is using forstaThread and threadId inside async task a problem?
-//        message.setForstaJsonBody(context, forstaThread);
-//        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
-//      }
-//
-//      @Override
-//      protected void onPostExecute(Long result) {
-//        sendComplete(result);
-//        future.set(null);
-//      }
-//    }.execute(outgoingMessage);
 
-
-    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
