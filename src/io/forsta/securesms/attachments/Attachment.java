@@ -39,7 +39,7 @@ public abstract class Attachment {
     this.location      = location;
     this.key           = key;
     this.relay         = relay;
-    this.fileName = "";
+    this.fileName      = "";
   }
 
   @Nullable

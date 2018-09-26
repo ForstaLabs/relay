@@ -111,6 +111,7 @@
     <attr name="menu_info_icon" format="reference" />
     <attr name="menu_forward_icon" format="reference" />
     <attr name="menu_save_icon" format="reference" />
+    <attr name="menu_reply_icon" format="reference" />
 
     <attr name="pref_ic_sms_mms" format="reference" />
     <attr name="pref_ic_auth" format="reference" />
@@ -186,6 +187,14 @@
         <attr name="documentWidgetBackground" format="color"/>
         <attr name="documentForegroundTintColor" format="color"/>
         <attr name="documentBackgroundTintColor" format="color"/>
+    </declare-styleable>
+
+    <declare-styleable name="QuoteView">
+        <attr name ="message_type" format="enum">
+            <enum name="preview" value="0"/>
+            <enum name="outgoing" value="1"/>
+            <enum name="incoming" value="2"/>
+        </attr>
     </declare-styleable>
 
 </resources>

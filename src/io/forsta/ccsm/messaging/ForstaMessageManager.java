@@ -107,6 +107,15 @@ public class ForstaMessageManager {
         forstaMessage.setUniversalExpression(distribution.getString("expression"));
       }
 
+      if (jsonBody.has("messageRef")) {
+        String messageId = jsonBody.getString("messageRef");
+        forstaMessage.setMessageRef(messageId);
+        if (jsonBody.has("vote")) {
+          int vote = jsonBody.getInt("vote");
+          forstaMessage.setVote(vote);
+        }
+      }
+
       if (jsonBody.has("data")) {
         JSONObject data = jsonBody.getJSONObject("data");
         if (data.has("body")) {
@@ -133,18 +142,9 @@ public class ForstaMessageManager {
         }
         if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for (int i=0; i<mentions.length(); i++) {
+          for (int i = 0; i < mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
-          }
-        }
-
-        if (data.has("messageRef")) {
-          String messageId = data.getString("messageRef");
-          forstaMessage.setMessageRef(messageId);
-          if (data.has("vote")) {
-            int vote = data.getInt("vote");
-            forstaMessage.setVote(vote);
           }
         }
 

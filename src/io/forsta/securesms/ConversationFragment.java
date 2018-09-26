@@ -46,8 +46,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsSmsDatabase;
@@ -196,6 +194,7 @@ public class ConversationFragment extends Fragment
       menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
       menu.findItem(R.id.menu_context_resend).setVisible(false);
       menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+      menu.findItem(R.id.menu_context_reply).setVisible(false);
     } else {
       MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -208,6 +207,7 @@ public class ConversationFragment extends Fragment
       menu.findItem(R.id.menu_context_forward).setVisible(!actionMessage);
       menu.findItem(R.id.menu_context_details).setVisible(!actionMessage);
       menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+      menu.findItem(R.id.menu_context_reply).setVisible(!actionMessage);
     }
   }
 
@@ -239,6 +239,15 @@ public class ConversationFragment extends Fragment
         list.smoothScrollToPosition(0);
       }
     });
+  }
+
+  private void handleReplyMessage(final MessageRecord messageRecord) {
+    listener.handleReplyMessage(messageRecord);
+  }
+
+  public interface ConversationFragmentListener {
+    void setThreadId(long threadId);
+    void handleReplyMessage(MessageRecord messageRecord);
   }
 
   private void handleCopyMessage(final Set<MessageRecord> messageRecords) {
@@ -401,10 +410,6 @@ public class ConversationFragment extends Fragment
     }
   }
 
-  public interface ConversationFragmentListener {
-    void setThreadId(long threadId);
-  }
-
   private class ConversationFragmentItemClickListener implements ConversationAdapter.ItemClickListener {
 
     @Override
@@ -489,6 +494,10 @@ public class ConversationFragment extends Fragment
           return true;
         case R.id.menu_context_save_attachment:
           handleSaveAttachment((MediaMmsMessageRecord)getSelectedMessageRecord());
+          actionMode.finish();
+          return true;
+        case R.id.menu_context_reply:
+          handleReplyMessage(getSelectedMessageRecord());
           actionMode.finish();
           return true;
       }

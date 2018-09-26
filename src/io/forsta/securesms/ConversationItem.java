@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
@@ -44,6 +45,7 @@ import android.widget.VideoView;
 import io.forsta.securesms.components.AlertView;
 import io.forsta.securesms.components.AudioView;
 import io.forsta.securesms.components.AvatarImageView;
+import io.forsta.securesms.components.ReplyListView;
 import io.forsta.securesms.components.DeliveryStatusView;
 import io.forsta.securesms.components.DocumentView;
 import io.forsta.securesms.components.ExpirationTimerView;
@@ -99,8 +101,11 @@ public class ConversationItem extends LinearLayout
   private Locale        locale;
   private boolean       groupThread;
   private Recipient     recipient;
+  private String        messageId;
 
   private View               bodyBubble;
+  private ReplyListView      listView;
+  private LinearLayout       replyBox;
   private TextView           bodyText;
   private TextView           dateText;
   private TextView           simInfoText;
@@ -121,6 +126,8 @@ public class ConversationItem extends LinearLayout
   private int giphyLoopCounter = 0;
 
   private int defaultBubbleColor;
+
+  private final PassthroughClickListener        passthroughClickListener   = new PassthroughClickListener();
 
   private final Context                     context;
 
@@ -144,24 +151,25 @@ public class ConversationItem extends LinearLayout
 
     initializeAttributes();
 
-    this.bodyText                = (TextView)           findViewById(R.id.conversation_item_body);
-    this.dateText                = (TextView)           findViewById(R.id.conversation_item_date);
-    this.simInfoText             = (TextView)           findViewById(R.id.sim_info);
-    this.indicatorText           = (TextView)           findViewById(R.id.indicator_text);
-    this.recipientText = (TextView)           findViewById(R.id.group_message_status);
-    this.secureImage             = (ImageView)          findViewById(R.id.secure_indicator);
-    this.deliveryStatusIndicator = (DeliveryStatusView) findViewById(R.id.delivery_status);
-    this.alertView               = (AlertView)          findViewById(R.id.indicators_parent);
-    this.contactPhoto            = (AvatarImageView)    findViewById(R.id.contact_photo);
-    this.bodyBubble              =                      findViewById(R.id.body_bubble);
-    this.mediaThumbnail          = (ThumbnailView)      findViewById(R.id.image_view);
-    this.audioView               = (AudioView)          findViewById(R.id.audio_view);
-    this.documentView               = (DocumentView)          findViewById(R.id.document_view);
-    this.expirationTimer         = (ExpirationTimerView) findViewById(R.id.expiration_indicator);
-    videoView = (VideoView) findViewById(R.id.item_video_view);
+    this.bodyText                = findViewById(R.id.conversation_item_body);
+    this.dateText                = findViewById(R.id.conversation_item_date);
+    this.simInfoText             = findViewById(R.id.sim_info);
+    this.indicatorText           = findViewById(R.id.indicator_text);
+    this.recipientText         = findViewById(R.id.group_message_status);
+    this.secureImage             = findViewById(R.id.secure_indicator);
+    this.deliveryStatusIndicator = findViewById(R.id.delivery_status);
+    this.alertView               = findViewById(R.id.indicators_parent);
+    this.contactPhoto            = findViewById(R.id.contact_photo);
+    this.bodyBubble              = findViewById(R.id.body_bubble);
+    this.mediaThumbnail          = findViewById(R.id.image_view);
+    this.audioView               = findViewById(R.id.audio_view);
+    this.documentView            = findViewById(R.id.document_view);
+    this.expirationTimer         = findViewById(R.id.expiration_indicator);
+    videoView                    = findViewById(R.id.item_video_view);
+    this.listView                = findViewById(R.id.conversation_list_view);
+    this.replyBox                = findViewById(R.id.reply_box);
 
     setOnClickListener(new ClickListener(null));
-    PassthroughClickListener        passthroughClickListener = new PassthroughClickListener();
     AttachmentDownloadClickListener downloadClickListener    = new AttachmentDownloadClickListener();
 
     mediaThumbnail.setThumbnailClickListener(new ThumbnailClickListener());
@@ -190,6 +198,7 @@ public class ConversationItem extends LinearLayout
     this.conversationRecipients = conversationRecipients;
     this.groupThread            = !conversationRecipients.isSingleRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
+    this.messageId              = messageRecord.getMessageId();
 
     this.recipient.addListener(this);
     this.conversationRecipients.addListener(this);
@@ -205,6 +214,7 @@ public class ConversationItem extends LinearLayout
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
+    setReply(messageRecord);
   }
 
   private void initializeAttributes() {
@@ -327,7 +337,6 @@ public class ConversationItem extends LinearLayout
     } else if (hasThumbnail(messageRecord)) {
       mediaThumbnail.setVisibility(View.VISIBLE);
       audioView.setVisibility(View.GONE);
-      documentView.setVisibility(GONE);
       mediaThumbnail.hideVideoPlayButton();
       videoView.setVisibility(GONE);
 
@@ -349,29 +358,20 @@ public class ConversationItem extends LinearLayout
       videoView.setVisibility(VISIBLE);
       bodyText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
       videoView.setVideoURI(Uri.parse(giphy));
-      videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-        @Override
-        public void onPrepared(MediaPlayer mediaPlayer) {
+      videoView.setOnPreparedListener((MediaPlayer mediaPlayer) -> {
           videoView.start();
-        }
-      });
-      videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
+        });
+      videoView.setOnCompletionListener((MediaPlayer mediaPlayer) -> {
           if (giphyLoopCounter < 4) {
             videoView.start();
             giphyLoopCounter++;
           } else {
             giphyLoopCounter = 0;
           }
-        }
-      });
-      videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-        @Override
-        public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        });
+      videoView.setOnErrorListener((MediaPlayer mediaPlayer, int i, int i1) -> {
           return true;
-        }
-      });
+        });
     } else {
       videoView.setVisibility(GONE);
       mediaThumbnail.setVisibility(View.GONE);
@@ -458,6 +458,33 @@ public class ConversationItem extends LinearLayout
     }
   }
 
+  //Checking for messageRef inside messages could be redundant since the query for getConversation inside MmsSmsDatabase
+  //has already been changed to not display messages with messageRefs.
+  private void setReply(MessageRecord messageRecord) {
+    if(messageRecord.getMessageRef() == null){
+      MmsDatabase db = DatabaseFactory.getMmsDatabase(context);
+      Cursor cursor = db.getReplies(messageId);
+      listView.setStackFromBottom(true);
+
+      if((cursor != null) && (cursor.getCount() > 0)) {
+        listView.setClickable(false);  //Could set up long click to bring up option to upvote
+        listView.setFocusable(false);
+        replyBox.setVisibility(VISIBLE);
+        listView.setVisibility(VISIBLE);
+
+        ReplyListAdapter adapter = new ReplyListAdapter(context, R.layout.reply_list_view, cursor, masterSecret);
+        listView.setAdapter(adapter);
+      } else {
+        replyBox.setVisibility(GONE);
+        listView.setVisibility(GONE);
+        cursor.close();
+      }
+    } else {
+      replyBox.setVisibility(GONE);
+      listView.setVisibility(GONE);
+    }
+  }
+
   private void setFailedStatusIcons() {
     alertView.setFailed();
     deliveryStatusIndicator.setNone();
@@ -524,9 +551,7 @@ public class ConversationItem extends LinearLayout
 
   @Override
   public void onModified(final Recipient recipient) {
-    Util.runOnMain(new Runnable() {
-      @Override
-      public void run() {
+    Util.runOnMain(() -> {
         setBubbleState(messageRecord, recipient);
         setContactPhoto(recipient);
         setRecipientText(messageRecord, recipient);
@@ -536,12 +561,9 @@ public class ConversationItem extends LinearLayout
 
   @Override
   public void onModified(final Recipients recipients) {
-    Util.runOnMain(new Runnable() {
-      @Override
-      public void run() {
+    Util.runOnMain(() -> {
         setAudioViewTint(messageRecord, recipients);
-      }
-    });
+      });
   }
 
   private class DocumentAttachmentSaveClickListener implements SlideClickListener {
@@ -552,8 +574,7 @@ public class ConversationItem extends LinearLayout
 
     @Override
     public void onClick(View v, final Slide slide) {
-      SaveAttachmentTask.showWarningDialog(getContext(), new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
+      SaveAttachmentTask.showWarningDialog(getContext(), (DialogInterface dialog, int which) -> {
           if (slide.getUri() != null) {
             SaveAttachmentTask saveTask = new SaveAttachmentTask(getContext(), masterSecret);
             saveTask.execute(new SaveAttachmentTask.Attachment(slide.getUri(), slide.getContentType(), messageRecord.getDateReceived(), fileName));
@@ -563,8 +584,7 @@ public class ConversationItem extends LinearLayout
                 getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
                 Toast.LENGTH_LONG).show();
           }
-        }
-      });
+        });
     }
   }
 
@@ -679,9 +699,7 @@ public class ConversationItem extends LinearLayout
 
     if (message > -1) builder.setMessage(message);
 
-    builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialogInterface, int i) {
+    builder.setPositiveButton(R.string.yes, (DialogInterface dialogInterface, int i) -> {
         if (messageRecord.isMms()) {
           MmsDatabase database = DatabaseFactory.getMmsDatabase(context);
           database.markAsInsecure(messageRecord.getId());
@@ -702,20 +720,15 @@ public class ConversationItem extends LinearLayout
                             .add(new SmsSendJob(context, messageRecord.getId(),
                                                 messageRecord.getIndividualRecipient().getAddress()));
         }
-      }
-    });
+      });
 
-    builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialogInterface, int i) {
+    builder.setNegativeButton(R.string.no, (DialogInterface dialogInterface, int i) -> {
         if (messageRecord.isMms()) {
           DatabaseFactory.getMmsDatabase(context).markAsSentFailed(messageRecord.getId());
         } else {
           DatabaseFactory.getSmsDatabase(context).markAsSentFailed(messageRecord.getId());
         }
-      }
-    });
+      });
     builder.show();
   }
-
 }
