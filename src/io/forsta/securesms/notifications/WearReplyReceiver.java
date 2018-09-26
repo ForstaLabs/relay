@@ -72,13 +72,8 @@ public class WearReplyReceiver extends MasterSecretBroadcastReceiver {
           int  subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
           long expiresIn      = preferences.isPresent() ? preferences.get().getExpireMessages() * 1000 : 0;
 
-          if (recipients.isGroupRecipient()) {
-            OutgoingMediaMessage reply = new OutgoingMediaMessage(recipients, responseText.toString(), new LinkedList<Attachment>(), System.currentTimeMillis(), subscriptionId, expiresIn, 0);
-            threadId = MessageSender.send(context, masterSecret, reply, -1, false);
-          } else {
-            OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
-            threadId = MessageSender.send(context, masterSecret, reply, -1, false);
-          }
+          OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
+          threadId = MessageSender.send(context, masterSecret, reply, -1, false);
 
           List<MarkedMessageInfo> messageIds = DatabaseFactory.getThreadDatabase(context).setRead(threadId);
           MessageNotifier.updateNotification(context, masterSecret);

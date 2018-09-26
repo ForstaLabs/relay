@@ -1,6 +1,7 @@
 package io.forsta.securesms.util;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.media.AudioManager;
@@ -32,5 +33,9 @@ public class ServiceUtil {
 
   public static AudioManager getAudioManager(Context context) {
     return (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+  }
+
+  public static AlarmManager getAlarmManager(Context context) {
+    return (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
   }
 }

@@ -65,9 +65,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.util.DateUtils;
@@ -180,9 +182,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             mDebugText.setText(printDirectory());
             break;
           case 4:
-//            GetMessages getMessages = new GetMessages();
-//            getMessages.execute();
-            mDebugText.setText(printMediaMessages(10));
+            GetMessages getMessages = new GetMessages();
+            getMessages.execute();
             break;
           case 5:
             mDebugText.setText(printThreads());
@@ -424,30 +425,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return sb.toString();
   }
 
-  private String printMediaMessages(int count) {
-    MmsDatabase db = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
-    Cursor cursor = db.getMessages(count);
-    StringBuilder sb = new StringBuilder();
-    while (cursor != null && cursor.moveToNext()) {
-      for (int i=0; i<cursor.getColumnCount(); i++) {
-        sb.append(cursor.getColumnName(i)).append(": ");
-        if (cursor.getColumnName(i).equals("body")) {
-          try {
-            sb.append(mMasterCipher.decryptBody(cursor.getString(i)));
-          } catch (InvalidMessageException e) {
-            e.printStackTrace();
-          }
-        } else {
-          sb.append(cursor.getString(i)).append("\n");
-        }
-
-      }
-      sb.append("\n");
-    }
-    cursor.close();
-    return sb.toString();
-  }
-
   private String printAllMessages() {
     StringBuilder sb = new StringBuilder();
     ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
@@ -463,42 +440,14 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       sb.append("\n");
       Recipients trecipients = trecord.getRecipients();
 
-      if (trecipients.isGroupRecipient()) {
-        String groupId = trecipients.getPrimaryRecipient().getAddress();
-        sb.append("Group Recipients").append("\n");
-        sb.append("Group ID: ").append(groupId).append("\n");
-        try {
-          byte[] id = GroupUtil.getDecodedId(groupId);
-          Log.d(TAG, "Decoded Group: " + id);
-          GroupDatabase.GroupRecord groupRec = gdb.getGroup(id);
-          Recipients rec = gdb.getGroupMembers(id, true);
-
-          if (groupRec != null) {
-            sb.append("Name: ").append(groupRec.getTitle()).append("\n");
-
-            List<Recipient> groupRecipients = rec.getRecipientsList();
-            for (Recipient recipient : groupRecipients) {
-              sb.append(recipient.getAddress()).append("\n");
-            }
-          } else {
-            sb.append("No Group Found.").append("\n");
-          }
-
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-
-
-      } else {
-        sb.append("Recipients").append("\n");
-        for (Recipient rec : trecipients.getRecipientsList()) {
-          sb.append(rec.getAddress()).append("\n");
-        }
+      sb.append("Recipients").append("\n");
+      for (Recipient rec : trecipients.getRecipientsList()) {
+        sb.append(rec.getAddress()).append("\n");
       }
 
-      Cursor cursor = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).getConversation(tId);
+      Cursor cursor = DatabaseFactory.getMmsDatabase(DashboardActivity.this).getConversation(tId);
       MessageRecord record;
-      MmsSmsDatabase.Reader reader = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this).readerFor(cursor, mMasterSecret);
+      MmsDatabase.Reader reader = DatabaseFactory.getMmsDatabase(DashboardActivity.this).readerFor(mMasterSecret, cursor);
 
       while ((record = reader.getNext()) != null) {
         Recipient recipient = record.getIndividualRecipient();
@@ -781,7 +730,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
 
       // Go through all existing messages and verify JSON.
       ThreadDatabase tdb = DatabaseFactory.getThreadDatabase(DashboardActivity.this);
-      MmsSmsDatabase mdb = DatabaseFactory.getMmsSmsDatabase(DashboardActivity.this);
+      MmsDatabase mdb = DatabaseFactory.getMmsDatabase(DashboardActivity.this);
       Cursor ccursor = tdb.getConversationList();
       ThreadDatabase.Reader treader = tdb.readerFor(ccursor, mMasterCipher);
       ThreadRecord trecord;
@@ -792,7 +741,7 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
       int failCount = 0;
       while ((trecord = treader.getNext()) != null) {
         Cursor mcursor = mdb.getConversation(trecord.getThreadId());
-        MmsSmsDatabase.Reader mreader = mdb.readerFor(mcursor, mMasterSecret);
+        MmsDatabase.Reader mreader = mdb.readerFor(mMasterSecret, mcursor);
         MessageRecord mrecord;
 
         while ((mrecord = mreader.getNext()) != null) {

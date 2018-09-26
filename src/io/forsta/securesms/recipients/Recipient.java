@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 
 public class Recipient {
 
@@ -112,7 +113,7 @@ public class Recipient {
       }
 
       @Override
-      public void onFailure(Throwable error) {
+      public void onFailure(ExecutionException error) {
         Log.w(TAG, error);
       }
     });
@@ -159,7 +160,7 @@ public class Recipient {
     return this.orgSlug;
   }
 
-  public synchronized boolean getIsActive() {
+  public synchronized boolean isActive() {
     return this.isActive;
   }
 
@@ -214,7 +215,11 @@ public class Recipient {
   }
 
   public synchronized String toShortString() {
-    return (name == null ? "Unknown Recipient" : name);
+    String nameString = name != null ? name : "Unknown Recipient";
+    if (!this.isActive) {
+      nameString += " (Removed User)";
+    }
+    return nameString;
   }
 
   public synchronized @NonNull ContactPhoto getContactPhoto() {

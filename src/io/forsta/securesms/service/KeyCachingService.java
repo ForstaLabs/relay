@@ -19,6 +19,8 @@ package io.forsta.securesms.service;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -42,8 +44,10 @@ import io.forsta.securesms.crypto.InvalidPassphraseException;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.jobs.MasterSecretDecryptJob;
+import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.util.DynamicLanguage;
+import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.util.concurrent.TimeUnit;
@@ -56,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 
 public class KeyCachingService extends Service {
 
+  public static final String TAG = KeyCachingService.class.getSimpleName();
   public static final int SERVICE_RUNNING_ID = 4141;
 
   public  static final String KEY_PERMISSION           = "io.forsta.securesms.ACCESS_SECRETS";
@@ -84,11 +89,15 @@ public class KeyCachingService extends Service {
         MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
         Intent       intent       = new Intent(context, KeyCachingService.class);
 
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          context.startForegroundService(intent);
+        } else {
+          context.startService(intent);
+        }
 
         return masterSecret;
       } catch (InvalidPassphraseException e) {
-        Log.w("KeyCachingService", e);
+        Log.w(TAG, e);
       }
     }
 
@@ -142,6 +151,21 @@ public class KeyCachingService extends Service {
   public void onCreate() {
     Log.w("KeyCachingService", "onCreate()");
     super.onCreate();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      String CHANNEL_ID = AbstractNotificationBuilder.CHANNEL_ID;
+      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+          "Forsta",
+          NotificationManager.IMPORTANCE_DEFAULT);
+
+      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+      Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+          .setContentTitle("Forsta")
+          .setContentText("Service running...").build();
+
+      startForeground(1, notification);
+    }
+
     this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
                                                                 this, KeyCachingService.class), 0);
 
@@ -176,7 +200,7 @@ public class KeyCachingService extends Service {
   private void handleActivityStarted() {
     Log.w("KeyCachingService", "Incrementing activity count...");
 
-    AlarmManager alarmManager = (AlarmManager)this.getSystemService(ALARM_SERVICE);
+    AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
     alarmManager.cancel(pending);
     activitiesRunning++;
   }
@@ -226,7 +250,8 @@ public class KeyCachingService extends Service {
 
       Log.w("KeyCachingService", "Starting timeout: " + timeoutMillis);
 
-      AlarmManager alarmManager = (AlarmManager)this.getSystemService(ALARM_SERVICE);
+      AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
+
       alarmManager.cancel(pending);
       alarmManager.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + timeoutMillis, pending);
     }
@@ -250,43 +275,13 @@ public class KeyCachingService extends Service {
     startForeground(SERVICE_RUNNING_ID, builder.build());
   }
 
-  private void foregroundServiceICS() {
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-    RemoteViews remoteViews            = new RemoteViews(getPackageName(), R.layout.key_caching_notification);
-
-    remoteViews.setOnClickPendingIntent(R.id.lock_cache_icon, buildLockIntent());
-
-    builder.setSmallIcon(R.drawable.icon_cached);
-    builder.setContent(remoteViews);
-    builder.setContentIntent(buildLaunchIntent());
-
-    stopForeground(true);
-    startForeground(SERVICE_RUNNING_ID, builder.build());
-  }
-
-  private void foregroundServiceLegacy() {
-    Notification.Builder builder = new Notification.Builder(getApplicationContext());
-    builder.setContentIntent(buildLaunchIntent());
-    builder.setContentTitle(getString(R.string.KeyCachingService_passphrase_cached));
-    builder.setContentText(getString(R.string.KeyCachingService_signal_passphrase_cached));
-
-    stopForeground(true);
-    startForeground(SERVICE_RUNNING_ID, builder.build());
-  }
-
   private void foregroundService() {
     if (TextSecurePreferences.isPasswordDisabled(this)) {
       stopForeground(true);
       return;
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      foregroundServiceModern();
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-      foregroundServiceICS();
-    } else {
-      foregroundServiceLegacy();
-    }
+    foregroundServiceModern();
   }
 
   private void broadcastNewSecret() {

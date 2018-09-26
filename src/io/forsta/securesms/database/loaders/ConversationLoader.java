@@ -22,6 +22,6 @@ public class ConversationLoader extends AbstractCursorLoader {
 
   @Override
   public Cursor getCursor() {
-    return DatabaseFactory.getMmsSmsDatabase(context).getConversation(threadId, limit);
+    return DatabaseFactory.getMmsDatabase(context).getConversation(threadId, limit);
   }
 }

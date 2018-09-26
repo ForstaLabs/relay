@@ -1,5 +1,6 @@
 package io.forsta.ccsm;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -52,6 +53,7 @@ import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
@@ -90,6 +92,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME);
     initializeView();
     initializeListeners();
+    initializePermissions();
   }
 
   @Override
@@ -150,6 +153,16 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     if (user != null) {
       createAccountContainer.setVisibility(View.GONE);
     }
+  }
+
+  private void initializePermissions() {
+    Permissions.with(LoginActivity.this)
+        .request(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        .ifNecessary()
+        .withRationaleDialog(getString(R.string.Permissions_required_initial))
+        .execute();
   }
 
   private void initializeListeners() {

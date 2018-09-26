@@ -110,7 +110,7 @@ public class ConversationItem extends LinearLayout
   private TextView           dateText;
   private TextView           simInfoText;
   private TextView           indicatorText;
-  private TextView           groupStatusText;
+  private TextView recipientText;
   private ImageView          secureImage;
   private AvatarImageView contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
@@ -155,7 +155,7 @@ public class ConversationItem extends LinearLayout
     this.dateText                = findViewById(R.id.conversation_item_date);
     this.simInfoText             = findViewById(R.id.sim_info);
     this.indicatorText           = findViewById(R.id.indicator_text);
-    this.groupStatusText         = findViewById(R.id.group_message_status);
+    this.recipientText         = findViewById(R.id.group_message_status);
     this.secureImage             = findViewById(R.id.secure_indicator);
     this.deliveryStatusIndicator = findViewById(R.id.delivery_status);
     this.alertView               = findViewById(R.id.indicators_parent);
@@ -196,7 +196,7 @@ public class ConversationItem extends LinearLayout
     this.locale                 = locale;
     this.batchSelected          = batchSelected;
     this.conversationRecipients = conversationRecipients;
-    this.groupThread            = !conversationRecipients.isSingleRecipient() || conversationRecipients.isGroupRecipient();
+    this.groupThread            = !conversationRecipients.isSingleRecipient();
     this.recipient              = messageRecord.getIndividualRecipient();
     this.messageId              = messageRecord.getMessageId();
 
@@ -209,7 +209,7 @@ public class ConversationItem extends LinearLayout
     setBubbleState(messageRecord, recipient);
     setStatusIcons(messageRecord);
     setContactPhoto(recipient);
-    setGroupMessageStatus(messageRecord, recipient);
+    setRecipientText(messageRecord, recipient);
     setMinimumWidth();
     setMediaAttributes(messageRecord);
     setSimInfo(messageRecord);
@@ -462,7 +462,7 @@ public class ConversationItem extends LinearLayout
   //has already been changed to not display messages with messageRefs.
   private void setReply(MessageRecord messageRecord) {
     if(messageRecord.getMessageRef() == null){
-      MmsSmsDatabase db = DatabaseFactory.getMmsSmsDatabase(context);
+      MmsDatabase db = DatabaseFactory.getMmsDatabase(context);
       Cursor cursor = db.getReplies(messageId);
       listView.setStackFromBottom(true);
 
@@ -519,12 +519,12 @@ public class ConversationItem extends LinearLayout
             messageRecord.isBundleKeyExchange());
   }
 
-  private void setGroupMessageStatus(MessageRecord messageRecord, Recipient recipient) {
-    if (groupThread && !messageRecord.isOutgoing()) {
-      this.groupStatusText.setText(recipient.toShortString());
-      this.groupStatusText.setVisibility(View.VISIBLE);
+  private void setRecipientText(MessageRecord messageRecord, Recipient recipient) {
+    if (!messageRecord.isOutgoing()) {
+      this.recipientText.setText(recipient.toShortString());
+      this.recipientText.setVisibility(View.VISIBLE);
     } else {
-      this.groupStatusText.setVisibility(View.GONE);
+      this.recipientText.setVisibility(View.GONE);
     }
   }
 
@@ -554,8 +554,9 @@ public class ConversationItem extends LinearLayout
     Util.runOnMain(() -> {
         setBubbleState(messageRecord, recipient);
         setContactPhoto(recipient);
-        setGroupMessageStatus(messageRecord, recipient);
-      });
+        setRecipientText(messageRecord, recipient);
+      }
+    });
   }
 
   @Override

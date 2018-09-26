@@ -65,9 +65,9 @@ public class AcceptIdentityMismatch extends AsyncTask<Void, Void, Void> {
   }
 
   private void processPendingMessageRecords(long threadId, IdentityKeyMismatch mismatch) {
-    MmsSmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsSmsDatabase(context);
+    MmsDatabase mmsSmsDatabase = DatabaseFactory.getMmsDatabase(context);
     Cursor cursor         = mmsSmsDatabase.getIdentityConflictMessagesForThread(threadId);
-    MmsSmsDatabase.Reader reader         = mmsSmsDatabase.readerFor(cursor, masterSecret);
+    MmsDatabase.Reader reader         = mmsSmsDatabase.readerFor(masterSecret, cursor);
     MessageRecord         record;
 
     try {
@@ -85,36 +85,21 @@ public class AcceptIdentityMismatch extends AsyncTask<Void, Void, Void> {
   }
 
   private void processOutgoingMessageRecord(MessageRecord messageRecord) {
-    SmsDatabase smsDatabase        = DatabaseFactory.getSmsDatabase(context);
     MmsDatabase mmsDatabase        = DatabaseFactory.getMmsDatabase(context);
     MmsAddressDatabase mmsAddressDatabase = DatabaseFactory.getMmsAddressDatabase(context);
 
-    if (messageRecord.isMms()) {
-      mmsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-          mismatch.getRecipientId(),
-          mismatch.getIdentityKey());
+    mmsDatabase.removeMismatchedIdentity(messageRecord.getId(),
+        mismatch.getRecipientId(),
+        mismatch.getIdentityKey());
 
-      Recipients recipients = mmsAddressDatabase.getRecipientsForId(messageRecord.getId());
+    Recipients recipients = mmsAddressDatabase.getRecipientsForId(messageRecord.getId());
 
-      if (recipients.isGroupRecipient()) MessageSender.resendGroupMessage(context, masterSecret, messageRecord, mismatch.getRecipientId());
-      else                               MessageSender.resend(context, masterSecret, messageRecord);
-    } else {
-      smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-          mismatch.getRecipientId(),
-          mismatch.getIdentityKey());
-
-      MessageSender.resend(context, masterSecret, messageRecord);
-    }
+    MessageSender.resend(context, masterSecret, messageRecord);
   }
 
   private void processIncomingMessageRecord(MessageRecord messageRecord) {
     try {
       PushDatabase pushDatabase = DatabaseFactory.getPushDatabase(context);
-      SmsDatabase  smsDatabase  = DatabaseFactory.getSmsDatabase(context);
-
-      smsDatabase.removeMismatchedIdentity(messageRecord.getId(),
-          mismatch.getRecipientId(),
-          mismatch.getIdentityKey());
 
       SignalServiceEnvelope envelope = new SignalServiceEnvelope(SignalServiceProtos.Envelope.Type.PREKEY_BUNDLE_VALUE,
           messageRecord.getIndividualRecipient().getAddress(),

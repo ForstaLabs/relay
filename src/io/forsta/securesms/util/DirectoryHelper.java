@@ -54,7 +54,7 @@ public class DirectoryHelper {
     refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), true);
   }
 
-  public static void refreshDirectory(@NonNull Context context, @Nullable MasterSecret masterSecret) throws IOException {
+  public static void refreshDirectory(@NonNull Context context) throws IOException {
     refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), false);
   }
 
@@ -85,7 +85,6 @@ public class DirectoryHelper {
     if (activeTokens != null) {
       for (ContactTokenDetails activeToken : activeTokens) {
         eligibleContactAddresses.remove(activeToken.getNumber());
-
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
@@ -164,10 +163,6 @@ public class DirectoryHelper {
         return UserCapabilities.UNKNOWN;
       }
 
-      if (recipients.isGroupRecipient()) {
-        return new UserCapabilities(Capability.SUPPORTED, Capability.UNSUPPORTED);
-      }
-
       final String number = recipients.getPrimaryRecipient().getAddress();
 
       if (number == null) {
@@ -215,27 +210,6 @@ public class DirectoryHelper {
     }
 
     return new LinkedList<>();
-  }
-
-  private static void notifyNewUsers(@NonNull  Context context,
-                                     @Nullable MasterSecret masterSecret,
-                                     @NonNull  List<String> newUsers)
-  {
-    if (!TextSecurePreferences.isNewContactsNotificationEnabled(context)) return;
-
-    for (String newUser : newUsers) {
-      if (!SessionUtil.hasSession(context, masterSecret, newUser) && !Util.isOwnNumber(context, newUser)) {
-        IncomingJoinedMessage message        = new IncomingJoinedMessage(newUser);
-        Pair<Long, Long>      smsAndThreadId = DatabaseFactory.getSmsDatabase(context).insertMessageInbox(message);
-
-        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        if (hour >= 9 && hour < 23) {
-          MessageNotifier.updateNotification(context, masterSecret, false, smsAndThreadId.second, true);
-        } else {
-          MessageNotifier.updateNotification(context, masterSecret, false, smsAndThreadId.second, false);
-        }
-      }
-    }
   }
 
   public static Optional<Account> getOrCreateAccount(Context context) {

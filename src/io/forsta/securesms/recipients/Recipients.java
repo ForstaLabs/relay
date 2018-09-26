@@ -46,6 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
 
@@ -117,7 +118,7 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
       }
 
       @Override
-      public void onFailure(Throwable error) {
+      public void onFailure(ExecutionException error) {
         Log.w(TAG, error);
       }
     });
@@ -178,13 +179,13 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
   }
 
   public synchronized @NonNull MaterialColor getColor() {
-    if      (!isSingleRecipient() || isGroupRecipient()) return MaterialColor.GROUP;
+    if      (!isSingleRecipient()) return MaterialColor.GROUP;
     else if (isEmpty())                                  return ContactColors.UNKNOWN_COLOR;
     else                                                 return recipients.get(0).getColor();
   }
 
   public synchronized void setColor(@NonNull MaterialColor color) {
-    if      (!isSingleRecipient() || isGroupRecipient()) throw new AssertionError("Groups don't have colors!");
+    if      (!isSingleRecipient()) throw new AssertionError("Groups don't have colors!");
     else if (!isEmpty())                                 recipients.get(0).setColor(color);
   }
 
@@ -218,19 +219,6 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
         recipient.removeListener(this);
       }
     }
-  }
-
-  public boolean isEmailRecipient() {
-    for (Recipient recipient : recipients) {
-      if (NumberUtil.isValidEmail(recipient.getAddress()))
-        return true;
-    }
-
-    return false;
-  }
-
-  public boolean isGroupRecipient() {
-    return isSingleRecipient() && GroupUtil.isEncodedGroup(recipients.get(0).getAddress());
   }
 
   public boolean includesSelf(Context context) {
@@ -358,15 +346,19 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     List<String> addresses = new ArrayList<>();
 
     if (recipients.size() == 1) {
-      return getPrimaryRecipient().getName() != null ? getPrimaryRecipient().getName() : "Unknown recipient";
+      String name = !TextUtils.isEmpty(getPrimaryRecipient().getName()) ? getPrimaryRecipient().getName() : "Unknown Recipient";
+      if (!getPrimaryRecipient().isActive()) {
+        name += " (Removed User)";
+      }
+      return name;
     }
 
     for (int i=0; i<recipients.size(); i++) {
       String address = recipients.get(i).getAddress();
       if (!address.equals(TextSecurePreferences.getLocalNumber(context))) {
-        String name = recipients.get(i).getName();
-        if (TextUtils.isEmpty(name)) {
-          name = "Unknown Recipient";
+        String name = !TextUtils.isEmpty(recipients.get(i).getName()) ? recipients.get(i).getName() : "Unknown Recipient";
+        if (!recipients.get(i).isActive()) {
+          name += " (Removed User)";
         }
         addresses.add(name);
       }
@@ -375,6 +367,9 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     if(addresses.size() > 2) {
       return addresses.get(0) + " and " + addresses.size() + " others";
     } else {
+      if (addresses.size() == 0) {
+        return "Unknown Recipient";
+      }
       return TextUtils.join(", ", addresses);
     }
   }

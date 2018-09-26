@@ -1,14 +1,23 @@
 package io.forsta.securesms.notifications;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.MediaActionSound;
+import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.util.Log;
+
+import java.util.List;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
@@ -21,6 +30,8 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
 
   protected Context                       context;
   protected NotificationPrivacyPreference privacy;
+  public static final String CHANNEL_ID = "forsta_channel_01";
+  protected NotificationChannel channel;
 
   public AbstractNotificationBuilder(Context context, NotificationPrivacyPreference privacy) {
     super(context);
@@ -28,7 +39,19 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     this.context = context;
     this.privacy = privacy;
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      channel = new NotificationChannel(CHANNEL_ID,
+          "Channel human readable title",
+          NotificationManager.IMPORTANCE_DEFAULT);
+      channel.setDescription("Forsta Channel");
+    }
+    this.setChannelId(CHANNEL_ID);
+
     setLed();
+  }
+
+  public NotificationChannel getChannel() {
+    return channel;
   }
 
   protected CharSequence getStyledMessage(@NonNull Recipient recipient, @Nullable CharSequence message) {
@@ -44,8 +67,12 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     String  defaultRingtoneName = TextSecurePreferences.getNotificationRingtone(context);
     boolean defaultVibrate      = TextSecurePreferences.isNotificationVibrateEnabled(context);
 
-    if      (ringtone != null)                        setSound(ringtone);
-    else if (!TextUtils.isEmpty(defaultRingtoneName)) setSound(Uri.parse(defaultRingtoneName));
+    if (ringtone != null)                        {
+      setSound(ringtone);
+    }
+    else if (!TextUtils.isEmpty(defaultRingtoneName)) {
+      setSound(Uri.parse(defaultRingtoneName));
+    }
 
     if (vibrate == RecipientPreferenceDatabase.VibrateState.ENABLED ||
         (vibrate == RecipientPreferenceDatabase.VibrateState.DEFAULT && defaultVibrate))

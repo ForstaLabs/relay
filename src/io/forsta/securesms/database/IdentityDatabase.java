@@ -24,6 +24,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.Base64;
@@ -34,7 +35,7 @@ import java.io.IOException;
 
 public class IdentityDatabase extends Database {
 
-  private static final Uri CHANGE_URI = Uri.parse("content://textsecure/identities");
+  private static final Uri CHANGE_URI = Uri.parse("content://" + BuildConfig.APPLICATION_ID + ".provider.database/identities");
 
   private static final String TABLE_NAME    = "identities";
   private static final String ID            = "_id";

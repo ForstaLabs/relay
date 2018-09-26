@@ -20,8 +20,13 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -44,20 +49,29 @@ import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.webrtc.IceCandidate;
+import org.webrtc.SessionDescription;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
+import io.forsta.securesms.webrtc.IceUpdateMessage;
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {
 
   private static final String TAG = MessageSender.class.getSimpleName();
 
+  // This is only used for sending Session End Messages.
+  // OutgoingEndSessionMessage
   public static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingTextMessage message,
@@ -109,6 +123,25 @@ public class MessageSender {
     return threadId;
   }
 
+  public static void sendControlMessage(final Context context,
+                          final MasterSecret masterSecret,
+                          final OutgoingMessage message)
+  {
+    try {
+      MmsDatabase    database       = DatabaseFactory.getMmsDatabase(context);
+
+      Recipients recipients = message.getRecipients();
+      long       messageId  = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), message, -1, false);
+
+      sendMediaMessage(context, masterSecret, recipients, false, messageId, message.getExpiresIn());
+
+    } catch (MmsException e) {
+      Log.w(TAG, e);
+    } catch (Exception e) {
+      Log.w(TAG, "Message send exception: " + e);
+    }
+  }
+
   public static void sendSmsInvite(final Context context, final MasterSecret masterSecret, final OutgoingTextMessage message) {
     EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
     Recipients            recipients  = message.getRecipients();
@@ -119,11 +152,6 @@ public class MessageSender {
     sendSms(context, recipients, messageId);
   }
 
-  public static void sendControlMessage(final Context context,
-                                        final MasterSecret masterSecret,
-                                        final OutgoingMediaMessage message) {
-
-  }
 
   public static void resendGroupMessage(Context context, MasterSecret masterSecret, MessageRecord messageRecord, long filterRecipientId) {
     if (!messageRecord.isMms()) throw new AssertionError("Not Group");
@@ -158,8 +186,6 @@ public class MessageSender {
   {
     if (isSelfSend(context, recipients)) {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
-    } else if (isGroupPushSend(recipients)) {
-      sendGroupPush(context, recipients, messageId, -1);
     } else {
       sendMediaPush(context, recipients, messageId);
     }
@@ -293,10 +319,6 @@ public class MessageSender {
       return false;
     }
 
-    if (recipients.isGroupRecipient()) {
-      return false;
-    }
-
     return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
   }
 
@@ -335,4 +357,76 @@ public class MessageSender {
     return result;
   }
 
+  public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createThreadUpdateMessage(context, user, recipients, thread);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId);
+      Log.w(TAG, "Sending call accept offer: " + payload);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId);
+      Log.w(TAG, "Sending call offer: " + payload);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendIceUpdate(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, String peerId, List<IceCandidate> updates) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      JSONArray jsonUpdates = new JSONArray();
+      for (IceCandidate candidate : updates) {
+        JSONObject jsonCandidate = new JSONObject();
+        jsonCandidate.put("candidate", candidate.sdp);
+        jsonCandidate.put("sdpMid", candidate.sdpMid);
+        jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+        jsonUpdates.put(jsonCandidate);
+      }
+
+      String payload = ForstaMessageManager.createIceCandidateMessage(user, recipients, thread, callId, peerId, jsonUpdates);
+      Log.w(TAG, "Sending ICE Update: " + payload);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void sendCallLeave(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId) {
+    try {
+      ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ForstaUser user = ForstaUser.getLocalForstaUser(context);
+      String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
+      Log.w(TAG, "Sending Call Leave: " + payload);
+      OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+      sendControlMessage(context, masterSecret, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

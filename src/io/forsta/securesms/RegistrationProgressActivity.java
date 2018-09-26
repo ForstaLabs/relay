@@ -262,11 +262,13 @@ public class RegistrationProgressActivity extends BaseActionBarActivity {
   }
 
   private void handleConnectivityError(RegistrationState state) {
+    this.provisioningFailureLayout.setVisibility(View.GONE);
     this.registrationLayout.setVisibility(View.GONE);
     this.connectivityFailureLayout.setVisibility(View.VISIBLE);
   }
 
   private void handleProvisioningError() {
+    this.connectivityFailureLayout.setVisibility(View.GONE);
     this.registrationLayout.setVisibility(View.GONE);
     this.provisioningFailureLayout.setVisibility(View.VISIBLE);
   }
