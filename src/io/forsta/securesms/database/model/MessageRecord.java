@@ -188,8 +188,12 @@ public abstract class MessageRecord extends DisplayRecord {
   }
 
   public String getMessageId() {
-    if (TextUtils.isEmpty(messageId)) {
-      return forstaMessageBody.getMessageId();
+    try {
+      if (TextUtils.isEmpty(messageId)) {
+        return getForstaMessageBody().getMessageId();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
     return messageId;
   }

@@ -16,6 +16,7 @@ import java.util.Map;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsColumns;
 import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
@@ -53,7 +54,7 @@ public class ReplyListAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         long messageId              = cursor.getLong(cursor.getColumnIndexOrThrow(MmsSmsColumns.ID));
-        String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsSmsDatabase.TRANSPORT));
+        String type                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.MESSAGE_BOX));
 
         MessageRecord messageRecord = getMessageRecord(messageId, cursor, type);
         Recipient author;
