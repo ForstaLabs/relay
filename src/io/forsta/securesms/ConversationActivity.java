@@ -105,6 +105,8 @@ import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
+import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;

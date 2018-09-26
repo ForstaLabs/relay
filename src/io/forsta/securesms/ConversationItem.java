@@ -555,7 +555,6 @@ public class ConversationItem extends LinearLayout
         setBubbleState(messageRecord, recipient);
         setContactPhoto(recipient);
         setRecipientText(messageRecord, recipient);
-      }
     });
   }
 
