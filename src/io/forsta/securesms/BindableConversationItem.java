@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.model.MessageRecord;
+import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.util.Locale;

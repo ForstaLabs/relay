@@ -94,7 +94,7 @@ public class MmsDatabase extends MessagingDatabase {
           static final String PART_COUNT         = "part_count";
           static final String NETWORK_FAILURE    = "network_failures";
           static final String MESSAGE_REF = "message_ref";
-          static final String UP_VOTE = "vote";
+  public  static final String UP_VOTE = "vote";
           static final String MESSAGE_ID = "message_id";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
@@ -1281,7 +1281,6 @@ public class MmsDatabase extends MessagingDatabase {
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
 
-
       return new MediaMmsMessageRecord(context, id, sender, sender.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
@@ -1324,7 +1323,6 @@ public class MmsDatabase extends MessagingDatabase {
           Log.w(TAG, ioe);
         }
       }
-
       return new LinkedList<>();
     }
 

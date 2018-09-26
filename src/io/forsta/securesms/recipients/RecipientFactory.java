@@ -19,6 +19,7 @@ package io.forsta.securesms.recipients;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import io.forsta.securesms.database.CanonicalAddressDatabase;
@@ -115,11 +116,15 @@ public class RecipientFactory {
 
     if (number.isEmpty()) return Optional.absent();
 
-    if (hasBracketedNumber(number)) {
-      number = parseBracketedNumber(number);
-    }
-
     return Optional.of(CanonicalAddressDatabase.getInstance(context).getCanonicalAddressId(number));
+  }
+
+  @Nullable public static long getRecipientIdFromNum(Context context, String number) {
+    number = number.trim();
+
+    if (number.isEmpty()) return -1;
+
+    return CanonicalAddressDatabase.getInstance(context).getCanonicalAddressId(number);
   }
 
   private static boolean hasBracketedNumber(String recipient) {

@@ -21,7 +21,7 @@ import java.util.List;
 public class OutgoingMediaMessage {
 
   private   final Recipients       recipients;
-  protected String           body;
+  protected String                 body;
   protected final List<Attachment> attachments;
   private   final long             sentTimeMillis;
   private   final int              distributionType;
@@ -74,6 +74,15 @@ public class OutgoingMediaMessage {
          expiresIn, distributionType);
   }
 
+  public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType, String messageRef, int voteCount, String messageId)
+  {
+    this(recipients,
+            buildMessage(slideDeck, message),
+            slideDeck.asAttachments(),
+            sentTimeMillis, subscriptionId,
+            expiresIn, distributionType, messageRef, voteCount, messageId);
+  }
+
   public OutgoingMediaMessage(OutgoingMediaMessage that) {
     this.recipients       = that.getRecipients();
     this.body             = that.body;
@@ -82,9 +91,9 @@ public class OutgoingMediaMessage {
     this.sentTimeMillis   = that.sentTimeMillis;
     this.subscriptionId   = that.subscriptionId;
     this.expiresIn        = that.expiresIn;
-    this.messageRef = null;
-    this.voteCount = 0;
-    this.messageId = null;
+    this.messageRef = that.messageRef;
+    this.voteCount = that.voteCount;
+    this.messageId = that.messageId;
   }
 
   public Recipients getRecipients() {
