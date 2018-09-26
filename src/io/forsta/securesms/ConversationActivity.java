@@ -715,7 +715,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void handleReplyMessage(MessageRecord messageRecord) {
     Recipient author;
     messageRef = messageRecord.getMessageId();
-    
+
     if (messageRecord.isOutgoing()) {
       author = RecipientFactory.getRecipient(this, TextSecurePreferences.getLocalNumber(this), true);
     } else {
@@ -1220,6 +1220,27 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 //        future.set(null);
 //      }
 //    }.execute(outgoingMessage);
+
+
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
+    attachmentManager.clear();
+    composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
+
+    new AsyncTask<OutgoingMessage, Void, Long>() {
+      @Override
+      protected Long doInBackground(OutgoingMessage... messages) {
+        OutgoingMessage message = messages[0];
+        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      }
+
+      @Override
+      protected void onPostExecute(Long result) {
+        sendComplete(result);
+        future.set(null);
+      }
+    }.execute(message);
 
 
     return future;

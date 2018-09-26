@@ -385,6 +385,10 @@ public class ForstaMessageManager {
     return versions.toString();
   }
 
+  private static String createContentReplyMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread, String messageRef, int vote) {
+    return createContentMessage(context, message, user, recipients, messageAttachments, thread);
+  }
+
   private static String createContentMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread) {
     JSONObject data = new JSONObject();
     JSONArray body = new JSONArray();
@@ -442,6 +446,13 @@ public class ForstaMessageManager {
   }
 
   public static OutgoingMessage createOutgoingContentMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    String jsonPayload = createContentMessage(context, message, user, recipients, attachments, thread);
+    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn);
+  }
+
+  public static OutgoingMessage createOutgoingContentReplyMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn, String messageRef, int vote) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
     String jsonPayload = createContentMessage(context, message, user, recipients, attachments, thread);

@@ -11,6 +11,10 @@ public class OutgoingMessage extends OutgoingMediaMessage {
     super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, 2);
   }
 
+  public OutgoingMessage(Recipients recipients, String body, List<Attachment> attachments, long sentTimeMillis, long expiresIn, String messageRef, int vote) {
+    super(recipients, body, attachments, sentTimeMillis, -1, expiresIn, 2, messageRef, vote);
+  }
+
   @Override
   public boolean isSecure() {
     return true;
