@@ -51,23 +51,6 @@ public class OutgoingMediaMessage {
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,
                               int subscriptionId, long expiresIn,
-                              int distributionType, String messageRef, int vote)
-  {
-    this.recipients       = recipients;
-    this.body             = message;
-    this.sentTimeMillis   = sentTimeMillis;
-    this.distributionType = distributionType;
-    this.attachments      = attachments;
-    this.subscriptionId   = subscriptionId;
-    this.expiresIn        = expiresIn;
-    this.messageRef = messageRef;
-    this.voteCount = vote;
-    this.messageId = null;
-  }
-
-  public OutgoingMediaMessage(Recipients recipients, String message,
-                              List<Attachment> attachments, long sentTimeMillis,
-                              int subscriptionId, long expiresIn,
                               int distributionType, String messageRef, int voteCount, String messageId)
   {
     this.recipients       = recipients;
