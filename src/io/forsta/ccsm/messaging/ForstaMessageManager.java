@@ -130,8 +130,13 @@ public class ForstaMessageManager {
             }
           }
         } else {
-          if (jsonBody.has("messageRef")) {
-            forstaMessage.setVote(1);
+          if (data.has("vote")) {
+            forstaMessage.setVote(data.getInt("vote"));
+          } else {
+            // Temporary. Fixes missing vote field in data
+            if (jsonBody.has("messageRef")) {
+              forstaMessage.setVote(1);
+            }
           }
         }
         if (data.has("attachments")) {

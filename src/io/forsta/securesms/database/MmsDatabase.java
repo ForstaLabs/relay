@@ -183,6 +183,24 @@ public class MmsDatabase extends MessagingDatabase {
     return cursor;
   }
 
+  public int getVoteCount(String replyId) {
+    int count = 0;
+    String selection = MmsDatabase.MESSAGE_REF + " = ?";
+    SQLiteDatabase database = databaseHelper.getReadableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + selection, new String[] {replyId});
+      if (cursor != null) {
+        count = cursor.getCount();
+      }
+    } finally {
+      if (cursor != null) cursor.close();
+    }
+
+
+    return count;
+  }
+
   public Cursor getIdentityConflictMessagesForThread(long threadId) {
     String order           = DATE_RECEIVED + " ASC";
     String selection       = THREAD_ID + " = ? AND " + MISMATCHED_IDENTITIES + " ?";

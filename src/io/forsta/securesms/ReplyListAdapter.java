@@ -65,7 +65,7 @@ public class ReplyListAdapter extends CursorAdapter {
         }
 
         String body = messageRecord.getPlainTextBody();
-        int vote = messageRecord.getVoteCount();
+        int vote = db.getVoteCount(messageRecord.getMessageId()); //messageRecord.getVoteCount();
 
         TextView voteCount = view.findViewById(R.id.reply_vote);
         AvatarImageView contactPhoto = view.findViewById(R.id.reply_contact_photo);
@@ -82,11 +82,11 @@ public class ReplyListAdapter extends CursorAdapter {
     }
 
     private MessageRecord getMessageRecord(long messageId, Cursor cursor, String type) {
-        final SoftReference<MessageRecord> reference = messageRecordCache.get(type + messageId);
-        if (reference != null) {
-            final MessageRecord record = reference.get();
-            if (record != null) return record;
-        }
+//        final SoftReference<MessageRecord> reference = messageRecordCache.get(type + messageId);
+//        if (reference != null) {
+//            final MessageRecord record = reference.get();
+//            if (record != null) return record;
+//        }
 
         final MessageRecord messageRecord = db.readerFor(masterSecret, cursor).getCurrent();
 
