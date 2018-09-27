@@ -377,9 +377,6 @@ public class ForstaMessageManager {
 
       if (!TextUtils.isEmpty(messageRef)) {
         version1.put("messageRef", messageRef);
-        if (vote > 0) {
-          version1.put("vote", vote);
-        }
       }
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
@@ -451,6 +448,9 @@ public class ForstaMessageManager {
       bodyPlain.put("value", stripMarkup);
       body.put(bodyPlain);
 
+      if (!TextUtils.isEmpty(messageRef) && vote != 0) {
+        data.put("vote", vote);
+      }
       data.put("body", body);
       data.put("attachments", attachments);
       if (mentions.length() > 0) {
