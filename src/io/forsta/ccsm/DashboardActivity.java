@@ -455,6 +455,8 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         long threadId = record.getThreadId();
         CharSequence body = record.getDisplayBody();
         String rawBody = record.getBody().getBody();
+        String messageRef = record.getMessageRef();
+        int vote = record.getVoteCount();
         long timestamp = record.getTimestamp();
         Date dt = new Date(timestamp);
         List<Recipient> recipList = recipients.getRecipientsList();
@@ -476,6 +478,12 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
         sb.append("Message: ");
         sb.append(rawBody);
+        sb.append("\n");
+        sb.append("Message Ref: ");
+        sb.append(messageRef);
+        sb.append("\n");
+        sb.append("Vote: ");
+        sb.append(vote + "");
         sb.append("\n");
         sb.append("Attachments:");
         for (DatabaseAttachment item : attachments) {

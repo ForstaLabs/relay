@@ -31,7 +31,7 @@ public class ReplyListAdapter extends CursorAdapter {
     private Context      mContext;
     private int          mResource;
     private MasterSecret masterSecret;
-    private final @NonNull MmsSmsDatabase db;
+    private final @NonNull MmsDatabase db;
 
     private static final int MAX_CACHE_SIZE = 40;
     private final Map<String,SoftReference<MessageRecord>> messageRecordCache =
@@ -43,7 +43,7 @@ public class ReplyListAdapter extends CursorAdapter {
         mContext = context;
         mResource = resource;
         this.masterSecret = masterSecret;
-        db = DatabaseFactory.getMmsSmsDatabase(mContext);
+        db = DatabaseFactory.getMmsDatabase(mContext);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class ReplyListAdapter extends CursorAdapter {
             if (record != null) return record;
         }
 
-        final MessageRecord messageRecord = db.readerFor(cursor, masterSecret).getCurrent();
+        final MessageRecord messageRecord = db.readerFor(masterSecret, cursor).getCurrent();
 
         messageRecordCache.put(type + messageId, new SoftReference<>(messageRecord));
 

@@ -129,6 +129,10 @@ public class ForstaMessageManager {
               forstaMessage.setTextBody(object.getString("value"));
             }
           }
+        } else {
+          if (jsonBody.has("messageRef")) {
+            forstaMessage.setVote(1);
+          }
         }
         if (data.has("attachments")) {
           JSONArray attachments = data.getJSONArray("attachments");
