@@ -209,16 +209,18 @@ public abstract class MessageRecord extends DisplayRecord {
   @Override
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
-    try {
-      ForstaMessage forstaBody = getForstaMessageBody();
-      body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
-    } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
-    }
+
     if (isExpirationTimerUpdate()) {
       String sender = isOutgoing() ? context.getString(R.string.MessageRecord_you) : getIndividualRecipient().toShortString();
       String time   = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.MessageRecord_s_set_disappearing_message_time_to_s, sender, time));
+    } else {
+      try {
+        ForstaMessage forstaBody = getForstaMessageBody();
+        body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
+      } catch (InvalidMessagePayloadException e) {
+        e.printStackTrace();
+      }
     }
     return new SpannableString(body);
   }
