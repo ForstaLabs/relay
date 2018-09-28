@@ -22,6 +22,8 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.components.emoji.EmojiDrawer;
 import io.forsta.securesms.components.emoji.EmojiEditText;
 import io.forsta.securesms.components.emoji.EmojiToggle;
+import io.forsta.securesms.mms.SlideDeck;
+import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.concurrent.AssertedSuccessListener;
@@ -38,12 +40,15 @@ public class InputPanel extends LinearLayout
 
   private static final int FADE_TIME = 150;
 
+  private QuoteView     quoteView;
   private EmojiToggle   emojiToggle;
   private EmojiEditText composeText;
   private View          quickCameraToggle;
   private View          quickAudioToggle;
   private View          buttonToggle;
   private View          recordingContainer;
+
+  private static ComposeText inputText;
 
   private MicrophoneRecorderView microphoneRecorderView;
   private SlideToCancel          slideToCancel;
@@ -69,6 +74,7 @@ public class InputPanel extends LinearLayout
   public void onFinishInflate() {
     super.onFinishInflate();
 
+    this.quoteView              = findViewById(R.id.quote_view);
     this.emojiToggle            = ViewUtil.findById(this, R.id.emoji_toggle);
     this.composeText            = ViewUtil.findById(this, R.id.embedded_text_editor);
     this.quickCameraToggle      = ViewUtil.findById(this, R.id.quick_camera_toggle);
@@ -79,6 +85,7 @@ public class InputPanel extends LinearLayout
     this.slideToCancel          = new SlideToCancel(ViewUtil.findById(this, R.id.slide_to_cancel));
     this.microphoneRecorderView = ViewUtil.findById(this, R.id.recorder_view);
     this.microphoneRecorderView.setListener(this);
+    inputText = ViewUtil.findById(this, R.id.embedded_text_editor);
 
 //    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
       this.microphoneRecorderView.setVisibility(View.GONE);
@@ -104,6 +111,30 @@ public class InputPanel extends LinearLayout
         listener.onEmojiToggle();
       }
     });
+  }
+
+  public void setQuote(long id, @NonNull Recipient author, @NonNull String body, @NonNull SlideDeck attachments) {
+    this.quoteView.setQuote(id, author, body, attachments);
+    this.quoteView.setVisibility(View.VISIBLE);
+    inputText.setHint(getContext().getString(R.string.conversation_activity__type_reply_push), null);
+  }
+
+  public boolean hasQuoteVisible() {
+    if(quoteView.getVisibility() == VISIBLE) {
+      return true;
+    }
+    return false;
+  }
+  //I wanted the hint inside the input panel to say "Reply to message" when a quote was visible and disappear when
+  //it was dismissed. I created a static field called inputText that could be referenced by QuoteView, since the
+  //dismiss button logic is there, so that when the "x" was pressed to remove the quote, the hint would return to the
+  //original message
+  public static void returnInputHint() {
+    inputText.setHint("Send Forsta message", null);
+  }
+
+  public void clearQuote() {
+    this.quoteView.dismiss();
   }
 
   @Override

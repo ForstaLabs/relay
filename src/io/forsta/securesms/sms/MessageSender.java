@@ -26,6 +26,7 @@ import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -41,7 +42,9 @@ import io.forsta.securesms.jobs.PushGroupSendJob;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
+import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
@@ -98,7 +101,7 @@ public class MessageSender {
     return allocatedThreadId;
   }
 
-  public static long send(final Context context,
+  private static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMediaMessage message,
                           final long threadId,
@@ -123,7 +126,7 @@ public class MessageSender {
     return threadId;
   }
 
-  public static void sendControlMessage(final Context context,
+  private static void sendControlMessage(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMessage message)
   {
@@ -152,14 +155,6 @@ public class MessageSender {
     sendSms(context, recipients, messageId);
   }
 
-
-  public static void resendGroupMessage(Context context, MasterSecret masterSecret, MessageRecord messageRecord, long filterRecipientId) {
-    if (!messageRecord.isMms()) throw new AssertionError("Not Group");
-
-    Recipients recipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageRecord.getId());
-    sendGroupPush(context, recipients, messageRecord.getId(), filterRecipientId);
-  }
-
   public static void resend(Context context, MasterSecret masterSecret, MessageRecord messageRecord) {
     try {
       long       messageId   = messageRecord.getId();
@@ -167,19 +162,15 @@ public class MessageSender {
       boolean    keyExchange = messageRecord.isKeyExchange();
       long       expiresIn   = messageRecord.getExpiresIn();
 
-      if (messageRecord.isMms()) {
-        Recipients recipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageId);
-        sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, expiresIn);
-      } else {
-        Recipients recipients  = messageRecord.getRecipients();
-        sendTextMessage(context, recipients, forceSms, keyExchange, messageId, expiresIn);
-      }
+      Recipients recipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageId);
+      sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, expiresIn);
+
     } catch (MmsException e) {
       Log.w(TAG, e);
     }
   }
 
-  public static void sendMediaMessage(Context context, MasterSecret masterSecret,
+  private static void sendMediaMessage(Context context, MasterSecret masterSecret,
                                        Recipients recipients, boolean forceSms,
                                        long messageId, long expiresIn)
       throws MmsException
@@ -254,62 +245,6 @@ public class MessageSender {
     jobManager.add(new SmsSendJob(context, messageId, recipients.getPrimaryRecipient().getName()));
   }
 
-  // No longer valid.
-  private static void sendGroupPush(Context context, Recipients recipients, long messageId, long filterRecipientId) {
-    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new PushGroupSendJob(context, messageId, recipients.getPrimaryRecipient().getAddress(), filterRecipientId));
-  }
-
-  // No longer valid
-  private static void sendMms(Context context, long messageId) {
-    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new MmsSendJob(context, messageId));
-  }
-
-  private static boolean isPushTextSend(Context context, Recipients recipients, boolean keyExchange) {
-    try {
-      if (!TextSecurePreferences.isPushRegistered(context)) {
-        return false;
-      }
-
-      if (keyExchange) {
-        return false;
-      }
-
-      Recipient recipient   = recipients.getPrimaryRecipient();
-      String    destination = Util.canonicalizeNumber(context, recipient.getAddress());
-
-      return isPushDestination(context, destination);
-    } catch (InvalidNumberException e) {
-      Log.w(TAG, e);
-      return false;
-    }
-  }
-
-  private static boolean isPushMediaSend(Context context, Recipients recipients) {
-    try {
-      if (!TextSecurePreferences.isPushRegistered(context)) {
-        return false;
-      }
-
-      if (recipients.getRecipientsList().size() > 1) {
-        return isForstaGroupDestination(context, recipients.toNumberStringList(false));
-      }
-
-      Recipient recipient   = recipients.getPrimaryRecipient();
-      String    destination = Util.canonicalizeNumber(context, recipient.getAddress());
-
-      return isPushDestination(context, destination);
-    } catch (InvalidNumberException e) {
-      Log.w(TAG, e);
-      return false;
-    }
-  }
-
-  private static boolean isGroupPushSend(Recipients recipients) {
-    return GroupUtil.isEncodedGroup(recipients.getPrimaryRecipient().getAddress());
-  }
-
   private static boolean isSelfSend(Context context, Recipients recipients) {
     if (!TextSecurePreferences.isPushRegistered(context)) {
       return false;
@@ -322,39 +257,19 @@ public class MessageSender {
     return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
   }
 
-  private static boolean isPushDestination(Context context, String destination) {
-    TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
-
-    try {
-      return directory.isSecureTextSupported(destination);
-    } catch (NotInDirectoryException e) {
-      try {
-        ForstaServiceAccountManager   accountManager = TextSecureCommunicationFactory.createManager(context);
-        Optional<ContactTokenDetails> registeredUser = accountManager.getContact(destination);
-
-        if (!registeredUser.isPresent()) {
-          registeredUser = Optional.of(new ContactTokenDetails());
-          registeredUser.get().setNumber(destination);
-          directory.setNumber(registeredUser.get(), false);
-          return false;
-        } else {
-          registeredUser.get().setNumber(destination);
-          directory.setNumber(registeredUser.get(), true);
-          return true;
-        }
-      } catch (IOException e1) {
-        Log.w(TAG, e1);
-        return false;
-      }
-    }
+  public static long sendContentMessage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long threadId, long expiresIn) {
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
+    return send(context, masterSecret, message, threadId, false);
   }
 
-  private static boolean isForstaGroupDestination(Context context, List<String> destinations) {
-    boolean result = false;
-    for (String address : destinations) {
-      result = isPushDestination(context, address);
-    }
-    return result;
+  public static long sendContentReplyMesage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long threadId, long expiresIn, String messageRef, int vote) {
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, vote);
+    return send(context, masterSecret, message, threadId, false);
+  }
+
+  public static void sendExpirationUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId, int expirationTime) {
+    OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(context, recipients, threadId, expirationTime * 1000);
+    send(context, masterSecret, message, threadId, false);
   }
 
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {

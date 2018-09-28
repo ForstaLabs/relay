@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.database.ContentObserver;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
@@ -104,6 +105,8 @@ import io.forsta.securesms.mms.AudioSlide;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
+import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
@@ -112,8 +115,11 @@ import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.RecipientProvider;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
+import io.forsta.securesms.database.model.MessageRecord;
+import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
@@ -173,35 +179,37 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private static final int TAKE_PHOTO        = 6;
   private static final int ADD_CONTACT       = 7;
   private static final int PICK_LOCATION     = 8;
-  private static final int PICK_DOCUMENT = 9;
+  private static final int PICK_DOCUMENT     = 9;
 
-  private MasterSecret masterSecret;
+  private   MasterSecret          masterSecret;
   protected ComposeText           composeText;
   private   AnimatingToggle       buttonToggle;
-  private SendButton sendButton;
+  private   SendButton            sendButton;
   private   ImageButton           attachButton;
   protected ConversationTitleView titleView;
   private   TextView              charactersLeft;
   private   ConversationFragment  fragment;
   private   Button                unblockButton;
-  private InputAwareLayout container;
+  private   InputAwareLayout      container;
   private   View                  composePanel;
-  protected ReminderView reminderView;
+  protected ReminderView          reminderView;
 
-  private AttachmentTypeSelector attachmentTypeSelector;
+  private   AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver recipientsClearReceiver;
+  private   BroadcastReceiver      recipientsClearReceiver;
   private   EmojiDrawer            emojiDrawer;
-  protected HidingLinearLayout quickAttachmentToggle;
+  protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
 
   private Recipients recipients;
   private long       threadId;
+  private String messageRef;
   private ForstaThread forstaThread;
   private int        distributionType;
   private boolean    archived;
+  private boolean    isSecureText;
   private Handler handler = new Handler();
   private ContentObserver threadObserver;
 
@@ -493,8 +501,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           @Override
           protected Void doInBackground(Void... params) {
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
-            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
-            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
+            MessageSender.sendExpirationUpdate(getApplicationContext(), masterSecret, recipients, threadId, expirationTime);
 
             invalidateOptionsMenu();
             return null;
@@ -703,6 +710,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
+  @Override
+  public void handleReplyMessage(MessageRecord messageRecord) {
+    Recipient author;
+    messageRef = messageRecord.getMessageId();
+
+    if (messageRecord.isOutgoing()) {
+      author = RecipientFactory.getRecipient(this, TextSecurePreferences.getLocalNumber(this), true);
+    } else {
+      author = messageRecord.getIndividualRecipient();
+    }
+    inputPanel.setQuote(messageRecord.getDateSent(), author, messageRecord.getPlainTextBody(), messageRecord.isMms() ? ((MediaMmsMessageRecord) messageRecord).getSlideDeck() : new SlideDeck());
+  }
+
   private void initializeThread() {
     ThreadPreferenceDatabase threadDb = DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this);
     ThreadPreferenceDatabase.ThreadPreference threadPreference = threadDb.getThreadPreferences(threadId);
@@ -788,6 +808,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
     }.execute();
   }
+
 
   private void initializeViews() {
     titleView             = (ConversationTitleView) getSupportActionBar().getCustomView();
@@ -1109,6 +1130,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       if (recipients == null) {
         Toast.makeText(ConversationActivity.this, R.string.ConversationActivity_recipient_is_not_valid, Toast.LENGTH_LONG).show();
+      } else if(inputPanel.hasQuoteVisible()){
+        sendReplyMessage(forceSms, expiresIn, subscriptionId, messageRef);
       } else {
         sendMediaMessage(forceSms, expiresIn, subscriptionId);
       }
@@ -1125,29 +1148,28 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     sendMediaMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId);
   }
 
+  private void sendReplyMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    sendReplyMessage(forceSms, getMessage(), attachmentManager.buildSlideDeck(), expiresIn, subscriptionId, messageRef);
+  }
+
   private ListenableFuture<Void> sendMediaMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId)
       throws InvalidMessageException
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
-//    OutgoingMediaMessage outgoingMessage = new OutgoingMediaMessage(recipients,
-//                                                                    slideDeck,
-//                                                                    body,
-//                                                                    System.currentTimeMillis(),
-//                                                                    subscriptionId,
-//                                                                    expiresIn,
-//                                                                    distributionType);
-//    outgoingMessage = new OutgoingSecureMediaMessage(outgoingMessage);
 
-    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
+//    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();
     composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
 
-    new AsyncTask<OutgoingMessage, Void, Long>() {
+    new AsyncTask<Void, Void, Long>() {
       @Override
-      protected Long doInBackground(OutgoingMessage... messages) {
-        OutgoingMessage message = messages[0];
-        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      protected Long doInBackground(Void... nothing) {
+        return MessageSender.sendContentMessage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn);
       }
 
       @Override
@@ -1155,7 +1177,36 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
         future.set(null);
       }
-    }.execute(message);
+    }.execute();
+
+
+    return future;
+  }
+
+  private ListenableFuture<Void> sendReplyMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId, final String messageRef)
+          throws InvalidMessageException
+  {
+    final SettableFuture<Void> future          = new SettableFuture<>();
+    final Context              context         = getApplicationContext();
+
+    attachmentManager.clear();
+    composeText.setText("");
+    inputPanel.clearQuote();
+    this.messageRef = null;
+
+    new AsyncTask<Void, Void, Long>() {
+      @Override
+      protected Long doInBackground(Void... nothing) {
+        return MessageSender.sendContentReplyMesage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn, messageRef, 0);
+      }
+
+      @Override
+      protected void onPostExecute(Long result) {
+        sendComplete(result);
+        future.set(null);
+      }
+    }.execute();
+
 
     return future;
   }

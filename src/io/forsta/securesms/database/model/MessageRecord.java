@@ -24,6 +24,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 
 import org.w3c.dom.Text;
 
@@ -58,6 +59,8 @@ import static android.R.attr.filter;
  *
  */
 public abstract class MessageRecord extends DisplayRecord {
+
+  private final String TAG = MessageRecord.class.getSimpleName();
 
   private static final int MAX_DISPLAY_LENGTH = 2000;
 
@@ -148,7 +151,7 @@ public abstract class MessageRecord extends DisplayRecord {
     try {
       ForstaMessage forstaBody = getForstaMessageBody();
 
-      if (forstaBody.getVote() > 0) {
+      if(forstaBody.getVote() > 0) {
         return "Up Vote";
       }
       return forstaBody.getTextBody();
@@ -185,8 +188,12 @@ public abstract class MessageRecord extends DisplayRecord {
   }
 
   public String getMessageId() {
-    if (TextUtils.isEmpty(messageId)) {
-      return forstaMessageBody.getMessageId();
+    try {
+      if (TextUtils.isEmpty(messageId)) {
+        return getForstaMessageBody().getMessageId();
+      }
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
     }
     return messageId;
   }
@@ -202,16 +209,18 @@ public abstract class MessageRecord extends DisplayRecord {
   @Override
   public SpannableString getDisplayBody() {
     String body = getBody().getBody();
-    try {
-      ForstaMessage forstaBody = getForstaMessageBody();
-      body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
-    } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
-    }
+
     if (isExpirationTimerUpdate()) {
       String sender = isOutgoing() ? context.getString(R.string.MessageRecord_you) : getIndividualRecipient().toShortString();
       String time   = ExpirationUtil.getExpirationDisplayValue(context, (int) (getExpiresIn() / 1000));
       return emphasisAdded(context.getString(R.string.MessageRecord_s_set_disappearing_message_time_to_s, sender, time));
+    } else {
+      try {
+        ForstaMessage forstaBody = getForstaMessageBody();
+        body = !TextUtils.isEmpty(forstaBody.getHtmlBody()) ? forstaBody.getHtmlBody() : forstaBody.getTextBody();
+      } catch (InvalidMessagePayloadException e) {
+        e.printStackTrace();
+      }
     }
     return new SpannableString(body);
   }

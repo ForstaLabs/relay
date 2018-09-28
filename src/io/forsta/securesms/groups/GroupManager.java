@@ -177,7 +177,7 @@ public class GroupManager {
     }
 
     OutgoingGroupMediaMessage outgoingMessage = new OutgoingGroupMediaMessage(groupRecipient, groupContext, avatarAttachment, System.currentTimeMillis(), 0);
-    long                      threadId        = MessageSender.send(context, masterSecret, outgoingMessage, -1, false);
+    long                      threadId        = -1; // MessageSender.send(context, masterSecret, outgoingMessage, -1, false);
 
     return new GroupActionResult(groupRecipient, threadId);
   }
