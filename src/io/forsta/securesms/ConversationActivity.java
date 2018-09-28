@@ -501,8 +501,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           @Override
           protected Void doInBackground(Void... params) {
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
-//            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
-//            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
             MessageSender.sendExpirationUpdate(getApplicationContext(), masterSecret, recipients, threadId, expirationTime);
 
             invalidateOptionsMenu();
@@ -1171,8 +1169,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<Void, Void, Long>() {
       @Override
       protected Long doInBackground(Void... nothing) {
-//        OutgoingMessage message = messages[0];
-//        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
         return MessageSender.sendContentMessage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn);
       }
 
@@ -1187,14 +1183,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-  //This may be why votes are not appearing, being set to 0. But new replies being set should always have vote set to 0
   private ListenableFuture<Void> sendReplyMessage(final boolean forceSms, String body, final SlideDeck slideDeck, final long expiresIn, final int subscriptionId, final String messageRef)
           throws InvalidMessageException
   {
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
 
-//    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
@@ -1203,8 +1197,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     new AsyncTask<Void, Void, Long>() {
       @Override
       protected Long doInBackground(Void... nothing) {
-//        OutgoingMessage message = messages[0];
-//        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
         return MessageSender.sendContentReplyMesage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn, messageRef, 0);
       }
 
