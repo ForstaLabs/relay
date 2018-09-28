@@ -190,14 +190,18 @@ public class MmsDatabase extends MessagingDatabase {
     Cursor cursor = null;
     try {
       cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + selection, new String[] {replyId});
-      if (cursor != null) {
-        count = cursor.getCount();
+      if (cursor != null && cursor.moveToNext()) {
+        int vote = cursor.getInt(cursor.getColumnIndex(UP_VOTE));
+        // Count any record that is related to the reply as an up vote
+        // This fixes issues with missing vote field in json payload.
+        if (vote == 0) {
+          vote = 1;
+        }
+        count += vote;
       }
     } finally {
       if (cursor != null) cursor.close();
     }
-
-
     return count;
   }
 

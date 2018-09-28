@@ -478,8 +478,11 @@ public class ForstaMessageManager {
   public static OutgoingMessage createOutgoingContentReplyMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn, String messageRef, int vote) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    //messageRef, vote, and messageId go into payload, but they also need to be passed to the message object so that
+    // it can be stored in the database record.
+    String uid = UUID.randomUUID().toString();
     String jsonPayload = createContentReplyMessage(context, message, user, recipients, attachments, thread, messageRef, vote);
-    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn);
+    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn, messageRef, vote);
   }
 
   public static OutgoingExpirationUpdateMessage createOutgoingExpirationUpdateMessage(Context context, Recipients recipients, long threadId, long expiresIn) {
