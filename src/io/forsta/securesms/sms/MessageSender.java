@@ -257,17 +257,17 @@ public class MessageSender {
     return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
   }
 
-  public static long sendContentMessage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long expiresIn, long threadId) {
+  public static long sendContentMessage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long threadId, long expiresIn) {
     OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     return send(context, masterSecret, message, threadId, false);
   }
 
-  public static long sendContentReplyMesage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long expiresIn, long threadId, String messageRef, int vote) {
-    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), expiresIn, threadId, messageRef, vote);
+  public static long sendContentReplyMesage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long threadId, long expiresIn, String messageRef, int vote) {
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, vote);
     return send(context, masterSecret, message, threadId, false);
   }
 
-  public static void sendExirationUpdate(Context context, MasterSecret masterSecret, Recipients recipients, int expirationTime, long threadId) {
+  public static void sendExpirationUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId, int expirationTime) {
     OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(context, recipients, threadId, expirationTime * 1000);
     send(context, masterSecret, message, threadId, false);
   }

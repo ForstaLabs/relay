@@ -503,7 +503,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
 //            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
 //            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
-            MessageSender.sendExirationUpdate(getApplicationContext(), masterSecret, recipients, expirationTime, threadId);
+            MessageSender.sendExpirationUpdate(getApplicationContext(), masterSecret, recipients, threadId, expirationTime);
 
             invalidateOptionsMenu();
             return null;
@@ -1173,7 +1173,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Long doInBackground(Void... nothing) {
 //        OutgoingMessage message = messages[0];
 //        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
-        return MessageSender.sendContentMessage(context, masterSecret, body, recipients, slideDeck, expiresIn, threadId);
+        return MessageSender.sendContentMessage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn);
       }
 
       @Override
@@ -1205,7 +1205,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       protected Long doInBackground(Void... nothing) {
 //        OutgoingMessage message = messages[0];
 //        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
-        return MessageSender.sendContentReplyMesage(context, masterSecret, body, recipients, slideDeck, expiresIn, threadId, messageRef, 0);
+        return MessageSender.sendContentReplyMesage(context, masterSecret, body, recipients, slideDeck, threadId, expiresIn, messageRef, 0);
       }
 
       @Override
