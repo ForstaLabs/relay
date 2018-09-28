@@ -501,8 +501,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           @Override
           protected Void doInBackground(Void... params) {
             DatabaseFactory.getThreadPreferenceDatabase(ConversationActivity.this).setExpireMessages(threadId, expirationTime);
-            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
-            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
+//            OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(ConversationActivity.this, recipients, threadId, expirationTime * 1000);
+//            MessageSender.send(ConversationActivity.this, masterSecret, message, threadId, false);
+            MessageSender.sendExirationUpdate(getApplicationContext(), masterSecret, recipients, expirationTime, threadId);
 
             invalidateOptionsMenu();
             return null;
@@ -1161,17 +1162,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
 
-    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
+//    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
     this.messageRef = null;
 
-    new AsyncTask<OutgoingMessage, Void, Long>() {
+    new AsyncTask<Void, Void, Long>() {
       @Override
-      protected Long doInBackground(OutgoingMessage... messages) {
-        OutgoingMessage message = messages[0];
-        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      protected Long doInBackground(Void... nothing) {
+//        OutgoingMessage message = messages[0];
+//        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+        return MessageSender.sendContentMessage(context, masterSecret, body, recipients, slideDeck, expiresIn, threadId);
       }
 
       @Override
@@ -1179,7 +1181,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
         future.set(null);
       }
-    }.execute(message);
+    }.execute();
 
 
     return future;
@@ -1192,17 +1194,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
 
-    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
+//    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn, messageRef, 0);
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
     this.messageRef = null;
 
-    new AsyncTask<OutgoingMessage, Void, Long>() {
+    new AsyncTask<Void, Void, Long>() {
       @Override
-      protected Long doInBackground(OutgoingMessage... messages) {
-        OutgoingMessage message = messages[0];
-        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+      protected Long doInBackground(Void... nothing) {
+//        OutgoingMessage message = messages[0];
+//        return MessageSender.send(context, masterSecret, message, threadId, forceSms);
+        return MessageSender.sendContentReplyMesage(context, masterSecret, body, recipients, slideDeck, expiresIn, threadId, messageRef, 0);
       }
 
       @Override
@@ -1210,7 +1213,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         sendComplete(result);
         future.set(null);
       }
-    }.execute(message);
+    }.execute();
 
 
     return future;

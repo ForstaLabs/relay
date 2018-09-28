@@ -26,6 +26,7 @@ import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
@@ -41,7 +42,9 @@ import io.forsta.securesms.jobs.PushGroupSendJob;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
+import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
@@ -98,7 +101,7 @@ public class MessageSender {
     return allocatedThreadId;
   }
 
-  public static long send(final Context context,
+  private static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMediaMessage message,
                           final long threadId,
@@ -123,7 +126,7 @@ public class MessageSender {
     return threadId;
   }
 
-  public static void sendControlMessage(final Context context,
+  private static void sendControlMessage(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMessage message)
   {
@@ -159,19 +162,15 @@ public class MessageSender {
       boolean    keyExchange = messageRecord.isKeyExchange();
       long       expiresIn   = messageRecord.getExpiresIn();
 
-      if (messageRecord.isMms()) {
-        Recipients recipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageId);
-        sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, expiresIn);
-      } else {
-        Recipients recipients  = messageRecord.getRecipients();
-        sendTextMessage(context, recipients, forceSms, keyExchange, messageId, expiresIn);
-      }
+      Recipients recipients = DatabaseFactory.getMmsAddressDatabase(context).getRecipientsForId(messageId);
+      sendMediaMessage(context, masterSecret, recipients, forceSms, messageId, expiresIn);
+
     } catch (MmsException e) {
       Log.w(TAG, e);
     }
   }
 
-  public static void sendMediaMessage(Context context, MasterSecret masterSecret,
+  private static void sendMediaMessage(Context context, MasterSecret masterSecret,
                                        Recipients recipients, boolean forceSms,
                                        long messageId, long expiresIn)
       throws MmsException
@@ -256,6 +255,21 @@ public class MessageSender {
     }
 
     return Util.isOwnNumber(context, recipients.getPrimaryRecipient().getAddress());
+  }
+
+  public static long sendContentMessage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long expiresIn, long threadId) {
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
+    return send(context, masterSecret, message, threadId, false);
+  }
+
+  public static long sendContentReplyMesage(Context context, MasterSecret masterSecret, String body, Recipients recipients, SlideDeck slideDeck, long expiresIn, long threadId, String messageRef, int vote) {
+    OutgoingMessage message = ForstaMessageManager.createOutgoingContentReplyMessage(context, body, recipients, slideDeck.asAttachments(), expiresIn, threadId, messageRef, vote);
+    return send(context, masterSecret, message, threadId, false);
+  }
+
+  public static void sendExirationUpdate(Context context, MasterSecret masterSecret, Recipients recipients, int expirationTime, long threadId) {
+    OutgoingExpirationUpdateMessage message = ForstaMessageManager.createOutgoingExpirationUpdateMessage(context, recipients, threadId, expirationTime * 1000);
+    send(context, masterSecret, message, threadId, false);
   }
 
   public static void sendThreadUpdate(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {

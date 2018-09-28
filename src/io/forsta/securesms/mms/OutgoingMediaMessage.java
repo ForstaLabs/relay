@@ -51,7 +51,7 @@ public class OutgoingMediaMessage {
   public OutgoingMediaMessage(Recipients recipients, String message,
                               List<Attachment> attachments, long sentTimeMillis,
                               int subscriptionId, long expiresIn,
-                              int distributionType, String messageRef, int voteCount, String messageId)
+                              int distributionType, String messageId, String messageRef, int voteCount)
   {
     this.recipients       = recipients;
     this.body             = message;
@@ -63,24 +63,6 @@ public class OutgoingMediaMessage {
     this.messageRef = messageRef;
     this.voteCount = voteCount;
     this.messageId = messageId;
-  }
-
-  public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType)
-  {
-    this(recipients,
-         buildMessage(slideDeck, message),
-         slideDeck.asAttachments(),
-         sentTimeMillis, subscriptionId,
-         expiresIn, distributionType);
-  }
-
-  public OutgoingMediaMessage(Recipients recipients, SlideDeck slideDeck, String message, long sentTimeMillis, int subscriptionId, long expiresIn, int distributionType, String messageRef, int voteCount, String messageId)
-  {
-    this(recipients,
-            buildMessage(slideDeck, message),
-            slideDeck.asAttachments(),
-            sentTimeMillis, subscriptionId,
-            expiresIn, distributionType, messageRef, voteCount, messageId);
   }
 
   public OutgoingMediaMessage(OutgoingMediaMessage that) {

@@ -30,6 +30,7 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -703,12 +704,14 @@ public class MmsDatabase extends MessagingDatabase {
         long             outboxType     = cursor.getLong(cursor.getColumnIndexOrThrow(MESSAGE_BOX));
         String           messageText    = cursor.getString(cursor.getColumnIndexOrThrow(BODY));
         long             timestamp      = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_SENT));
-        int              subscriptionId = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
         long             expiresIn      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
         List<Attachment> attachments    = new LinkedList<Attachment>(attachmentDatabase.getAttachmentsForMessage(messageId));
         MmsAddresses     addresses      = addr.getAddressesForId(messageId);
         List<String>     destinations   = new LinkedList<>();
         String           body           = getDecryptedBody(masterSecret, messageText, outboxType);
+        String messageUId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
+        String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
+        int vote = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
 
         destinations.addAll(addresses.getBcc());
         destinations.addAll(addresses.getCc());
@@ -716,24 +719,17 @@ public class MmsDatabase extends MessagingDatabase {
 
         Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, destinations, false);
 
-        if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
-          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
-        } else if (Types.isExpirationTimerUpdate(outboxType)) {
+        if (Types.isExpirationTimerUpdate(outboxType)) {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
-        OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
-                                                                !addresses.getBcc().isEmpty() ? ThreadDatabase.DistributionTypes.BROADCAST :
-                                                                                                ThreadDatabase.DistributionTypes.DEFAULT);
-        if (Types.isSecureType(outboxType)) {
-          return new OutgoingSecureMediaMessage(message);
-        }
+        OutgoingMediaMessage message = new OutgoingMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
 
         return message;
       }
 
       throw new NoSuchMessageException("No record found for id: " + messageId);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new MmsException(e);
     } finally {
       if (cursor != null)

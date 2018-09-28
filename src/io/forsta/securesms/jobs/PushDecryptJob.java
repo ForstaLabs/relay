@@ -13,6 +13,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
@@ -401,13 +402,13 @@ public class PushDecryptJob extends ContextJob {
         handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
       }
 
-      OutgoingMediaMessage  mediaMessage = new OutgoingMediaMessage(recipients, message.getMessage().getBody().orNull(),
+      OutgoingMediaMessage  mediaMessage = new OutgoingMessage(recipients, message.getMessage().getBody().orNull(),
           PointerAttachment.forPointers(masterSecret, message.getMessage().getAttachments()),
-          message.getTimestamp(), -1,
+          message.getTimestamp(),
           message.getMessage().getExpiresInSeconds() * 1000,
-          ThreadDatabase.DistributionTypes.DEFAULT, forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
+          forstaMessage.getMessageId(), forstaMessage.getMessageRef(), forstaMessage.getVote());
 
-      mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
+//      mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
       long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
 
       database.markAsSent(messageId);
