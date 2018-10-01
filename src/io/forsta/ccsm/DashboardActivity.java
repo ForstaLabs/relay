@@ -455,10 +455,16 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         long threadId = record.getThreadId();
         CharSequence body = record.getDisplayBody();
         String rawBody = record.getBody().getBody();
+        String messageRef = record.getMessageRef();
+        int vote = record.getVoteCount();
         long timestamp = record.getTimestamp();
         Date dt = new Date(timestamp);
+        long id = record.getId();
+        String uid = record.getMessageId();
         List<Recipient> recipList = recipients.getRecipientsList();
         List<DatabaseAttachment> attachments = adb.getAttachmentsForMessage(record.getId());
+        sb.append("ID: ").append(id + "");
+        sb.append("\n");
         sb.append("Expiration Timer: ").append(record.isExpirationTimerUpdate());
         sb.append("\n");
         sb.append("Key Exchange: ").append(record.isBundleKeyExchange());
@@ -476,6 +482,15 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
         sb.append("\n");
         sb.append("Message: ");
         sb.append(rawBody);
+        sb.append("\n");
+        sb.append("Message UID: ");
+        sb.append(uid);
+        sb.append("\n");
+        sb.append("Message Ref: ");
+        sb.append(messageRef);
+        sb.append("\n");
+        sb.append("Vote: ");
+        sb.append(vote + "");
         sb.append("\n");
         sb.append("Attachments:");
         for (DatabaseAttachment item : attachments) {

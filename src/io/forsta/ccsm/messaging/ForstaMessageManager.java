@@ -107,6 +107,15 @@ public class ForstaMessageManager {
         forstaMessage.setUniversalExpression(distribution.getString("expression"));
       }
 
+      if (jsonBody.has("messageRef")) {
+        String messageId = jsonBody.getString("messageRef");
+        forstaMessage.setMessageRef(messageId);
+        if (jsonBody.has("vote")) {
+          int vote = jsonBody.getInt("vote");
+          forstaMessage.setVote(vote);
+        }
+      }
+
       if (jsonBody.has("data")) {
         JSONObject data = jsonBody.getJSONObject("data");
         if (data.has("body")) {
@@ -118,6 +127,15 @@ public class ForstaMessageManager {
             }
             if (object.getString("type").equals("text/plain")) {
               forstaMessage.setTextBody(object.getString("value"));
+            }
+          }
+        } else {
+          if (data.has("vote")) {
+            forstaMessage.setVote(data.getInt("vote"));
+          } else {
+            // Temporary. Fixes missing vote field in data
+            if (jsonBody.has("messageRef")) {
+              forstaMessage.setVote(1);
             }
           }
         }
@@ -133,18 +151,9 @@ public class ForstaMessageManager {
         }
         if (data.has("mentions")) {
           JSONArray mentions = data.getJSONArray(("mentions"));
-          for (int i=0; i<mentions.length(); i++) {
+          for (int i = 0; i < mentions.length(); i++) {
             String id = mentions.getString(i);
             forstaMessage.addMention(id);
-          }
-        }
-
-        if (data.has("messageRef")) {
-          String messageId = data.getString("messageRef");
-          forstaMessage.setMessageRef(messageId);
-          if (data.has("vote")) {
-            int vote = data.getInt("vote");
-            forstaMessage.setVote(vote);
           }
         }
 
@@ -339,6 +348,10 @@ public class ForstaMessageManager {
   }
 
   private static String createBaseMessageBody(ForstaUser user, Recipients messageRecipients, ForstaThread forstaThread, String type, JSONObject data) {
+    return createBaseMessageBody(user, messageRecipients, forstaThread, type, data, null, null);
+  }
+
+  private static String createBaseMessageBody(ForstaUser user, Recipients messageRecipients, ForstaThread forstaThread, String type, JSONObject data, String messageUid, String messageRef) {
     JSONArray versions = new JSONArray();
     JSONObject version1 = new JSONObject();
     String title = forstaThread.getTitle();
@@ -362,11 +375,14 @@ public class ForstaMessageManager {
         userIds.put(x.getAddress());
       }
 
+      if (!TextUtils.isEmpty(messageRef)) {
+        version1.put("messageRef", messageRef);
+      }
       recipients.put("userIds", userIds);
       recipients.put("expression", forstaThread.getDistribution());
       version1.put("version", 1);
       version1.put("userAgent", System.getProperty("http.agent", ""));
-      version1.put("messageId", UUID.randomUUID().toString());
+      version1.put("messageId", !TextUtils.isEmpty(messageUid) ? messageUid : UUID.randomUUID().toString());
       version1.put("messageType", messageType);
       version1.put("threadId", threadId);
       version1.put("threadTitle", title);
@@ -385,7 +401,15 @@ public class ForstaMessageManager {
     return versions.toString();
   }
 
-  private static String createContentMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread) {
+  private static String createContentReplyMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread, String messageUid, String messageRef, int vote) {
+    return createContentMessage(context, message, user, recipients, messageAttachments, thread, messageUid, messageRef, vote);
+  }
+
+  private static String createContentMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread, String messageUid) {
+    return createContentMessage(context, message, user, recipients, messageAttachments, thread, messageUid, null, 0);
+  }
+
+  private static String createContentMessage(Context context, String message, ForstaUser user, Recipients recipients, List<Attachment> messageAttachments, ForstaThread thread, String messageUid, String messageRef, int vote) {
     JSONObject data = new JSONObject();
     JSONArray body = new JSONArray();
     JSONArray mentions = new JSONArray();
@@ -424,6 +448,9 @@ public class ForstaMessageManager {
       bodyPlain.put("value", stripMarkup);
       body.put(bodyPlain);
 
+      if (!TextUtils.isEmpty(messageRef) && vote != 0) {
+        data.put("vote", vote);
+      }
       data.put("body", body);
       data.put("attachments", attachments);
       if (mentions.length() > 0) {
@@ -433,25 +460,35 @@ public class ForstaMessageManager {
       e.printStackTrace();
     }
 
-    return createBaseMessageBody(user, recipients, thread, ForstaMessage.MessageTypes.CONTENT, data);
+    return createBaseMessageBody(user, recipients, thread, ForstaMessage.MessageTypes.CONTENT, data, messageUid, messageRef);
   }
 
   public static String createForstaMessageBody(Context context, String message, Recipients recipients, List<Attachment> messageAttachments, ForstaThread forstaThread) {
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
-    return createContentMessage(context, message, user, recipients, messageAttachments, forstaThread);
+    return createContentMessage(context, message, user, recipients, messageAttachments, forstaThread, UUID.randomUUID().toString());
   }
 
   public static OutgoingMessage createOutgoingContentMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
-    String jsonPayload = createContentMessage(context, message, user, recipients, attachments, thread);
-    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn);
+    String uid = UUID.randomUUID().toString();
+    String jsonPayload = createContentMessage(context, message, user, recipients, attachments, thread, uid);
+    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn, uid, null, 0);
+  }
+
+  public static OutgoingMessage createOutgoingContentReplyMessage(Context context, String message, Recipients recipients, List<Attachment> attachments, long threadId, long expiresIn, String messageRef, int vote) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    String uid = UUID.randomUUID().toString();
+    String jsonPayload = createContentReplyMessage(context, message, user, recipients, attachments, thread, uid, messageRef, vote);
+    return new OutgoingMessage(recipients, jsonPayload, attachments, System.currentTimeMillis(), expiresIn, uid, messageRef, vote);
   }
 
   public static OutgoingExpirationUpdateMessage createOutgoingExpirationUpdateMessage(Context context, Recipients recipients, long threadId, long expiresIn) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
-    String jsonPayload = createContentMessage(context, "", user, recipients, new LinkedList<Attachment>(), thread);
+    String uid = UUID.randomUUID().toString();
+    String jsonPayload = createContentMessage(context, "", user, recipients, new LinkedList<Attachment>(), thread, uid);
     return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
   }
 

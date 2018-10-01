@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms.recipients;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -40,13 +41,9 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
 
 public class Recipient {
-
   private final static String TAG = Recipient.class.getSimpleName();
-
   private final Set<RecipientModifiedListener> listeners = Collections.newSetFromMap(new WeakHashMap<RecipientModifiedListener, Boolean>());
-
   private final long recipientId;
-
   private @NonNull  String  number;
   private @Nullable String  name;
   private @Nullable String slug;
@@ -56,7 +53,6 @@ public class Recipient {
   private boolean isActive;
   private String userType;
   private boolean stale;
-
   private ContactPhoto contactPhoto;
   private Uri          contactUri;
   private @Nullable String gravatarHash;

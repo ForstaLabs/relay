@@ -59,6 +59,8 @@
                     android:visibility="gone"
                     tools:src="@drawable/ic_video_light"
                     tools:visibility="gone" />
+
+
             <io.forsta.securesms.components.DocumentView
                 xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -78,6 +80,7 @@
                     android:visibility="gone"
                     app:tintColor="@color/white"
                     tools:visibility="visible"/>
+
             <VideoView
                 android:layout_width="210dp"
                 android:layout_height="210dp"
@@ -96,6 +99,40 @@
                     android:textSize="@dimen/conversation_item_body_text_size"
                     android:autoLink="all"
                     android:linksClickable="true" />
+
+            <LinearLayout
+                android:id="@+id/reply_box"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:background="@drawable/reply_background"
+                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="3dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ConversationItem_replies"
+                    android:textSize="10sp"
+                    android:textColor="@color/white"/>
+
+                <io.forsta.securesms.components.ReplyListView
+                    android:id="@+id/conversation_list_view"
+                    android:scrollbars="none"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:divider="@null">
+
+                </io.forsta.securesms.components.ReplyListView>
+
+            </LinearLayout>
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
@@ -169,6 +206,7 @@
                           tools:visibility="visible"
                           tools:text="from SIM1"/>
             </LinearLayout>
+
         </LinearLayout>
 
         <io.forsta.securesms.components.AlertView

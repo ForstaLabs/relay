@@ -30,6 +30,7 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.attachments.Attachment;
@@ -94,7 +95,7 @@ public class MmsDatabase extends MessagingDatabase {
           static final String PART_COUNT         = "part_count";
           static final String NETWORK_FAILURE    = "network_failures";
           static final String MESSAGE_REF = "message_ref";
-          static final String UP_VOTE = "vote";
+  public  static final String UP_VOTE = "vote";
           static final String MESSAGE_ID = "message_id";
 
   public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" + ID + " INTEGER PRIMARY KEY, "                          +
@@ -164,7 +165,7 @@ public class MmsDatabase extends MessagingDatabase {
 
   public Cursor getConversation(long threadId, long limit) {
     String order     = DATE_RECEIVED + " DESC";
-    String selection = THREAD_ID + " = ?";
+    String selection = THREAD_ID + " = ? AND " + MESSAGE_REF + " IS NULL";
 
     Cursor cursor = rawQuery(selection, new String[] {threadId + ""}, order, limit > 0 ? String.valueOf(limit) : null);
     setNotifyConverationListeners(cursor, threadId);
@@ -174,6 +175,35 @@ public class MmsDatabase extends MessagingDatabase {
 
   public Cursor getConversation(long threadId) {
     return getConversation(threadId, 0);
+  }
+
+  public Cursor getReplies(String messageId) {
+    String order = DATE_SENT + " ASC";
+    String selection = MmsDatabase.MESSAGE_REF + " = ?";
+    Cursor cursor = rawQuery(selection, new String[] {messageId + ""}, order, null);
+    return cursor;
+  }
+
+  public int getVoteCount(String replyId) {
+    int count = 0;
+    String selection = MmsDatabase.MESSAGE_REF + " = ?";
+    SQLiteDatabase database = databaseHelper.getReadableDatabase();
+    Cursor cursor = null;
+    try {
+      cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + selection, new String[] {replyId});
+      if (cursor != null && cursor.moveToNext()) {
+        int vote = cursor.getInt(cursor.getColumnIndex(UP_VOTE));
+        // Count any record that is related to the reply as an up vote
+        // This fixes issues with missing vote field in json payload.
+        if (vote == 0) {
+          vote = 1;
+        }
+        count += vote;
+      }
+    } finally {
+      if (cursor != null) cursor.close();
+    }
+    return count;
   }
 
   public Cursor getIdentityConflictMessagesForThread(long threadId) {
@@ -674,12 +704,14 @@ public class MmsDatabase extends MessagingDatabase {
         long             outboxType     = cursor.getLong(cursor.getColumnIndexOrThrow(MESSAGE_BOX));
         String           messageText    = cursor.getString(cursor.getColumnIndexOrThrow(BODY));
         long             timestamp      = cursor.getLong(cursor.getColumnIndexOrThrow(DATE_SENT));
-        int              subscriptionId = cursor.getInt(cursor.getColumnIndexOrThrow(SUBSCRIPTION_ID));
         long             expiresIn      = cursor.getLong(cursor.getColumnIndexOrThrow(EXPIRES_IN));
         List<Attachment> attachments    = new LinkedList<Attachment>(attachmentDatabase.getAttachmentsForMessage(messageId));
         MmsAddresses     addresses      = addr.getAddressesForId(messageId);
         List<String>     destinations   = new LinkedList<>();
         String           body           = getDecryptedBody(masterSecret, messageText, outboxType);
+        String messageUId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
+        String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
+        int vote = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
 
         destinations.addAll(addresses.getBcc());
         destinations.addAll(addresses.getCc());
@@ -687,24 +719,17 @@ public class MmsDatabase extends MessagingDatabase {
 
         Recipients recipients = RecipientFactory.getRecipientsFromStrings(context, destinations, false);
 
-        if (body != null && (Types.isGroupQuit(outboxType) || Types.isGroupUpdate(outboxType))) {
-          return new OutgoingGroupMediaMessage(recipients, body, attachments, timestamp, 0);
-        } else if (Types.isExpirationTimerUpdate(outboxType)) {
+        if (Types.isExpirationTimerUpdate(outboxType)) {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
-        OutgoingMediaMessage message = new OutgoingMediaMessage(recipients, body, attachments, timestamp, subscriptionId, expiresIn,
-                                                                !addresses.getBcc().isEmpty() ? ThreadDatabase.DistributionTypes.BROADCAST :
-                                                                                                ThreadDatabase.DistributionTypes.DEFAULT);
-        if (Types.isSecureType(outboxType)) {
-          return new OutgoingSecureMediaMessage(message);
-        }
+        OutgoingMediaMessage message = new OutgoingMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
 
         return message;
       }
 
       throw new NoSuchMessageException("No record found for id: " + messageId);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new MmsException(e);
     } finally {
       if (cursor != null)
@@ -1274,7 +1299,6 @@ public class MmsDatabase extends MessagingDatabase {
       List<NetworkFailure>      networkFailures = getFailures(networkDocument);
       SlideDeck                 slideDeck       = getSlideDeck(cursor);
 
-
       return new MediaMmsMessageRecord(context, id, sender, sender.getPrimaryRecipient(),
                                        addressDeviceId, dateSent, dateReceived, receiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
@@ -1317,7 +1341,6 @@ public class MmsDatabase extends MessagingDatabase {
           Log.w(TAG, ioe);
         }
       }
-
       return new LinkedList<>();
     }
 
