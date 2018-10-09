@@ -18,6 +18,7 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.WebRtcCallActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -532,6 +533,7 @@ public class PushDecryptJob extends ContextJob {
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
           intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
           intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, callOffer.getCallMembers().toArray());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
           else                                                context.startService(intent);

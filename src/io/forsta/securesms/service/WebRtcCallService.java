@@ -112,6 +112,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   public static final String EXTRA_RESULT_RECEIVER    = "result_receiver";
   public static final String EXTRA_THREAD_UID    = "thread_uid";
   public static final String EXTRA_PEER_ID    = "peer_id";
+  public static final String EXTRA_CALL_MEMBERS = "call_members";
 
   public static final String ACTION_INCOMING_CALL        = "CALL_INCOMING";
   public static final String ACTION_OUTGOING_CALL        = "CALL_OUTGOING";
