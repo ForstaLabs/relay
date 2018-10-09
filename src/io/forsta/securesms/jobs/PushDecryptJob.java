@@ -408,7 +408,6 @@ public class PushDecryptJob extends ContextJob {
           message.getMessage().getExpiresInSeconds() * 1000,
           forstaMessage.getMessageId(), forstaMessage.getMessageRef(), forstaMessage.getVote());
 
-//      mediaMessage = new OutgoingSecureMediaMessage(mediaMessage);
       long messageId = database.insertMessageOutbox(masterSecret, mediaMessage, threadId, false);
 
       database.markAsSent(messageId);
