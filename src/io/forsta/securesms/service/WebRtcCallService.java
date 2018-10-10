@@ -75,6 +75,7 @@ import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserExce
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -164,6 +165,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   @Nullable private DataChannel            dataChannel;
   @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
   @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
+  private List<String> callMembers = new ArrayList<>();
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
@@ -330,6 +332,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.recipient                 = getRemoteRecipient(intent);
     this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
     this.peerId = intent.getStringExtra(EXTRA_PEER_ID);
+    String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
+    Log.w(TAG, "Members: " + members.toString());
 
     if (isIncomingMessageExpired(intent)) {
       insertMissedCall(this.recipient, true);
