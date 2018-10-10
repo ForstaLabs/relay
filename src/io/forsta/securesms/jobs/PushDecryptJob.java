@@ -533,7 +533,8 @@ public class PushDecryptJob extends ContextJob {
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
           intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
           intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
-          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, callOffer.getCallMembers().toArray());
+          List<String> members = callOffer.getCallMembers();
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, members.toArray(new String[members.size()]));
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
           else                                                context.startService(intent);
