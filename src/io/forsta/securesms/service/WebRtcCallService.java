@@ -37,15 +37,10 @@ import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.Util;
 import io.forsta.securesms.util.concurrent.SettableFuture;
 import io.forsta.securesms.webrtc.CallNotificationBuilder;
-import io.forsta.securesms.webrtc.IceUpdateMessage;
 import io.forsta.securesms.webrtc.IncomingPstnCallReceiver;
 import io.forsta.securesms.webrtc.PeerConnectionFactoryOptions;
 import io.forsta.securesms.webrtc.PeerConnectionWrapper;
 import io.forsta.securesms.webrtc.UncaughtExceptionHandlerManager;
-//import io.forsta.securesms.webrtc.WebRtcDataProtos.Connected;
-//import io.forsta.securesms.webrtc.WebRtcDataProtos.Data;
-//import io.forsta.securesms.webrtc.WebRtcDataProtos.Hangup;
-//import io.forsta.securesms.webrtc.WebRtcDataProtos;
 import io.forsta.securesms.webrtc.audio.BluetoothStateManager;
 import io.forsta.securesms.webrtc.audio.OutgoingRinger;
 import io.forsta.securesms.webrtc.audio.SignalAudioManager;
@@ -69,15 +64,13 @@ import org.webrtc.VideoTrack;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
-//import org.whispersystems.signalservice.api.SignalServiceAccountManager;
-//import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -156,19 +149,24 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private IncomingPstnCallReceiver        callReceiver;
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
+  //** Encapsulate these into individual Peer objects so we can multiple going.
   @Nullable private String                   peerId;
-  @Nullable private String                   callId;
-  @Nullable private String threadUID;
   @Nullable private Recipient              recipient;
-  @Nullable private String              originator;
   @Nullable private PeerConnectionWrapper  peerConnection;
-//  @Nullable private DataChannel            dataChannel;
+  //  @Nullable private DataChannel            dataChannel;
   @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
   @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
   private List<String> callMembers = new ArrayList<>();
+  // **
+
+  @Nullable private String                   callId;
+  @Nullable private String threadUID;
+  @Nullable private String              originator;
+  private Map<String, CallMember> callPeers = new HashMap<>();
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
+  @Nullable public  static SurfaceViewRenderer remoteRenderer2;
   @Nullable private static EglBase             eglBase;
 
   private ExecutorService          serviceExecutor = Executors.newSingleThreadExecutor();
@@ -325,12 +323,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
     this.callId = intent.getStringExtra(EXTRA_CALL_ID);
+    this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
     Log.w(TAG, "Incoming Call ID: " + this.callId);
     this.callState                 = CallState.STATE_ANSWERING;
+
     this.pendingIncomingIceUpdates = new LinkedList<>();
     this.originator = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     this.recipient                 = getRemoteRecipient(intent);
-    this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
     this.peerId = intent.getStringExtra(EXTRA_PEER_ID);
     String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
     Log.w(TAG, "Members: ");
@@ -1339,4 +1338,70 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     context.startService(intent);
   }
+
+  private class CallMember implements PeerConnection.Observer {
+    @Nullable private String peerId;
+    @Nullable private Recipient recipient;
+    @Nullable private PeerConnectionWrapper peerConnection;
+    @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
+    @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
+    private List<String> callMembers = new ArrayList<>();
+
+
+    @Override
+    public void onSignalingChange(PeerConnection.SignalingState signalingState) {
+
+    }
+
+    @Override
+    public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
+
+    }
+
+    @Override
+    public void onIceConnectionReceivingChange(boolean b) {
+
+    }
+
+    @Override
+    public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
+
+    }
+
+    @Override
+    public void onIceCandidate(IceCandidate iceCandidate) {
+
+    }
+
+    @Override
+    public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {
+
+    }
+
+    @Override
+    public void onAddStream(MediaStream mediaStream) {
+
+    }
+
+    @Override
+    public void onRemoveStream(MediaStream mediaStream) {
+
+    }
+
+    @Override
+    public void onDataChannel(DataChannel dataChannel) {
+
+    }
+
+    @Override
+    public void onRenegotiationNeeded() {
+
+    }
+
+    @Override
+    public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
+
+    }
+  }
 }
+

@@ -39,19 +39,13 @@ import org.greenrobot.eventbus.ThreadMode;
 import io.forsta.securesms.components.webrtc.WebRtcAnswerDeclineButton;
 import io.forsta.securesms.components.webrtc.WebRtcCallControls;
 import io.forsta.securesms.components.webrtc.WebRtcCallScreen;
-import io.forsta.securesms.crypto.storage.TextSecureIdentityKeyStore;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.service.MessageRetrievalService;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
-import org.whispersystems.libsignal.IdentityKey;
-import org.whispersystems.libsignal.SignalProtocolAddress;
-
-import static org.whispersystems.libsignal.SessionCipher.SESSION_LOCK;
 
 public class WebRtcCallActivity extends Activity {
 
@@ -65,7 +59,6 @@ public class WebRtcCallActivity extends Activity {
   public static final String END_CALL_ACTION = WebRtcCallActivity.class.getCanonicalName() + ".END_CALL_ACTION";
 
   private WebRtcCallScreen           callScreen;
-//  private SignalServiceNetworkAccess networkAccess;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -87,7 +80,6 @@ public class WebRtcCallActivity extends Activity {
   public void onResume() {
     Log.w(TAG, "onResume()");
     super.onResume();
-//    if (!networkAccess.isCensored(this)) MessageRetrievalService.registerActivityStarted(this);
     initializeScreenshotSecurity();
     EventBus.getDefault().register(this);
   }
@@ -108,7 +100,6 @@ public class WebRtcCallActivity extends Activity {
   public void onPause() {
     Log.w(TAG, "onPause");
     super.onPause();
-//    if (!networkAccess.isCensored(this)) MessageRetrievalService.registerActivityStopped(this);
     EventBus.getDefault().unregister(this);
   }
 
@@ -141,7 +132,6 @@ public class WebRtcCallActivity extends Activity {
     callScreen.setSpeakerButtonListener(new SpeakerButtonListener());
     callScreen.setBluetoothButtonListener(new BluetoothButtonListener());
 
-//    networkAccess = new SignalServiceNetworkAccess(this);
   }
 
   private void handleSetMuteAudio(boolean enabled) {
@@ -264,34 +254,6 @@ public class WebRtcCallActivity extends Activity {
     dialog.show();
   }
 
-//  private void handleUntrustedIdentity(@NonNull WebRtcViewModel event) {
-//    final IdentityKey theirIdentity = event.getIdentityKey();
-//    final Recipient   recipient     = event.getRecipient();
-//
-//    callScreen.setUntrustedIdentity(recipient, theirIdentity);
-//    callScreen.setAcceptIdentityListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-//        synchronized (SESSION_LOCK) {
-//          TextSecureIdentityKeyStore identityKeyStore = new TextSecureIdentityKeyStore(WebRtcCallActivity.this);
-//          identityKeyStore.saveIdentity(new SignalProtocolAddress(recipient.getAddress(), 1), theirIdentity, true);
-//        }
-//
-//        Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
-//        intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
-//        intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
-//        startService(intent);
-//      }
-//    });
-//
-//    callScreen.setCancelIdentityButton(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-//        handleTerminate(recipient);
-//      }
-//    });
-//  }
-
   private void delayedFinish() {
     delayedFinish(STANDARD_DELAY_FINISH);
   }
@@ -318,7 +280,6 @@ public class WebRtcCallActivity extends Activity {
       case CALL_INCOMING:           handleIncomingCall(event);             break;
       case CALL_OUTGOING:           handleOutgoingCall(event);             break;
       case CALL_BUSY:               handleCallBusy(event);                 break;
-//      case UNTRUSTED_IDENTITY:      handleUntrustedIdentity(event);        break;
     }
 
     callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());
