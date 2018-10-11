@@ -1383,6 +1383,16 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       }
     }
 
+    public void addIceCandidate(IceCandidate candidate) {
+      if (peerConnection != null) {
+        Log.w(TAG, "handleRemoteIceCandidate peerConnection: " + candidate.toString());
+        peerConnection.addIceCandidate(candidate);
+      } else if (pendingIncomingIceUpdates != null) {
+        Log.w(TAG, "handleRemoteIceCandidate pending: " + candidate.toString());
+        pendingIncomingIceUpdates.add(candidate);
+      }
+    }
+
     public void terminate() {
       if (this.peerConnection != null) {
         this.peerConnection.dispose();
