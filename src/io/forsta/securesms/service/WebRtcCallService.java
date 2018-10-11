@@ -336,8 +336,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     Log.w(TAG, "Members: ");
     for (String item : members) {
       Log.w(TAG, item);
-      this.callMembers.put(this.recipient.getAddress(), new CallMember(this, this.recipient, this.callId, this.peerId));
+//      this.callMembers.put(this.recipient.getAddress(), new CallMember(this, this.recipient, this.callId, this.peerId));
     }
+    // Just add one for now.
+    this.callMembers.put(this.recipient.getAddress(), new CallMember(this, this.recipient, this.callId, this.peerId));
 
     if (isIncomingMessageExpired(intent)) {
       insertMissedCall(this.recipient, true);
