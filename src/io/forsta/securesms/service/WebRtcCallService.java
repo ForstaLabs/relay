@@ -156,13 +156,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   //  @Nullable private DataChannel            dataChannel;
   @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
   @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
-  private List<String> callMembers = new ArrayList<>();
   // **
 
   @Nullable private String                   callId;
   @Nullable private String threadUID;
   @Nullable private String              originator;
-  private Map<String, CallMember> callPeers = new HashMap<>();
+  private Map<String, CallMember> callMembers = new HashMap<>();
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
@@ -495,6 +494,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private void handleRemoteIceCandidate(Intent intent) {
+    //First get the peer connection from the Map.
+    //
+    String peerId = intent.getStringExtra(EXTRA_PEER_ID);
+    CallMember connection = callMembers.get(peerId);
+    if (connection == null) {
+      Log.w(TAG, "No peer connection existings for this peerId");
+    }
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
@@ -1345,8 +1351,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
-    private List<String> callMembers = new ArrayList<>();
-
 
     @Override
     public void onSignalingChange(PeerConnection.SignalingState signalingState) {
