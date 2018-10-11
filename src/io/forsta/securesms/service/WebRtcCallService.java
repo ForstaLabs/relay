@@ -1415,12 +1415,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       if (newState == PeerConnection.IceConnectionState.CONNECTED ||
           newState == PeerConnection.IceConnectionState.COMPLETED)
       {
-        Intent intent = new Intent(this.context, CallMember.class);
+        Intent intent = new Intent(this.context, WebRtcCallService.class);
         intent.setAction(ACTION_ICE_CONNECTED);
 
         startService(intent);
       } else if (newState == PeerConnection.IceConnectionState.FAILED) {
-        Intent intent = new Intent(this.context, CallMember.class);
+        Intent intent = new Intent(this.context, WebRtcCallService.class);
         intent.setAction(ACTION_REMOTE_HANGUP);
         intent.putExtra(EXTRA_CALL_ID, this.callId);
 
@@ -1440,21 +1440,22 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
-//      Log.w(TAG, "onIceCandidate:" + candidate);
-//      Intent intent = new Intent(context, CallMember.class);
-//
-//      intent.setAction(ACTION_ICE_CANDIDATE);
-//      intent.putExtra(EXTRA_ICE_SDP_MID, candidate.sdpMid);
-//      intent.putExtra(EXTRA_ICE_SDP_LINE_INDEX, candidate.sdpMLineIndex);
-//      intent.putExtra(EXTRA_ICE_SDP, candidate.sdp);
-//      intent.putExtra(EXTRA_CALL_ID, callId);
-//
-//      startService(intent);
+      // Why doesn't this just add the candidate directly to the peerConnection?
+      Log.w(TAG, "onIceCandidate:" + candidate);
+      Intent intent = new Intent(context, WebRtcCallService.class);
+
+      intent.setAction(ACTION_ICE_CANDIDATE);
+      intent.putExtra(EXTRA_ICE_SDP_MID, candidate.sdpMid);
+      intent.putExtra(EXTRA_ICE_SDP_LINE_INDEX, candidate.sdpMLineIndex);
+      intent.putExtra(EXTRA_ICE_SDP, candidate.sdp);
+      intent.putExtra(EXTRA_CALL_ID, callId);
+
+      startService(intent);
     }
 
     @Override
-    public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {
-
+    public void onIceCandidatesRemoved(IceCandidate[] candidates) {
+      Log.w(TAG, "onIceCandidatesRemoved:" + (candidates != null ? candidates.length : null));
     }
 
     @Override
