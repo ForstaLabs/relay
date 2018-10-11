@@ -336,7 +336,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     Log.w(TAG, "Members: ");
     for (String item : members) {
       Log.w(TAG, item);
-      this.callMembers.put(this.recipient.getAddress(), new CallMember(this.recipient, this.peerId));
+      this.callMembers.put(this.recipient.getAddress(), new CallMember(this, this.recipient, this.callId, this.peerId));
     }
 
     if (isIncomingMessageExpired(intent)) {
@@ -360,6 +360,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         try {
 
           boolean isAlwaysTurn = false;
+
+          CallMember member = WebRtcCallService.this.callMembers.get(WebRtcCallService.this.recipient.getAddress());
+//          member.createPeerConnection(new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, isAlwaysTurn));
+//          member.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
           WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, isAlwaysTurn);
           WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
@@ -504,6 +508,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     } else {
       Log.w(TAG, "Connection: " + connection.toString());
     }
+
+
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
@@ -1349,40 +1355,91 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   }
 
   private class CallMember implements PeerConnection.Observer {
-    @Nullable private String peerId;
-    @Nullable private Recipient recipient;
+    private volatile Context context;
+    private String callId;
+    private String peerId;
+    private Recipient recipient;
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
 
-    public CallMember(Recipient recipient, String peerId) {
+    public CallMember(Context context, Recipient recipient, String callId, String peerId) {
+      this.context = context;
+      this.callId = callId;
       this.recipient = recipient;
       this.peerId = peerId;
     }
 
-    @Override
-    public void onSignalingChange(PeerConnection.SignalingState signalingState) {
+    public void createPeerConnection(PeerConnectionWrapper peerConnection) {
+      this.peerConnection = peerConnection;
+    }
 
+    public void setRemoteDescription(SessionDescription sdp) {
+      try {
+        this.peerConnection.setRemoteDescription(sdp);
+      } catch (PeerConnectionWrapper.PeerConnectionException e) {
+        e.printStackTrace();
+        terminate();
+      }
+    }
+
+    public void terminate() {
+      if (this.peerConnection != null) {
+        this.peerConnection.dispose();
+        this.peerConnection = null;
+      }
+
+      this.pendingOutgoingIceUpdates = null;
+      this.pendingIncomingIceUpdates = null;
     }
 
     @Override
-    public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
-
+    public void onSignalingChange(PeerConnection.SignalingState newState) {
+      Log.w(TAG, "onSignalingChange: " + newState);
     }
 
     @Override
-    public void onIceConnectionReceivingChange(boolean b) {
+    public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
+      Log.w(TAG, "onIceConnectionChange:" + newState);
 
+      if (newState == PeerConnection.IceConnectionState.CONNECTED ||
+          newState == PeerConnection.IceConnectionState.COMPLETED)
+      {
+        Intent intent = new Intent(this.context, CallMember.class);
+        intent.setAction(ACTION_ICE_CONNECTED);
+
+        startService(intent);
+      } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+        Intent intent = new Intent(this.context, CallMember.class);
+        intent.setAction(ACTION_REMOTE_HANGUP);
+        intent.putExtra(EXTRA_CALL_ID, this.callId);
+
+        startService(intent);
+      }
+    }
+
+    @Override
+    public void onIceConnectionReceivingChange(boolean receiving) {
+      Log.w(TAG, "onIceConnectionReceivingChange:" + receiving);
     }
 
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
-
+      Log.w(TAG, "onIceGatheringChange:" + iceGatheringState);
     }
 
     @Override
-    public void onIceCandidate(IceCandidate iceCandidate) {
-
+    public void onIceCandidate(IceCandidate candidate) {
+//      Log.w(TAG, "onIceCandidate:" + candidate);
+//      Intent intent = new Intent(context, CallMember.class);
+//
+//      intent.setAction(ACTION_ICE_CANDIDATE);
+//      intent.putExtra(EXTRA_ICE_SDP_MID, candidate.sdpMid);
+//      intent.putExtra(EXTRA_ICE_SDP_LINE_INDEX, candidate.sdpMLineIndex);
+//      intent.putExtra(EXTRA_ICE_SDP, candidate.sdp);
+//      intent.putExtra(EXTRA_CALL_ID, callId);
+//
+//      startService(intent);
     }
 
     @Override
@@ -1391,28 +1448,38 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
 
     @Override
-    public void onAddStream(MediaStream mediaStream) {
+    public void onAddStream(MediaStream stream) {
+      Log.w(TAG, "onAddStream:" + stream);
 
+      for (AudioTrack audioTrack : stream.audioTracks) {
+        audioTrack.setEnabled(true);
+      }
+
+      if (stream.videoTracks != null && stream.videoTracks.size() == 1) {
+        VideoTrack videoTrack = stream.videoTracks.getFirst();
+        videoTrack.setEnabled(true);
+        videoTrack.addRenderer(new VideoRenderer(remoteRenderer)); // This is static from the enclosing class. Can it be encapsulated into this class?
+      }
     }
 
     @Override
     public void onRemoveStream(MediaStream mediaStream) {
-
+      Log.w(TAG, "onRemoveStream:" + mediaStream);
     }
 
     @Override
     public void onDataChannel(DataChannel dataChannel) {
-
+      Log.w(TAG, "onDataChannel:" + dataChannel.label());
     }
 
     @Override
     public void onRenegotiationNeeded() {
-
+      Log.w(TAG, "onRenegotiationNeeded");
     }
 
     @Override
     public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
-
+      Log.w(TAG, "onAddTrack: " + mediaStreams);
     }
 
     @Override
