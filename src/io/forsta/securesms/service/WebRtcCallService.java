@@ -331,9 +331,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     this.recipient                 = getRemoteRecipient(intent);
     this.peerId = intent.getStringExtra(EXTRA_PEER_ID);
     String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
+    Log.w(TAG, "Address: " + this.recipient.getAddress());
+    Log.w(TAG, "PeerId: " + this.peerId); //Random. Generated in call offer.
     Log.w(TAG, "Members: ");
     for (String item : members) {
       Log.w(TAG, item);
+      this.callMembers.put(this.recipient.getAddress(), new CallMember(this.recipient, this.peerId));
     }
 
     if (isIncomingMessageExpired(intent)) {
@@ -360,8 +363,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
           WebRtcCallService.this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, WebRtcCallService.this, localRenderer, result, isAlwaysTurn);
           WebRtcCallService.this.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
-//          WebRtcCallService.this.dataChannel = WebRtcCallService.this.peerConnection.createDataChannel(DATA_CHANNEL_NAME);
-//          WebRtcCallService.this.dataChannel.registerObserver(WebRtcCallService.this);
           WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
 
           WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
@@ -496,10 +497,12 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private void handleRemoteIceCandidate(Intent intent) {
     //First get the peer connection from the Map.
     //
-    String peerId = intent.getStringExtra(EXTRA_PEER_ID);
-    CallMember connection = callMembers.get(peerId);
+    String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
+    CallMember connection = callMembers.get(address);
     if (connection == null) {
-      Log.w(TAG, "No peer connection existings for this peerId");
+      Log.w(TAG, "No peer connection existings for this address");
+    } else {
+      Log.w(TAG, "Connection: " + connection.toString());
     }
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
@@ -1352,6 +1355,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
 
+    public CallMember(Recipient recipient, String peerId) {
+      this.recipient = recipient;
+      this.peerId = peerId;
+    }
+
     @Override
     public void onSignalingChange(PeerConnection.SignalingState signalingState) {
 
@@ -1405,6 +1413,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     @Override
     public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
 
+    }
+
+    @Override
+    public String toString() {
+      return "" + this.recipient.getAddress() + " " + this.recipient.getLocalTag() + " Peer ID: " + this.peerId;
     }
   }
 }
