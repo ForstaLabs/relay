@@ -263,15 +263,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   // Initializers
 
   private void initializeResources() {
-//    ApplicationContext.getInstance(this).injectDependencies(this);
-
     this.callState             = CallState.STATE_IDLE;
     this.lockManager           = new LockManager(this);
     this.peerConnectionFactory = new PeerConnectionFactory(new PeerConnectionFactoryOptions());
     this.audioManager          = new SignalAudioManager(this);
     this.bluetoothStateManager = new BluetoothStateManager(this, this);
-//    this.messageSender.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
-//    this.accountManager.setSoTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
   }
 
   private void registerIncomingPstnCallReceiver() {
@@ -465,10 +461,15 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
       Recipient remoteRecipient = getRemoteRecipient(intent);
       String remoteCallId = getCallId(intent);
-      if (callState != CallState.STATE_DIALING || !getRemoteRecipient(intent).equals(recipient) || this.callId == null ||!this.callId.equals(getCallId(intent))) {
-        Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + getCallId(intent) + ", " + getRemoteRecipient(intent));
+      if (callState != CallState.STATE_DIALING || !remoteRecipient.equals(recipient) || this.callId == null ||!this.callId.equals(remoteCallId)) {
+        Log.w(TAG, "Got answer for recipient and call id we're not currently dialing: " + remoteCallId + ", " + remoteRecipient);
         return;
       }
+
+      // Find the callMember to get its peerConnection and pendingOutgoingIceUpdates
+      //
+      //
+      //
 
       if (peerConnection == null || pendingOutgoingIceUpdates == null) {
         throw new AssertionError("assert");
@@ -502,21 +503,31 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleRemoteIceCandidate(Intent intent) {
     //First get the peer connection from the Map.
-    //
-    String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
+    String address = getRemoteAddress(intent);
     CallMember connection = callMembers.get(address);
+
     if (connection == null) {
       Log.w(TAG, "No peer connection existings for this address");
     } else {
       Log.w(TAG, "Connection: " + connection.toString());
     }
 
+//    if (connection != null && this.callId != null && this.callId.equals(getCallId(intent))) {
+//      IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
+//          intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
+//          intent.getStringExtra(EXTRA_ICE_SDP));
+//
+//      connection.addIncomingIceCandidate(candidate);
+//    } else {
+//      Log.w(TAG, "No connection, or invalid callId");
+//    }
 
+
+    // Remove this...
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
                                                 intent.getStringExtra(EXTRA_ICE_SDP));
-
 
       if (peerConnection != null) {
         Log.w(TAG, "handleRemoteIceCandidate peerConnection: " + candidate.toString());
@@ -530,6 +541,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
   private void handleLocalIceCandidate(Intent intent) {
     Log.w(TAG, "handleLocalIceCandidate");
+
     if (callState == CallState.STATE_IDLE || this.callId == null || !this.callId.equals(getCallId(intent))) {
       Log.w(TAG, "State is now idle, ignoring ice candidate...");
       return;
@@ -544,7 +556,6 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
                                                              intent.getStringExtra(EXTRA_ICE_SDP));
     List<IceCandidate> candidates = new LinkedList<>();
     if (pendingOutgoingIceUpdates != null) {
-      Log.w(TAG, "handleLocalIceCandidate pending: " + iceUpdateMessage.toString());
       this.pendingOutgoingIceUpdates.add(iceUpdateMessage);
       return;
     } else {
@@ -1048,6 +1059,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     return intent.getStringExtra(EXTRA_CALL_ID);
   }
 
+  private String getRemoteAddress(Intent intent) {
+    return intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
+  }
+
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {
@@ -1370,6 +1385,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       this.callId = callId;
       this.recipient = recipient;
       this.peerId = peerId;
+      this.pendingIncomingIceUpdates = new LinkedList<>();
     }
 
     public void createPeerConnection(PeerConnectionWrapper peerConnection) {
@@ -1385,7 +1401,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       }
     }
 
-    public void addIceCandidate(IceCandidate candidate) {
+    public void addIncomingIceCandidate(IceCandidate candidate) {
       if (peerConnection != null) {
         Log.w(TAG, "handleRemoteIceCandidate peerConnection: " + candidate.toString());
         peerConnection.addIceCandidate(candidate);
@@ -1393,6 +1409,18 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         Log.w(TAG, "handleRemoteIceCandidate pending: " + candidate.toString());
         pendingIncomingIceUpdates.add(candidate);
       }
+    }
+
+    public void addOutgoingIceCandidate(IceCandidate candidate) {
+
+    }
+
+    public List<IceCandidate> getIncomingIceUpdates() {
+      return pendingIncomingIceUpdates;
+    }
+
+    public List<IceCandidate> getOutgoingIceUpdates() {
+      return pendingOutgoingIceUpdates;
     }
 
     public void terminate() {
