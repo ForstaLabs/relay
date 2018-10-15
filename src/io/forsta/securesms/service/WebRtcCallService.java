@@ -312,10 +312,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     String incomingAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     String incomingPeerId = intent.getStringExtra(EXTRA_PEER_ID);
     String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
-    Recipient incomingRecipient = getRemoteRecipient(intent);
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
 
-    Log.w(TAG, "handleIncomingCalls... ID: " + this.callId);
+    Log.w(TAG, "handleIncomingCalls... ID: " + callId);
     if (callId != null) {
       // Existing call. Member joining
       if (callId.equals(incomingCallId)) {
@@ -333,13 +332,13 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       Log.w(TAG, "Adding member to new call");
       // New call.
       if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
-      this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
+      threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
 
-      this.callId = incomingCallId;
-      this.callState = CallState.STATE_ANSWERING;
+      callId = incomingCallId;
+      callState = CallState.STATE_ANSWERING;
 
       for (String memberAddress : members) {
-        callMembers.put(memberAddress, new CallMember(this, this.callId, memberAddress));
+        callMembers.put(memberAddress, new CallMember(this, callId, memberAddress));
       }
     }
 
@@ -350,7 +349,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     if (isIncomingMessageExpired(intent)) {
       insertMissedCall(member.recipient, true);
       member.terminate();
-      terminate(false);
+      terminateCall(false);
       return;
     }
 
@@ -358,11 +357,11 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       setCallInProgressNotification(TYPE_INCOMING_CONNECTING, member.recipient);
     }
 
-    timeoutExecutor.schedule(new TimeoutRunnable(this.callId), 30, TimeUnit.SECONDS);
+    timeoutExecutor.schedule(new TimeoutRunnable(callId), 30, TimeUnit.SECONDS);
 
     initializeVideo();
 
-    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
+    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
 
       @Override
       public void onSuccessContinue(List<PeerConnection.IceServer> result) {
@@ -387,7 +386,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
         } catch (PeerConnectionWrapper.PeerConnectionException e) {
           Log.w(TAG, e);
-          terminate();
+          member.terminate();
+          // Only terminate the call if it is the laster remaining member.
+          terminateCall(true);
         }
       }
     });
