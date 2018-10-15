@@ -359,6 +359,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     timeoutExecutor.schedule(new TimeoutRunnable(callId), 30, TimeUnit.SECONDS);
 
+    // This should only initialize if this is a new call, not when members are joining an existing call.
     initializeVideo();
 
     retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
