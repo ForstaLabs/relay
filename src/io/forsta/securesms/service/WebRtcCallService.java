@@ -146,7 +146,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private IncomingPstnCallReceiver        callReceiver;
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
-  //** Encapsulate these into individual Peer objects so we can multiple going.
+  //** Encapsulate these into individual CallMember objects so we can have multiple going.
   @Nullable private String                   peerId;
   @Nullable private Recipient              recipient;
   @Nullable private PeerConnectionWrapper  peerConnection;
@@ -191,7 +191,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       public void run() {
         if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_BUSY))               handleBusyMessage(intent);
-        if (intent.getAction().equals(ACTION_INCOMING_CALL))                  handleIncomingCall(intent);
+        else if (intent.getAction().equals(ACTION_INCOMING_CALL))             handleIncomingCalls(intent);
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
         else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent);
         else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
@@ -204,8 +204,8 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
-        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleRemoteIceCandidate(intent);
-        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleLocalIceCandidate(intent);
+        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent);
+        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
@@ -573,29 +573,24 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
   }
 
-  private void handleRemoteIceCandidate(Intent intent) {
+  private void handleIncomingIceCandidate(Intent intent) {
     //First get the peer connection from the Map.
     String address = getRemoteAddress(intent);
     CallMember connection = callMembers.get(address);
 
-    if (connection == null) {
-      Log.w(TAG, "No peer connection existings for this address");
+    if (connection != null && this.callId != null && this.callId.equals(getCallId(intent))) {
+      IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
+          intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
+          intent.getStringExtra(EXTRA_ICE_SDP));
+
+      connection.addIncomingIceCandidate(candidate);
     } else {
-      Log.w(TAG, "Connection: " + connection.toString());
+      Log.w(TAG, "No connection, or invalid callId");
     }
+  }
 
-//    if (connection != null && this.callId != null && this.callId.equals(getCallId(intent))) {
-//      IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
-//          intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
-//          intent.getStringExtra(EXTRA_ICE_SDP));
-//
-//      connection.addIncomingIceCandidate(candidate);
-//    } else {
-//      Log.w(TAG, "No connection, or invalid callId");
-//    }
-
-
-    // Remove this...
+  private void handleRemoteIceCandidate(Intent intent) {
+    Log.w(TAG, "handleRemoteIceCandidate");
     if (this.callId != null && this.callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
                                                 intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
@@ -609,6 +604,46 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         pendingIncomingIceUpdates.add(candidate);
       }
     }
+  }
+
+  private void handleOutgoingIceCandidate(Intent intent) {
+    Log.w(TAG, "handleOutgoingIceCandidate");
+    String address = getRemoteAddress(intent);
+    CallMember connection = callMembers.get(address);
+
+    if (callState == CallState.STATE_IDLE || callId == null || !callId.equals(getCallId(intent))) {
+      Log.w(TAG, "State is now idle, ignoring ice candidate...");
+      return;
+    }
+
+    if (recipient == null || callId == null) {
+      throw new AssertionError("assert: " + callState + ", " + callId);
+    }
+
+    IceCandidate iceUpdateMessage = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
+        intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
+        intent.getStringExtra(EXTRA_ICE_SDP));
+    List<IceCandidate> candidates = new LinkedList<>();
+    if (connection.pendingOutgoingIceUpdates !=null) {
+      connection.addOutgoingIceCandidate(iceUpdateMessage);
+      return;
+    } else {
+      candidates.add(iceUpdateMessage);
+    }
+
+    Log.w(TAG, "handleOutgoingIceCandidate sendIceUpdateMessage: " + iceUpdateMessage.toString());
+
+    ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(connection.recipient, threadUID, callId, connection.peerId, candidates);
+
+    listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+      @Override
+      public void onFailureContinue(Throwable error) {
+        Log.w(TAG, error);
+        sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+        terminate();
+      }
+    });
   }
 
   private void handleLocalIceCandidate(Intent intent) {
