@@ -66,7 +66,6 @@ import org.whispersystems.libsignal.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,9 +190,9 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
       public void run() {
         if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_BUSY))               handleBusyMessage(intent);
-        else if (intent.getAction().equals(ACTION_INCOMING_CALL))             handleIncomingCalls(intent);
+        else if (intent.getAction().equals(ACTION_INCOMING_CALL))             handleIncomingCalls(intent); // X
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
-        else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent);
+        else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCalls(intent); // X
         else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
         else if (intent.getAction().equals(ACTION_LOCAL_HANGUP))              handleLocalHangup(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_HANGUP))             handleRemoteHangup(intent);
@@ -204,7 +203,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
-        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent);
+        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent); // X
         else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
@@ -329,7 +328,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
         // TODO Notification. Missed call from.
       }
     } else {
-      Log.w(TAG, "Adding member to new call");
+      Log.w(TAG, "Accepting new call request");
       // New call.
       if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
       threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
@@ -580,7 +579,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     String address = getRemoteAddress(intent);
     CallMember connection = callMembers.get(address);
 
-    if (connection != null && this.callId != null && this.callId.equals(getCallId(intent))) {
+    if (connection != null && callId != null && callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
           intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
           intent.getStringExtra(EXTRA_ICE_SDP));
@@ -703,6 +702,44 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
     }
   }
 
+  private void handleMemberConnected(Intent intent) {
+    Log.w(TAG, "handleMemberConnected...");
+    String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
+    CallMember member = callMembers.get(address);
+
+    if (callState != CallState.STATE_REMOTE_RINGING && callState != CallState.STATE_LOCAL_RINGING) {
+      Log.w(TAG, "Ignoring call connected for unknown state: " + callState);
+      return;
+    }
+
+    String id = getCallId(intent);
+    if (callId != null && !callId.equals(id)) {
+      Log.w(TAG, "Ignoring connected for unknown call id: " + id;
+      return;
+    }
+
+    if (member == null || member.recipient == null || member.peerConnection == null) {
+      throw new AssertionError("assert");
+    }
+
+    audioManager.startCommunication(callState == CallState.STATE_REMOTE_RINGING);
+    bluetoothStateManager.setWantsConnection(true);
+
+    callState = CallState.STATE_CONNECTED;
+
+    if (localVideoEnabled) lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
+    else                   lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
+
+    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+    unregisterPowerButtonReceiver();
+
+    setCallInProgressNotification(CallNotificationBuilder.TYPE_ESTABLISHED, member.recipient);
+
+    member.peerConnection.setAudioEnabled(microphoneEnabled);
+    member.peerConnection.setVideoEnabled(localVideoEnabled);
+  }
+
   private void handleCallConnected(Intent intent) {
     Log.w(TAG, "handleCallConnected...");
     if (callState != CallState.STATE_REMOTE_RINGING && callState != CallState.STATE_LOCAL_RINGING) {
@@ -800,6 +837,53 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
     Log.w(TAG, "Missed call from: " + recipient.getAddress());
     setCallInProgressNotification(TYPE_INCOMING_MISSED, recipient);
+  }
+
+  private void handleAnswerCalls(Intent intent) {
+    Log.w(TAG, "handleAnswerCalls");
+    String address = getRemoteAddress(intent);
+    CallMember member = callMembers.get(address);
+
+    if (callState != CallState.STATE_LOCAL_RINGING) {
+      Log.w(TAG, "Can only answer from ringing!");
+      return;
+    }
+
+    if (member.peerConnection == null || member.recipient == null || callId == null) {
+      throw new AssertionError("assert");
+    }
+
+    try {
+      SessionDescription sdp = this.peerConnection.createAnswer(new MediaConstraints());
+      Log.w(TAG, "Answer SDP: " + sdp.description);
+      member.peerConnection.setLocalDescription(sdp);
+      ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
+      listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+
+        @Override
+        public void onFailureContinue(Throwable error) {
+          Log.w(TAG, error);
+          insertMissedCall(member.recipient, true);
+          member.terminate();
+          // Check to see if this is the last call member.
+          // terminateCall(true);
+        }
+      });
+
+      for (IceCandidate candidate : member.pendingIncomingIceUpdates) {
+        member.peerConnection.addIceCandidate(candidate);
+      }
+      member.pendingIncomingIceUpdates = null;
+    } catch (PeerConnectionWrapper.PeerConnectionException e) {
+      e.printStackTrace();
+    }
+
+    member.peerConnection.setAudioEnabled(true);
+    member.peerConnection.setVideoEnabled(true);
+
+    intent.putExtra(EXTRA_CALL_ID, callId);
+    intent.putExtra(EXTRA_REMOTE_ADDRESS, member.recipient.getAddress());
+    handleMemberConnected(intent);
   }
 
   private void handleAnswerCall(Intent intent) {
@@ -1565,6 +1649,10 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     public void addOutgoingIceCandidate(IceCandidate candidate) {
 
+    }
+
+    public boolean isActiveConnection() {
+      return true;
     }
 
     public List<IceCandidate> getIncomingIceUpdates() {
