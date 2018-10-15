@@ -714,7 +714,7 @@ public class WebRtcCallService extends Service implements InjectableType, PeerCo
 
     String id = getCallId(intent);
     if (callId != null && !callId.equals(id)) {
-      Log.w(TAG, "Ignoring connected for unknown call id: " + id;
+      Log.w(TAG, "Ignoring connected for unknown call id: " + id);
       return;
     }
 
