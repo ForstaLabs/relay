@@ -171,6 +171,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleDenyCall() {
+    Log.w(TAG, "handleDenyCall...");
     WebRtcViewModel event = EventBus.getDefault().getStickyEvent(WebRtcViewModel.class);
 
     if (event != null) {

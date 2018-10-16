@@ -1045,9 +1045,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 //  }
 
   private void handleLocalHangup(Intent intent) {
-    if (this.recipient != null && this.callId != null) {
-      sendCallLeaveMessage(this.recipient, this.threadUID, this.callId);
-      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    Log.w(TAG, "handleLocalHangup");
+    CallMember member = getCallMember(intent);
+    if (member != null && member.recipient != null && callId != null) {
+      sendCallLeaveMessage(member.recipient, threadUID, callId);
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
 
     terminate();
@@ -1205,9 +1207,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
       return member;
     } else {
-      for (CallMember callMember : callMembers.values()) {
-        if (callMember.peerId != null) {
-          return callMember;
+      for (CallMember member : callMembers.values()) {
+        if (member.peerId != null) {
+          Log.w(TAG, "Answering call member: callId: " + member.callId + " peerId: " +member.peerId + " address: " + member.recipient.getAddress() + " (" + member.recipient.getLocalTag() + ")");
+          return member;
         }
       }
     }
