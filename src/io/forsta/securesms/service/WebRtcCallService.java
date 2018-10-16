@@ -659,7 +659,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return;
     }
 
-    if (recipient == null || callId == null) {
+    if (member.recipient == null || callId == null) {
       throw new AssertionError("assert: " + callState + ", " + callId);
     }
 
