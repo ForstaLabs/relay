@@ -1050,9 +1050,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (member != null && member.recipient != null && callId != null) {
       sendCallLeaveMessage(member.recipient, threadUID, callId);
       sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      member.terminate();
     }
-
-    terminate();
+    terminateCall(true);
   }
 
   private void handleRemoteHangup(Intent intent) {
