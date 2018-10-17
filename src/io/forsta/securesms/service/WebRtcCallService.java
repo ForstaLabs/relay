@@ -778,11 +778,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleLocalHangup(Intent intent) {
     Log.w(TAG, "handleLocalHangup");
-    CallMember member = getCallMember(intent);
-    if (member != null && member.recipient != null && callId != null) {
-      sendCallLeaveMessage(member.recipient, threadUID, callId);
-      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-      member.terminate();
+
+    if (localCallMember != null && localCallMember.recipient != null && callId != null) {
+      sendCallLeaveMessage(localCallMember.recipient, threadUID, callId);
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, localCallMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      localCallMember.terminate();
     }
     terminateCall(true);
   }
