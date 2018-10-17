@@ -572,7 +572,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return;
     }
 
-    if (member.recipient == null || callId == null) {
+    if (member == null || member.recipient == null || callId == null) {
       throw new AssertionError("assert: " + callState + ", " + callId);
     }
 
@@ -674,6 +674,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleCheckTimeout(Intent intent) {
+    Log.w(TAG, "handleCheckTimeout");
+
     CallMember member = getCallMember(intent);
     if (callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
       Log.w(TAG, "Timing out call: " + callId);
@@ -734,8 +736,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           Log.w(TAG, error);
           insertMissedCall(member.recipient, true);
           member.terminate();
-          // Check to see if this is the last call member.
-          // terminateCall(true);
+          terminateCall(true);
         }
       });
 
@@ -1410,6 +1411,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       intent.putExtra(EXTRA_ICE_SDP_MID, candidate.sdpMid);
       intent.putExtra(EXTRA_ICE_SDP_LINE_INDEX, candidate.sdpMLineIndex);
       intent.putExtra(EXTRA_ICE_SDP, candidate.sdp);
+      intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
       intent.putExtra(EXTRA_CALL_ID, callId);
 
       startService(intent);
