@@ -269,7 +269,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
       localRenderLayout.setPosition(7, 70, 25, 25);
       localRenderLayout.setSquare(true);
       remoteRenderLayout.setPosition(0, 0, 50, 50);
-      remoteRenderLayout.setPosition(50, 0, 50, 50);
+      remoteRenderLayout2.setPosition(50, 0, 50, 50);
 
       localRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                                                  ViewGroup.LayoutParams.MATCH_PARENT));

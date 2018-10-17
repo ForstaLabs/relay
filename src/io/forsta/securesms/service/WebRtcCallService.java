@@ -147,16 +147,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private IncomingPstnCallReceiver        callReceiver;
   private UncaughtExceptionHandlerManager uncaughtExceptionHandlerManager;
 
-  //** Encapsulate these into individual CallMember objects so we can have multiple going.
-  @Nullable private String                   peerId;
-  @Nullable private Recipient              recipient;
-  @Nullable private PeerConnectionWrapper  peerConnection;
-  @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
-  @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
-  // **
-
-
-
   @Nullable private String callId;
   @Nullable private String threadUID;
   private String localAddress;
@@ -205,7 +195,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
         else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
-        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_MUTE))         handleRemoteVideoMute(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
         else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent); // X
         else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
@@ -480,7 +469,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
             Log.w(TAG, "Sending callOffer: " + sdp.description);
 
-            ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteMember.recipient, threadUID, callId, sdp, peerId);
+            ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteMember.recipient, threadUID, callId, sdp, localMember.peerId);
             listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
               @Override
               public void onFailureContinue(Throwable error) {
@@ -854,8 +843,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void handleBluetoothChange(Intent intent) {
     this.bluetoothAvailable = intent.getBooleanExtra(EXTRA_AVAILABLE, false);
 
-    if (recipient != null) {
-      sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    CallMember localMember = callMembers.get(localAddress);
+    if (localMember.recipient != null) {
+      sendMessage(viewModelStateFor(callState), localMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
   }
 
@@ -876,8 +866,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         audioManager.setSpeakerphoneOn(true);
       }
 
-      if (recipient != null) {
-        sendMessage(viewModelStateFor(callState), recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      CallMember localMember = callMembers.get(localAddress);
+      if (localMember.recipient != null) {
+        sendMessage(viewModelStateFor(callState), localMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
       }
     }
   }
@@ -889,19 +880,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       Log.w(TAG, "Silencing incoming ringer...");
       audioManager.silenceIncomingRinger();
     }
-  }
-
-  private void handleRemoteVideoMute(Intent intent) {
-    boolean muted  = intent.getBooleanExtra(EXTRA_MUTE, false);
-    long    callId = intent.getLongExtra(EXTRA_CALL_ID, -1);
-
-    if (this.recipient == null || this.callState != CallState.STATE_CONNECTED || this.callId == null || !this.callId.equals(callId)) {
-      Log.w(TAG, "Got video toggle for inactive call, ignoring...");
-      return;
-    }
-
-    this.remoteVideoEnabled = !muted;
-    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
   /// Helper Methods
@@ -978,7 +956,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
-    if (eglBase != null && localRenderer != null && remoteRenderer != null) {
+    if (eglBase != null && localRenderer != null && remoteRenderer != null && remoteRenderer2 != null) {
       localRenderer.release();
       remoteRenderer.release();
       remoteRenderer2.release();
@@ -997,43 +975,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     this.microphoneEnabled = true;
     this.localVideoEnabled = true;
     this.remoteVideoEnabled = true;
-    lockManager.updatePhoneState(LockManager.PhoneState.IDLE);
-  }
-
-  private synchronized void terminate() {
-    terminate(true);
-  }
-
-  private synchronized void terminate(boolean removeNotification) {
-    lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
-    stopForeground(removeNotification);
-
-    audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
-    bluetoothStateManager.setWantsConnection(false);
-
-    if (peerConnection != null) {
-      peerConnection.dispose();
-      peerConnection = null;
-    }
-
-    if (eglBase != null && localRenderer != null && remoteRenderer != null) {
-      localRenderer.release();
-      remoteRenderer.release();
-      eglBase.release();
-
-      localRenderer  = null;
-      remoteRenderer = null;
-      eglBase        = null;
-    }
-
-    this.callState                 = CallState.STATE_IDLE;
-    this.recipient                 = null;
-    this.callId                    = null;
-    this.microphoneEnabled         = true;
-    this.localVideoEnabled         = true;
-    this.remoteVideoEnabled        = true;
-    this.pendingOutgoingIceUpdates = null;
-    this.pendingIncomingIceUpdates = null;
     lockManager.updatePhoneState(LockManager.PhoneState.IDLE);
   }
 
