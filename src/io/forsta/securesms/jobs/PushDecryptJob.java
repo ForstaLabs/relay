@@ -489,7 +489,6 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
       Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
-      Log.w(TAG, "" + messageBody);
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
