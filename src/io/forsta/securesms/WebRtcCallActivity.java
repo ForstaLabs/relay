@@ -75,7 +75,6 @@ public class WebRtcCallActivity extends Activity {
     initializeResources();
   }
 
-
   @Override
   public void onResume() {
     Log.w(TAG, "onResume()");

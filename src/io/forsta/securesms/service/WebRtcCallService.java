@@ -331,8 +331,38 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           Log.w(TAG, "Stale call from remote address");
           return;
         }
+
         Log.w(TAG, "Adding new member to existing call");
-        handleAddPeerConnection(incomingAddress, incomingPeerId, offer);
+        final CallMember member = callMembers.get(incomingAddress);
+        member.setPeerId(incomingPeerId);
+
+        if (isIncomingMessageExpired(intent)) {
+          insertMissedCall(member.recipient, true);
+          member.terminate();
+          terminateCall(false);
+          return;
+        }
+
+        timeoutExecutor.schedule(new TimeoutRunnable(member), 30, TimeUnit.SECONDS);
+
+        retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
+
+          @Override
+          public void onSuccessContinue(List<PeerConnection.IceServer> result) {
+            try {
+              boolean isAlwaysTurn = false;
+              member.createPeerConnection(result);
+              member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
+              sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+            } catch (PeerConnectionWrapper.PeerConnectionException e) {
+              Log.w(TAG, e);
+              member.terminate();
+              // Only terminate the call if it is the last remaining member.
+              terminateCall(true);
+            }
+          }
+        });
       } else {
         // Missed call from another caller.
         // TODO Notification. Missed call from.
@@ -349,60 +379,59 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (String memberAddress : members) {
         callMembers.put(memberAddress, new CallMember(this, callId, memberAddress));
       }
-    }
 
-    final CallMember member = callMembers.get(incomingAddress);
-    member.setPeerId(incomingPeerId);
 
-    // This needs work. If there is only one member of the call,
-    if (isIncomingMessageExpired(intent)) {
-      insertMissedCall(member.recipient, true);
-      member.terminate();
-      terminateCall(false);
-      return;
-    }
+      final CallMember member = callMembers.get(incomingAddress);
+      member.setPeerId(incomingPeerId);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      setCallInProgressNotification(TYPE_INCOMING_CONNECTING, member.recipient);
-    }
-
-    timeoutExecutor.schedule(new TimeoutRunnable(member), 30, TimeUnit.SECONDS);
-
-    // This should only initialize if this is a new call, not when members are joining an existing call.
-    initializeVideo();
-
-    retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
-
-      @Override
-      public void onSuccessContinue(List<PeerConnection.IceServer> result) {
-        try {
-          boolean isAlwaysTurn = false;
-          member.createPeerConnection(result);
-          member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
-
-          // All of this is only if this is a new call, not when adding members to an existing call.
-          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
-          WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
-          WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
-
-          sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-          startCallCardActivity();
-          audioManager.initializeAudioForCall();
-          audioManager.startIncomingRinger();
-
-          registerPowerButtonReceiver();
-
-          setCallInProgressNotification(TYPE_INCOMING_RINGING, member.recipient);
-
-        } catch (PeerConnectionWrapper.PeerConnectionException e) {
-          Log.w(TAG, e);
-          member.terminate();
-          // Only terminate the call if it is the last remaining member.
-          terminateCall(true);
-        }
+      if (isIncomingMessageExpired(intent)) {
+        insertMissedCall(member.recipient, true);
+        member.terminate();
+        terminateCall(false);
+        return;
       }
-    });
 
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        setCallInProgressNotification(TYPE_INCOMING_CONNECTING, member.recipient);
+      }
+
+      timeoutExecutor.schedule(new TimeoutRunnable(member), 30, TimeUnit.SECONDS);
+
+      // This should only initialize if this is a new call, not when members are joining an existing call.
+      initializeVideo();
+
+      retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
+
+        @Override
+        public void onSuccessContinue(List<PeerConnection.IceServer> result) {
+          try {
+            boolean isAlwaysTurn = false;
+            member.createPeerConnection(result);
+            member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
+
+            // All of this is only if this is a new call, not when adding members to an existing call.
+            WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
+            WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
+            WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
+
+            sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+            startCallCardActivity();
+            audioManager.initializeAudioForCall();
+            audioManager.startIncomingRinger();
+
+            registerPowerButtonReceiver();
+
+            setCallInProgressNotification(TYPE_INCOMING_RINGING, member.recipient);
+
+          } catch (PeerConnectionWrapper.PeerConnectionException e) {
+            Log.w(TAG, e);
+            member.terminate();
+            // Only terminate the call if it is the last remaining member.
+            terminateCall(true);
+          }
+        }
+      });
+    }
   }
 
   private void handleOutgoingCall(Intent intent) {
@@ -660,7 +689,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
-      terminate(callState == CallState.STATE_DIALING);
+      member.terminate();
+      terminateCall(callState == CallState.STATE_DIALING);
     }
   }
 
@@ -785,8 +815,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     boolean muted = intent.getBooleanExtra(EXTRA_MUTE, false);
     this.microphoneEnabled = !muted;
 
-    if (this.peerConnection != null) {
-      this.peerConnection.setAudioEnabled(this.microphoneEnabled);
+    for (CallMember member : callMembers.values()) {
+      if (member.peerConnection != null) {
+        member.peerConnection.setAudioEnabled(microphoneEnabled);
+      }
     }
   }
 
@@ -796,8 +828,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     this.localVideoEnabled = !muted;
 
-    if (this.peerConnection != null) {
-      this.peerConnection.setVideoEnabled(this.localVideoEnabled);
+    for (CallMember member : callMembers.values()) {
+      if (member.peerConnection != null) {
+        member.peerConnection.setVideoEnabled(localVideoEnabled);
+      }
     }
 
     if (callState == CallState.STATE_CONNECTED) {
@@ -813,7 +847,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       audioManager.setSpeakerphoneOn(true);
     }
 
-    sendMessage(viewModelStateFor(callState), this.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    CallMember localMember = callMembers.get(localAddress);
+    sendMessage(viewModelStateFor(callState), localMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
   private void handleBluetoothChange(Intent intent) {
@@ -913,9 +948,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         eglBase        = EglBase.create();
         localRenderer  = new SurfaceViewRenderer(WebRtcCallService.this);
         remoteRenderer = new SurfaceViewRenderer(WebRtcCallService.this);
+        remoteRenderer2 = new SurfaceViewRenderer(WebRtcCallService.this);
 
         localRenderer.init(eglBase.getEglBaseContext(), null);
         remoteRenderer.init(eglBase.getEglBaseContext(), null);
+        remoteRenderer2.init(eglBase.getEglBaseContext(), null);
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
                                                             eglBase.getEglBaseContext());
@@ -944,10 +981,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (eglBase != null && localRenderer != null && remoteRenderer != null) {
       localRenderer.release();
       remoteRenderer.release();
+      remoteRenderer2.release();
       eglBase.release();
 
       localRenderer = null;
       remoteRenderer = null;
+      remoteRenderer2 = null;
       eglBase = null;
     }
 

@@ -66,6 +66,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private ImageView            photo;
   private PercentFrameLayout   localRenderLayout;
   private PercentFrameLayout   remoteRenderLayout;
+  private PercentFrameLayout   remoteRenderLayout2;
   private TextView             name;
   private TextView             phoneNumber;
   private TextView             label;
@@ -103,7 +104,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
     setCard(personInfo, message);
-    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer);
+    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -226,6 +227,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.photo                        = findViewById(R.id.photo);
     this.localRenderLayout            = findViewById(R.id.local_render_layout);
     this.remoteRenderLayout           = findViewById(R.id.remote_render_layout);
+    this.remoteRenderLayout2          = findViewById(R.id.remote2_render_layout);
     this.phoneNumber                  = findViewById(R.id.phoneNumber);
     this.name                         = findViewById(R.id.name);
     this.label                        = findViewById(R.id.label);
@@ -248,7 +250,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
-                            SurfaceViewRenderer remoteRenderer)
+                            SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2)
   {
     if (localRenderLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
@@ -259,9 +261,15 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
+      if (remoteRenderer2.getParent() != null) {
+        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
+      }
+
+
       localRenderLayout.setPosition(7, 70, 25, 25);
       localRenderLayout.setSquare(true);
-      remoteRenderLayout.setPosition(0, 0, 100, 100);
+      remoteRenderLayout.setPosition(0, 0, 50, 50);
+      remoteRenderLayout.setPosition(50, 0, 50, 50);
 
       localRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                                                  ViewGroup.LayoutParams.MATCH_PARENT));
@@ -274,6 +282,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
       localRenderLayout.addView(localRenderer);
       remoteRenderLayout.addView(remoteRenderer);
+      remoteRenderLayout2.addView(remoteRenderer2);
     }
   }
 
