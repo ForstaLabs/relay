@@ -65,6 +65,7 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import io.forsta.securesms.webrtc.IceUpdateMessage;
 import ws.com.google.android.mms.MmsException;
@@ -284,11 +285,11 @@ public class MessageSender {
     }
   }
 
-  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+  public static void sendCallAcceptOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId, Set<String> callMembers) {
     try {
       ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId);
+      String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId, callMembers);
       Log.w(TAG, "Sending call accept offer: " + payload);
       OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
       sendControlMessage(context, masterSecret, message);
@@ -310,7 +311,7 @@ public class MessageSender {
     }
   }
 
-  public static void sendIceUpdate(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, String peerId, List<IceCandidate> updates) {
+  public static void sendIceUpdate(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, String peerId, List<IceCandidate> updates, Set<String> callMembers) {
     try {
       ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
@@ -323,7 +324,7 @@ public class MessageSender {
         jsonUpdates.put(jsonCandidate);
       }
 
-      String payload = ForstaMessageManager.createIceCandidateMessage(user, recipients, thread, callId, peerId, jsonUpdates);
+      String payload = ForstaMessageManager.createIceCandidateMessage(user, recipients, thread, callId, peerId, jsonUpdates, callMembers);
       Log.w(TAG, "Sending ICE Update: " + payload);
       OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
       sendControlMessage(context, masterSecret, message);

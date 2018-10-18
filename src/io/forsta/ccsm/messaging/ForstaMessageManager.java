@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.RecursiveAction;
 import java.util.regex.Matcher;
@@ -275,14 +276,14 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
+  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId, Set<String> callMembers) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callAcceptOffer");
       data.put("peerId", peerId);
       JSONArray members = new JSONArray();
-      for (Recipient x : recipients) {
-        members.put(x.getAddress());
+      for (String x : callMembers) {
+        members.put(x);
       }
       data.put("members", members);
       data.put("callId", callId);
@@ -338,15 +339,15 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, JSONArray candidates) {
+  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, JSONArray candidates, Set<String> callMembers) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callICECandidates");
       data.put("icecandidates", candidates);
       data.put("peerId", peerId);
       JSONArray members = new JSONArray();
-      for (Recipient x : recipients) {
-        members.put(x.getAddress());
+      for (String x : callMembers) {
+        members.put(x);
       }
       data.put("members", members);
       data.put("callId", callId);

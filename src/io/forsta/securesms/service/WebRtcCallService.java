@@ -70,9 +70,11 @@ import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserExce
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -1027,7 +1029,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        MessageSender.sendIceUpdate(getApplicationContext(), masterSecret, recipients, threadUID, callId, peerId, updates);
+        Set<String> members = getCallMembers();
+        MessageSender.sendIceUpdate(getApplicationContext(), masterSecret, recipients, threadUID, callId, peerId, updates, members);
         return true;
       }
     };
@@ -1046,7 +1049,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        MessageSender.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
+        Set<String> members = getCallMembers();
+        MessageSender.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId, members);
         return true;
       }
     };
@@ -1100,6 +1104,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     activityIntent.setClass(this, WebRtcCallActivity.class);
     activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     this.startActivity(activityIntent);
+  }
+
+  private Set<String> getCallMembers() {
+    HashSet<String> members = new HashSet<>(callMembers.keySet());
+    members.add(localCallMember.address);
+    return members;
   }
 
   private @NonNull Recipient getRemoteRecipient(Intent intent) {
