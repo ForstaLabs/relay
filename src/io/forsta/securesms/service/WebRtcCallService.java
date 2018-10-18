@@ -185,8 +185,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     serviceExecutor.execute(new Runnable() {
       @Override
       public void run() {
-        if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
-        else if (intent.getAction().equals(ACTION_INCOMING_CALL))             handleIncomingCall(intent); // X
+//        if      (intent.getAction().equals(ACTION_INCOMING_CALL) && isBusy()) handleBusyCall(intent);
+        if (intent.getAction().equals(ACTION_INCOMING_CALL))                  handleIncomingCall(intent); // X
         else if (intent.getAction().equals(ACTION_OUTGOING_CALL) && isIdle()) handleOutgoingCall(intent);
         else if (intent.getAction().equals(ACTION_ANSWER_CALL))               handleAnswerCall(intent); // X
         else if (intent.getAction().equals(ACTION_DENY_CALL))                 handleDenyCall(intent);
@@ -303,10 +303,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   // Handlers
 
-  private void handleAddPeerConnection(String address, String peerId, String offer) {
-
-  }
-
   private void handleIncomingCall(final Intent intent) {
     String incomingCallId = intent.getStringExtra(EXTRA_CALL_ID);
     String incomingAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
@@ -315,7 +311,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
 
 
-    Log.w(TAG, "handleIncomingCalls... ID: " + callId);
+    Log.w(TAG, "handleIncomingCall...callId: " + incomingCallId + " address: " + incomingAddress);
     if (callId != null) {
       // Existing call. Member joining
       if (callId.equals(incomingCallId)) {
@@ -327,7 +323,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
         Log.w(TAG, "Adding new member to existing call");
         final CallMember member = callMembers.get(incomingAddress);
-        member.setPeerId(incomingPeerId);
 
         if (isIncomingMessageExpired(intent)) {
           insertMissedCall(member.recipient, true);
@@ -343,9 +338,38 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           @Override
           public void onSuccessContinue(List<PeerConnection.IceServer> result) {
             try {
-              member.createPeerConnection(result);
+              member.createPeerConnection(result, remoteRenderer2, incomingPeerId);
               member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
-              sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+              try {
+                SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
+                Log.w(TAG, "Answer SDP: " + sdp.description);
+                member.peerConnection.setLocalDescription(sdp);
+                ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
+                listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+
+                  @Override
+                  public void onFailureContinue(Throwable error) {
+                    Log.w(TAG, error);
+                    insertMissedCall(member.recipient, true);
+                    member.terminate();
+                    terminateCall(true);
+                  }
+                });
+
+                if (member.pendingIncomingIceUpdates != null) {
+                  for (IceCandidate candidate : member.pendingIncomingIceUpdates) {
+                    member.peerConnection.addIceCandidate(candidate);
+                  }
+                  member.pendingIncomingIceUpdates = null;
+                }
+              } catch (PeerConnectionWrapper.PeerConnectionException e) {
+                e.printStackTrace();
+              }
+
+              member.peerConnection.setAudioEnabled(true);
+              member.peerConnection.setVideoEnabled(true);
+
+              // sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
             } catch (PeerConnectionWrapper.PeerConnectionException e) {
               Log.w(TAG, e);
@@ -376,7 +400,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
       final CallMember member = callMembers.get(incomingAddress);
-      member.setPeerId(incomingPeerId);
 
       if (isIncomingMessageExpired(intent)) {
         insertMissedCall(member.recipient, true);
@@ -399,7 +422,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            member.createPeerConnection(result);
+            member.createPeerConnection(result, remoteRenderer, incomingPeerId);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
             // All of this is only if this is a new call, not when adding members to an existing call.
@@ -706,6 +729,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void handleAnswerCall(Intent intent) {
     Log.w(TAG, "handleAnswerCall");
     CallMember activeMember = null;
+    // Send call offers to the other peers?
     for (CallMember callMember : callMembers.values()) {
       if (callMember.peerId != null && callMember.peerConnection != null) {
         activeMember = callMember;
@@ -1317,6 +1341,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
+    @NonNull VideoRenderer.Callbacks renderer;
 
     private CallMember(Context context, String address) {
       this.address = address;
@@ -1325,12 +1350,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.pendingIncomingIceUpdates = new LinkedList<>();
     }
 
-    private void createPeerConnection(List<PeerConnection.IceServer> result) {
-      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localRenderer, result, false);
-    }
-
-    private void setPeerId(String peerId) {
+    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId) {
       this.peerId = peerId;
+      this.renderer = renderer;
+      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localRenderer, result, false);
     }
 
     private void addIncomingIceCandidate(IceCandidate candidate) {
@@ -1433,7 +1456,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (stream.videoTracks != null && stream.videoTracks.size() == 1) {
         VideoTrack videoTrack = stream.videoTracks.getFirst();
         videoTrack.setEnabled(true);
-        videoTrack.addRenderer(new VideoRenderer(remoteRenderer)); // This is static from the enclosing class. Can it be encapsulated into this class?
+        videoTrack.addRenderer(new VideoRenderer(renderer));
       }
     }
 
