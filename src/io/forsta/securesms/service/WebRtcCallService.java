@@ -393,7 +393,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       callId = incomingCallId;
       callState = CallState.STATE_ANSWERING;
 
+      Log.w(TAG, "Call Members: ");
       for (String memberAddress : members) {
+        Log.w(TAG, "" + memberAddress);
         if (!memberAddress.equals(localCallMember.address)) {
           callMembers.put(memberAddress, new CallMember(this, memberAddress));
         }
