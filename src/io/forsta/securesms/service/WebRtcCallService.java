@@ -154,6 +154,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer2;
+  @Nullable public  static SurfaceViewRenderer remoteRenderer3;
   @Nullable private static EglBase             eglBase;
 
   private ExecutorService          serviceExecutor = Executors.newSingleThreadExecutor();
@@ -1350,6 +1351,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private String peerId;
     private String address;
     private Recipient recipient;
+    private int order;
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
