@@ -489,6 +489,7 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
       Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+      Log.w(TAG, messageBody);
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
@@ -527,7 +528,7 @@ public class PushDecryptJob extends ContextJob {
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
           intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
-          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callOffer.getOriginator());
+          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
           intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
@@ -544,7 +545,7 @@ public class PushDecryptJob extends ContextJob {
             Intent iceIntent = new Intent(context, WebRtcCallService.class);
             iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
             iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
-            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, iceUpdate.getOriginator());
+            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
@@ -560,7 +561,7 @@ public class PushDecryptJob extends ContextJob {
           Intent leaveIntent = new Intent(context, WebRtcCallService.class);
           leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
           leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
-          leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, callLeave.getOriginator());
+          leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
 
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
           else                                                context.startService(leaveIntent);
