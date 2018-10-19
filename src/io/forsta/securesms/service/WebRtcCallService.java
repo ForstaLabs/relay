@@ -494,10 +494,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            boolean isAlwaysTurn = false;
-
-            remoteMember.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, remoteMember, localRenderer, result, isAlwaysTurn);
-
+            remoteMember.createPeerConnection(result, remoteRenderer, remoteMember.peerId);
             SessionDescription sdp = remoteMember.peerConnection.createOffer(new MediaConstraints());
             remoteMember.peerConnection.setLocalDescription(sdp);
 
@@ -1368,6 +1365,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private CallMember(Context context, String address, String peerId) {
       this(context, address);
       this.peerId = peerId;
+      this.pendingOutgoingIceUpdates = new LinkedList<>();
     }
 
     private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId) {
