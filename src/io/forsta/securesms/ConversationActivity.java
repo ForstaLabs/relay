@@ -639,7 +639,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Intent intent = new Intent(this, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
-          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, recipients.getRecipientsList().toArray(new String[recipients.getRecipientsList().size()]));
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, recipients.getAddresses().toArray(new String[recipients.getAddresses().size()]));
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaThread.getUid());
           startService(intent);
 
