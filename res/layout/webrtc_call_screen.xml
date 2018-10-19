@@ -21,17 +21,7 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent">
 
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-            android:id="@+id/remote_render_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:visibility="invisible"/>
 
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-        android:id="@+id/remote2_render_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:visibility="invisible"/>
 
     <!-- "Call info" block #1, for the foreground call. -->
     <RelativeLayout android:id="@+id/call_info_1"
@@ -211,6 +201,18 @@
              different background color. -->
 
     </RelativeLayout>
+
+    <io.forsta.securesms.components.webrtc.PercentFrameLayout
+        android:id="@+id/remote_render_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:visibility="invisible"/>
+
+    <io.forsta.securesms.components.webrtc.PercentFrameLayout
+        android:id="@+id/remote2_render_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:visibility="invisible"/>
 
     <io.forsta.securesms.components.webrtc.PercentFrameLayout
             android:id="@+id/local_render_layout"

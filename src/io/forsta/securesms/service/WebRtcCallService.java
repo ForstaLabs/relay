@@ -832,18 +832,20 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       Log.w(TAG, "Received hangup from invalid call member");
     }
 
-    if (callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING) {
-      sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-    } else {
-      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-    }
-
-    if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
-      insertMissedCall(member.recipient, true);
-    }
-
     member.terminate();
-    terminateCall(callState == CallState.STATE_DIALING || callState == CallState.STATE_CONNECTED);
+    if (!hasActiveCalls()) {
+      if (callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING) {
+        sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      } else {
+        sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      }
+
+      if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
+        insertMissedCall(member.recipient, true);
+      }
+
+      terminateCall(callState == CallState.STATE_DIALING || callState == CallState.STATE_CONNECTED);
+    }
   }
 
   private void handleSetMuteAudio(Intent intent) {
@@ -926,6 +928,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   /// Helper Methods
+
+  private boolean hasActiveCalls() {
+    for (CallMember callMember : remoteCallMembers.values()) {
+      if (callMember.isActiveConnection()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   private CallMember getCallMember(Intent intent) {
     String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
