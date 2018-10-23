@@ -142,44 +142,29 @@
              part of the "call_banner_1" RelativeLayout since it needs a
              different background color. -->
 
-        <LinearLayout
-            android:layout_below="@id/call_banner_1"
-            android:id="@+id/call_screen_row1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="horizontal">
-            <io.forsta.securesms.components.webrtc.PercentFrameLayout
-                android:id="@+id/remote_render_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:visibility="visible"/>
+        <io.forsta.securesms.components.webrtc.PercentFrameLayout
+            android:id="@+id/remote_render_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:visibility="visible"/>
 
-            <io.forsta.securesms.components.webrtc.PercentFrameLayout
-                android:id="@+id/remote2_render_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_row="0"
-                android:layout_column="1"
-                tools:visibility="visible"/>
+        <io.forsta.securesms.components.webrtc.PercentFrameLayout
+            android:id="@+id/remote2_render_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:visibility="visible"/>
 
-        </LinearLayout>
+        <io.forsta.securesms.components.webrtc.PercentFrameLayout
+            android:id="@+id/local_render_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:visibility="visible"/>
 
-        <LinearLayout
-            android:layout_below="@id/call_screen_row1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="horizontal">
-
-            <io.forsta.securesms.components.webrtc.PercentFrameLayout
-                android:id="@+id/local_render_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:visibility="visible"/>
-
-            <io.forsta.securesms.components.webrtc.PercentFrameLayout
-                android:id="@+id/remote3_render_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:visibility="visible"/>
-        </LinearLayout>
+        <io.forsta.securesms.components.webrtc.PercentFrameLayout
+            android:id="@+id/remote3_render_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:visibility="visible"/>
 
     </RelativeLayout>
 
