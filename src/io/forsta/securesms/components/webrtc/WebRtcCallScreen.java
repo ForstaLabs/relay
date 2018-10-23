@@ -36,10 +36,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import io.forsta.securesms.R;
 //import io.forsta.securesms.mms.GlideApp;
+import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
 import io.forsta.securesms.service.WebRtcCallService;
@@ -67,14 +69,9 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private PercentFrameLayout   localRenderLayout;
   private PercentFrameLayout   remoteRenderLayout;
   private PercentFrameLayout   remoteRenderLayout2;
+  private PercentFrameLayout   remoteRenderLayout3;
   private TextView             name;
-  private TextView             phoneNumber;
-  private TextView             label;
   private TextView             elapsedTime;
-  private View                 untrustedIdentityContainer;
-  private TextView             untrustedIdentityExplanation;
-  private Button               acceptIdentityButton;
-  private Button               cancelIdentityButton;
   private TextView             status;
   private FloatingActionButton endCallButton;
   private WebRtcCallControls   controls;
@@ -104,7 +101,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
     setCard(personInfo, message);
-    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2);
+    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -123,27 +120,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
   }
-
-//  public void setUntrustedIdentity(Recipient personInfo, IdentityKey untrustedIdentity) {
-//    String          name            = recipient.toShortString();
-//    String          introduction    = String.format(getContext().getString(R.string.WebRtcCallScreen_new_safety_numbers), name, name);
-//    SpannableString spannableString = new SpannableString(introduction + " " + getContext().getString(R.string.WebRtcCallScreen_you_may_wish_to_verify_this_contact));
-//
-//    spannableString.setSpan(new VerifySpan(getContext(), personInfo.getAddress(), untrustedIdentity),
-//                            introduction.length()+1, spannableString.length(),
-//                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//
-//    setPersonInfo(personInfo);
-//
-//    incomingCallButton.stopRingingAnimation();
-//    incomingCallButton.setVisibility(View.GONE);
-//    this.status.setText(R.string.WebRtcCallScreen_new_safety_number_title);
-//    this.untrustedIdentityContainer.setVisibility(View.VISIBLE);
-//    this.untrustedIdentityExplanation.setText(spannableString);
-//    this.untrustedIdentityExplanation.setMovementMethod(LinkMovementMethod.getInstance());
-//
-//    this.endCallButton.setVisibility(View.INVISIBLE);
-//  }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
     incomingCallButton.setAnswerDeclineListener(listener);
@@ -167,14 +143,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setHangupButtonListener(final HangupButtonListener listener) {
     endCallButton.setOnClickListener(v -> listener.onClick());
-  }
-
-  public void setAcceptIdentityListener(OnClickListener listener) {
-    this.acceptIdentityButton.setOnClickListener(listener);
-  }
-
-  public void setCancelIdentityButton(OnClickListener listener) {
-    this.cancelIdentityButton.setOnClickListener(listener);
   }
 
   public void updateAudioState(boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
@@ -228,29 +196,24 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.localRenderLayout            = findViewById(R.id.local_render_layout);
     this.remoteRenderLayout           = findViewById(R.id.remote_render_layout);
     this.remoteRenderLayout2          = findViewById(R.id.remote2_render_layout);
-    this.phoneNumber                  = findViewById(R.id.phoneNumber);
+    this.remoteRenderLayout3          = findViewById(R.id.remote3_render_layout);
     this.name                         = findViewById(R.id.name);
-    this.label                        = findViewById(R.id.label);
     this.status                       = findViewById(R.id.callStateLabel);
     this.controls                     = findViewById(R.id.inCallControls);
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
-    this.untrustedIdentityContainer   = findViewById(R.id.untrusted_layout);
-    this.untrustedIdentityExplanation = findViewById(R.id.untrusted_explanation);
-    this.acceptIdentityButton         = findViewById(R.id.accept_safety_numbers);
-    this.cancelIdentityButton         = findViewById(R.id.cancel_safety_numbers);
     this.expandedInfo                 = findViewById(R.id.expanded_info);
     this.callHeader                   = findViewById(R.id.call_info_1);
 
-    this.localRenderLayout.setHidden(true);
-    this.remoteRenderLayout.setHidden(true);
+//    this.localRenderLayout.setHidden(true);
+//    this.remoteRenderLayout.setHidden(true);
     this.minimized = false;
 
-    this.remoteRenderLayout.setOnClickListener(v -> setMinimized(!minimized));
+//    this.remoteRenderLayout.setOnClickListener(v -> setMinimized(!minimized));
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
-                            SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2)
+                            SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2, SurfaceViewRenderer remoteRenderer3)
   {
     if (localRenderLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
@@ -265,12 +228,18 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
         ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
       }
 
-      localRenderLayout.setPosition(0, 50, 50, 50);
+      if (remoteRenderer3.getParent() != null) {
+        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
+      }
+
+//      localRenderLayout.setPosition(0, 0, 50, 50);
       localRenderLayout.setSquare(true);
-      remoteRenderLayout.setPosition(0, 0, 50, 50);
+//      remoteRenderLayout.setPosition(0, 0, 50, 50);
       remoteRenderLayout.setSquare(true);
-      remoteRenderLayout2.setPosition(50, 0, 50, 50);
+//      remoteRenderLayout2.setPosition(50, 50, 50, 50);
       remoteRenderLayout2.setSquare(true);
+//      remoteRenderLayout3.setPosition(50, 0, 50, 50);
+      remoteRenderLayout3.setSquare(true);
 
 //      localRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 //                                                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -284,6 +253,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
       localRenderLayout.addView(localRenderer);
       remoteRenderLayout.addView(remoteRenderer);
       remoteRenderLayout2.addView(remoteRenderer2);
+      remoteRenderLayout3.addView(remoteRenderer3);
     }
   }
 
@@ -291,25 +261,18 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.recipient = recipient;
     this.recipient.addListener(this);
 
-//    GlideApp.with(getContext().getApplicationContext())
-//            .load(recipient.getContactPhoto())
-//            .fallback(recipient.getFallbackContactPhoto().asCallCard(getContext()))
-//            .diskCacheStrategy(DiskCacheStrategy.ALL)
-//            .into(this.photo);
+    if (!TextUtils.isEmpty(recipient.getGravitarUrl())) {
+      Glide.with(getContext().getApplicationContext()).load(recipient.getGravitarUrl()).asBitmap()
+          .placeholder(ContactPhotoFactory.getDefaultContactPhoto(recipient.getName()).asDrawable(getContext().getApplicationContext(), recipient.getColor().toConversationColor(getContext().getApplicationContext()), false))
+          .into(this.photo);
+    }
 
     this.name.setText(recipient.getName());
-
-//    if (recipient.getName() == null && !TextUtils.isEmpty(recipient.getProfileName())) {
-//      this.phoneNumber.setText(recipient.getAddress().serialize() + " (~" + recipient.getProfileName() + ")");
-//    } else {
-//      this.phoneNumber.setText(recipient.getAddress().serialize());
-//    }
   }
 
   private void setCard(Recipient recipient, String status) {
     setPersonInfo(recipient);
     this.status.setText(status);
-    this.untrustedIdentityContainer.setVisibility(View.GONE);
   }
 
   private void setMinimized(boolean minimized) {

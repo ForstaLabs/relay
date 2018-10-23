@@ -22,7 +22,6 @@
              android:layout_height="match_parent">
 
 
-
     <!-- "Call info" block #1, for the foreground call. -->
     <RelativeLayout android:id="@+id/call_info_1"
                     android:layout_width="match_parent"
@@ -44,47 +43,6 @@
                        android:clickable="true"
                        tools:src="@drawable/ic_person_large"
                     />
-
-            <LinearLayout android:id="@+id/untrusted_layout"
-                          android:layout_width="match_parent"
-                          android:layout_height="match_parent"
-                          android:background="@color/grey_400"
-                          android:orientation="vertical"
-                          android:visibility="gone"
-                          android:gravity="center"
-                          android:clickable="true">
-
-                <TextView android:id="@+id/untrusted_explanation"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:layout_gravity="center"
-                          android:textSize="16sp"
-                          android:maxWidth="270dp"
-                          android:lineSpacingExtra="2sp"
-                          tools:text="The safety numbers for your conversation with Masha have changed. This could either mean that someone is trying to intercept your communication, or that Masha simply re-installed Signal. You may wish to verify safety numbers for this contact."/>
-
-                <LinearLayout
-                        android:layout_marginTop="20dp"
-                        android:maxWidth="250dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-                    <Button android:id="@+id/accept_safety_numbers"
-                            android:text="Accept"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginRight="10dp"/>
-
-                    <Button android:id="@+id/cancel_safety_numbers"
-                            android:text="Cancel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-
-                </LinearLayout>
-
-
-            </LinearLayout>
-
 
         </FrameLayout>
 
@@ -133,23 +91,6 @@
                               android:paddingRight="50sp"
                               android:orientation="horizontal"
                         >
-                    <TextView android:id="@+id/label"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:textColor="#FFFFFF"
-                              android:singleLine="true"
-                              android:textAppearance="?android:attr/textAppearanceSmall"
-                              android:text="@string/redphone_call_card__signal_call"
-                              android:layout_marginRight="10dp"
-                            />
-                    <TextView android:id="@+id/phoneNumber"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:textAppearance="?android:attr/textAppearanceSmall"
-                              android:textColor="#FFFFFF"
-                              android:singleLine="true"
-                              tools:text="+14152222222"
-                            />
 
                 </LinearLayout>
 
@@ -163,11 +104,7 @@
                           android:textColor="#FFFFFF"
                           android:singleLine="true"
                         />
-                <io.forsta.securesms.components.webrtc.PercentFrameLayout
-                    android:id="@+id/remote_render_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:visibility="invisible"/>
+
 
             </RelativeLayout>
 
@@ -205,21 +142,46 @@
              part of the "call_banner_1" RelativeLayout since it needs a
              different background color. -->
 
-    </RelativeLayout>
-
-
-
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-        android:id="@+id/remote2_render_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:visibility="invisible"/>
-
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-            android:id="@+id/local_render_layout"
+        <LinearLayout
+            android:layout_below="@id/call_banner_1"
+            android:id="@+id/call_screen_row1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:visibility="invisible"/>
+            android:layout_height="wrap_content" android:orientation="horizontal">
+            <io.forsta.securesms.components.webrtc.PercentFrameLayout
+                android:id="@+id/remote_render_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:visibility="visible"/>
+
+            <io.forsta.securesms.components.webrtc.PercentFrameLayout
+                android:id="@+id/remote2_render_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_row="0"
+                android:layout_column="1"
+                tools:visibility="visible"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_below="@id/call_screen_row1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal">
+
+            <io.forsta.securesms.components.webrtc.PercentFrameLayout
+                android:id="@+id/local_render_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:visibility="visible"/>
+
+            <io.forsta.securesms.components.webrtc.PercentFrameLayout
+                android:id="@+id/remote3_render_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:visibility="visible"/>
+        </LinearLayout>
+
+    </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
             android:id="@+id/hangup_fab"

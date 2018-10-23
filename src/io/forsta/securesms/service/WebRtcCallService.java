@@ -963,10 +963,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         localRenderer  = new SurfaceViewRenderer(WebRtcCallService.this);
         remoteRenderer = new SurfaceViewRenderer(WebRtcCallService.this);
         remoteRenderer2 = new SurfaceViewRenderer(WebRtcCallService.this);
+        remoteRenderer3 = new SurfaceViewRenderer(WebRtcCallService.this);
 
         localRenderer.init(eglBase.getEglBaseContext(), null);
         remoteRenderer.init(eglBase.getEglBaseContext(), null);
         remoteRenderer2.init(eglBase.getEglBaseContext(), null);
+        remoteRenderer3.init(eglBase.getEglBaseContext(), null);
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
                                                             eglBase.getEglBaseContext());
@@ -992,15 +994,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
-    if (eglBase != null && localRenderer != null && remoteRenderer != null && remoteRenderer2 != null) {
+    if (eglBase != null && localRenderer != null && remoteRenderer != null && remoteRenderer2 != null && remoteRenderer3 != null) {
       localRenderer.release();
       remoteRenderer.release();
       remoteRenderer2.release();
+      remoteRenderer3.release();
       eglBase.release();
 
       localRenderer = null;
       remoteRenderer = null;
       remoteRenderer2 = null;
+      remoteRenderer3 = null;
       eglBase = null;
     }
 
