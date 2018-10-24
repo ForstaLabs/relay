@@ -66,10 +66,10 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
 
   private ImageView            photo;
-  private PercentFrameLayout   localRenderLayout;
-  private PercentFrameLayout   remoteRenderLayout;
-  private PercentFrameLayout   remoteRenderLayout2;
-  private PercentFrameLayout   remoteRenderLayout3;
+  private FrameLayout   localRenderLayout;
+  private FrameLayout   remoteRenderLayout;
+  private FrameLayout   remoteRenderLayout2;
+  private FrameLayout   remoteRenderLayout3;
   private TextView             name;
   private TextView             elapsedTime;
   private TextView             status;
@@ -155,32 +155,39 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   }
 
   public void setLocalVideoEnabled(boolean enabled) {
-    if (enabled && this.localRenderLayout.isHidden()) {
-      this.controls.setVideoEnabled(true);
-      this.localRenderLayout.setHidden(false);
-      this.localRenderLayout.requestLayout();
-    } else  if (!enabled && !this.localRenderLayout.isHidden()){
-      this.controls.setVideoEnabled(false);
-      this.localRenderLayout.setHidden(true);
-      this.localRenderLayout.requestLayout();
-    }
+//    if (enabled && this.localRenderLayout.isHidden()) {
+//      this.controls.setVideoEnabled(true);
+//      this.localRenderLayout.setHidden(false);
+//      this.localRenderLayout.requestLayout();
+//    } else  if (!enabled && !this.localRenderLayout.isHidden()){
+//      this.controls.setVideoEnabled(false);
+//      this.localRenderLayout.setHidden(true);
+//      this.localRenderLayout.requestLayout();
+//    }
+    this.controls.setVideoEnabled(true);
+    this.localRenderLayout.requestLayout();
   }
 
   public void setRemoteVideoEnabled(boolean enabled) {
-    if (enabled && this.remoteRenderLayout.isHidden()) {
-      this.photo.setVisibility(View.INVISIBLE);
-      setMinimized(true);
+//    if (enabled && this.remoteRenderLayout.isHidden()) {
+//      this.photo.setVisibility(View.INVISIBLE);
+//      setMinimized(true);
+//
+//      this.remoteRenderLayout.setHidden(false);
+//      this.remoteRenderLayout.requestLayout();
+//
+//      if (localRenderLayout.isHidden()) this.controls.displayVideoTooltip(callHeader);
+//    } else if (!enabled && !this.remoteRenderLayout.isHidden()){
+//      setMinimized(false);
+//      this.photo.setVisibility(View.VISIBLE);
+//      this.remoteRenderLayout.setHidden(true);
+//      this.remoteRenderLayout.requestLayout();
+//    }
 
-      this.remoteRenderLayout.setHidden(false);
-      this.remoteRenderLayout.requestLayout();
-
-      if (localRenderLayout.isHidden()) this.controls.displayVideoTooltip(callHeader);
-    } else if (!enabled && !this.remoteRenderLayout.isHidden()){
-      setMinimized(false);
-      this.photo.setVisibility(View.VISIBLE);
-      this.remoteRenderLayout.setHidden(true);
-      this.remoteRenderLayout.requestLayout();
-    }
+    this.photo.setVisibility(View.INVISIBLE);
+    this.remoteRenderLayout.requestLayout();
+    this.remoteRenderLayout2.requestLayout();
+    this.remoteRenderLayout3.requestLayout();
   }
 
   public boolean isVideoEnabled() {
@@ -232,14 +239,14 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
         ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
       }
 
-      localRenderLayout.setPosition(0, 50, 50, 50);
-      localRenderLayout.setSquare(true);
-      remoteRenderLayout.setPosition(0, 0, 50, 50);
-      remoteRenderLayout.setSquare(true);
-      remoteRenderLayout2.setPosition(50, 0, 50, 50);
-      remoteRenderLayout2.setSquare(true);
-      remoteRenderLayout3.setPosition(50, 50, 50, 50);
-      remoteRenderLayout3.setSquare(true);
+//      localRenderLayout.setPosition(0, 0, 50, 100);
+//      localRenderLayout.setSquare(true);
+//      remoteRenderLayout.setPosition(0, 0, 50, 100);
+//      remoteRenderLayout.setSquare(true);
+//      remoteRenderLayout2.setPosition(50, 0, 50, 50);
+//      remoteRenderLayout2.setSquare(true);
+//      remoteRenderLayout3.setPosition(50, 50, 50, 50);
+//      remoteRenderLayout3.setSquare(true);
 
 //      localRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 //                                                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -247,8 +254,8 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 //      remoteRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 //                                                                  ViewGroup.LayoutParams.MATCH_PARENT));
 
-      localRenderer.setMirror(true);
-      localRenderer.setZOrderMediaOverlay(true);
+//      localRenderer.setMirror(true);
+//      localRenderer.setZOrderMediaOverlay(true);
 
       localRenderLayout.addView(localRenderer);
       remoteRenderLayout.addView(remoteRenderer);
