@@ -69,19 +69,7 @@
 
 
                 <!-- Name (or the phone number, if we don't have a name to display). -->
-                <TextView android:id="@+id/name"
-                          android:layout_alignParentTop="true"
-                          android:layout_alignParentLeft="true"
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:paddingRight="50sp"
-                          android:textSize="40sp"
-                          android:textColor="#FFFFFF"
-                          android:singleLine="true"
-                          android:maxLines="1"
-                          android:ellipsize="end"
-                          tools:text="Ali Connors"
-                        />
+
 
                 <!-- Label (like "Mobile" or "Work", if present) and phone number, side by side -->
                 <LinearLayout android:id="@+id/labelAndNumber"
@@ -167,10 +155,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
-                    <TextView
-                        android:text="Remote 1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/name"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:singleLine="true"
+                              android:maxLines="1"
+                              android:ellipsize="end"
+                              tools:text="James G. Frazer"
+                        />
                     <FrameLayout
                         android:id="@+id/remote_render_layout"
                         android:layout_width="wrap_content"
