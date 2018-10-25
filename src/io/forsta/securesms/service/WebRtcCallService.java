@@ -320,6 +320,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
 
         Log.w(TAG, "Adding new member to existing call");
+        // Need to set the call window order here.
         final CallMember member = remoteCallMembers.get(incomingAddress);
 
         if (isIncomingMessageExpired(intent)) {
@@ -336,6 +337,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           @Override
           public void onSuccessContinue(List<PeerConnection.IceServer> result) {
             try {
+              // Check the call member's order to choose which remoteRenderer to use.
               member.createPeerConnection(result, remoteRenderer2, incomingPeerId);
               member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
               try {
@@ -392,6 +394,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (String memberAddress : members) {
         Log.w(TAG, "" + memberAddress);
         if (!memberAddress.equals(localAddress)) {
+          //When adding call members, add an order field to place
+          //users in the correct call windows.
+          // Also need to setup all call windows with member avatar and name
           remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
         }
       }
