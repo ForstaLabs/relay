@@ -67,21 +67,6 @@
                             android:layout_height="wrap_content"
                             android:clickable="true">
 
-
-                <!-- Name (or the phone number, if we don't have a name to display). -->
-
-
-                <!-- Label (like "Mobile" or "Work", if present) and phone number, side by side -->
-                <LinearLayout android:id="@+id/labelAndNumber"
-                              android:layout_below="@id/name"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:paddingRight="50sp"
-                              android:orientation="horizontal"
-                        >
-
-                </LinearLayout>
-
                 <!-- Elapsed time indication for a call in progress. -->
                 <TextView android:id="@+id/elapsedTime"
                           android:layout_alignParentRight="true"
