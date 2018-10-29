@@ -149,6 +149,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Nullable private String callId;
   @Nullable private String threadUID;
   private String localAddress;
+  private int incomingCallCount = 0;
   private Map<String, CallMember> remoteCallMembers = new HashMap<>();
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
@@ -301,6 +302,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   // Handlers
 
   private void handleIncomingCall(final Intent intent) {
+    incomingCallCount++;
     final String incomingCallId = intent.getStringExtra(EXTRA_CALL_ID);
     final String incomingAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     final String incomingPeerId = intent.getStringExtra(EXTRA_PEER_ID);
@@ -338,11 +340,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           public void onSuccessContinue(List<PeerConnection.IceServer> result) {
             try {
               // Check the call member's order to choose which remoteRenderer to use.
-              member.createPeerConnection(result, remoteRenderer2, incomingPeerId);
+              member.createPeerConnection(result, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, incomingPeerId, incomingCallCount);
               member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
               try {
                 SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
-                Log.w(TAG, "Answer SDP: " + sdp.description);
+//                Log.w(TAG, "Answer SDP: " + sdp.description);
                 member.peerConnection.setLocalDescription(sdp);
                 ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
                 listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -394,12 +396,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (String memberAddress : members) {
         Log.w(TAG, "" + memberAddress);
         if (!memberAddress.equals(localAddress)) {
-          //When adding call members, add an order field to place
-          //users in the correct call windows.
-          // Also need to setup all call windows with member avatar and name
+          // Need to setup all call windows with member avatar and name
           remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
         }
       }
+
+      // Now send callRequests to peers?
 
       final CallMember member = remoteCallMembers.get(incomingAddress);
 
@@ -424,7 +426,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            member.createPeerConnection(result, remoteRenderer, incomingPeerId);
+            member.createPeerConnection(result, remoteRenderer, incomingPeerId, incomingCallCount);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
             // All of this is only if this is a new call, not when adding members to an existing call.
@@ -500,7 +502,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            remoteMember.createPeerConnection(result, remoteRenderer, remoteMember.peerId);
+            remoteMember.createPeerConnection(result, remoteRenderer, remoteMember.peerId, incomingCallCount);
             SessionDescription sdp = remoteMember.peerConnection.createOffer(new MediaConstraints());
             remoteMember.peerConnection.setLocalDescription(sdp);
 
@@ -1360,7 +1362,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private String peerId;
     private String address;
     private Recipient recipient;
-    private int order;
+    private int callOrder = -1;
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
@@ -1379,9 +1381,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.pendingOutgoingIceUpdates = new LinkedList<>();
     }
 
-    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId) {
+    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId, int callOrder) {
       this.peerId = peerId;
       this.renderer = renderer;
+      this.callOrder = callOrder;
+      Log.w(TAG, "createPeerConnection: " + this);
       this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localRenderer, result, false);
     }
 
@@ -1511,7 +1515,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public String toString() {
-      return "" + this.address + " " + this.recipient.getLocalTag() + " Peer ID: " + this.peerId;
+      return "" + address + " " + recipient.getLocalTag() + " Peer ID: " + peerId + " callOrder: " + callOrder;
     }
   }
 }
