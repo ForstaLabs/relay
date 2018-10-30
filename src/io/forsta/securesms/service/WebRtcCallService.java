@@ -65,6 +65,7 @@ import org.webrtc.VideoTrack;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -495,7 +496,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       audioManager.startOutgoingRinger(OutgoingRinger.Type.SONAR);
       bluetoothStateManager.setWantsConnection(true);
 
-      setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteMember.recipient);
+      Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, new ArrayList<>(remoteCallMembers.keySet()), false);
+      setCallInProgressNotification(TYPE_OUTGOING_RINGING, recipients);
 
       timeoutExecutor.schedule(new TimeoutRunnable(remoteMember), 1, TimeUnit.MINUTES);
 
