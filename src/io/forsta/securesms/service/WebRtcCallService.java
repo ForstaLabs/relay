@@ -418,7 +418,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       timeoutExecutor.schedule(new TimeoutRunnable(member), 30, TimeUnit.SECONDS);
 
-      // This should only initialize if this is a new call, not when members are joining an existing call.
       initializeVideo();
 
       retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
@@ -480,15 +479,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (String member : members) {
         if (!member.equals(localAddress)) {
           remoteCallMembers.put(member, new CallMember(this, member, peerId));
-
         }
       }
 
       final CallMember remoteMember = remoteCallMembers.get(remoteAddress);
 
       initializeVideo();
+      for (CallMember callMember : remoteCallMembers.values()) {
+        sendMessage(WebRtcViewModel.State.CALL_OUTGOING, callMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      }
 
-      sendMessage(WebRtcViewModel.State.CALL_OUTGOING, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
       lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
       audioManager.initializeAudioForCall();
       audioManager.startOutgoingRinger(OutgoingRinger.Type.SONAR);
@@ -644,22 +645,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (callState == CallState.STATE_ANSWERING) {
       Log.w(TAG, "handleIceConnected answering...");
-
-      intent.putExtra(EXTRA_CALL_ID, callId);
-      intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
-      intent.putExtra(EXTRA_PEER_ID, member.peerId);
-      handleCallConnected(intent);
     } else if (callState == CallState.STATE_DIALING) {
       Log.w(TAG, "handleIceConnected dialing...");
 
       this.callState = CallState.STATE_REMOTE_RINGING;
       this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
-
-      intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
-      intent.putExtra(EXTRA_PEER_ID, member.peerId);
-      intent.putExtra(EXTRA_CALL_ID, callId);
-      handleCallConnected(intent);
     }
+
+    intent.putExtra(EXTRA_CALL_ID, callId);
+    intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
+    intent.putExtra(EXTRA_PEER_ID, member.peerId);
+    handleCallConnected(intent);
   }
 
   private void handleCallConnected(Intent intent) {
@@ -983,9 +979,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     });
   }
 
-  private void setCallInProgressNotification(int type, Recipient recipient) {
+  private void setCallInProgressNotification(int type, Recipients recipients) {
     startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION,
-                    CallNotificationBuilder.getCallInProgressNotification(this, type, recipient));
+                    CallNotificationBuilder.getCallInProgressNotification(this, type, recipients));
+  }
+
+  private void setCallInProgressNotification(int type, Recipient recipient) {
+    Recipients recipients = RecipientFactory.getRecipientsFor(this, recipient, false);
+    startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION,
+        CallNotificationBuilder.getCallInProgressNotification(this, type, recipients));
   }
 
   private synchronized void terminateCall(boolean removeNotification) {
