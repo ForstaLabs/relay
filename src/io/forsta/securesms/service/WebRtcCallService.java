@@ -154,6 +154,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private Map<String, CallMember> remoteCallMembers = new HashMap<>();
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
+  @NonNull private VideoRenderer localVideoRenderer = new VideoRenderer(localRenderer);
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer2;
   @Nullable public  static SurfaceViewRenderer remoteRenderer3;
@@ -341,7 +342,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           public void onSuccessContinue(List<PeerConnection.IceServer> result) {
             try {
               // Check the call member's order to choose which remoteRenderer to use.
-              member.createPeerConnection(result, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, incomingPeerId, incomingCallCount);
+              member.createPeerConnection(result, localVideoRenderer, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, incomingPeerId, incomingCallCount);
               member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
               try {
                 SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
@@ -382,8 +383,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           }
         });
       } else {
-        // Missed call from another caller.
-        // TODO Notification. Missed call from.
+        Recipient recipient = RecipientFactory.getRecipient(this, incomingAddress, false);
+        insertMissedCall(recipient, true);
       }
     } else {
       Log.w(TAG, "Accepting new call request");
@@ -426,7 +427,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            member.createPeerConnection(result, remoteRenderer, incomingPeerId, incomingCallCount);
+            member.createPeerConnection(result, localVideoRenderer, remoteRenderer, incomingPeerId, incomingCallCount);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
             // All of this is only if this is a new call, not when adding members to an existing call.
@@ -505,7 +506,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            remoteMember.createPeerConnection(result, remoteRenderer, remoteMember.peerId, incomingCallCount);
+            remoteMember.createPeerConnection(result, localVideoRenderer, remoteRenderer, remoteMember.peerId, incomingCallCount);
             SessionDescription sdp = remoteMember.peerConnection.createOffer(new MediaConstraints());
             remoteMember.peerConnection.setLocalDescription(sdp);
 
@@ -1385,12 +1386,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.pendingOutgoingIceUpdates = new LinkedList<>();
     }
 
-    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId, int callOrder) {
+    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer local, @NonNull VideoRenderer.Callbacks renderer, String peerId, int callOrder) {
       this.peerId = peerId;
       this.renderer = renderer;
       this.callOrder = callOrder;
       Log.w(TAG, "createPeerConnection: " + this);
-      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localRenderer, result, false);
+      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, local, result, false);
     }
 
     private void addIncomingIceCandidate(IceCandidate candidate) {

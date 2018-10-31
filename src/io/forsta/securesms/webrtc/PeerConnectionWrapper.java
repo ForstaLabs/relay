@@ -46,7 +46,7 @@ public class PeerConnectionWrapper {
   public PeerConnectionWrapper(@NonNull Context context,
                                @NonNull PeerConnectionFactory factory,
                                @NonNull PeerConnection.Observer observer,
-                               @NonNull VideoRenderer.Callbacks localRenderer,
+                               @NonNull VideoRenderer localRenderer,
                                @NonNull List<PeerConnection.IceServer> turnServers,
                                boolean hideIp)
   {
@@ -81,7 +81,7 @@ public class PeerConnectionWrapper {
       this.videoSource = factory.createVideoSource(videoCapturer);
       this.videoTrack = factory.createVideoTrack("ARDAMSv0", videoSource);
 
-      this.videoTrack.addRenderer(new VideoRenderer(localRenderer));
+      this.videoTrack.addRenderer(localRenderer);
       this.videoTrack.setEnabled(false);
       mediaStream.addTrack(videoTrack);
     } else {
