@@ -49,7 +49,12 @@ import io.forsta.securesms.webrtc.locks.LockManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
+import org.webrtc.Camera1Enumerator;
+import org.webrtc.Camera2Enumerator;
+import org.webrtc.CameraEnumerator;
+import org.webrtc.CameraVideoCapturer;
 import org.webrtc.DataChannel;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
@@ -60,7 +65,9 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
+import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
+import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 
@@ -152,6 +159,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private String localAddress;
   private int incomingCallCount = 0;
   private Map<String, CallMember> remoteCallMembers = new HashMap<>();
+  @NonNull  private AudioTrack localAudioTrack;
+  @NonNull  private AudioSource localAudioSource;
+
+  @Nullable private VideoCapturer localVideoCapturer;
+  @Nullable private VideoSource localVideoSource;
+  @Nullable private VideoTrack localVideoTrack;
+  private MediaStream localMediaStream;
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
@@ -341,7 +355,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           public void onSuccessContinue(List<PeerConnection.IceServer> result) {
             try {
               // Check the call member's order to choose which remoteRenderer to use.
-              member.createPeerConnection(result, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, incomingPeerId, incomingCallCount);
+              member.createPeerConnection(result, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, localMediaStream, incomingPeerId, incomingCallCount);
               member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
               try {
                 SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
@@ -370,8 +384,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                 member.terminate();
               }
 
-              member.peerConnection.setAudioEnabled(true);
-              member.peerConnection.setVideoEnabled(true);
+              setLocalVideoEnabled(true);
+              setLocalAudioEnabled(true);
+//              member.peerConnection.setAudioEnabled(true);
+//              member.peerConnection.setVideoEnabled(true);
 
             } catch (PeerConnectionWrapper.PeerConnectionException e) {
               Log.w(TAG, e);
@@ -426,7 +442,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            member.createPeerConnection(result, remoteRenderer, incomingPeerId, incomingCallCount);
+            member.createPeerConnection(result, remoteRenderer, localMediaStream, incomingPeerId, incomingCallCount);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
             // All of this is only if this is a new call, not when adding members to an existing call.
@@ -505,7 +521,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            remoteMember.createPeerConnection(result, remoteRenderer, remoteMember.peerId, incomingCallCount);
+            remoteMember.createPeerConnection(result, remoteRenderer, localMediaStream, remoteMember.peerId, incomingCallCount);
             SessionDescription sdp = remoteMember.peerConnection.createOffer(new MediaConstraints());
             remoteMember.peerConnection.setLocalDescription(sdp);
 
@@ -693,8 +709,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     setCallInProgressNotification(CallNotificationBuilder.TYPE_ESTABLISHED, member.recipient);
 
-    member.peerConnection.setAudioEnabled(microphoneEnabled);
-    member.peerConnection.setVideoEnabled(localVideoEnabled);
+    setLocalVideoEnabled(localVideoEnabled);
+    setLocalAudioEnabled(microphoneEnabled);
+//    member.peerConnection.setAudioEnabled(microphoneEnabled);
+//    member.peerConnection.setVideoEnabled(localVideoEnabled);
   }
 
   private void handleCheckTimeout(Intent intent) {
@@ -773,8 +791,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       e.printStackTrace();
     }
 
-    member.peerConnection.setAudioEnabled(true);
-    member.peerConnection.setVideoEnabled(true);
+    setLocalVideoEnabled(true);
+    setLocalAudioEnabled(true);
+//    member.peerConnection.setAudioEnabled(true);
+//    member.peerConnection.setVideoEnabled(true);
 
     intent.putExtra(EXTRA_CALL_ID, callId);
     intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
@@ -848,7 +868,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     for (CallMember member : remoteCallMembers.values()) {
       if (member.peerConnection != null) {
-        member.peerConnection.setAudioEnabled(microphoneEnabled);
+        setLocalAudioEnabled(microphoneEnabled);
+//        member.peerConnection.setAudioEnabled(microphoneEnabled);
       }
     }
   }
@@ -861,7 +882,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     for (CallMember member : remoteCallMembers.values()) {
       if (member.peerConnection != null) {
-        member.peerConnection.setVideoEnabled(localVideoEnabled);
+        setLocalVideoEnabled(localVideoEnabled);
+//        member.peerConnection.setVideoEnabled(localVideoEnabled);
       }
     }
 
@@ -977,8 +999,37 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
                                                             eglBase.getEglBaseContext());
+        initializeLocalVideo();
       }
     });
+  }
+
+  private void initializeLocalVideo() {
+    MediaConstraints                constraints      = new MediaConstraints();
+    MediaConstraints                audioConstraints = new MediaConstraints();
+
+    constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+    audioConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+
+    localVideoCapturer = createVideoCapturer(this);
+
+    localMediaStream = peerConnectionFactory.createLocalMediaStream("ARDAMS");
+    localAudioSource = peerConnectionFactory.createAudioSource(audioConstraints);
+    localAudioTrack  = peerConnectionFactory.createAudioTrack("ARDAMSa0", localAudioSource);
+    localAudioTrack.setEnabled(false);
+    localMediaStream.addTrack(localAudioTrack);
+
+    if (localVideoCapturer != null) {
+      localVideoSource = peerConnectionFactory.createVideoSource(localVideoCapturer);
+      localVideoTrack = peerConnectionFactory.createVideoTrack("ARDAMSv0", localVideoSource);
+
+      localVideoTrack.addRenderer(new VideoRenderer(localRenderer));
+      localVideoTrack.setEnabled(false);
+      localMediaStream.addTrack(localVideoTrack);
+    } else {
+      localVideoSource = null;
+      localVideoTrack  = null;
+    }
   }
 
   private void setCallInProgressNotification(int type, Recipients recipients) {
@@ -1362,6 +1413,71 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     context.startService(intent);
   }
 
+  private @Nullable
+  CameraVideoCapturer createVideoCapturer(@NonNull Context context) {
+    boolean camera2EnumeratorIsSupported = false;
+    try {
+      camera2EnumeratorIsSupported = Camera2Enumerator.isSupported(context);
+    } catch (final Throwable throwable) {
+      Log.w(TAG, "Camera2Enumator.isSupport() threw.", throwable);
+    }
+
+    Log.w(TAG, "Camera2 enumerator supported: " + camera2EnumeratorIsSupported);
+    CameraEnumerator enumerator;
+
+    if (camera2EnumeratorIsSupported) enumerator = new Camera2Enumerator(context);
+    else                              enumerator = new Camera1Enumerator(true);
+
+    String[] deviceNames = enumerator.getDeviceNames();
+
+    for (String deviceName : deviceNames) {
+      if (enumerator.isFrontFacing(deviceName)) {
+        Log.w(TAG, "Creating front facing camera capturer.");
+        final CameraVideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
+
+        if (videoCapturer != null) {
+          Log.w(TAG, "Found front facing capturer: " + deviceName);
+
+          return videoCapturer;
+        }
+      }
+    }
+
+    for (String deviceName : deviceNames) {
+      if (!enumerator.isFrontFacing(deviceName)) {
+        Log.w(TAG, "Creating other camera capturer.");
+        final CameraVideoCapturer videoCapturer = enumerator.createCapturer(deviceName, null);
+
+        if (videoCapturer != null) {
+          Log.w(TAG, "Found other facing capturer: " + deviceName);
+          return videoCapturer;
+        }
+      }
+    }
+
+    Log.w(TAG, "Video capture not supported!");
+    return null;
+  }
+
+  public void setLocalVideoEnabled(boolean enabled) {
+    if (localVideoTrack != null) {
+      localVideoTrack.setEnabled(enabled);
+    }
+
+    if (localVideoCapturer != null) {
+      try {
+        if (enabled) localVideoCapturer.startCapture(1280, 720, 30);
+        else         localVideoCapturer.stopCapture();
+      } catch (InterruptedException e) {
+        Log.w(TAG, e);
+      }
+    }
+  }
+
+  public void setLocalAudioEnabled(boolean enabled) {
+    localAudioTrack.setEnabled(enabled);
+  }
+
   private class CallMember implements PeerConnection.Observer {
     private volatile Context context;
     private String peerId;
@@ -1386,12 +1502,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.pendingOutgoingIceUpdates = new LinkedList<>();
     }
 
-    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, String peerId, int callOrder) {
+    private void createPeerConnection(List<PeerConnection.IceServer> result, @NonNull VideoRenderer.Callbacks renderer, @NonNull MediaStream localMediaStream, String peerId, int callOrder) {
       this.peerId = peerId;
       this.renderer = renderer;
       this.callOrder = callOrder;
       Log.w(TAG, "createPeerConnection: " + this);
-      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localRenderer, result, false);
+      this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localMediaStream, result, false);
     }
 
     private void addIncomingIceCandidate(IceCandidate candidate) {
@@ -1414,7 +1530,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     private void terminate() {
       if (peerConnection != null) {
-        peerConnection.dispose();
+        peerConnection.dispose(localMediaStream);
         peerConnection = null;
       }
 
