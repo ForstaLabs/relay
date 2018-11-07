@@ -41,8 +41,7 @@ public class PeerConnectionWrapper {
                                @NonNull PeerConnectionFactory factory,
                                @NonNull PeerConnection.Observer observer,
                                @NonNull MediaStream localMediaStream,
-                               @NonNull List<PeerConnection.IceServer> turnServers,
-                               boolean hideIp)
+                               @NonNull List<PeerConnection.IceServer> turnServers)
   {
     List<PeerConnection.IceServer> iceServers = new LinkedList<>();
 //    iceServers.add(STUN_SERVER);
@@ -54,10 +53,6 @@ public class PeerConnectionWrapper {
 
     configuration.bundlePolicy  = PeerConnection.BundlePolicy.MAXBUNDLE;
     configuration.rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE;
-
-    if (hideIp) {
-      configuration.iceTransportsType = PeerConnection.IceTransportsType.RELAY;
-    }
 
     constraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
     audioConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
