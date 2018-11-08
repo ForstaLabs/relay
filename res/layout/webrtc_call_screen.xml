@@ -122,9 +122,19 @@
             android:layout_height="200dp">
             <TableRow>
                 <LinearLayout android:layout_width="wrap_content"
+                               android:layout_height="wrap_content"
+                               android:layout_weight="1"
+                               android:orientation="vertical">
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/local_call_member"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
                     <TextView
                         android:text="Local"
                         android:layout_width="match_parent"

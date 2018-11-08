@@ -528,12 +528,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
               @Override
               public void onFailureContinue(Throwable error) {
                 Log.w(TAG, error);
-
-                if (error instanceof UnregisteredUserException) {
-                  sendMessage(WebRtcViewModel.State.NO_SUCH_USER, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-                } else if (error instanceof IOException) {
-                  sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-                }
+                sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
                 remoteMember.terminate();
                 terminateCall(true);

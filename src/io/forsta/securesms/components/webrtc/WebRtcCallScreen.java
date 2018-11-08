@@ -39,6 +39,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
+import io.forsta.ccsm.components.webrtc.CallMemberView;
 import io.forsta.securesms.R;
 //import io.forsta.securesms.mms.GlideApp;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
@@ -82,7 +83,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   private Recipient recipient;
   private boolean   minimized;
-
+  private CallMemberView localMemberLayout;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -102,6 +103,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
     setCard(personInfo, message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
+    localMemberLayout.setRecipient(personInfo);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -109,6 +111,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message) {
     setCard(personInfo, message);
+    localMemberLayout.setRecipient(personInfo);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -165,7 +168,8 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 //      this.localRenderLayout.requestLayout();
 //    }
     this.controls.setVideoEnabled(true);
-    this.localRenderLayout.requestLayout();
+//    this.localRenderLayout.requestLayout();
+    localMemberLayout.requestLayout();
   }
 
   public void setRemoteVideoEnabled(boolean enabled) {
@@ -211,6 +215,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.expandedInfo                 = findViewById(R.id.expanded_info);
     this.callHeader                   = findViewById(R.id.call_info_1);
+    this.localMemberLayout = findViewById(R.id.local_call_member);
 
 //    this.localRenderLayout.setHidden(true);
 //    this.remoteRenderLayout.setHidden(true);
@@ -222,7 +227,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private void setConnected(SurfaceViewRenderer localRenderer,
                             SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2, SurfaceViewRenderer remoteRenderer3)
   {
-    if (localRenderLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
+    if (localMemberLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
         ((ViewGroup)localRenderer.getParent()).removeView(localRenderer);
       }
@@ -257,7 +262,9 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 //      localRenderer.setMirror(true);
 //      localRenderer.setZOrderMediaOverlay(true);
 
-      localRenderLayout.addView(localRenderer);
+//      localRenderLayout.addView(localRenderer);
+      localMemberLayout.setActiveCall(localRenderer);
+
       remoteRenderLayout.addView(remoteRenderer);
       remoteRenderLayout2.addView(remoteRenderer2);
       remoteRenderLayout3.addView(remoteRenderer3);
