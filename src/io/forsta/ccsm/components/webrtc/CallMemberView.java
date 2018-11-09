@@ -68,6 +68,7 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
 
   public void setRecipient(Recipient recipient) {
     this.recipient = recipient;
+    this.recipient.addListener(this);
     memberName.setText(recipient.getName());
     memberAvatar.setAvatar(recipient, false);
   }

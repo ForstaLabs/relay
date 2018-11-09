@@ -63,7 +63,7 @@ import io.forsta.securesms.recipients.Recipient;
  * @author Moxie Marlinspike
  *
  */
-public class WebRtcCallScreen extends FrameLayout implements Recipient.RecipientModifiedListener {
+public class WebRtcCallScreen extends FrameLayout {
 
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
@@ -78,7 +78,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private WebRtcAnswerDeclineButton incomingCallButton;
 
   private Recipient localRecipient;
-  private boolean   minimized;
   private CallMemberView localMemberLayout;
   private CallMemberView remoteMemberLayout;
 
@@ -160,14 +159,12 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   }
 
   public void setLocalVideoEnabled(boolean enabled) {
-    this.controls.setVideoEnabled(true);
+    this.controls.setVideoEnabled(enabled);
     localMemberLayout.requestLayout();
   }
 
   public void setRemoteVideoEnabled(boolean enabled) {
-//    this.photo.setVisibility(View.INVISIBLE);
     remoteMemberLayout.requestLayout();
-//    this.remoteRenderLayout.requestLayout();
     this.remoteRenderLayout2.requestLayout();
     this.remoteRenderLayout3.requestLayout();
   }
@@ -190,8 +187,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.localMemberLayout = findViewById(R.id.local_call_member);
     this.remoteMemberLayout = findViewById(R.id.remote_call_member);
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
-
-    this.minimized = false;
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
@@ -220,14 +215,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
       remoteRenderLayout2.addView(remoteRenderer2);
       remoteRenderLayout3.addView(remoteRenderer3);
     }
-  }
-
-  @Override
-  public void onModified(Recipient recipient) {
-    Util.runOnMain(() -> {
-      // Find layout for recipient and update
-      remoteMemberLayout.setRecipient(recipient);
-    });
   }
 
   public interface HangupButtonListener {
