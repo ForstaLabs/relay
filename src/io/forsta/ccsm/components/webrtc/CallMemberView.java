@@ -34,7 +34,7 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
   private TextView memberName;
   private TextView callMemberStatus;
   private AvatarImageView memberAvatar;
-  private FrameLayout memberVideo;
+  public FrameLayout memberVideo;
 
   public CallMemberView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
@@ -74,6 +74,8 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
 
   public void setActiveCall(SurfaceViewRenderer renderer) {
     memberVideo.addView(renderer);
+    memberVideo.setVisibility(VISIBLE);
+    memberAvatar.setVisibility(GONE);
   }
 
   public void setCallStatus(String status) {

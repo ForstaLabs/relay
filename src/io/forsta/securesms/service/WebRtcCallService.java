@@ -1061,14 +1061,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         Log.w(TAG, e);
       }
       localVideoCapturer.dispose();
+      localVideoCapturer = null;
     }
 
     if (localVideoSource != null) {
       localVideoSource.dispose();
+      localVideoSource = null;
     }
 
     if (localAudioSource != null) {
       localAudioSource.dispose();
+      localAudioSource = null;
     }
 
     this.callState = CallState.STATE_IDLE;

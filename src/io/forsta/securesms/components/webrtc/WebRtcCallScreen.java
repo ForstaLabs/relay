@@ -45,7 +45,9 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.service.WebRtcCallService;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 //import io.forsta.securesms.util.VerifySpan;
 import io.forsta.securesms.util.ViewUtil;
@@ -82,6 +84,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private WebRtcAnswerDeclineButton incomingCallButton;
 
   private Recipient recipient;
+  private Recipient localRecipient;
   private boolean   minimized;
   private CallMemberView localMemberLayout;
 
@@ -103,7 +106,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
     setCard(personInfo, message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
-    localMemberLayout.setRecipient(personInfo);
+    localMemberLayout.setCallStatus("Connected");
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -111,7 +114,8 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message) {
     setCard(personInfo, message);
-    localMemberLayout.setRecipient(personInfo);
+    localMemberLayout.setRecipient(localRecipient);
+    localMemberLayout.setCallStatus("Connected");
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -119,6 +123,8 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   public void setIncomingCall(Recipient personInfo) {
     setCard(personInfo, getContext().getString(R.string.CallScreen_Incoming_call));
+    localMemberLayout.setRecipient(localRecipient);
+    localMemberLayout.setCallStatus("Incoming call");
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
@@ -204,7 +210,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
     this.elapsedTime                  = findViewById(R.id.elapsedTime);
     this.photo                        = findViewById(R.id.photo);
-    this.localRenderLayout            = findViewById(R.id.local_render_layout);
+//    this.localRenderLayout            = findViewById(R.id.local_render_layout);
     this.remoteRenderLayout           = findViewById(R.id.remote_render_layout);
     this.remoteRenderLayout2          = findViewById(R.id.remote2_render_layout);
     this.remoteRenderLayout3          = findViewById(R.id.remote3_render_layout);
@@ -216,6 +222,7 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     this.expandedInfo                 = findViewById(R.id.expanded_info);
     this.callHeader                   = findViewById(R.id.call_info_1);
     this.localMemberLayout = findViewById(R.id.local_call_member);
+    localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
 
 //    this.localRenderLayout.setHidden(true);
 //    this.remoteRenderLayout.setHidden(true);
@@ -227,7 +234,8 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   private void setConnected(SurfaceViewRenderer localRenderer,
                             SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2, SurfaceViewRenderer remoteRenderer3)
   {
-    if (localMemberLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
+//    if (localRenderLayout.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
+    if (localMemberLayout.memberVideo.getChildCount() == 0 && remoteRenderLayout.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
         ((ViewGroup)localRenderer.getParent()).removeView(localRenderer);
       }
@@ -243,28 +251,10 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
       if (remoteRenderer3.getParent() != null) {
         ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
       }
-
-//      localRenderLayout.setPosition(0, 0, 50, 100);
-//      localRenderLayout.setSquare(true);
-//      remoteRenderLayout.setPosition(0, 0, 50, 100);
-//      remoteRenderLayout.setSquare(true);
-//      remoteRenderLayout2.setPosition(50, 0, 50, 50);
-//      remoteRenderLayout2.setSquare(true);
-//      remoteRenderLayout3.setPosition(50, 50, 50, 50);
-//      remoteRenderLayout3.setSquare(true);
-
-//      localRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-//                                                                 ViewGroup.LayoutParams.MATCH_PARENT));
-//
-//      remoteRenderer.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-//                                                                  ViewGroup.LayoutParams.MATCH_PARENT));
-
 //      localRenderer.setMirror(true);
 //      localRenderer.setZOrderMediaOverlay(true);
-
 //      localRenderLayout.addView(localRenderer);
       localMemberLayout.setActiveCall(localRenderer);
-
       remoteRenderLayout.addView(remoteRenderer);
       remoteRenderLayout2.addView(remoteRenderer2);
       remoteRenderLayout3.addView(remoteRenderer3);
@@ -322,6 +312,4 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   public interface HangupButtonListener {
     void onClick();
   }
-
-
 }
