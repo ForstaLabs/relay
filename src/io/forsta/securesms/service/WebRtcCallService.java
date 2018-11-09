@@ -490,9 +490,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       }
 
-      final CallMember remoteMember = remoteCallMembers.get(remoteAddress);
+      final CallMember remoteMember = remoteCallMembers.values().iterator().next();
 
       initializeVideo();
+
       for (CallMember callMember : remoteCallMembers.values()) {
         sendMessage(WebRtcViewModel.State.CALL_OUTGOING, callMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
       }
@@ -511,28 +512,39 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
-          try {
-            remoteMember.createPeerConnection(result, remoteRenderer, localMediaStream, remoteMember.peerId, incomingCallCount);
-            SessionDescription sdp = remoteMember.peerConnection.createOffer(new MediaConstraints());
-            remoteMember.peerConnection.setLocalDescription(sdp);
-
-            Log.w(TAG, "Sending callOffer: " + sdp.description);
-
-            ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteMember.recipient, threadUID, callId, sdp, remoteMember.peerId);
-            listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
-              @Override
-              public void onFailureContinue(Throwable error) {
-                Log.w(TAG, error);
-                sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-
-                remoteMember.terminate();
-                terminateCall(true);
+          int callCount = 0;
+          for (CallMember callMember : remoteCallMembers.values()) {
+            try {
+              callCount++;
+              if (callCount == 1) {
+                callMember.createPeerConnection(result, remoteRenderer, localMediaStream, callMember.peerId, callCount);
+              } else if (callCount == 2){
+                callMember.createPeerConnection(result, remoteRenderer2, localMediaStream, callMember.peerId, callCount);
+              } else {
+                callMember.createPeerConnection(result, remoteRenderer3, localMediaStream, callMember.peerId, callCount);
               }
-            });
-          } catch (PeerConnectionWrapper.PeerConnectionException e) {
-            Log.w(TAG, e);
-            remoteMember.terminate();
-            terminateCall(true);
+
+              SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
+              callMember.peerConnection.setLocalDescription(sdp);
+
+              Log.w(TAG, "Sending callOffer: " + sdp.description);
+
+              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(callMember.recipient, threadUID, callId, sdp, callMember.peerId);
+              listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+                @Override
+                public void onFailureContinue(Throwable error) {
+                  Log.w(TAG, error);
+                  sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, remoteMember.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+                  remoteMember.terminate();
+                  terminateCall(true);
+                }
+              });
+            } catch (PeerConnectionWrapper.PeerConnectionException e) {
+              Log.w(TAG, e);
+              callMember.terminate();
+              terminateCall(true);
+            }
           }
         }
       });
