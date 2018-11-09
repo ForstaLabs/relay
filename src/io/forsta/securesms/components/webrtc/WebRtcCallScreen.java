@@ -70,16 +70,13 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
 
   private FrameLayout   remoteRenderLayout2;
   private FrameLayout   remoteRenderLayout3;
-  private TextView             elapsedTime;
   private TextView             status;
   private FloatingActionButton endCallButton;
   private WebRtcCallControls   controls;
-  private RelativeLayout       expandedInfo;
   private ViewGroup            callHeader;
 
   private WebRtcAnswerDeclineButton incomingCallButton;
 
-  private Recipient recipient;
   private Recipient localRecipient;
   private boolean   minimized;
   private CallMemberView localMemberLayout;
@@ -101,10 +98,10 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
   }
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
+    // Need to be able to select the appropriate layout for each recipient.
     remoteMemberLayout.setRecipient(personInfo);
     remoteMemberLayout.setCallStatus(message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
-
     localMemberLayout.setCallStatus("Connected");
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
@@ -115,7 +112,6 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     // Need to be able to select the appropriate layout for each recipient.
     remoteMemberLayout.setRecipient(personInfo);
     remoteMemberLayout.setCallStatus(message);
-//    localMemberLayout.setRecipient(localRecipient);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
@@ -184,14 +180,12 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     inflater.inflate(R.layout.webrtc_call_screen, this, true);
 
-    this.elapsedTime                  = findViewById(R.id.elapsedTime);
     this.remoteRenderLayout2          = findViewById(R.id.remote2_render_layout);
     this.remoteRenderLayout3          = findViewById(R.id.remote3_render_layout);
     this.status                       = findViewById(R.id.callStateLabel);
     this.controls                     = findViewById(R.id.inCallControls);
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
-    this.expandedInfo                 = findViewById(R.id.expanded_info);
     this.callHeader                   = findViewById(R.id.call_info_1);
     this.localMemberLayout = findViewById(R.id.local_call_member);
     this.remoteMemberLayout = findViewById(R.id.remote_call_member);
@@ -228,33 +222,11 @@ public class WebRtcCallScreen extends FrameLayout implements Recipient.Recipient
     }
   }
 
-  private void setMinimized(boolean minimized) {
-    if (minimized) {
-      ViewCompat.animate(callHeader).translationY(-1 * expandedInfo.getHeight());
-      ViewCompat.animate(status).alpha(0);
-      ViewCompat.animate(endCallButton).translationY(endCallButton.getHeight() + ViewUtil.dpToPx(getContext(), 40));
-      ViewCompat.animate(endCallButton).alpha(0);
-
-      this.minimized = true;
-    } else {
-      ViewCompat.animate(callHeader).translationY(0);
-      ViewCompat.animate(status).alpha(1);
-      ViewCompat.animate(endCallButton).translationY(0);
-      ViewCompat.animate(endCallButton).alpha(1).withEndAction(() -> {
-        // Note: This is to work around an Android bug, see #6225
-        endCallButton.requestLayout();
-      });
-
-      this.minimized = false;
-    }
-  }
-
   @Override
   public void onModified(Recipient recipient) {
     Util.runOnMain(() -> {
-      if (recipient == WebRtcCallScreen.this.recipient) {
-//        setPersonInfo(recipient);
-      }
+      // Find layout for recipient and update
+      remoteMemberLayout.setRecipient(recipient);
     });
   }
 

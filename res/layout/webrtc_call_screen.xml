@@ -21,30 +21,11 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent">
 
-
     <!-- "Call info" block #1, for the foreground call. -->
     <RelativeLayout android:id="@+id/call_info_1"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:animateLayoutChanges="true">
-
-        <!-- Contact photo for call_info_1 -->
-        <FrameLayout android:id="@+id/image_container"
-                     android:layout_below="@+id/call_banner_1"
-                     android:gravity="top|center_horizontal"
-                     android:layout_width="match_parent"
-                     android:layout_height="match_parent">
-
-            <ImageView android:id="@+id/photo"
-                       android:layout_width="match_parent"
-                       android:layout_height="match_parent"
-                       android:scaleType="centerCrop"
-                       android:visibility="visible"
-                       android:clickable="true"
-                       tools:src="@drawable/ic_person_large"
-                    />
-
-        </FrameLayout>
 
         <!-- "Call Banner" for call #1, the foregound or ringing call.
              The "call banner" is a block of info about a single call,
@@ -57,29 +38,6 @@
                         android:layout_height="wrap_content"
                         android:minHeight="80dp"
                         android:orientation="vertical">
-
-            <RelativeLayout android:id="@+id/expanded_info"
-                            android:background="@color/textsecure_primary"
-                            android:paddingLeft="24dp"
-                            android:paddingRight="24dp"
-                            android:paddingTop="16dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:clickable="true">
-
-                <!-- Elapsed time indication for a call in progress. -->
-                <TextView android:id="@+id/elapsedTime"
-                          android:layout_alignParentRight="true"
-                          android:layout_centerVertical="true"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:textAppearance="?android:attr/textAppearanceMedium"
-                          android:textColor="#FFFFFF"
-                          android:singleLine="true"
-                        />
-
-
-            </RelativeLayout>
 
             <io.forsta.securesms.components.webrtc.WebRtcCallControls
                     android:id="@+id/inCallControls"
