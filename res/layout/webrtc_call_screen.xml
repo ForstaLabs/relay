@@ -138,19 +138,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
-                    <TextView android:id="@+id/name"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:singleLine="true"
-                              android:maxLines="1"
-                              android:ellipsize="end"
-                              tools:text="James G. Frazer"
-                        />
-                    <FrameLayout
-                        android:id="@+id/remote_render_layout"
-                        android:layout_width="wrap_content"
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/remote_call_member"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        tools:visibility="visible"/>
+                        />
                 </LinearLayout>
             </TableRow>
         </TableLayout>
