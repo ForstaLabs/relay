@@ -852,11 +852,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     boolean muted = intent.getBooleanExtra(EXTRA_MUTE, false);
     this.microphoneEnabled = !muted;
 
-    for (CallMember member : remoteCallMembers.values()) {
-      if (member.peerConnection != null) {
-        setLocalAudioEnabled(microphoneEnabled);
-      }
-    }
+    setLocalAudioEnabled(microphoneEnabled);
   }
 
   private void handleSetMuteVideo(Intent intent) {
@@ -864,12 +860,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     boolean      muted        = intent.getBooleanExtra(EXTRA_MUTE, false);
 
     this.localVideoEnabled = !muted;
-
-    for (CallMember member : remoteCallMembers.values()) {
-      if (member.peerConnection != null) {
-        setLocalVideoEnabled(localVideoEnabled);
-      }
-    }
+    setLocalVideoEnabled(localVideoEnabled);
 
     if (callState == CallState.STATE_CONNECTED) {
       if (localVideoEnabled) this.lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
