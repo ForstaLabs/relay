@@ -16,6 +16,7 @@ public class WebRtcViewModel {
     CALL_RINGING,
     CALL_BUSY,
     CALL_DISCONNECTED,
+    CALL_MEMBER_JOINING,
 
     // Error states
     NETWORK_FAILURE,
@@ -27,7 +28,7 @@ public class WebRtcViewModel {
 
   private final @NonNull  State       state;
   private final @NonNull  Recipient   recipient;
-  private final @Nullable IdentityKey identityKey;
+  private final int callOrder;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -36,22 +37,13 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state, @NonNull Recipient recipient,
-                         boolean localVideoEnabled, boolean remoteVideoEnabled,
-                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
-  {
-    this(state, recipient, null,
-         localVideoEnabled, remoteVideoEnabled,
-         isBluetoothAvailable, isMicrophoneEnabled);
-  }
-
-  public WebRtcViewModel(@NonNull State state, @NonNull Recipient recipient,
-                         @Nullable IdentityKey identityKey,
+                         int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
     this.recipient            = recipient;
-    this.identityKey          = identityKey;
+    this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
     this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
@@ -66,9 +58,8 @@ public class WebRtcViewModel {
     return recipient;
   }
 
-  @Nullable
-  public IdentityKey getIdentityKey() {
-    return identityKey;
+  public @NonNull int getCallOrder() {
+    return callOrder;
   }
 
   public boolean isRemoteVideoEnabled() {
@@ -88,6 +79,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + recipient.getAddress() + ", identity: " + identityKey + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + recipient.getAddress() + ", callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
   }
 }

@@ -97,7 +97,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private static final String TAG = WebRtcCallService.class.getSimpleName();
 
   private enum CallState {
-    STATE_IDLE, STATE_DIALING, STATE_ANSWERING, STATE_REMOTE_RINGING, STATE_LOCAL_RINGING, STATE_CONNECTED
+    STATE_IDLE, STATE_DIALING, STATE_ANSWERING, STATE_REMOTE_RINGING, STATE_LOCAL_RINGING, STATE_CONNECTED, STATE_REMOTE_JOINING
   }
 
   private static final String DATA_CHANNEL_NAME = "signaling";
@@ -382,6 +382,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                 }
                 member.pendingIncomingIceUpdates = null;
               }
+              member.callOrder = incomingCallCount;
+              sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             } catch (PeerConnectionWrapper.PeerConnectionException e) {
               e.printStackTrace();
               member.terminate();
@@ -447,7 +449,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
             WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
 
-            sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+            member.callOrder = incomingCallCount;
+            sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             startCallCardActivity();
             audioManager.initializeAudioForCall();
             audioManager.startIncomingRinger();
@@ -466,14 +469,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       });
     }
-  }
-
-  private void handleNewIncomingCall() {
-
-  }
-
-  private void handleAddCallMember() {
-
   }
 
   private void handleOutgoingCall(Intent intent) {
@@ -694,7 +689,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (localVideoEnabled) lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
     else                   lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
 
-    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, member.recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    sendMessage(WebRtcViewModel.State.CALL_CONNECTED, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
     unregisterPowerButtonReceiver();
 
@@ -934,7 +929,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (address != null) {
       CallMember member = remoteCallMembers.get(address);
       if (member != null) {
-        Log.w(TAG, "Getting call member: callId: " + callId + " peerId: " +member.peerId + " address: " + member.address + " (" + member.recipient.getLocalTag() + ")");
+        Log.w(TAG, "Getting call member:" + member.toString());
       } else {
         Log.w(TAG, "Received intent from invalid call member");
       }
@@ -1073,15 +1068,24 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     this.localVideoEnabled = true;
     this.remoteVideoEnabled = true;
     lockManager.updatePhoneState(LockManager.PhoneState.IDLE);
+    incomingCallCount = 0;
   }
 
   private void sendMessage(@NonNull WebRtcViewModel.State state,
                            @NonNull Recipient recipient,
                            boolean localVideoEnabled, boolean remoteVideoEnabled,
+                           boolean bluetoothAvailable, boolean microphoneEnabled) {
+    sendMessage(state, recipient, 0, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+  }
+
+  private void sendMessage(@NonNull WebRtcViewModel.State state,
+                           @NonNull Recipient recipient,
+                           int callOrder,
+                           boolean localVideoEnabled, boolean remoteVideoEnabled,
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
     Log.w(TAG, "EventBus message: " + recipient.getLocalTag() + " Local Video: " + (localVideoEnabled ? "true" : "false") + " Remote Video: " + remoteVideoEnabled);
-    EventBus.getDefault().postSticky(new WebRtcViewModel(state, recipient, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
+    EventBus.getDefault().postSticky(new WebRtcViewModel(state, recipient, callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
   private ListenableFutureTask<Boolean> sendIceUpdateMessage(@NonNull final Recipient recipient, String threadUID,

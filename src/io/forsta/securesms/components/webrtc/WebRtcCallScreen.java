@@ -68,8 +68,6 @@ public class WebRtcCallScreen extends FrameLayout {
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
 
-  private FrameLayout   remoteRenderLayout2;
-  private FrameLayout   remoteRenderLayout3;
   private TextView             status;
   private FloatingActionButton endCallButton;
   private WebRtcCallControls   controls;
@@ -80,6 +78,8 @@ public class WebRtcCallScreen extends FrameLayout {
   private Recipient localRecipient;
   private CallMemberView localMemberLayout;
   private CallMemberView remoteMemberLayout;
+  private CallMemberView remoteMemberLayout2;
+  private CallMemberView remoteMemberLayout3;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -124,6 +124,16 @@ public class WebRtcCallScreen extends FrameLayout {
     incomingCallButton.startRingingAnimation();
   }
 
+  public void joinActiveCall(Recipient recipient, int callOrder) {
+    if (callOrder == 2) {
+      remoteMemberLayout2.setRecipient(recipient);
+      remoteMemberLayout2.setCallStatus("Connected");
+    } else {
+      remoteMemberLayout3.setRecipient(recipient);
+      remoteMemberLayout3.setCallStatus("Connected");
+    }
+  }
+
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
     incomingCallButton.setAnswerDeclineListener(listener);
   }
@@ -164,8 +174,8 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void setRemoteVideoEnabled(boolean enabled) {
     remoteMemberLayout.requestLayout();
-    this.remoteRenderLayout2.requestLayout();
-    this.remoteRenderLayout3.requestLayout();
+    remoteMemberLayout2.requestLayout();
+    remoteMemberLayout3.requestLayout();
   }
 
   public boolean isVideoEnabled() {
@@ -176,15 +186,16 @@ public class WebRtcCallScreen extends FrameLayout {
     LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     inflater.inflate(R.layout.webrtc_call_screen, this, true);
 
-    this.remoteRenderLayout2          = findViewById(R.id.remote2_render_layout);
-    this.remoteRenderLayout3          = findViewById(R.id.remote3_render_layout);
+    this.localMemberLayout = findViewById(R.id.local_call_member);
+    this.remoteMemberLayout = findViewById(R.id.remote_call_member);
+    this.remoteMemberLayout2          = findViewById(R.id.remote_call_member2);
+    this.remoteMemberLayout3          = findViewById(R.id.remote_call_member3);
     this.status                       = findViewById(R.id.callStateLabel);
     this.controls                     = findViewById(R.id.inCallControls);
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.callHeader                   = findViewById(R.id.call_info_1);
-    this.localMemberLayout = findViewById(R.id.local_call_member);
-    this.remoteMemberLayout = findViewById(R.id.remote_call_member);
+
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
   }
 
@@ -211,8 +222,8 @@ public class WebRtcCallScreen extends FrameLayout {
 //      localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.setActiveCall(localRenderer);
       remoteMemberLayout.setActiveCall(remoteRenderer);
-      remoteRenderLayout2.addView(remoteRenderer2);
-      remoteRenderLayout3.addView(remoteRenderer3);
+      remoteMemberLayout2.setActiveCall(remoteRenderer2);
+      remoteMemberLayout3.setActiveCall(remoteRenderer3);
     }
   }
 
