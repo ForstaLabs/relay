@@ -101,7 +101,6 @@ public class WebRtcCallScreen extends FrameLayout {
     remoteMemberLayout.setRecipient(personInfo);
     remoteMemberLayout.setCallStatus(message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
-    localMemberLayout.setCallStatus("Connected");
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
