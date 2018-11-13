@@ -157,7 +157,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Nullable private String callId;
   @Nullable private String threadUID;
   private Recipient localRecipient;
-  private int incomingCallCount = 0;
 
   private Map<String, CallMember> remoteCallMembers = new HashMap<>();
   @NonNull  private AudioTrack localAudioTrack;
@@ -318,7 +317,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   // Handlers
 
   private void handleIncomingCall(final Intent intent) {
-    incomingCallCount++;
     final String incomingCallId = intent.getStringExtra(EXTRA_CALL_ID);
     final String incomingAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     final String incomingPeerId = intent.getStringExtra(EXTRA_PEER_ID);
@@ -357,8 +355,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
+            // Only allow for three remote call members.
+            int callOrder = 2;
+            for (CallMember callMember : remoteCallMembers.values()) {
+              if (callMember.callOrder == 2) callOrder = 3;
+            }
             // Check the call member's order to choose which remoteRenderer to use.
-            member.createPeerConnection(result, incomingCallCount == 3 ? remoteRenderer3 : remoteRenderer2, localMediaStream, incomingPeerId, incomingCallCount);
+            member.createPeerConnection(result, callOrder == 3 ? remoteRenderer3 : remoteRenderer2, localMediaStream, incomingPeerId, callOrder);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
             try {
               SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
@@ -382,7 +385,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                 }
                 member.pendingIncomingIceUpdates = null;
               }
-              member.callOrder = incomingCallCount;
               sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             } catch (PeerConnectionWrapper.PeerConnectionException e) {
               e.printStackTrace();
@@ -1080,7 +1082,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     this.localVideoEnabled = true;
     this.remoteVideoEnabled = true;
     lockManager.updatePhoneState(LockManager.PhoneState.IDLE);
-    incomingCallCount = 0;
   }
 
   private void sendMessage(@NonNull WebRtcViewModel.State state,
@@ -1483,7 +1484,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private String peerId;
     private String address;
     private Recipient recipient;
-    private int callOrder = -1;
+    private int callOrder = 0;
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
@@ -1536,6 +1537,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       pendingOutgoingIceUpdates = null;
       pendingIncomingIceUpdates = null;
+      callOrder = 0;
     }
 
     @Override
