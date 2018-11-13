@@ -442,14 +442,14 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           try {
-            member.createPeerConnection(result, remoteRenderer, localMediaStream, incomingPeerId, incomingCallCount);
+            member.createPeerConnection(result, remoteRenderer, localMediaStream, incomingPeerId, 1);
             member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
 
             WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
             WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
             WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
 
-            member.callOrder = incomingCallCount;
+            member.callOrder = 1;
             sendMessage(WebRtcViewModel.State.CALL_INCOMING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             startCallCardActivity();
             audioManager.initializeAudioForCall();
@@ -1191,19 +1191,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return members;
   }
 
-  private @NonNull Recipient getRemoteRecipient(Intent intent) {
-    String remoteAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
-    if (remoteAddress == null) throw new AssertionError("No recipient in intent!");
-
-    return RecipientFactory.getRecipientsFromString(getApplicationContext(), remoteAddress, false).getPrimaryRecipient();
-  }
-
   private String getCallId(Intent intent) {
     return intent.getStringExtra(EXTRA_CALL_ID);
-  }
-
-  private String getRemoteAddress(Intent intent) {
-    return intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
   }
 
   @Nullable
