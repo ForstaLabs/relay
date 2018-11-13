@@ -482,7 +482,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.callState                 = CallState.STATE_DIALING;
       this.callId                    = UUID.randomUUID().toString();
       this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
-      String remoteAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
       String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
       String peerId = UUID.randomUUID().toString();
 
