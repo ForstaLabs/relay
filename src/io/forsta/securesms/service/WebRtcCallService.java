@@ -530,6 +530,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
               Log.w(TAG, "Sending callOffer: " + sdp.description);
 
+              // Need to send call offers to all peers
+              //
               ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(callMember.recipient, threadUID, callId, sdp, callMember.peerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
                 @Override
