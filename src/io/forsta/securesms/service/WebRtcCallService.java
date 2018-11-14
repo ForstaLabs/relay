@@ -532,7 +532,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
               // Need to send call offers to all peers
               //
-              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(callMember.recipient, threadUID, callId, sdp, callMember.peerId);
+              Recipients offerRecipients = RecipientFactory.getRecipientsFromStrings(WebRtcCallService.this, new ArrayList<>(remoteCallMembers.keySet()), true);
+              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(offerRecipients, threadUID, callId, sdp, callMember.peerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
                 @Override
                 public void onFailureContinue(Throwable error) {
@@ -1142,14 +1143,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> sendCallOfferMessage(@NonNull final Recipient recipient, String threadUID,
+  private ListenableFutureTask<Boolean> sendCallOfferMessage(@NonNull final Recipients recipients, String threadUID,
                                                                @NonNull final String callId, SessionDescription sdp, String peerId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         MessageSender.sendCallOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId);
         return true;
       }
