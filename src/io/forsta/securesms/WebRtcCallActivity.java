@@ -178,7 +178,7 @@ public class WebRtcCallActivity extends Activity {
       intent.setAction(WebRtcCallService.ACTION_DENY_CALL);
       startService(intent);
 
-      callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_ending_call));
+      callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call), "");
       delayedFinish();
     }
   }
@@ -195,20 +195,21 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleOutgoingCall(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_dialing));
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_dialing), "");
   }
 
-  private void handleTerminate(@NonNull Recipient recipient /*, int terminationType */) {
+  private void handleTerminate(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "handleTerminate called");
 
-    callScreen.setActiveCall(recipient, getString(R.string.RedPhone_ending_call));
+
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call), "");
     EventBus.getDefault().removeStickyEvent(WebRtcViewModel.class);
 
     delayedFinish();
   }
 
   private void handleCallRinging(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_ringing));
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ringing), "");
   }
 
   private void handleCallBusy(@NonNull WebRtcViewModel event) {
@@ -219,7 +220,7 @@ public class WebRtcCallActivity extends Activity {
 
   private void handleCallConnected(@NonNull WebRtcViewModel event) {
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_connected), "");
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected), "");
   }
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
@@ -233,7 +234,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleServerFailure(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_network_failed));
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_network_failed), "");
     delayedFinish();
   }
 
@@ -247,13 +248,13 @@ public class WebRtcCallActivity extends Activity {
     dialog.setPositiveButton(R.string.RedPhone_got_it, new OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which) {
-        WebRtcCallActivity.this.handleTerminate(event.getRecipient());
+        WebRtcCallActivity.this.handleTerminate(event);
       }
     });
     dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
       @Override
       public void onCancel(DialogInterface dialog) {
-        WebRtcCallActivity.this.handleTerminate(event.getRecipient());
+        WebRtcCallActivity.this.handleTerminate(event);
       }
     });
     dialog.show();
@@ -279,7 +280,7 @@ public class WebRtcCallActivity extends Activity {
       case CALL_CONNECTED:          handleCallConnected(event);            break;
       case NETWORK_FAILURE:         handleServerFailure(event);            break;
       case CALL_RINGING:            handleCallRinging(event);              break;
-      case CALL_DISCONNECTED:       handleTerminate(event.getRecipient()); break;
+      case CALL_DISCONNECTED:       handleTerminate(event); break;
       case NO_SUCH_USER:            handleNoSuchUser(event);               break;
       case RECIPIENT_UNAVAILABLE:   handleRecipientUnavailable(event);     break;
       case CALL_INCOMING:           handleIncomingCall(event);             break;

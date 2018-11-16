@@ -96,20 +96,27 @@ public class WebRtcCallScreen extends FrameLayout {
     initialize();
   }
 
-  public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message, @Nullable String sas) {
+  public void setActiveCall(@NonNull Recipient personInfo, @NonNull int callOrder, @NonNull String message, @Nullable String sas) {
     // Need to be able to select the appropriate layout for each recipient.
-    remoteMemberLayout.setRecipient(personInfo);
-    remoteMemberLayout.setCallStatus(message);
-    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
+    if (callOrder == 1) {
+      remoteMemberLayout.setRecipient(personInfo);
+      remoteMemberLayout.setCallStatus(message);
+    } else if (callOrder == 2) {
+      remoteMemberLayout2.setRecipient(personInfo);
+      remoteMemberLayout2.setCallStatus(message);
+    } else {
+      remoteMemberLayout3.setRecipient(personInfo);
+      remoteMemberLayout3.setCallStatus(message);
+    }
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
   }
 
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message) {
-    // Need to be able to select the appropriate layout for each recipient.
     remoteMemberLayout.setRecipient(personInfo);
     remoteMemberLayout.setCallStatus(message);
+    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
