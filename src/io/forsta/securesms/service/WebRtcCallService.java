@@ -69,9 +69,7 @@ import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-import org.whispersystems.signalservice.api.push.exceptions.UnregisteredUserException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -211,7 +209,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_BLUETOOTH_CHANGE))          handleBluetoothChange(intent);
         else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
-        else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleResponseMessage(intent);
+        else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleAcceptOffer(intent);
         else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent); // X
         else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
@@ -385,7 +383,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                 }
                 member.pendingIncomingIceUpdates = null;
               }
-              sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+//              sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             } catch (PeerConnectionWrapper.PeerConnectionException e) {
               e.printStackTrace();
               member.terminate();
@@ -562,8 +560,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
   }
 
-  private void handleResponseMessage(Intent intent) {
-    Log.w(TAG, "handleResponseMessage callId: " + getCallId(intent));
+  private void handleAcceptOffer(Intent intent) {
+    Log.w(TAG, "handleAcceptOffer callId: " + getCallId(intent));
     try {
       CallMember member = getCallMember(intent);
       if (member == null) {
@@ -582,7 +580,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
       if (!member.pendingOutgoingIceUpdates.isEmpty()) {
-        Log.w(TAG, "handleResponseMessage pendingOutgoingIceUpdates sendIceUpdateMessage");
+        Log.w(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
         ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(member.recipient, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
           @Override
@@ -598,9 +596,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       member.pendingOutgoingIceUpdates = null;
-
-      sendMessage(WebRtcViewModel.State.CALL_RINGING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-
+      if (callState == CallState.STATE_CONNECTED) {
+        sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      } else {
+        sendMessage(WebRtcViewModel.State.CALL_RINGING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      }
     } catch (PeerConnectionWrapper.PeerConnectionException e) {
       Log.w(TAG, e);
       terminateCall(true);
@@ -686,10 +686,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleCallConnected...");
     CallMember member = getCallMember(intent);
 
-    if (callState == CallState.STATE_CONNECTED) {
-      sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-      return;
-    }
+//    if (callState == CallState.STATE_CONNECTED) {
+//      sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member.recipient, member.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+//      return;
+//    }
 
     if (callState != CallState.STATE_REMOTE_RINGING && callState != CallState.STATE_LOCAL_RINGING) {
       Log.w(TAG, "Ignoring call connected for unknown state: " + callState);
