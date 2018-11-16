@@ -562,15 +562,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleAcceptOffer(Intent intent) {
     Log.w(TAG, "handleAcceptOffer callId: " + getCallId(intent));
+    CallMember member = getCallMember(intent);
     try {
-      CallMember member = getCallMember(intent);
       if (member == null) {
         Log.w(TAG, "Got answer for unknown call member");
         return;
       }
 
       String remoteCallId = getCallId(intent);
-      if (callState != CallState.STATE_DIALING || callId == null ||!callId.equals(remoteCallId)) {
+      if (callId == null ||!callId.equals(remoteCallId)) {
         Log.w(TAG, "Got answer for remote call id we're not currently dialing: " + remoteCallId + " != " + callId);
         return;
       }
@@ -603,7 +603,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     } catch (PeerConnectionWrapper.PeerConnectionException e) {
       Log.w(TAG, e);
-      terminateCall(true);
+      member.terminate();
     }
   }
 
