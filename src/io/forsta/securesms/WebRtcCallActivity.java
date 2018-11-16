@@ -158,7 +158,7 @@ public class WebRtcCallActivity extends Activity {
                                       R.drawable.ic_mic_white_48dp, R.drawable.ic_videocam_white_48dp)
                  .withPermanentDenialDialog(getString(R.string.Permissions_required_microphone))
                  .onAllGranted(() -> {
-                   callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_answering));
+                   callScreen.setActiveCall(event.getRecipient(), 1, getString(R.string.RedPhone_answering));
 
                    Intent intent = new Intent(this, WebRtcCallService.class);
                    intent.setAction(WebRtcCallService.ACTION_ANSWER_CALL);
@@ -178,7 +178,7 @@ public class WebRtcCallActivity extends Activity {
       intent.setAction(WebRtcCallService.ACTION_DENY_CALL);
       startService(intent);
 
-      callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call), "");
+      callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call));
       delayedFinish();
     }
   }
@@ -195,46 +195,46 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleOutgoingCall(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_dialing), "");
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_dialing));
   }
 
   private void handleTerminate(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "handleTerminate called");
 
 
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call), "");
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ending_call));
     EventBus.getDefault().removeStickyEvent(WebRtcViewModel.class);
 
     delayedFinish();
   }
 
   private void handleCallRinging(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ringing), "");
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_ringing));
   }
 
   private void handleCallBusy(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_busy));
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_busy));
 
     delayedFinish(BUSY_SIGNAL_DELAY_FINISH);
   }
 
   private void handleCallConnected(@NonNull WebRtcViewModel event) {
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected), "");
+    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected));
   }
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "Member joining. Order: " + event.getCallOrder() + ": " + event.getRecipient().getFullTag());
-    callScreen.joinActiveCall(event.getRecipient(), event.getCallOrder());
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected));
   }
 
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), getString(R.string.RedPhone_recipient_unavailable));
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_recipient_unavailable));
     delayedFinish();
   }
 
   private void handleServerFailure(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_network_failed), "");
+    callScreen.updateCallMember(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_network_failed));
     delayedFinish();
   }
 

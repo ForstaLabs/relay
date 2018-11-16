@@ -96,30 +96,25 @@ public class WebRtcCallScreen extends FrameLayout {
     initialize();
   }
 
-  public void setActiveCall(@NonNull Recipient personInfo, @NonNull int callOrder, @NonNull String message, @Nullable String sas) {
-    // Need to be able to select the appropriate layout for each recipient.
-    if (callOrder == 1) {
-      remoteMemberLayout.setRecipient(personInfo);
-      remoteMemberLayout.setCallStatus(message);
-    } else if (callOrder == 2) {
-      remoteMemberLayout2.setRecipient(personInfo);
-      remoteMemberLayout2.setCallStatus(message);
-    } else {
-      remoteMemberLayout3.setRecipient(personInfo);
-      remoteMemberLayout3.setCallStatus(message);
-    }
+  public void setActiveCall(@NonNull Recipient personInfo, @NonNull int callOrder, @NonNull String message) {
+    updateCallMember(personInfo, callOrder, message);
+    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
   }
 
-  public void setActiveCall(@NonNull Recipient personInfo, @NonNull String message) {
-    remoteMemberLayout.setRecipient(personInfo);
-    remoteMemberLayout.setCallStatus(message);
-    setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
-    incomingCallButton.stopRingingAnimation();
-    incomingCallButton.setVisibility(View.GONE);
-    endCallButton.show();
+  public void updateCallMember(@NonNull Recipient recipient, @NonNull int callOrder, @NonNull String message) {
+    if (callOrder == 1) {
+      remoteMemberLayout.setRecipient(recipient);
+      remoteMemberLayout.setCallStatus(message);
+    } else if (callOrder == 2) {
+      remoteMemberLayout2.setRecipient(recipient);
+      remoteMemberLayout2.setCallStatus(message);
+    } else {
+      remoteMemberLayout3.setRecipient(recipient);
+      remoteMemberLayout3.setCallStatus(message);
+    }
   }
 
   public void setIncomingCall(Recipient personInfo) {
@@ -129,16 +124,6 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
-  }
-
-  public void joinActiveCall(Recipient recipient, int callOrder) {
-    if (callOrder == 2) {
-      remoteMemberLayout2.setRecipient(recipient);
-      remoteMemberLayout2.setCallStatus("Connected");
-    } else {
-      remoteMemberLayout3.setRecipient(recipient);
-      remoteMemberLayout3.setCallStatus("Connected");
-    }
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
