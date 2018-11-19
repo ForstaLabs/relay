@@ -195,7 +195,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleOutgoingCall(@NonNull WebRtcViewModel event) {
-    callScreen.setActiveCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_dialing));
+    callScreen.setOutgoingCall(event.getRecipient(), event.getCallOrder(), getString(R.string.RedPhone_dialing));
   }
 
   private void handleTerminate(@NonNull WebRtcViewModel event) {

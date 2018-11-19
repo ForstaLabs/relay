@@ -9,7 +9,9 @@ import io.forsta.securesms.service.WebRtcCallService;
 
 import org.whispersystems.libsignal.IdentityKey;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public class WebRtcViewModel {
 
@@ -34,7 +36,7 @@ public class WebRtcViewModel {
   private final @NonNull  State       state;
   private final @NonNull  Recipient   recipient;
   private final int callOrder;
-  private final Map<String, WebRtcCallService.CallMember> remoteCallMembers;
+  private final Collection<WebRtcCallService.CallMember> remoteCallMembers;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -43,7 +45,7 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state,
-                         Map<String, WebRtcCallService.CallMember> remoteCallMembers,
+                         Collection<WebRtcCallService.CallMember> remoteCallMembers,
                          @NonNull Recipient recipient,
                          @NonNull int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
@@ -63,7 +65,7 @@ public class WebRtcViewModel {
     return state;
   }
 
-  public Map<String, WebRtcCallService.CallMember> getRemoteCallMembers() {
+  public Collection<WebRtcCallService.CallMember> getRemoteCallMembers() {
     return remoteCallMembers;
   }
 

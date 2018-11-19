@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
+import android.telecom.Call;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -54,6 +55,7 @@ import io.forsta.securesms.util.ViewUtil;
 import org.webrtc.SurfaceViewRenderer;
 import org.whispersystems.libsignal.IdentityKey;
 
+import java.util.Collection;
 import java.util.Map;
 
 import io.forsta.securesms.recipients.Recipient;
@@ -119,9 +121,18 @@ public class WebRtcCallScreen extends FrameLayout {
     }
   }
 
-  public void setIncomingCall(Recipient personInfo, Map<String, WebRtcCallService.CallMember> remoteCallMembers) {
-    remoteMemberLayout.setRecipient(personInfo);
-    remoteMemberLayout.setCallStatus("Incoming call");
+  public void setOutgoingCall(Recipient recipient, int callOrder, String message) {
+    localMemberLayout.setRecipient(localRecipient);
+    updateCallMember(recipient, callOrder, message);
+  }
+
+  // Send only the set of call members through WebRtcViewModel, not the map.
+  public void setIncomingCall(Recipient personInfo, Collection<WebRtcCallService.CallMember> remoteCallMembers) {
+    for (WebRtcCallService.CallMember member : remoteCallMembers) {
+      updateCallMember(member.getRecipient(), member.getCallOrder(), "Incoming call");
+    }
+//    remoteMemberLayout.setRecipient(personInfo);
+//    remoteMemberLayout.setCallStatus("Incoming call");
     localMemberLayout.setRecipient(localRecipient);
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
