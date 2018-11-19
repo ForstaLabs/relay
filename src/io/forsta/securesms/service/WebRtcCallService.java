@@ -506,7 +506,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       initializeVideo();
 
       for (CallMember callMember : remoteCallMembers.values()) {
-        sendMessage(WebRtcViewModel.State.CALL_OUTGOING, callMember.recipient, callMember.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
         timeoutExecutor.schedule(new TimeoutRunnable(callMember), 1, TimeUnit.MINUTES);
       }
 
@@ -516,6 +516,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       bluetoothStateManager.setWantsConnection(true);
 
       Recipients remoteRecipients = RecipientFactory.getRecipientsFromStrings(this, new ArrayList<>(remoteCallMembers.keySet()), false);
+
       setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteRecipients);
 
       retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(this.callState, this.callId) {
@@ -530,6 +531,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
 //              Log.w(TAG, "Sending callOffer: " + sdp.description);
 
+              sendMessage(WebRtcViewModel.State.CALL_OUTGOING, remoteRecipients, callMember.recipient, callMember.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
               Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
               ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -1108,10 +1110,19 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                            @NonNull Recipient recipient,
                            int callOrder,
                            boolean localVideoEnabled, boolean remoteVideoEnabled,
+                           boolean bluetoothAvailable, boolean microphoneEnabled) {
+    sendMessage(state, null, recipient, callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+  }
+
+  private void sendMessage(@NonNull WebRtcViewModel.State state,
+                           Recipients remoteRecipients,
+                           @NonNull Recipient recipient,
+                           int callOrder,
+                           boolean localVideoEnabled, boolean remoteVideoEnabled,
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
     Log.w(TAG, "EventBus message: " + recipient.getLocalTag() + " Local Video: " + (localVideoEnabled ? "true" : "false") + " Remote Video: " + remoteVideoEnabled);
-    EventBus.getDefault().postSticky(new WebRtcViewModel(state, recipient, callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
+    EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteRecipients, recipient, callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
   private ListenableFutureTask<Boolean> sendIceUpdateMessage(@NonNull final Recipient recipient, String threadUID,

@@ -30,6 +30,7 @@ public class WebRtcViewModel {
 
   private final @NonNull  State       state;
   private final @NonNull  Recipient   recipient;
+  private final Recipients remoteRecipients;
   private final int callOrder;
 
   private final boolean remoteVideoEnabled;
@@ -39,12 +40,14 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state,
+                         Recipients remoteRecipients,
                          @NonNull Recipient recipient,
-                         int callOrder,
+                         @NonNull int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
+    this.remoteRecipients = remoteRecipients;
     this.recipient            = recipient;
     this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
