@@ -54,6 +54,8 @@ import io.forsta.securesms.util.ViewUtil;
 import org.webrtc.SurfaceViewRenderer;
 import org.whispersystems.libsignal.IdentityKey;
 
+import java.util.Map;
+
 import io.forsta.securesms.recipients.Recipient;
 
 /**
@@ -117,7 +119,7 @@ public class WebRtcCallScreen extends FrameLayout {
     }
   }
 
-  public void setIncomingCall(Recipient personInfo) {
+  public void setIncomingCall(Recipient personInfo, Map<String, WebRtcCallService.CallMember> remoteCallMembers) {
     remoteMemberLayout.setRecipient(personInfo);
     remoteMemberLayout.setCallStatus("Incoming call");
     localMemberLayout.setRecipient(localRecipient);

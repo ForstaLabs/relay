@@ -5,8 +5,11 @@ import android.support.annotation.Nullable;
 
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.service.WebRtcCallService;
 
 import org.whispersystems.libsignal.IdentityKey;
+
+import java.util.Map;
 
 public class WebRtcViewModel {
 
@@ -30,8 +33,8 @@ public class WebRtcViewModel {
 
   private final @NonNull  State       state;
   private final @NonNull  Recipient   recipient;
-  private final Recipients remoteRecipients;
   private final int callOrder;
+  private final Map<String, WebRtcCallService.CallMember> remoteCallMembers;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -40,14 +43,14 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state,
-                         Recipients remoteRecipients,
+                         Map<String, WebRtcCallService.CallMember> remoteCallMembers,
                          @NonNull Recipient recipient,
                          @NonNull int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
-    this.remoteRecipients = remoteRecipients;
+    this.remoteCallMembers = remoteCallMembers;
     this.recipient            = recipient;
     this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
@@ -58,6 +61,10 @@ public class WebRtcViewModel {
 
   public @NonNull State getState() {
     return state;
+  }
+
+  public Map<String, WebRtcCallService.CallMember> getRemoteCallMembers() {
+    return remoteCallMembers;
   }
 
   public @NonNull Recipient getRecipient() {
