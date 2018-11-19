@@ -126,7 +126,6 @@ public class WebRtcCallScreen extends FrameLayout {
     updateCallMember(recipient, callOrder, message);
   }
 
-  // Send only the set of call members through WebRtcViewModel, not the map.
   public void setIncomingCall(Recipient personInfo, Collection<WebRtcCallService.CallMember> remoteCallMembers) {
     for (WebRtcCallService.CallMember member : remoteCallMembers) {
       updateCallMember(member.getRecipient(), member.getCallOrder(), "Incoming call");
