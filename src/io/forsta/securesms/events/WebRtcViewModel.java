@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.Recipients;
+
 import org.whispersystems.libsignal.IdentityKey;
 
 public class WebRtcViewModel {
@@ -36,7 +38,8 @@ public class WebRtcViewModel {
   private final boolean isBluetoothAvailable;
   private final boolean isMicrophoneEnabled;
 
-  public WebRtcViewModel(@NonNull State state, @NonNull Recipient recipient,
+  public WebRtcViewModel(@NonNull State state,
+                         @NonNull Recipient recipient,
                          int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)

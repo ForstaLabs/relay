@@ -299,13 +299,13 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
+  public static String createCallOfferMessage(ForstaUser user, Recipients recipients, List<String> memberAddresses, ForstaThread forstaThread, String callId, String description, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callOffer");
       JSONArray members = new JSONArray();
-      for (Recipient x : recipients) {
-        members.put(x.getAddress());
+      for (String x : memberAddresses) {
+        members.put(x);
       }
       if (recipients.isSingleRecipient()) {
         members.put(user.getUid());

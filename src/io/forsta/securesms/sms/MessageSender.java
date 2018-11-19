@@ -63,6 +63,7 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -298,11 +299,11 @@ public class MessageSender {
     }
   }
 
-  public static void sendCallOffer(Context context, MasterSecret masterSecret, Recipients recipients, String threadId, String callId, SessionDescription sdp, String peerId) {
+  public static void sendCallOffer(Context context, MasterSecret masterSecret, Recipients recipients, ArrayList<String> memberAddresses, String threadId, String callId, SessionDescription sdp, String peerId) {
     try {
       ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
-      String payload = ForstaMessageManager.createCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId);
+      String payload = ForstaMessageManager.createCallOfferMessage(user, recipients, memberAddresses, thread, callId, sdp.description, peerId);
       Log.w(TAG, "Sending call offer: " + payload);
       OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
       sendControlMessage(context, masterSecret, message);
