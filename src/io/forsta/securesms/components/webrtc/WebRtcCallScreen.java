@@ -72,7 +72,6 @@ public class WebRtcCallScreen extends FrameLayout {
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
 
-  private TextView             status;
   private FloatingActionButton endCallButton;
   private WebRtcCallControls   controls;
   private ViewGroup            callHeader;
@@ -195,7 +194,6 @@ public class WebRtcCallScreen extends FrameLayout {
     this.remoteMemberLayout = findViewById(R.id.remote_call_member);
     this.remoteMemberLayout2          = findViewById(R.id.remote_call_member2);
     this.remoteMemberLayout3          = findViewById(R.id.remote_call_member3);
-    this.status                       = findViewById(R.id.callStateLabel);
     this.controls                     = findViewById(R.id.inCallControls);
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);

@@ -429,7 +429,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         setCallInProgressNotification(TYPE_INCOMING_CONNECTING, incomingMember.recipient);
       }
 
-      timeoutExecutor.schedule(new TimeoutRunnable(incomingMember), 30, TimeUnit.SECONDS);
+      for (CallMember callMember : remoteCallMembers.values()) {
+        timeoutExecutor.schedule(new TimeoutRunnable(callMember), 30, TimeUnit.SECONDS);
+      }
 
       initializeVideo();
 
@@ -458,6 +460,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             final String localPeerId = UUID.randomUUID().toString();
             for (CallMember callMember : remoteCallMembers.values()) {
               if (!callMember.equals(incomingMember) && callMember.peerConnection == null) {
+
                 callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
                 SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
                 callMember.peerConnection.setLocalDescription(sdp);
@@ -507,7 +510,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       initializeVideo();
 
       for (CallMember callMember : remoteCallMembers.values()) {
-        timeoutExecutor.schedule(new TimeoutRunnable(callMember), 1, TimeUnit.MINUTES);
+        timeoutExecutor.schedule(new TimeoutRunnable(callMember), 30, TimeUnit.SECONDS);
       }
 
       lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);

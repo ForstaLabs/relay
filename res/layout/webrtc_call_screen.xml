@@ -50,20 +50,6 @@
                     android:paddingBottom="20dp"
                     android:clickable="true"/>
 
-            <TextView android:id="@+id/callStateLabel"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:gravity="right"
-                      android:paddingTop="8dp"
-                      android:paddingBottom="8dp"
-                      android:paddingRight="24dp"
-                      android:textAppearance="?android:attr/textAppearanceSmall"
-                      android:textColor="#FFFFFF"
-                      android:textAllCaps="true"
-                      android:background="#8033b5e5"
-                      tools:text="connected"
-                    />
-
         </LinearLayout>  <!-- End of call_banner for call_info #1. -->
 
         <!-- The "call state label": In some states, this shows a special
