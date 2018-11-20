@@ -457,7 +457,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             // Now setup peer connections and send call offers to all other(2) peers?
             final String localPeerId = UUID.randomUUID().toString();
             for (CallMember callMember : remoteCallMembers.values()) {
-              if (!callMember.equals(incomingMember)) {
+              if (!callMember.equals(incomingMember) && callMember.peerConnection == null) {
                 callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
                 SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
                 callMember.peerConnection.setLocalDescription(sdp);
