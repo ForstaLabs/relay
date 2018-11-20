@@ -300,7 +300,6 @@ public class WebRtcCallActivity extends Activity {
       case CALL_OUTGOING:           handleOutgoingCall(event);             break;
       case CALL_BUSY:               handleCallBusy(event);                 break;
       case CALL_MEMBER_JOINING:     handleCallMemberJoining(event);        break;
-      case VIDEO_ENABLE:            handleVideoEnable(event);              break;
       case CALL_MEMBER_LEAVING:     handleCallMemberLeaving(event);        break;
     }
 
