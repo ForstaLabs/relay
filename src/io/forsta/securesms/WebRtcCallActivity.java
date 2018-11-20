@@ -228,6 +228,11 @@ public class WebRtcCallActivity extends Activity {
     callScreen.updateCallMember(event.getCallMember(), getString(R.string.RedPhone_connected));
   }
 
+  private void handleCallMemberLeaving(@NonNull WebRtcViewModel event) {
+    Log.w(TAG, "Member leaving. Order: " + event.getCallMember());
+    callScreen.updateCallMember(event.getCallMember(), "Session Ended");
+  }
+
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
     callScreen.updateCallMember(event.getCallMember(), getString(R.string.RedPhone_recipient_unavailable));
     delayedFinish();
@@ -287,6 +292,7 @@ public class WebRtcCallActivity extends Activity {
       case CALL_OUTGOING:           handleOutgoingCall(event);             break;
       case CALL_BUSY:               handleCallBusy(event);                 break;
       case CALL_MEMBER_JOINING:     handleCallMemberJoining(event);        break;
+      case CALL_MEMBER_LEAVING:     handleCallMemberLeaving(event);        break;
     }
 
     callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());

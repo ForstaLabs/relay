@@ -24,6 +24,7 @@ public class WebRtcViewModel {
     CALL_BUSY,
     CALL_DISCONNECTED,
     CALL_MEMBER_JOINING,
+    CALL_MEMBER_LEAVING,
 
     // Error states
     NETWORK_FAILURE,
