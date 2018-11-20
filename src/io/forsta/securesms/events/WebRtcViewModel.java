@@ -34,8 +34,7 @@ public class WebRtcViewModel {
 
 
   private final @NonNull  State       state;
-  private final @NonNull  Recipient   recipient;
-  private final int callOrder;
+  private final @NonNull WebRtcCallService.CallMember callMember;
   private final Collection<WebRtcCallService.CallMember> remoteCallMembers;
 
   private final boolean remoteVideoEnabled;
@@ -46,15 +45,13 @@ public class WebRtcViewModel {
 
   public WebRtcViewModel(@NonNull State state,
                          Collection<WebRtcCallService.CallMember> remoteCallMembers,
-                         @NonNull Recipient recipient,
-                         @NonNull int callOrder,
+                         @NonNull WebRtcCallService.CallMember callMember,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
     this.remoteCallMembers = remoteCallMembers;
-    this.recipient            = recipient;
-    this.callOrder = callOrder;
+    this.callMember = callMember;
     this.localVideoEnabled    = localVideoEnabled;
     this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
@@ -69,12 +66,9 @@ public class WebRtcViewModel {
     return remoteCallMembers;
   }
 
-  public @NonNull Recipient getRecipient() {
-    return recipient;
-  }
-
-  public @NonNull int getCallOrder() {
-    return callOrder;
+  public @NonNull
+  WebRtcCallService.CallMember getCallMember() {
+    return callMember;
   }
 
   public boolean isRemoteVideoEnabled() {
@@ -94,6 +88,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + recipient.getAddress() + ", callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + callMember + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
   }
 }
