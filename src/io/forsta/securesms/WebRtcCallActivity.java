@@ -230,7 +230,7 @@ public class WebRtcCallActivity extends Activity {
 
   private void handleCallMemberLeaving(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "Member leaving. Order: " + event.getCallMember());
-    callScreen.updateCallMember(event.getCallMember(), "Session Ended");
+    callScreen.updateCallMember(event.getCallMember(), "Disconnected");
   }
 
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
