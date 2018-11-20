@@ -25,6 +25,7 @@ public class WebRtcViewModel {
     CALL_DISCONNECTED,
     CALL_MEMBER_JOINING,
     CALL_MEMBER_LEAVING,
+    VIDEO_ENABLE,
 
     // Error states
     NETWORK_FAILURE,
@@ -96,6 +97,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + callRecipient + " callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + callRecipient.getFullTag() + " callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
   }
 }

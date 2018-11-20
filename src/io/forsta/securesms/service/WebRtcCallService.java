@@ -917,7 +917,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       audioManager.setSpeakerphoneOn(true);
     }
 
-    sendMessage(viewModelStateFor(callState), localCallMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    sendMessage(WebRtcViewModel.State.VIDEO_ENABLE, localCallMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
   private void handleBluetoothChange(Intent intent) {

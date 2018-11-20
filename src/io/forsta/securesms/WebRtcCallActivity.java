@@ -220,7 +220,11 @@ public class WebRtcCallActivity extends Activity {
 
   private void handleCallConnected(@NonNull WebRtcViewModel event) {
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
-    callScreen.setActiveCall(event.getCallRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected));
+    if (event.getCallOrder() == 0) {
+      callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());
+    } else {
+      callScreen.setActiveCall(event.getCallRecipient(), event.getCallOrder(), getString(R.string.RedPhone_connected));
+    }
   }
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
@@ -265,6 +269,10 @@ public class WebRtcCallActivity extends Activity {
     dialog.show();
   }
 
+  private void handleVideoEnable(final @NonNull WebRtcViewModel event) {
+    callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());
+  }
+
   private void delayedFinish() {
     delayedFinish(STANDARD_DELAY_FINISH);
   }
@@ -285,13 +293,14 @@ public class WebRtcCallActivity extends Activity {
       case CALL_CONNECTED:          handleCallConnected(event);            break;
       case NETWORK_FAILURE:         handleServerFailure(event);            break;
       case CALL_RINGING:            handleCallRinging(event);              break;
-      case CALL_DISCONNECTED:       handleTerminate(event); break;
+      case CALL_DISCONNECTED:       handleTerminate(event);                break;
       case NO_SUCH_USER:            handleNoSuchUser(event);               break;
       case RECIPIENT_UNAVAILABLE:   handleRecipientUnavailable(event);     break;
       case CALL_INCOMING:           handleIncomingCall(event);             break;
       case CALL_OUTGOING:           handleOutgoingCall(event);             break;
       case CALL_BUSY:               handleCallBusy(event);                 break;
       case CALL_MEMBER_JOINING:     handleCallMemberJoining(event);        break;
+      case VIDEO_ENABLE:            handleVideoEnable(event);              break;
       case CALL_MEMBER_LEAVING:     handleCallMemberLeaving(event);        break;
     }
 
