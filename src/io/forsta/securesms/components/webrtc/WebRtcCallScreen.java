@@ -99,6 +99,7 @@ public class WebRtcCallScreen extends FrameLayout {
   public void setActiveCall(@NonNull Recipient personInfo, @NonNull int callOrder, @NonNull String message) {
     updateCallMember(personInfo, callOrder, message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
+    localMemberLayout.setRecipient(localRecipient);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.show();
