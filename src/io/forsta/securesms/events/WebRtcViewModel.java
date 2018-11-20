@@ -5,8 +5,13 @@ import android.support.annotation.Nullable;
 
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
+import io.forsta.securesms.service.WebRtcCallService;
 
 import org.whispersystems.libsignal.IdentityKey;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 public class WebRtcViewModel {
 
@@ -29,9 +34,8 @@ public class WebRtcViewModel {
 
 
   private final @NonNull  State       state;
-  private final @NonNull  Recipient   recipient;
-  private final Recipients remoteRecipients;
-  private final int callOrder;
+  private final @NonNull WebRtcCallService.CallMember callMember;
+  private final Collection<WebRtcCallService.CallMember> remoteCallMembers;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -40,16 +44,14 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state,
-                         Recipients remoteRecipients,
-                         @NonNull Recipient recipient,
-                         @NonNull int callOrder,
+                         Collection<WebRtcCallService.CallMember> remoteCallMembers,
+                         @NonNull WebRtcCallService.CallMember callMember,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
-    this.remoteRecipients = remoteRecipients;
-    this.recipient            = recipient;
-    this.callOrder = callOrder;
+    this.remoteCallMembers = remoteCallMembers;
+    this.callMember = callMember;
     this.localVideoEnabled    = localVideoEnabled;
     this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
@@ -60,12 +62,13 @@ public class WebRtcViewModel {
     return state;
   }
 
-  public @NonNull Recipient getRecipient() {
-    return recipient;
+  public Collection<WebRtcCallService.CallMember> getRemoteCallMembers() {
+    return remoteCallMembers;
   }
 
-  public @NonNull int getCallOrder() {
-    return callOrder;
+  public @NonNull
+  WebRtcCallService.CallMember getCallMember() {
+    return callMember;
   }
 
   public boolean isRemoteVideoEnabled() {
@@ -85,6 +88,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + recipient.getAddress() + ", callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + callMember + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
   }
 }
