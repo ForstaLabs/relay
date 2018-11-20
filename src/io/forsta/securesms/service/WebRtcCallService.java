@@ -1131,6 +1131,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
     Log.w(TAG, "EventBus message: " + callMember.getRecipient().getLocalTag() + " Local Video: " + (localVideoEnabled ? "true" : "false") + " Remote Video: " + remoteVideoEnabled);
+    Map<Integer, Recipient> remoteCallRecipients = new HashMap<>();
+    for (CallMember member : remoteCallMembers) {
+      remoteCallRecipients.put(member.callOrder, member.recipient);
+    }
+//    EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, callMember.recipient, callMember.callOrder, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallMembers, callMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
