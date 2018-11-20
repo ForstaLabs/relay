@@ -37,6 +37,9 @@ public class WebRtcViewModel {
   private final @NonNull  State       state;
   private final @NonNull WebRtcCallService.CallMember callMember;
   private final Collection<WebRtcCallService.CallMember> remoteCallMembers;
+//  private final @NonNull Recipient callRecipient;
+//  private int callOrder = 0;
+//  private final Map<Integer, Recipient> remoteCallRecipients;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -59,6 +62,23 @@ public class WebRtcViewModel {
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
   }
 
+//  public WebRtcViewModel(@NonNull State state,
+//                         Map<Integer, Recipient> remoteCallRecipients,
+//                         @NonNull Recipient callRecipient,
+//                         int callOrder,
+//                         boolean localVideoEnabled, boolean remoteVideoEnabled,
+//                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
+//  {
+//    this.state                = state;
+//    this.remoteCallRecipients = remoteCallRecipients;
+//    this.callRecipient = callRecipient;
+//    this.callOrder = callOrder;
+//    this.localVideoEnabled    = localVideoEnabled;
+//    this.remoteVideoEnabled   = remoteVideoEnabled;
+//    this.isBluetoothAvailable = isBluetoothAvailable;
+//    this.isMicrophoneEnabled  = isMicrophoneEnabled;
+//  }
+
   public @NonNull State getState() {
     return state;
   }
@@ -66,6 +86,15 @@ public class WebRtcViewModel {
   public Collection<WebRtcCallService.CallMember> getRemoteCallMembers() {
     return remoteCallMembers;
   }
+
+//  public @NonNull Map<Integer, Recipient> getRemoteCallRecipients() {
+//    return remoteCallRecipients;
+//  }
+//
+//  public @NonNull
+//  Recipient getCallRecipient() {
+//    return callRecipient;
+//  }
 
   public @NonNull
   WebRtcCallService.CallMember getCallMember() {
