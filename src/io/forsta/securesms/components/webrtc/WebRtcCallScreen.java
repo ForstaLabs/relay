@@ -131,8 +131,6 @@ public class WebRtcCallScreen extends FrameLayout {
     for (WebRtcCallService.CallMember member : remoteCallMembers) {
       updateCallMember(member, "Incoming call");
     }
-//    remoteMemberLayout.setRecipient(personInfo);
-//    remoteMemberLayout.setCallStatus("Incoming call");
     localMemberLayout.setRecipient(localRecipient);
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);

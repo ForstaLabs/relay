@@ -507,7 +507,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       initializeVideo();
 
       for (CallMember callMember : remoteCallMembers.values()) {
-
         timeoutExecutor.schedule(new TimeoutRunnable(callMember), 1, TimeUnit.MINUTES);
       }
 
@@ -737,11 +736,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
       if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
+        terminateCall(false);
         insertMissedCall(member.recipient, true);
       }
 
+      if (callState == CallState.STATE_DIALING) {
+        terminateCall(true);
+      }
+
       member.terminate();
-//      terminateCall(callState == CallState.STATE_DIALING);
     }
   }
 
@@ -781,7 +784,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     try {
       SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
-      Log.w(TAG, "Answer SDP: " + sdp.description);
       member.peerConnection.setLocalDescription(sdp);
       ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
       listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -1560,7 +1562,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       pendingOutgoingIceUpdates = null;
       pendingIncomingIceUpdates = null;
-      callOrder = 0;
     }
 
     @Override
