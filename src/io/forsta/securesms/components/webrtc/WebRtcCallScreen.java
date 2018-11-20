@@ -100,8 +100,8 @@ public class WebRtcCallScreen extends FrameLayout {
     initialize();
   }
 
-  public void setActiveCall(@NonNull WebRtcCallService.CallMember callMember, @NonNull String message) {
-    updateCallMember(callMember, message);
+  public void setActiveCall(@NonNull Recipient callRecipient, int callOrder, @NonNull String message) {
+    updateCallMember(callRecipient, callOrder, message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
     localMemberLayout.setRecipient(localRecipient);
     incomingCallButton.stopRingingAnimation();
@@ -109,27 +109,27 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.show();
   }
 
-  public void updateCallMember(@NonNull WebRtcCallService.CallMember callMember, @NonNull String message) {
-    if (callMember.getCallOrder() == 1) {
-      remoteMemberLayout.setRecipient(callMember.getRecipient());
+  public void updateCallMember(@NonNull Recipient recipient, int callOrder, @NonNull String message) {
+    if (callOrder == 1) {
+      remoteMemberLayout.setRecipient(recipient);
       remoteMemberLayout.setCallStatus(message);
-    } else if (callMember.getCallOrder() == 2) {
-      remoteMemberLayout2.setRecipient(callMember.getRecipient());
+    } else if (callOrder == 2) {
+      remoteMemberLayout2.setRecipient(recipient);
       remoteMemberLayout2.setCallStatus(message);
     } else {
-      remoteMemberLayout3.setRecipient(callMember.getRecipient());
+      remoteMemberLayout3.setRecipient(recipient);
       remoteMemberLayout3.setCallStatus(message);
     }
   }
 
-  public void setOutgoingCall(WebRtcCallService.CallMember callMember, String message) {
+  public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
     localMemberLayout.setRecipient(localRecipient);
-    updateCallMember(callMember, message);
+    updateCallMember(callRecipient, callOrder, message);
   }
 
-  public void setIncomingCall(WebRtcCallService.CallMember callMember, Collection<WebRtcCallService.CallMember> remoteCallMembers) {
-    for (WebRtcCallService.CallMember member : remoteCallMembers) {
-      updateCallMember(member, "Incoming call");
+  public void setIncomingCall(Recipient recipient, int callOrder, Map<Integer, Recipient> remoteCallRecipients) {
+    for (Map.Entry<Integer, Recipient> entry : remoteCallRecipients.entrySet()) {
+      updateCallMember(entry.getValue(), entry.getKey(), "Incoming call");
     }
     localMemberLayout.setRecipient(localRecipient);
     endCallButton.setVisibility(View.INVISIBLE);
