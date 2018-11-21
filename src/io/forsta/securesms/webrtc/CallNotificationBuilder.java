@@ -14,6 +14,7 @@ import android.support.v4.app.NotificationCompat;
 import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.ServiceUtil;
 
@@ -35,7 +36,7 @@ public class CallNotificationBuilder {
   public static final int TYPE_INCOMING_MISSED = 5;
 
 
-  public static Notification getCallInProgressNotification(Context context, int type, Recipient recipient) {
+  public static Notification getCallInProgressNotification(Context context, int type, Recipients recipients) {
     Intent contentIntent = new Intent(context, WebRtcCallActivity.class);
     contentIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
@@ -45,7 +46,7 @@ public class CallNotificationBuilder {
         .setSmallIcon(R.drawable.ic_call_secure_white_24dp)
         .setContentIntent(pendingIntent)
         .setOngoing(true)
-        .setContentTitle(recipient.getName());
+        .setContentTitle(recipients.toShortString());
 
     if (type == TYPE_INCOMING_CONNECTING) {
       builder.setContentText(context.getString(R.string.WebRTC_call_connecting));

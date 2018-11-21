@@ -21,76 +21,11 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent">
 
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-            android:id="@+id/remote_render_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:visibility="invisible"/>
-
     <!-- "Call info" block #1, for the foreground call. -->
     <RelativeLayout android:id="@+id/call_info_1"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:animateLayoutChanges="true">
-
-        <!-- Contact photo for call_info_1 -->
-        <FrameLayout android:id="@+id/image_container"
-                     android:layout_below="@+id/call_banner_1"
-                     android:gravity="top|center_horizontal"
-                     android:layout_width="match_parent"
-                     android:layout_height="match_parent">
-
-            <ImageView android:id="@+id/photo"
-                       android:layout_width="match_parent"
-                       android:layout_height="match_parent"
-                       android:scaleType="centerCrop"
-                       android:visibility="visible"
-                       android:clickable="true"
-                       tools:src="@drawable/ic_person_large"
-                    />
-
-            <LinearLayout android:id="@+id/untrusted_layout"
-                          android:layout_width="match_parent"
-                          android:layout_height="match_parent"
-                          android:background="@color/grey_400"
-                          android:orientation="vertical"
-                          android:visibility="gone"
-                          android:gravity="center"
-                          android:clickable="true">
-
-                <TextView android:id="@+id/untrusted_explanation"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:layout_gravity="center"
-                          android:textSize="16sp"
-                          android:maxWidth="270dp"
-                          android:lineSpacingExtra="2sp"
-                          tools:text="The safety numbers for your conversation with Masha have changed. This could either mean that someone is trying to intercept your communication, or that Masha simply re-installed Signal. You may wish to verify safety numbers for this contact."/>
-
-                <LinearLayout
-                        android:layout_marginTop="20dp"
-                        android:maxWidth="250dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-                    <Button android:id="@+id/accept_safety_numbers"
-                            android:text="Accept"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginRight="10dp"/>
-
-                    <Button android:id="@+id/cancel_safety_numbers"
-                            android:text="Cancel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-
-                </LinearLayout>
-
-
-            </LinearLayout>
-
-
-        </FrameLayout>
 
         <!-- "Call Banner" for call #1, the foregound or ringing call.
              The "call banner" is a block of info about a single call,
@@ -104,72 +39,6 @@
                         android:minHeight="80dp"
                         android:orientation="vertical">
 
-            <RelativeLayout android:id="@+id/expanded_info"
-                            android:background="@color/textsecure_primary"
-                            android:paddingLeft="24dp"
-                            android:paddingRight="24dp"
-                            android:paddingTop="16dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:clickable="true">
-
-
-                <!-- Name (or the phone number, if we don't have a name to display). -->
-                <TextView android:id="@+id/name"
-                          android:layout_alignParentTop="true"
-                          android:layout_alignParentLeft="true"
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:paddingRight="50sp"
-                          android:textSize="40sp"
-                          android:textColor="#FFFFFF"
-                          android:singleLine="true"
-                          android:maxLines="1"
-                          android:ellipsize="end"
-                          tools:text="Ali Connors"
-                        />
-
-                <!-- Label (like "Mobile" or "Work", if present) and phone number, side by side -->
-                <LinearLayout android:id="@+id/labelAndNumber"
-                              android:layout_below="@id/name"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:paddingRight="50sp"
-                              android:orientation="horizontal"
-                        >
-                    <TextView android:id="@+id/label"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:textColor="#FFFFFF"
-                              android:singleLine="true"
-                              android:textAppearance="?android:attr/textAppearanceSmall"
-                              android:text="@string/redphone_call_card__signal_call"
-                              android:layout_marginRight="10dp"
-                            />
-                    <TextView android:id="@+id/phoneNumber"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:textAppearance="?android:attr/textAppearanceSmall"
-                              android:textColor="#FFFFFF"
-                              android:singleLine="true"
-                              tools:text="+14152222222"
-                            />
-
-                </LinearLayout>
-
-                <!-- Elapsed time indication for a call in progress. -->
-                <TextView android:id="@+id/elapsedTime"
-                          android:layout_alignParentRight="true"
-                          android:layout_centerVertical="true"
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:textAppearance="?android:attr/textAppearanceMedium"
-                          android:textColor="#FFFFFF"
-                          android:singleLine="true"
-                        />
-
-            </RelativeLayout>
-
             <io.forsta.securesms.components.webrtc.WebRtcCallControls
                     android:id="@+id/inCallControls"
                     android:layout_width="match_parent"
@@ -181,20 +50,6 @@
                     android:paddingBottom="20dp"
                     android:clickable="true"/>
 
-            <TextView android:id="@+id/callStateLabel"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:gravity="right"
-                      android:paddingTop="8dp"
-                      android:paddingBottom="8dp"
-                      android:paddingRight="24dp"
-                      android:textAppearance="?android:attr/textAppearanceSmall"
-                      android:textColor="#FFFFFF"
-                      android:textAllCaps="true"
-                      android:background="#8033b5e5"
-                      tools:text="connected"
-                    />
-
         </LinearLayout>  <!-- End of call_banner for call_info #1. -->
 
         <!-- The "call state label": In some states, this shows a special
@@ -204,13 +59,68 @@
              part of the "call_banner_1" RelativeLayout since it needs a
              different background color. -->
 
-    </RelativeLayout>
-
-    <io.forsta.securesms.components.webrtc.PercentFrameLayout
-            android:id="@+id/local_render_layout"
+        <TableLayout
+            android:id="@+id/call_container_1"
+            android:layout_below="@id/call_banner_1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:visibility="invisible"/>
+            android:layout_height="200dp">
+            <TableRow>
+
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/local_call_member"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/remote_call_member"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+            </TableRow>
+        </TableLayout>
+
+        <TableLayout
+            android:layout_below="@id/call_container_1"
+            android:layout_width="match_parent"
+            android:layout_height="200dp">
+            <TableRow>
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/remote_call_member2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <io.forsta.ccsm.components.webrtc.CallMemberView
+                        android:id="@+id/remote_call_member3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+            </TableRow>
+        </TableLayout>
+
+
+    </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
             android:id="@+id/hangup_fab"

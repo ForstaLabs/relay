@@ -27,6 +27,7 @@ import android.widget.Toast;
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
@@ -68,6 +69,11 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     getSupportActionBar().setTitle(R.string.AndroidManifest__invite_friends);
 
     initializeResources();
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    Permissions.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
   }
 
   private void initializeResources() {

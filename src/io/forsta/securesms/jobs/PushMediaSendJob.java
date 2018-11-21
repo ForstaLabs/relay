@@ -81,7 +81,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     OutgoingMediaMessage outgoingMessage = database.getOutgoingMessage(masterSecret, messageId);
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(outgoingMessage.getBody());
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-
+    Log.w(TAG, "Outgoing message recipients: " + outgoingMessage.getRecipients().toFullString());
     List<OutgoingMediaMessage> messageQueue = new ArrayList<>();
     messageQueue.add(outgoingMessage);
     if (distribution.hasMonitors() && !outgoingMessage.isExpirationUpdate()) {
@@ -180,6 +180,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
     List<SignalServiceAddress> addresses = getPushAddresses(recipients);
     Log.w(TAG, "Sending message: " + messageId);
+    Log.w(TAG, "Addresses: " + addresses.toString());
     messageSender.sendMessage(addresses, mediaMessage);
   }
 

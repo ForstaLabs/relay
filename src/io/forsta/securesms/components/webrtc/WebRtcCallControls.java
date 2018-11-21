@@ -66,7 +66,7 @@ public class WebRtcCallControls extends LinearLayout {
     audioMuteButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-        listener.onToggle(b);
+        listener.onToggle(!b);
       }
     });
   }
