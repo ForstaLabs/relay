@@ -388,6 +388,15 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return fromString;
   }
 
+  public String toFullString() {
+    StringBuilder sb = new StringBuilder();
+    for (Recipient recipient : recipients) {
+      sb.append(recipient.getFullTag()).append(" (");
+      sb.append(recipient.getAddress()).append(") ");
+    }
+    return sb.toString();
+  }
+
   @Override
   public Iterator<Recipient> iterator() {
     return recipients.iterator();

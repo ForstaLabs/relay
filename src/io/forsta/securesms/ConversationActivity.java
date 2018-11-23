@@ -395,7 +395,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
 
       inflater.inflate(R.menu.conversation, menu);
-      if (recipients.isSingleRecipient()) {
+      if (recipients.isSingleRecipient() || recipients.getRecipientsList().size() < 4) {
         Recipient recipient = recipients.getPrimaryRecipient();
         if (!TextUtils.isEmpty(recipient.getAddress())) {
           final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
@@ -639,26 +639,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Intent intent = new Intent(this, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_OUTGOING_CALL);
           intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getAddress());
+          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, recipients.getAddresses().toArray(new String[recipients.getAddresses().size()]));
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaThread.getUid());
           startService(intent);
 
           Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
           activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
           startActivity(activityIntent);
-        })
-        .execute();
-  }
-
-  private void handleCallRecipient () {
-    Permissions.with(ConversationActivity.this)
-        .request(Manifest.permission.CALL_PHONE)
-        .ifNecessary()
-        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_phone))
-        .onAllGranted(() -> {
-          String number = recipients.getPrimaryRecipient().getPhone();
-          Intent intent = new Intent(Intent.ACTION_CALL);
-          intent.setData(Uri.parse("tel:" + number));
-          startActivity(intent);
         })
         .execute();
   }
