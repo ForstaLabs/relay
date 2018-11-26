@@ -279,7 +279,7 @@ public class ForstaMessage {
     private String offer;
     private String peerId;
     private List<IceCandidate> iceCandidates = new ArrayList<>();
-    private List<String> members;
+    private List<String> members = new ArrayList<>();
 
     public ForstaCall(String callId, String originator) {
       this.callId = callId;
@@ -301,6 +301,10 @@ public class ForstaMessage {
       this.iceCandidates = candidates;
     }
 
+    public void addCallMember(String id) {
+      this.members.add(id);
+    }
+
     public void setCallId(String callId) {
       this.callId = callId;
     }
@@ -319,6 +323,10 @@ public class ForstaMessage {
 
     public void setOffer(String offer) {
       this.offer = offer;
+    }
+
+    public List<String> getCallMembers() {
+      return members;
     }
 
     public String getCallId() {
