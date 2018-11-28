@@ -323,6 +323,7 @@ public class AttachmentManager {
         .onAllGranted(() -> {
           try {
             Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//            captureIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (captureIntent.resolveActivity(activity.getPackageManager()) != null) {
               if (captureUri == null) {
                 captureUri = PersistentBlobProvider.getInstance(context)
