@@ -29,6 +29,7 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +39,7 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.MediaPreviewActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AudioView;
@@ -57,6 +59,7 @@ import io.forsta.securesms.util.concurrent.ListenableFuture;
 
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -323,14 +326,18 @@ public class AttachmentManager {
         .onAllGranted(() -> {
           try {
             Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//            captureIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            captureIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (captureIntent.resolveActivity(activity.getPackageManager()) != null) {
               if (captureUri == null) {
                 captureUri = PersistentBlobProvider.getInstance(context)
                     .createForExternal(ContentType.IMAGE_JPEG);
               }
+              Uri imageUri = FileProvider.getUriForFile(
+                  this.context,
+                  BuildConfig.APPLICATION_ID + ".provider.external_files",
+                  new File(captureUri.getPath()));
               Log.w(TAG, "captureUri path is " + captureUri.getPath());
-              captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, captureUri);
+              captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
               activity.startActivityForResult(captureIntent, requestCode);
             }
           } catch (IOException ioe) {
