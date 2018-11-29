@@ -5,28 +5,12 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
     <LinearLayout
-        android:background="@color/forsta_accent4"
-        android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp">
-        <TextView
-            android:id="@+id/forsta_drawer_domain"
-            android:text="Organization"
-            android:textAllCaps="true"
-            android:textColor="@color/forsta_primary"
-            android:textAlignment="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
         <io.forsta.securesms.components.AvatarImageView
-            android:id="@+id/drawer_photo_image"
+            android:id="@+id/local_photo_image"
             android:layout_width="@dimen/contact_selection_photo_size"
             android:layout_height="@dimen/contact_selection_photo_size"
             android:layout_alignParentLeft="true"
@@ -39,11 +23,11 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:id="@+id/drawer_user"
+            <TextView android:id="@+id/local_user"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                 style="@style/TextAppearance.AppCompat.Subhead"/>
-            <TextView android:id="@+id/drawer_org_tag"
+            <TextView android:id="@+id/local_org_tag"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"/>
         </LinearLayout>

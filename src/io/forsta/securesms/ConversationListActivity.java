@@ -24,51 +24,37 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.impl.execchain.ServiceUnavailableRetryExec;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-
-import io.forsta.ccsm.DrawerFragment;
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.LoginActivity;
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaOrg;
 import io.forsta.ccsm.api.ForstaSyncAdapter;
-import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.permissions.Permissions;
-import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
-import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
-import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 public class ConversationListActivity extends PassphraseRequiredActionBarActivity
@@ -82,7 +68,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
   private ConversationListFragment fragment;
-  private DrawerFragment drawerFragment;
   private LinearLayout syncIndicator;
 
   private MasterSecret masterSecret;
@@ -109,7 +94,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     syncReceiver = new ContactsSyncReceiver();
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
-    drawerFragment = initFragment(R.id.forsta_drawer_left, new DrawerFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
     RefreshUserOrg task = new RefreshUserOrg();
     task.execute();
@@ -158,7 +142,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     super.onOptionsItemSelected(item);
 
     switch (item.getItemId()) {
-      case R.id.menu_new_group:         createGroup();           return true;
       case R.id.menu_settings:          handleDisplaySettings(); return true;
       case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
       case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;

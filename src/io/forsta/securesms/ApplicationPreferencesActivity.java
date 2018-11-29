@@ -26,16 +26,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.preference.PreferenceFragment;
-import android.support.v7.app.ActionBar;
 
-import io.forsta.ccsm.DashboardActivity;
+import io.forsta.ccsm.LocalUserFragment;
 import io.forsta.ccsm.PasswordActivity;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.preferences.AdvancedPreferenceFragment;
 import io.forsta.securesms.preferences.AppProtectionPreferenceFragment;
 import io.forsta.securesms.preferences.AppearancePreferenceFragment;
 import io.forsta.securesms.preferences.NotificationsPreferenceFragment;
-import io.forsta.securesms.preferences.SmsMmsPreferenceFragment;
 import io.forsta.securesms.preferences.ChatsPreferenceFragment;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DynamicLanguage;
@@ -54,12 +52,10 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
 {
   private static final String TAG = ApplicationPreferencesActivity.class.getSimpleName();
 
-  private static final String PREFERENCE_CATEGORY_SMS_MMS        = "preference_category_sms_mms";
   private static final String PREFERENCE_CATEGORY_NOTIFICATIONS  = "preference_category_notifications";
   private static final String PREFERENCE_CATEGORY_APP_PROTECTION = "preference_category_app_protection";
   private static final String PREFERENCE_CATEGORY_APPEARANCE     = "preference_category_appearance";
   private static final String PREFERENCE_CATEGORY_CHATS          = "preference_category_chats";
-  private static final String PREFERENCE_CATEGORY_DEVICES        = "preference_category_devices";
   private static final String PREFERENCE_AUTH                    = "preference_auth";
   private static final String PREFERENCE_CATEGORY_ADVANCED       = "preference_category_advanced";
 
@@ -75,9 +71,12 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
   @Override
   protected void onCreate(Bundle icicle, @NonNull MasterSecret masterSecret) {
     this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    setContentView(R.layout.application_preference_activity);
+
+    initFragment(R.id.forsta_local_user, new LocalUserFragment(), masterSecret);
 
     if (icicle == null) {
-      initFragment(android.R.id.content, new ApplicationPreferenceFragment(), masterSecret);
+      initFragment(R.id.forsta_preferences, new ApplicationPreferenceFragment(), masterSecret);
     }
   }
 
@@ -92,7 +91,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
   protected void onActivityResult(int requestCode, int resultCode, Intent data)
   {
     super.onActivityResult(requestCode, resultCode, data);
-    Fragment fragment = getSupportFragmentManager().findFragmentById(android.R.id.content);
+    Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.forsta_preferences);
     fragment.onActivityResult(requestCode, resultCode, data);
   }
 
@@ -132,22 +131,14 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
       addPreferencesFromResource(R.xml.preferences);
 
       MasterSecret masterSecret = getArguments().getParcelable("master_secret");
-//      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
-//        .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_SMS_MMS));
       this.findPreference(PREFERENCE_CATEGORY_NOTIFICATIONS)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_NOTIFICATIONS));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APP_PROTECTION));
-//      this.findPreference(PREFERENCE_AUTH)
-//          .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_AUTH));
       this.findPreference(PREFERENCE_CATEGORY_APPEARANCE)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_APPEARANCE));
       this.findPreference(PREFERENCE_CATEGORY_CHATS)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_CHATS));
-      /*
-      this.findPreference(PREFERENCE_CATEGORY_DEVICES)
-        .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_DEVICES));
-        */
       this.findPreference(PREFERENCE_CATEGORY_ADVANCED)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_ADVANCED));
     }
@@ -160,8 +151,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
     }
 
     private void setCategorySummaries() {
-//      this.findPreference(PREFERENCE_CATEGORY_SMS_MMS)
-//          .setSummary(SmsMmsPreferenceFragment.getSummary(getActivity()));
       this.findPreference(PREFERENCE_CATEGORY_NOTIFICATIONS)
           .setSummary(NotificationsPreferenceFragment.getSummary(getActivity()));
       this.findPreference(PREFERENCE_CATEGORY_APP_PROTECTION)
@@ -186,9 +175,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         Fragment fragment = null;
 
         switch (category) {
-//        case PREFERENCE_CATEGORY_SMS_MMS:
-//          fragment = new SmsMmsPreferenceFragment();
-//          break;
         case PREFERENCE_CATEGORY_NOTIFICATIONS:
           fragment = new NotificationsPreferenceFragment();
           break;
@@ -201,10 +187,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         case PREFERENCE_CATEGORY_CHATS:
           fragment = new ChatsPreferenceFragment();
           break;
-        /*case PREFERENCE_CATEGORY_DEVICES:
-          Intent intent = new Intent(getActivity(), DeviceActivity.class);
-          startActivity(intent);
-          break;*/
         case PREFERENCE_AUTH:
           Intent intent = new Intent(getActivity(), PasswordActivity.class);
           startActivity(intent);
@@ -223,7 +205,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
 
           FragmentManager     fragmentManager     = getActivity().getSupportFragmentManager();
           FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-          fragmentTransaction.replace(android.R.id.content, fragment);
+          fragmentTransaction.replace(R.id.forsta_preferences, fragment);
           fragmentTransaction.addToBackStack(null);
           fragmentTransaction.commit();
         }
