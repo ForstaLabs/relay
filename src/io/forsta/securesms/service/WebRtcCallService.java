@@ -16,6 +16,7 @@ import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.ArraySet;
 import android.util.Log;
@@ -28,6 +29,7 @@ import io.forsta.securesms.WebRtcCallActivity;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
+import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -181,6 +183,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Override
   public void onCreate() {
     super.onCreate();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      int NOTIFICATION_ID = (int) (System.currentTimeMillis() % 10000);
+      startForeground(NOTIFICATION_ID, new NotificationCompat.Builder(this, AbstractNotificationBuilder.CHANNEL_ID).build());
+    }
 
     initializeResources();
 
@@ -447,7 +454,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             WebRtcCallService.this.callState = CallState.STATE_LOCAL_RINGING;
             WebRtcCallService.this.lockManager.updatePhoneState(LockManager.PhoneState.INTERACTIVE);
 
-            incomingMember.callOrder = 1;
             sendMessage(WebRtcViewModel.State.CALL_INCOMING, remoteCallMembers.values(), incomingMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
             startCallCardActivity();
             audioManager.initializeAudioForCall();

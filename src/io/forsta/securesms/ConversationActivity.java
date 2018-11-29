@@ -1078,6 +1078,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (rawText.length() < 1 && !attachmentManager.isAttachmentPresent())
       throw new InvalidMessageException(getString(R.string.ConversationActivity_message_is_empty_exclamation));
 
+    if (attachmentManager.isAttachmentPresent()) {
+      String location = attachmentManager.buildSlideDeck().getBody();
+      if (!TextUtils.isEmpty(location)) {
+        rawText = location + " " + rawText;
+      }
+    }
+
     return rawText;
   }
 
@@ -1147,7 +1154,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     final SettableFuture<Void> future          = new SettableFuture<>();
     final Context              context         = getApplicationContext();
 
-//    OutgoingMessage message = ForstaMessageManager.createOutgoingContentMessage(context, body, recipients, slideDeck.asAttachments(), threadId, expiresIn);
     attachmentManager.clear();
     composeText.setText("");
     inputPanel.clearQuote();
