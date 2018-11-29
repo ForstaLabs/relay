@@ -1,45 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:id="@+id/forsta_sync_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="20dp"
-            android:layout_centerVertical="true"
-            android:visibility="gone">
-            <ProgressBar
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center_horizontal" />
-            <TextView android:text="Updating Contacts"
-                      android:layout_height="wrap_content"
-                      android:layout_width="wrap_content"
-                      android:layout_gravity="center_horizontal"/>
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/forsta_conversation_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_above="@id/layout_container"/>
-
-    </RelativeLayout>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <LinearLayout
-        android:id="@+id/left_drawer"
-        android:layout_width="250dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="left"
-        android:background="@color/forsta_primary"
-        android:orientation="vertical">
-        <FrameLayout
-            android:id="@+id/forsta_drawer_left"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        android:id="@+id/forsta_sync_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="20dp"
+        android:layout_centerVertical="true"
+        android:visibility="gone">
+        <ProgressBar
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center_horizontal" />
+        <TextView android:text="Updating Contacts"
+                  android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_gravity="center_horizontal"/>
     </LinearLayout>
-</android.support.v4.widget.DrawerLayout>
+
+    <FrameLayout
+        android:id="@+id/forsta_conversation_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_above="@id/layout_container"/>
+
+</RelativeLayout>
+
