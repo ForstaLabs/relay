@@ -411,6 +411,17 @@
             android:grantUriPermissions="true"
             android:label="Forsta Contacts"/>
 
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider.external_files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths">
+            </meta-data>
+        </provider>
+
         <receiver
             android:name=".service.RegistrationNotifier"
             android:exported="false">

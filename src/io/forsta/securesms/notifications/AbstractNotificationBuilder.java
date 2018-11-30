@@ -31,7 +31,7 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
   protected Context                       context;
   protected NotificationPrivacyPreference privacy;
   public static final String CHANNEL_ID = "forsta_channel_01";
-  protected NotificationChannel channel;
+  public static final String QUIET_CHANNEL_ID = "forsta_channel_02";
 
   public AbstractNotificationBuilder(Context context, NotificationPrivacyPreference privacy) {
     super(context);
@@ -39,19 +39,34 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     this.context = context;
     this.privacy = privacy;
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      channel = new NotificationChannel(CHANNEL_ID,
-          "Channel human readable title",
-          NotificationManager.IMPORTANCE_DEFAULT);
-      channel.setDescription("Forsta Channel");
-    }
     this.setChannelId(CHANNEL_ID);
 
     setLed();
   }
 
   public NotificationChannel getChannel() {
-    return channel;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+          "Forsta",
+          NotificationManager.IMPORTANCE_DEFAULT);
+      channel.setDescription("Forsta Channel");
+      this.setChannelId(CHANNEL_ID);
+      return channel;
+    }
+
+    return null;
+  }
+
+  public NotificationChannel getNoSoundChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationChannel channel = new NotificationChannel(QUIET_CHANNEL_ID,
+          "Forsta No Sound",
+          NotificationManager.IMPORTANCE_LOW);
+      channel.setDescription("Forsta Channel");
+      this.setChannelId(QUIET_CHANNEL_ID);
+      return channel;
+    }
+    return null;
   }
 
   protected CharSequence getStyledMessage(@NonNull Recipient recipient, @Nullable CharSequence message) {
