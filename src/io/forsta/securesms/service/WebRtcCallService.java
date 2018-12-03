@@ -399,18 +399,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       });
 
     } else {
-      Log.w(TAG, "Accepting new call request");
+      Log.w(TAG, "Accepting new call request from: " + incomingCallId);
       // New call.
       if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
       threadUID = incomingThreadId;
       callId = incomingCallId;
       callState = CallState.STATE_ANSWERING;
 
-      Log.w(TAG, "Call Members: ");
       int memberCount = 0;
       for (String memberAddress : members) {
-        Log.w(TAG, "" + memberAddress);
-
         if (!memberAddress.equals(localCallMember.getRecipient().getAddress())) {
           if (++memberCount > MAX_PEERS) break;
           remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
@@ -423,6 +420,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         if (!callMember.equals(incomingMember)) {
           callMember.callOrder = memberCount--;
         }
+        Log.w(TAG, "CallMember: " + callMember);
       }
 
       if (isIncomingMessageExpired(intent)) {
@@ -784,9 +782,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleAnswerCall");
     CallMember activeMember = null;
     for (CallMember callMember : remoteCallMembers.values()) {
-      if (callMember.peerId != null && callMember.peerConnection != null) {
-        activeMember = callMember;
-        break;
+      SessionDescription remoteDesc = callMember.peerConnection.getRemoteDescription();
+      if (callMember.peerId != null && callMember.peerConnection != null && remoteDesc != null) {
+        Log.w(TAG, "Have remote description for " + callMember);
+        if (callMember.callOrder == 1) {
+          activeMember = callMember;
+          break;
+        }
       }
     }
 

@@ -53,7 +53,6 @@ public class PeerConnectionWrapper {
   public DataChannel createDataChannel(String name) {
     DataChannel.Init dataChannelConfiguration = new DataChannel.Init();
     dataChannelConfiguration.ordered = true;
-
     return this.peerConnection.createDataChannel(name, dataChannelConfiguration);
   }
 
@@ -197,6 +196,10 @@ public class PeerConnectionWrapper {
 
   public boolean addIceCandidate(IceCandidate candidate) {
     return this.peerConnection.addIceCandidate(candidate);
+  }
+
+  public SessionDescription getRemoteDescription() {
+    return peerConnection.getRemoteDescription();
   }
 
   private SessionDescription correctSessionDescription(SessionDescription sessionDescription) {
