@@ -86,7 +86,7 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 public class MessageNotifier {
 
   private static final String TAG = MessageNotifier.class.getSimpleName();
-  private static final long ALARM_DEBOUNCE_TIME = 3000L;
+  private static final long ALARM_DEBOUNCE_TIME = 5000L;
   public static final int NOTIFICATION_ID = 1338;
 
   private volatile static long notificationThreadId;
