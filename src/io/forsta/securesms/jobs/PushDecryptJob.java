@@ -465,8 +465,6 @@ public class PushDecryptJob extends ContextJob {
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
 
-    Log.w(TAG, "Message Recipients: " + recipients.toFullString());
-
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
     recipients.setStale();
     recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
