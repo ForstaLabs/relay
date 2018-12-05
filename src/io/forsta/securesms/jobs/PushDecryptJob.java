@@ -348,7 +348,6 @@ public class PushDecryptJob extends ContextJob {
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
     forstaMessage.setSenderId(envelope.getSource());
-    Log.w(TAG, "Received message from: " + forstaMessage.getSenderId());
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
@@ -464,8 +463,6 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
     Recipients recipients = getDistributionRecipients(distribution);
-
-    Log.w(TAG, "Message Recipients: " + recipients.toFullString());
 
     DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
     recipients.setStale();

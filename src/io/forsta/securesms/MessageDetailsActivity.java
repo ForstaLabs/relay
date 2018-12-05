@@ -335,7 +335,8 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
         return null;
       }
 
-      return messageRecord.getRecipients();
+      Recipients recipients = RecipientFactory.getRecipientsForIds(context, getIntent().getLongArrayExtra(RECIPIENTS_IDS_EXTRA), false);
+      return recipients;
     }
 
     @Override
