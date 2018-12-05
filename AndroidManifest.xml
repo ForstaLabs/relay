@@ -303,27 +303,6 @@
             android:name=".PlayServicesProblemActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
             android:theme="@style/TextSecure.DialogActivity"/>
-        <activity android:name=".SmsSendtoActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.SENDTO"/>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:scheme="sms"/>
-                <data android:scheme="smsto"/>
-                <data android:scheme="mms"/>
-                <data android:scheme="mmsto"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-
-                <data android:mimeType="vnd.android.cursor.item/vnd.io.forsta.securesms.contact"/>
-            </intent-filter>
-        </activity>
         <activity android:name="com.soundcloud.android.crop.CropImageActivity"/>
 
         <activity android:name=".WebRtcCallActivity"
