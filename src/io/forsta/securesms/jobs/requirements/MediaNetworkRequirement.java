@@ -84,6 +84,7 @@ public class MediaNetworkRequirement implements Requirement, ContextDependent {
     }
 
     Log.w(TAG, "part transfer progress is " + attachment.getTransferState());
+    Log.w(TAG, "attachment uri: " + attachment.getDataUri());
     switch (attachment.getTransferState()) {
     case AttachmentDatabase.TRANSFER_PROGRESS_STARTED:
       return true;
