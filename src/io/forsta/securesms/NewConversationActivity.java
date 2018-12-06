@@ -72,7 +72,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
     super.onCreate(bundle, masterSecret);
     getToolbar().setShowCustomNavigationButton(false);
     getSupportActionBar().setDisplayShowHomeEnabled(false);
-    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true); //Consider removing this to allow more room for search
 
     initListeners();
   }

@@ -7,7 +7,7 @@
     </item>
     <item>
         <shape android:shape="oval">
-            <solid android:color="?conversation_send_button" />
+            <solid android:color="@color/white" />
         </shape>
     </item>
 </selector>
