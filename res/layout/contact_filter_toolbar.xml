@@ -106,7 +106,7 @@
                            android:visibility="gone"
                            android:focusable="true"
                            android:background="@drawable/circle_touch_highlight_background"
-                           android:src="@drawable/ic_clear_white_24dp" />
+                           android:src="@drawable/ic_clear_search_holo_light" />
 
             </io.forsta.securesms.components.AnimatingToggle>
 

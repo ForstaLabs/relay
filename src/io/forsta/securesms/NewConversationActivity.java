@@ -85,7 +85,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
         String searchText = toolbar.getSearchText();
         // check to see if it is a phone number or email. If not, assume expression.
         if (PhoneNumberUtils.isGlobalPhoneNumber(searchText)) {
-          Log.w(TAG, "Phone input");
           try {
             String e164Number = Util.canonicalizeNumberE164(searchText);
             lookupUsersByPhone(e164Number);
@@ -93,10 +92,8 @@ public class NewConversationActivity extends ContactSelectionActivity {
             Toast.makeText(NewConversationActivity.this, "Invalid phone", Toast.LENGTH_LONG).show();
           }
         } else if (Patterns.EMAIL_ADDRESS.matcher(searchText).matches()) {
-          Log.w(TAG, "Email input");
           lookupUsersByEmail(searchText);
         } else {
-          Log.w(TAG, "Expression input");
           if (!searchText.startsWith("@")) {
             searchText = "@" + searchText;
           }
