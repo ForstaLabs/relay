@@ -183,11 +183,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     startActivity(intent);
   }
 
-  private void createGroup() {
-    Intent intent = new Intent(this, GroupCreateActivity.class);
-    startActivity(intent);
-  }
-
   private void handleLogout() {
     ForstaPreferences.clearLogin(ConversationListActivity.this);
     Intent intent = new Intent(ConversationListActivity.this, LoginActivity.class);

@@ -49,12 +49,10 @@ import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.DirectoryHelper;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.Util;
 
 /**
@@ -73,6 +71,7 @@ public class NewConversationActivity extends ContactSelectionActivity {
   public void onCreate(Bundle bundle, @NonNull final MasterSecret masterSecret) {
     super.onCreate(bundle, masterSecret);
     getToolbar().setShowCustomNavigationButton(false);
+    getSupportActionBar().setDisplayShowHomeEnabled(false);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     initListeners();
@@ -137,37 +136,20 @@ public class NewConversationActivity extends ContactSelectionActivity {
       @Override
       protected Void doInBackground(String... strings) {
         List<String> addresses = new ArrayList<>();
-        if (GroupUtil.isEncodedGroup(strings[0])) {
-          addresses.add(strings[0]);
-          GroupDatabase.GroupRecord tag = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(address);
-          if (tag == null || TextUtils.isEmpty(tag.getTitle())) {
-            DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
-          }
-
-        } else {
-          addresses.add(strings[0]);
-          ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
-          if (user == null || TextUtils.isEmpty(user.getName())) {
-            DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
-          }
+        addresses.add(strings[0]);
+        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+        if (user == null || TextUtils.isEmpty(user.getName())) {
+          DirectoryHelper.refreshDirectoryFor(NewConversationActivity.this, masterSecret, addresses);
         }
         return null;
       }
 
       @Override
       protected void onPostExecute(Void aVoid) {
-        if (GroupUtil.isEncodedGroup(address)) {
-          GroupDatabase.GroupRecord tag = DatabaseFactory.getGroupDatabase(NewConversationActivity.this).getGroup(address);
-          if (tag == null || TextUtils.isEmpty(tag.getTitle())) {
-            Toast.makeText(NewConversationActivity.this, "Unable to retrieve tag information.", Toast.LENGTH_LONG).show();
-            return;
-          }
-        } else {
-          ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
-          if (user == null || TextUtils.isEmpty(user.getName())) {
-            Toast.makeText(NewConversationActivity.this, "Unable to retrieve user information.", Toast.LENGTH_LONG).show();
-            return ;
-          }
+        ForstaUser user = DbFactory.getContactDb(NewConversationActivity.this).getUserByAddress(address);
+        if (user == null || TextUtils.isEmpty(user.getName())) {
+          Toast.makeText(NewConversationActivity.this, "Unable to retrieve user information.", Toast.LENGTH_LONG).show();
+          return ;
         }
         addRecipientChip(address);
         selectedRecipients = RecipientFactory.getRecipientsFromStrings(NewConversationActivity.this, contactsFragment.getSelectedAddresses(), false);
@@ -306,10 +288,6 @@ public class NewConversationActivity extends ContactSelectionActivity {
   private void handleReset() {
     contactsFragment.setRefreshing(true);
     resetDirectory();
-  }
-
-  private void handleCreateGroup() {
-    startActivity(new Intent(this, GroupCreateActivity.class));
   }
 
   @Override
