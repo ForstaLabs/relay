@@ -3,12 +3,13 @@
         android:color="@color/touch_highlight">
     <item android:id="@android:id/mask">
         <shape android:shape="oval">
-            <solid android:color="@color/black" />
+            <solid android:color="@color/white" />
         </shape>
     </item>
     <item>
         <shape android:shape="oval">
-            <solid android:color="?conversation_send_button" />
+            <solid android:color="@color/white" />
+            <padding android:bottom="3dp" android:left="3dp" android:right="3dp" android:top="3dp"/>
         </shape>
     </item>
 </ripple>
