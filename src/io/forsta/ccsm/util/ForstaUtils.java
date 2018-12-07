@@ -2,6 +2,7 @@ package io.forsta.ccsm.util;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -66,8 +67,14 @@ public class ForstaUtils {
           Iterator<String> objKeys = object.keys();
           while (objKeys.hasNext()) {
             String objKey = objKeys.next();
-            String message = object.optString(objKey, "No errors");
-            sb.append(message).append(" ");
+            JSONArray messages = object.optJSONArray(objKey);
+            if (messages != null) {
+              // Just get the first error.
+              String message = messages.optString(0, "No error");
+              sb.append(message).append(" ");
+            } else {
+              sb.append("No Errors");
+            }
           }
         } else {
           String message = jsonObject.optString(key);
