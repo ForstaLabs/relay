@@ -26,7 +26,6 @@ import android.widget.Toast;
 
 import io.forsta.securesms.components.ContactFilterToolbar;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -34,11 +33,9 @@ import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
-import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.concurrent.ExecutionException;
 
-import io.forsta.securesms.database.RecipientPreferenceDatabase;
 import io.forsta.securesms.util.concurrent.ListenableFuture;
 
 public class InviteActivity extends PassphraseRequiredActionBarActivity implements ContactSelectionListFragment.OnContactSelectedListener {
@@ -101,7 +98,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
     smsCancelButton.setOnClickListener(new SmsCancelClickListener());
     smsSendButton.setOnClickListener(new SmsSendClickListener());
     contactFilter.setOnFilterChangedListener(new ContactFilterChangedListener());
-    contactFilter.setToolbarHintSms();
+    contactFilter.setToolbarHint();
   }
 
   private Animation loadAnimation(@AnimRes int animResId) {

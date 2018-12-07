@@ -49,19 +49,6 @@
             android:ems="10"
             android:inputType="textPersonName" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/forsta_login_org_label" />
-
-        <EditText
-            android:id="@+id/forsta_login_org_get_token"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
         <Button
             android:id="@+id/forsta_get_token_button"
             android:layout_width="match_parent"
