@@ -18,7 +18,7 @@
     <string name="forsta_login_account_email_label">Email</string>
     <string name="forsta_login_account_phone_label">Phone</string>
 
-    <string name="forsta_login_username_label">Username</string>
+    <string name="forsta_login_username_label">Username and Organization (joe.louis:example.com</string>
     <string name="forsta_login_password_label">Password</string>
     <string name="forsta_login_org_label">Organization</string>
     <string name="forsta_login_security_code_label">You will recieve a security token via sms shortly. Enter the 6 digit code below.</string>
@@ -1148,6 +1148,7 @@
     <!-- conversation_list_batch -->
     <string name="conversation_list_batch__menu_delete_selected">Delete selected</string>
     <string name="conversation_list_batch__menu_select_all">Select all</string>
+    <string name="conversation_list_batch__menu_pin_selected">Pin selected</string>
     <string name="conversation_list_batch_archive__menu_archive_selected">Archive selected</string>
     <string name="conversation_list_batch_unarchive__menu_unarchive_selected">Unarchive selected</string>
 

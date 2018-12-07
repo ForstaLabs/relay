@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -53,7 +54,7 @@ import java.lang.ref.WeakReference;
  */
 public abstract class ContactSelectionActivity extends PassphraseRequiredActionBarActivity
                                                implements SwipeRefreshLayout.OnRefreshListener,
-                                                          ContactSelectionListFragment.OnContactSelectedListener
+                                                          ContactSelectionListFragment.OnContactSelectedListener, ContactSelectionListFragment.OnSearchResultsCountChanged
 {
   private static final String TAG = ContactSelectionActivity.class.getSimpleName();
 
@@ -121,6 +122,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
     contactsFragment = (ContactSelectionListFragment) getSupportFragmentManager().findFragmentById(R.id.contact_selection_list_fragment);
     contactsFragment.setOnContactSelectedListener(this);
     contactsFragment.setOnRefreshListener(this);
+    contactsFragment.setOnSearchResultsCountChangedListener(this);
   }
 
   private void initializeSearch() {
@@ -130,6 +132,7 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
           filter = filter.substring(1, filter.length());
         }
         contactsFragment.setQueryFilter(filter);
+        updateToggleBar();
       }
     });
   }
@@ -152,6 +155,13 @@ public abstract class ContactSelectionActivity extends PassphraseRequiredActionB
 
   @Override
   public void onContactDeselected(String number) {}
+
+  @Override
+  public void onSearchResultsCountChanged(int count) {
+    if (count == 0) {
+      updateToggleBar();
+    }
+  }
 
   protected void showProgressBar() {
     progressBar.setVisibility(View.VISIBLE);

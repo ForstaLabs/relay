@@ -4,20 +4,20 @@
                   android:layout_height="wrap_content"
                   android:orientation="horizontal"
                   android:background="@drawable/conversation_recipients_widget"
-                  android:paddingTop="3dp" android:paddingBottom="3dp" android:paddingLeft="10dp" android:paddingRight="10dp">
+                  android:paddingTop="5dp" android:paddingBottom="5dp" android:paddingLeft="10dp" android:paddingRight="5dp">
         <TextView
             android:id="@+id/selected_recipient_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/forsta_accent4"
             android:layout_gravity="center_horizontal"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="10dp"
             android:padding="0dp"
             />
         <ImageButton
             android:id="@+id/selected_recipient_remove"
-            android:layout_width="13dp"
-            android:layout_height="13dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:scaleType="fitCenter"
             android:padding="1dp"
             android:layout_gravity="center"

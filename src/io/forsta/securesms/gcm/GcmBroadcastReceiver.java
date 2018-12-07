@@ -34,9 +34,18 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
       String receiptData = intent.getStringExtra("receipt");
       String callData    = intent.getStringExtra("call");
 
-      if      (!TextUtils.isEmpty(messageData)) handleReceivedMessage(context, messageData);
-      else if (!TextUtils.isEmpty(receiptData)) handleReceivedMessage(context, receiptData);
-      else if (intent.hasExtra("notification")) handleReceivedNotification(context);
+      if      (!TextUtils.isEmpty(messageData)) {
+        Log.w(TAG, "Gcm message " + messageData);
+        handleReceivedMessage(context, messageData);
+      }
+      else if (!TextUtils.isEmpty(receiptData)) {
+        Log.w(TAG, "Gcm reciept " + receiptData);
+        handleReceivedMessage(context, receiptData);
+      }
+      else if (intent.hasExtra("notification")) {
+        Log.w(TAG, "Gcm notification");
+        handleReceivedNotification(context);
+      }
     }
   }
 

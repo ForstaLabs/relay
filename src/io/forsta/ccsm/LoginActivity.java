@@ -3,7 +3,6 @@ package io.forsta.ccsm;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -17,7 +16,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,16 +31,14 @@ import com.google.android.gms.safetynet.SafetyNet;
 import com.google.android.gms.safetynet.SafetyNetApi;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
@@ -50,9 +47,6 @@ import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.ccsm.api.CcsmApi;
-import io.forsta.securesms.crypto.MasterSecretUtil;
-import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -68,7 +62,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   private LinearLayout mAccountFormContainer;
   private TextView mLoginTitle;
   private EditText mSendTokenUsername;
-  private EditText mSendTokenOrg;
   private EditText mLoginSecurityCode;
   private EditText mAccountFullName;
   private EditText mAccountTagSlug;
@@ -98,10 +91,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   @Override
   protected void onResume() {
     super.onResume();
-    mSendTokenOrg.setText(ForstaPreferences.getForstaOrgName(this));
-    mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this));
-    // TODO we can listen for SMS messages and respond, without the user having to type in the authemtication code manually.
-    // handleBroadcastIntent();
+    mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this) + ":" + ForstaPreferences.getForstaOrgName(this));
     if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
       showVerifyForm();
     } else if (!ForstaPreferences.getRegisteredKey(LoginActivity.this).equals("")) {
@@ -127,7 +117,6 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     mAccountFormContainer = (LinearLayout) findViewById(R.id.forsta_login_create_account_container);
     passwordAuthContainer = (LinearLayout) findViewById(R.id.forsta_login_password_container);
 
-    mSendTokenOrg = (EditText) findViewById(R.id.forsta_login_org_get_token);
     mSendTokenUsername = (EditText) findViewById(R.id.forsta_login_username_get_token);
     mLoginSecurityCode = (EditText) findViewById(R.id.forsta_login_security_code);
     mAccountFullName = (EditText) findViewById(R.id.forsta_login_account_fullname);
@@ -188,8 +177,9 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
     getTokenButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        String org = mSendTokenOrg.getText().toString().trim();
-        String username = mSendTokenUsername.getText().toString().trim();
+        Pair<String, String> userNameOrg = getUsernameAndOrg(mSendTokenUsername.getText().toString());
+        String username = userNameOrg.first;
+        String org = userNameOrg.second;
         if (org.length() < 1 || username.length() < 1) {
           Toast.makeText(LoginActivity.this, "Invalid Organization or Username", Toast.LENGTH_LONG).show();
         } else {
@@ -305,8 +295,9 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       @Override
       public void onClick(View view) {
         showProgressBar();
+        Pair<String, String> userNameAndOrg = getUsernameAndOrg(mSendTokenUsername.getText().toString());
         ResetPasswordTask resetPasswordTask = new ResetPasswordTask();
-        resetPasswordTask.execute(mSendTokenUsername.getText().toString(), mSendTokenOrg.getText().toString());
+        resetPasswordTask.execute(userNameAndOrg.first, userNameAndOrg.second);
       }
     });
 
@@ -468,6 +459,13 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
 
     startActivity(nextIntent);
     finish();
+  }
+
+  private Pair<String, String> getUsernameAndOrg(String tag) {
+    StringTokenizer tokenizer = new StringTokenizer(tag.trim(), ":");
+    String username = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : "";
+    String org = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : "";
+    return new Pair(username, org);
   }
 
   @Override

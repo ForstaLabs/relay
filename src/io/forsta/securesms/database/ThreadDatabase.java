@@ -628,6 +628,7 @@ public class ThreadDatabase extends Database {
     ContentValues values = new ContentValues();
     values.put(PINNED, pinned);
     db.update(TABLE_NAME, values, ID_WHERE, new String[] {String.valueOf(threadId)});
+    notifyConversationListListeners();
   }
 
   public void updateReadState(long threadId) {

@@ -51,6 +51,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
+import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.securesms.ConversationListAdapter.ItemClickListener;
 import io.forsta.securesms.components.ComposeText;
 import io.forsta.securesms.components.InputPanel;
@@ -264,6 +265,31 @@ public class ConversationListFragment extends Fragment
     actionMode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount, String.valueOf(getListAdapter().getBatchSelections().size())));
   }
 
+  private void handlePinAllSelected() {
+    final Set<Long> selectedConversations = (getListAdapter())
+        .getBatchSelections();
+
+    new AsyncTask<Void, Void, Void>() {
+
+      @Override
+      protected Void doInBackground(Void... voids) {
+        for (Long threadId : selectedConversations) {
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(getActivity()).getForstaThread(threadId);
+          DatabaseFactory.getThreadDatabase(getActivity()).updatePinned(threadId, !thread.isPinned());
+        }
+        return null;
+      }
+
+      @Override
+      protected void onPostExecute(Void aVoid) {
+        if (actionMode != null) {
+          actionMode.finish();
+          actionMode = null;
+        }
+      }
+    }.execute();
+  }
+
   private void handleCreateConversation(long threadId, Recipients recipients, int distributionType) {
     ((ConversationSelectedListener)getActivity()).onCreateConversation(threadId, recipients, distributionType);
   }
@@ -331,7 +357,7 @@ public class ConversationListFragment extends Fragment
 
     inflater.inflate(R.menu.conversation_list_batch, menu);
 
-    mode.setTitle(R.string.conversation_fragment_cab__batch_selection_mode);
+//    mode.setTitle(R.string.conversation_fragment_cab__batch_selection_mode);
     mode.setSubtitle(getString(R.string.conversation_fragment_cab__batch_selection_amount, String.valueOf(1)));
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -352,6 +378,7 @@ public class ConversationListFragment extends Fragment
     case R.id.menu_select_all:       handleSelectAllThreads();   return true;
     case R.id.menu_delete_selected:  handleDeleteAllSelected();  return true;
     case R.id.menu_archive_selected: handleArchiveAllSelected(); return true;
+    case R.id.menu_pin_selected: handlePinAllSelected(); return true;
     }
 
     return false;
