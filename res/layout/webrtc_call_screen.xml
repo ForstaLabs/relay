@@ -47,7 +47,7 @@
                     android:paddingLeft="24dp"
                     android:paddingRight="24dp"
                     android:paddingTop="16dp"
-                    android:paddingBottom="20dp"
+                    android:paddingBottom="10dp"
                     android:clickable="true"/>
 
         </LinearLayout>  <!-- End of call_banner for call_info #1. -->
@@ -63,7 +63,7 @@
             android:id="@+id/call_container_1"
             android:layout_below="@id/call_banner_1"
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="250dp">
             <TableRow>
 
                 <LinearLayout android:layout_width="wrap_content"
@@ -94,7 +94,7 @@
         <TableLayout
             android:layout_below="@id/call_container_1"
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="250dp">
             <TableRow>
                 <LinearLayout android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
