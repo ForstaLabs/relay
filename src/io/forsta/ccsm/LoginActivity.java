@@ -285,6 +285,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
       @Override
       public void onClick(View v) {
         ForstaPreferences.clearLogin(LoginActivity.this);
+        mLoginSecurityCode.setText("");
         showSendLinkForm();
       }
     });
