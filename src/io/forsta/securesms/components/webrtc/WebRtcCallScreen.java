@@ -214,19 +214,19 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-      if (remoteRenderer2.getParent() != null) {
-        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
-      }
-
-      if (remoteRenderer3.getParent() != null) {
-        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
-      }
+//      if (remoteRenderer2.getParent() != null) {
+//        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
+//      }
+//
+//      if (remoteRenderer3.getParent() != null) {
+//        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
+//      }
 //      localRenderer.setMirror(true);
 //      localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.setActiveCall(localRenderer);
       remoteMemberLayout.setActiveCall(remoteRenderer);
-      remoteMemberLayout2.setActiveCall(remoteRenderer2);
-      remoteMemberLayout3.setActiveCall(remoteRenderer3);
+//      remoteMemberLayout2.setActiveCall(remoteRenderer2);
+//      remoteMemberLayout3.setActiveCall(remoteRenderer3);
     }
   }
 
