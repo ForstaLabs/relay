@@ -17,6 +17,4 @@ public class CallMembersRecyclerView extends RecyclerView {
   public CallMembersRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
   }
-
-
 }

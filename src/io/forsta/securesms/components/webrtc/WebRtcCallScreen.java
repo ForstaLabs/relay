@@ -22,6 +22,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.telecom.Call;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -41,12 +43,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import io.forsta.ccsm.components.webrtc.CallMemberView;
+import io.forsta.ccsm.webrtc.CallMemberListAdapter;
 import io.forsta.securesms.R;
 //import io.forsta.securesms.mms.GlideApp;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -83,6 +87,7 @@ public class WebRtcCallScreen extends FrameLayout {
   private CallMemberView remoteMemberLayout;
   private CallMemberView remoteMemberLayout2;
   private CallMemberView remoteMemberLayout3;
+  RecyclerView remoteCallMemberList;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -136,6 +141,8 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
+    Recipients remoteRecipients = RecipientFactory.getRecipientsFor(getContext(), remoteCallRecipients.values(), true);
+    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteRecipients));
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
@@ -198,8 +205,14 @@ public class WebRtcCallScreen extends FrameLayout {
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.callHeader                   = findViewById(R.id.call_info_1);
+    this.remoteCallMemberList = findViewById(R.id.call_member_list_recyclerview);
 
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
+
+    LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+    layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+    remoteCallMemberList.setLayoutManager(layoutManager);
+
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
