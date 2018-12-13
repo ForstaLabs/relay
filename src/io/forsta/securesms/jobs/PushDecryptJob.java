@@ -435,6 +435,8 @@ public class PushDecryptJob extends ContextJob {
 
       return threadId;
     } else {
+      Log.w(TAG, "handleSynchronizeSentMediaMessage Type: " + forstaMessage.getControlType());
+      Log.w(TAG, message.getMessage().getBody().get());
       handleControlMessage(forstaMessage, message.getMessage().getBody().get(), message.getTimestamp());
       return -1;
     }
