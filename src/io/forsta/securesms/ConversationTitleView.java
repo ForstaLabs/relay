@@ -76,18 +76,17 @@ public class ConversationTitleView extends LinearLayout {
       if (recipients.isSingleRecipient()) {
         this.title.setText(recipient.getName());
         this.subtitle.setText(recipient.getFullTag());
-        this.subtitle.setVisibility(View.GONE);
+        this.subtitle.setVisibility(View.VISIBLE);
       } else {
         title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
         subtitle.setText(getContext().getResources().getQuantityString(R.plurals.ConversationActivity_d_recipients_in_group, size, size));
         subtitle.setVisibility(View.VISIBLE);
+        if (!recipients.includesSelf(getContext())) {
+          subtitle.setText("You left this conversation.");
+        }
       }
     }
 
-    if (!recipients.includesSelf(getContext())) {
-      subtitle.setText("You left this conversation.");
-    }
-    // Always show thread title, if available
     if (!TextUtils.isEmpty(thread.getTitle())) {
       title.setText(thread.getTitle());
     }

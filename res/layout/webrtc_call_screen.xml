@@ -94,7 +94,7 @@
         <TableLayout
             android:layout_below="@id/call_container_1"
             android:layout_width="match_parent"
-            android:layout_height="250dp">
+            android:layout_height="250dp" android:visibility="gone">
             <TableRow>
                 <LinearLayout android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -121,8 +121,9 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"/>
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton

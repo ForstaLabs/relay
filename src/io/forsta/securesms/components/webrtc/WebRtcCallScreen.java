@@ -44,6 +44,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import io.forsta.ccsm.components.webrtc.CallMemberView;
 import io.forsta.ccsm.webrtc.CallMemberListAdapter;
+import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
 //import io.forsta.securesms.mms.GlideApp;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
@@ -60,6 +61,7 @@ import org.webrtc.SurfaceViewRenderer;
 import org.whispersystems.libsignal.IdentityKey;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import io.forsta.securesms.recipients.Recipient;
@@ -87,7 +89,8 @@ public class WebRtcCallScreen extends FrameLayout {
   private CallMemberView remoteMemberLayout;
   private CallMemberView remoteMemberLayout2;
   private CallMemberView remoteMemberLayout3;
-  RecyclerView remoteCallMemberList;
+  private List<CallRecipient> remoteRecipients;
+  private RecyclerView remoteCallMemberList;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -124,6 +127,9 @@ public class WebRtcCallScreen extends FrameLayout {
       remoteMemberLayout3.setRecipient(recipient);
       remoteMemberLayout3.setCallStatus(message);
     }
+    // Find this recipient and update in the full list of remote recipients passed to the
+    // RecyclerView's ListAdapter.
+
   }
 
   public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
