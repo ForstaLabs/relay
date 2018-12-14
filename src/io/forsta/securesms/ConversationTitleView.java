@@ -62,29 +62,6 @@ public class ConversationTitleView extends LinearLayout {
     this.subtitle.setVisibility(View.GONE);
   }
 
-  private void setRecipientTitle(Recipient recipient, ForstaThread thread) {
-    if (!recipient.isGroupRecipient()) {
-      if (TextUtils.isEmpty(recipient.getName())) {
-        this.title.setText(recipient.getAddress());
-        this.subtitle.setText(null);
-        this.subtitle.setVisibility(View.GONE);
-      } else {
-        this.title.setText(recipient.getName());
-        this.subtitle.setText(recipient.getAddress());
-        // Remove subtitle phone from actionbar display
-        this.subtitle.setVisibility(View.GONE);
-      }
-    } else {
-      String groupName = (!TextUtils.isEmpty(recipient.getName())) ?
-                         recipient.getName() :
-                         getContext().getString(R.string.ConversationActivity_unnamed_group);
-
-      this.title.setText(groupName);
-      this.subtitle.setText(null);
-      this.subtitle.setVisibility(View.GONE);
-    }
-  }
-
   private void setRecipientsTitle(Recipients recipients, ForstaThread thread) {
     int size = recipients.getRecipientsList().size();
     Recipient recipient = recipients.getPrimaryRecipient();
@@ -98,7 +75,7 @@ public class ConversationTitleView extends LinearLayout {
       announcement.setVisibility(GONE);
       if (recipients.isSingleRecipient()) {
         this.title.setText(recipient.getName());
-        this.subtitle.setText(null);
+        this.subtitle.setText(recipient.getFullTag());
         this.subtitle.setVisibility(View.GONE);
       } else {
         title.setText(getContext().getString(R.string.ConversationActivity_group_conversation));
