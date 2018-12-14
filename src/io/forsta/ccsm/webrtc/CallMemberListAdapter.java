@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Collection;
+
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.recipients.Recipient;
@@ -16,6 +18,7 @@ import io.forsta.securesms.recipients.Recipients;
 public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAdapter.CallMemberViewHolder> {
 
   private Recipients recipients;
+  private Recipient[] callRecipients;
 
   public CallMemberListAdapter(Recipients recipients) {
     if (recipients == null) {
@@ -23,6 +26,14 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
           "recipients must not be null");
     }
     this.recipients = recipients;
+  }
+
+  public CallMemberListAdapter(Recipient[] recipients) {
+    if (recipients == null) {
+      throw new IllegalArgumentException(
+          "recipients must not be null");
+    }
+    this.callRecipients = recipients;
   }
 
   @Override
@@ -35,6 +46,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
     Recipient recipient = recipients.getRecipientsList().get(position);
+    Recipient callRecipient = callRecipients[position];
     holder.recipientName.setText(recipient.getName());
     holder.callStatus.setText("Idle");
     holder.avatar.setAvatar(recipient, false);

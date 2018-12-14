@@ -11,6 +11,10 @@ public class CallRecipient {
     this.recipient = recipient;
   }
 
+  public CallRecipient(Recipient recipient, String message) {
+    this.callStatus = message;
+  }
+
   public void setCallStatus(String message) {
     this.callStatus = message;
   }
