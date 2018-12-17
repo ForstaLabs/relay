@@ -6,6 +6,17 @@
     <string name="delete">Delete</string>
     <string name="please_wait">Please wait...</string>
 
+    <!-- Notification Channels -->
+    <string name="NotificationChannel_messages">Messages</string>
+    <string name="NotificationChannel_calls">Calls</string>
+    <string name="NotificationChannel_failures">Failures</string>
+    <string name="NotificationChannel_backups">Backups</string>
+    <string name="NotificationChannel_locked_status">Locked status</string>
+    <string name="NotificationChannel_app_updates">App updates</string>
+    <string name="NotificationChannel_group_messages">Messages</string>
+    <string name="NotificationChannel_other">Other</string>
+    <string name="NotificationChannel_missing_display_name">Unknown</string>
+
     <!-- Forsta Strings -->
     <string name="forsta_login_title">Login to Forsta</string>
     <string name="forsta_login_title_join">Join Forsta</string>

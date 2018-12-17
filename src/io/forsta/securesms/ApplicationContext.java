@@ -37,7 +37,6 @@ import io.forsta.securesms.jobs.persistence.EncryptingJobSerializer;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirementProvider;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
 import io.forsta.securesms.jobs.requirements.ServiceRequirementProvider;
-import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -47,8 +46,10 @@ import org.webrtc.voiceengine.WebRtcAudioUtils;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.jobqueue.dependencies.DependencyInjector;
 import org.whispersystems.jobqueue.requirements.NetworkRequirementProvider;
-//import org.whispersystems.libsignal.logging.SignalProtocolLoggerProvider;
-//import org.whispersystems.libsignal.util.AndroidSignalProtocolLogger;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import io.forsta.securesms.notifications.NotificationChannels;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -90,6 +91,7 @@ public class ApplicationContext extends Application implements DependencyInjecto
 //    initializePeriodicTasks();
 //    initializeCircumvention();
     initializeWebRtc();
+    NotificationChannels.create(this);
   }
 
   @Override
@@ -175,7 +177,9 @@ public class ApplicationContext extends Application implements DependencyInjecto
           WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true);
         }
 
-        PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true);
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(this)
+            .setEnableVideoHwAcceleration(true)
+            .createInitializationOptions());
       }
     } catch (UnsatisfiedLinkError e) {
       Log.w(TAG, e);

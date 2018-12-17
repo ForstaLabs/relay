@@ -32,40 +32,40 @@ public class NotificationChannels {
 
   private static final String TAG = NotificationChannels.class.getSimpleName();
 
-//  private static final int VERSION_MESSAGES_CATEGORY = 2;
-//
-//  private static final int VERSION = 2;
-//
-//  private static final String CATEGORY_MESSAGES = "messages";
-//  private static final String CONTACT_PREFIX    = "contact_";
-//  private static final String MESSAGES_PREFIX   = "messages_";
-//
-//  public static final String CALLS         = "calls_v2";
-//  public static final String FAILURES      = "failures";
-//  public static final String APP_UPDATES   = "app_updates";
-//  public static final String BACKUPS       = "backups_v2";
-//  public static final String LOCKED_STATUS = "locked_status_v2";
-//  public static final String OTHER         = "other_v2";
-//
-//  /**
-//   * Ensures all of the notification channels are created. No harm in repeat calls. Call is safely
-//   * ignored for API < 26.
-//   */
-//  public static void create(@NonNull Context context) {
-//    if (!supported()) {
-//      return;
-//    }
-//
-//    NotificationManager notificationManager = getNotificationManager(context);
-//
-//    int oldVersion = TextSecurePreferences.getNotificationChannelVersion(context);
-//    if (oldVersion != VERSION) {
-//      onUpgrade(notificationManager, oldVersion, VERSION);
-//      TextSecurePreferences.setNotificationChannelVersion(context, VERSION);
-//    }
-//
-//    onCreate(context, notificationManager);
-//  }
+  private static final int VERSION_SOME_FUTURE_MOD = 1;
+
+  private static final int VERSION = 1;
+
+  private static final String CATEGORY_MESSAGES = "messages";
+  private static final String CONTACT_PREFIX    = "contact_";
+  private static final String MESSAGES_PREFIX   = "messages_";
+
+  public static final String CALLS         = "calls_v2";
+  public static final String FAILURES      = "failures";
+  public static final String APP_UPDATES   = "app_updates";
+  public static final String BACKUPS       = "backups_v2";
+  public static final String LOCKED_STATUS = "locked_status_v2";
+  public static final String OTHER         = "other_v2";
+
+  /**
+   * Ensures all of the notification channels are created. No harm in repeat calls. Call is safely
+   * ignored for API < 26.
+   */
+  public static void create(@NonNull Context context) {
+    if (!supported()) {
+      return;
+    }
+
+    NotificationManager notificationManager = getNotificationManager(context);
+
+    int oldVersion = TextSecurePreferences.getNotificationChannelVersion(context);
+    if (oldVersion != VERSION) {
+      onUpgrade(notificationManager, oldVersion, VERSION);
+      TextSecurePreferences.setNotificationChannelVersion(context, VERSION);
+    }
+
+    onCreate(context, notificationManager);
+  }
 //
 //  /**
 //   * Recreates all notification channels for contacts with custom notifications enabled. Should be
@@ -91,20 +91,20 @@ public class NotificationChannels {
 //    }
 //  }
 //
-//  /**
-//   * @return The channel ID for the default messages channel.
-//   */
-//  public static @NonNull String getMessagesChannel(@NonNull Context context) {
-//    return getMessagesChannelId(TextSecurePreferences.getNotificationMessagesChannelVersion(context));
-//  }
-//
-//  /**
-//   * @return Whether or not notification channels are supported.
-//   */
-//  public static boolean supported() {
-//    return Build.VERSION.SDK_INT >= 26;
-//  }
-//
+  /**
+   * @return The channel ID for the default messages channel.
+   */
+  public static @NonNull String getMessagesChannel(@NonNull Context context) {
+    return getMessagesChannelId(TextSecurePreferences.getNotificationMessagesChannelVersion(context));
+  }
+
+  /**
+   * @return Whether or not notification channels are supported.
+   */
+  public static boolean supported() {
+    return Build.VERSION.SDK_INT >= 26;
+  }
+
 //  /**
 //   * @return A name suitable to be displayed as the notification channel title.
 //   */
@@ -368,62 +368,61 @@ public class NotificationChannels {
 //    notificationManager.createNotificationChannel(channel);
 //  }
 //
-//  @TargetApi(26)
-//  private static void onCreate(@NonNull Context context, @NonNull NotificationManager notificationManager) {
-//    NotificationChannelGroup messagesGroup = new NotificationChannelGroup(CATEGORY_MESSAGES, context.getResources().getString(R.string.NotificationChannel_group_messages));
-//    notificationManager.createNotificationChannelGroup(messagesGroup);
-//
-//    NotificationChannel messages     = new NotificationChannel(getMessagesChannel(context), context.getString(R.string.NotificationChannel_messages), NotificationManager.IMPORTANCE_HIGH);
-//    NotificationChannel calls        = new NotificationChannel(CALLS, context.getString(R.string.NotificationChannel_calls), NotificationManager.IMPORTANCE_LOW);
-//    NotificationChannel failures     = new NotificationChannel(FAILURES, context.getString(R.string.NotificationChannel_failures), NotificationManager.IMPORTANCE_HIGH);
-//    NotificationChannel backups      = new NotificationChannel(BACKUPS, context.getString(R.string.NotificationChannel_backups), NotificationManager.IMPORTANCE_LOW);
-//    NotificationChannel lockedStatus = new NotificationChannel(LOCKED_STATUS, context.getString(R.string.NotificationChannel_locked_status), NotificationManager.IMPORTANCE_LOW);
-//    NotificationChannel other        = new NotificationChannel(OTHER, context.getString(R.string.NotificationChannel_other), NotificationManager.IMPORTANCE_LOW);
-//
-//    messages.setGroup(CATEGORY_MESSAGES);
-//    messages.enableVibration(TextSecurePreferences.isNotificationVibrateEnabled(context));
-//    messages.setSound(TextSecurePreferences.getNotificationRingtone(context), getRingtoneAudioAttributes());
-//    setLedPreference(messages, TextSecurePreferences.getNotificationLedColor(context));
-//
-//    calls.setShowBadge(false);
-//    backups.setShowBadge(false);
-//    lockedStatus.setShowBadge(false);
-//    other.setShowBadge(false);
-//
-//    notificationManager.createNotificationChannels(Arrays.asList(messages, calls, failures, backups, lockedStatus, other));
-//
+  @TargetApi(26)
+  private static void onCreate(@NonNull Context context, @NonNull NotificationManager notificationManager) {
+    NotificationChannelGroup messagesGroup = new NotificationChannelGroup(CATEGORY_MESSAGES, context.getResources().getString(R.string.NotificationChannel_group_messages));
+    notificationManager.createNotificationChannelGroup(messagesGroup);
+
+    NotificationChannel messages     = new NotificationChannel(getMessagesChannel(context), context.getString(R.string.NotificationChannel_messages), NotificationManager.IMPORTANCE_HIGH);
+    NotificationChannel calls        = new NotificationChannel(CALLS, context.getString(R.string.NotificationChannel_calls), NotificationManager.IMPORTANCE_LOW);
+    NotificationChannel failures     = new NotificationChannel(FAILURES, context.getString(R.string.NotificationChannel_failures), NotificationManager.IMPORTANCE_HIGH);
+    NotificationChannel backups      = new NotificationChannel(BACKUPS, context.getString(R.string.NotificationChannel_backups), NotificationManager.IMPORTANCE_LOW);
+    NotificationChannel lockedStatus = new NotificationChannel(LOCKED_STATUS, context.getString(R.string.NotificationChannel_locked_status), NotificationManager.IMPORTANCE_LOW);
+    NotificationChannel other        = new NotificationChannel(OTHER, context.getString(R.string.NotificationChannel_other), NotificationManager.IMPORTANCE_LOW);
+
+    messages.setGroup(CATEGORY_MESSAGES);
+    messages.enableVibration(TextSecurePreferences.isNotificationVibrateEnabled(context));
+    messages.setSound(Uri.parse(TextSecurePreferences.getNotificationRingtone(context)), getRingtoneAudioAttributes());
+    setLedPreference(messages, TextSecurePreferences.getNotificationLedColor(context));
+
+    calls.setShowBadge(false);
+    backups.setShowBadge(false);
+    lockedStatus.setShowBadge(false);
+    other.setShowBadge(false);
+
+    notificationManager.createNotificationChannels(Arrays.asList(messages, calls, failures, backups, lockedStatus, other));
+
 //    if (BuildConfig.PLAY_STORE_DISABLED) {
 //      NotificationChannel appUpdates = new NotificationChannel(APP_UPDATES, context.getString(R.string.NotificationChannel_app_updates), NotificationManager.IMPORTANCE_HIGH);
 //      notificationManager.createNotificationChannel(appUpdates);
 //    } else {
 //      notificationManager.deleteNotificationChannel(APP_UPDATES);
 //    }
-//  }
-//
-//  @TargetApi(26)
-//  private static void onUpgrade(@NonNull NotificationManager notificationManager, int oldVersion, int newVersion) {
-//    Log.i(TAG, "Upgrading channels from " + oldVersion + " to " + newVersion);
-//
-//    if (oldVersion < VERSION_MESSAGES_CATEGORY) {
+  }
+
+  @TargetApi(26)
+  private static void onUpgrade(@NonNull NotificationManager notificationManager, int oldVersion, int newVersion) {
+    Log.i(TAG, "Upgrading channels from " + oldVersion + " to " + newVersion);
+
+    if (oldVersion < VERSION_SOME_FUTURE_MOD) {
 //      notificationManager.deleteNotificationChannel("messages");
 //      notificationManager.deleteNotificationChannel("calls");
 //      notificationManager.deleteNotificationChannel("locked_status");
 //      notificationManager.deleteNotificationChannel("backups");
 //      notificationManager.deleteNotificationChannel("other");
-//    }
-//  }
-//
-//  @TargetApi(26)
-//  private static void setLedPreference(@NonNull NotificationChannel channel, @NonNull String ledColor) {
-//    if ("none".equals(ledColor)) {
-//      channel.enableLights(false);
-//    } else {
-//      channel.enableLights(true);
-//      channel.setLightColor(Color.parseColor(ledColor));
-//    }
-//  }
-//
-//
+    }
+  }
+
+  @TargetApi(26)
+  private static void setLedPreference(@NonNull NotificationChannel channel, @NonNull String ledColor) {
+    if ("none".equals(ledColor)) {
+      channel.enableLights(false);
+    } else {
+      channel.enableLights(true);
+      channel.setLightColor(Color.parseColor(ledColor));
+    }
+  }
+
 //  private static @NonNull String generateChannelIdFor(@NonNull Address address) {
 //    return CONTACT_PREFIX + address.serialize() + "_" + System.currentTimeMillis();
 //  }
@@ -445,10 +444,10 @@ public class NotificationChannels {
 //    return copy;
 //  }
 //
-//  private static String getMessagesChannelId(int version) {
-//    return MESSAGES_PREFIX + version;
-//  }
-//
+  private static String getMessagesChannelId(int version) {
+    return MESSAGES_PREFIX + version;
+  }
+
 //  @WorkerThread
 //  @TargetApi(26)
 //  private static void updateAllRecipientChannelLedColors(@NonNull Context context, @NonNull NotificationManager notificationManager, @NonNull String color) {
@@ -501,27 +500,27 @@ public class NotificationChannels {
 //    return true;
 //  }
 //
-//  @TargetApi(21)
-//  private static AudioAttributes getRingtoneAudioAttributes() {
-//    return new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-//        .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
-//        .build();
-//  }
-//
-//  @TargetApi(26)
-//  private static @NonNull NotificationManager getNotificationManager(@NonNull Context context) {
-//    NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-//    assert  notificationManager != null;
-//    return notificationManager;
-//  }
-//
-//  @TargetApi(26)
-//  private static boolean channelExists(@Nullable NotificationChannel channel) {
-//    return channel != null && !NotificationChannel.DEFAULT_CHANNEL_ID.equals(channel);
-//  }
-//
-//  private interface ChannelUpdater {
-//    @TargetApi(26)
-//    void update(@NonNull NotificationChannel channel);
-//  }
+  @TargetApi(21)
+  private static AudioAttributes getRingtoneAudioAttributes() {
+    return new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+        .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
+        .build();
+  }
+
+  @TargetApi(26)
+  private static @NonNull NotificationManager getNotificationManager(@NonNull Context context) {
+    NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+    assert  notificationManager != null;
+    return notificationManager;
+  }
+
+  @TargetApi(26)
+  private static boolean channelExists(@Nullable NotificationChannel channel) {
+    return channel != null && !NotificationChannel.DEFAULT_CHANNEL_ID.equals(channel);
+  }
+
+  private interface ChannelUpdater {
+    @TargetApi(26)
+    void update(@NonNull NotificationChannel channel);
+  }
 }
