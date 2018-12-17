@@ -17,6 +17,9 @@
     <string name="NotificationChannel_other">Other</string>
     <string name="NotificationChannel_missing_display_name">Unknown</string>
 
+    <string name="MessageRetrievalService_forsta">Forsta Message Retrieval Service</string>
+    <string name="MessageRetrievalService_background_connection_enabled">Background connection enabled</string>
+
     <!-- Forsta Strings -->
     <string name="forsta_login_title">Login to Forsta</string>
     <string name="forsta_login_title_join">Join Forsta</string>

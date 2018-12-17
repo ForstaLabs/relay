@@ -32,9 +32,9 @@ public class NotificationChannels {
 
   private static final String TAG = NotificationChannels.class.getSimpleName();
 
-  private static final int VERSION_SOME_FUTURE_MOD = 1;
+  private static final int VERSION_MESSAGES_CATEGORY = 2;
 
-  private static final int VERSION = 1;
+  private static final int VERSION = 2;
 
   private static final String CATEGORY_MESSAGES = "messages";
   private static final String CONTACT_PREFIX    = "contact_";
@@ -214,18 +214,18 @@ public class NotificationChannels {
 //    updateAllRecipientChannelLedColors(context, notificationManager, color);
 //  }
 //
-//  /**
-//   * @return The message ringtone set for the default message channel.
-//   */
-//  public static @NonNull Uri getMessageRingtone(@NonNull Context context) {
-//    if (!supported()) {
-//      return Uri.EMPTY;
-//    }
-//
-//    Uri sound = getNotificationManager(context).getNotificationChannel(getMessagesChannel(context)).getSound();
-//    return sound == null ? Uri.EMPTY : sound;
-//  }
-//
+  /**
+   * @return The message ringtone set for the default message channel.
+   */
+  public static @NonNull Uri getMessageRingtone(@NonNull Context context) {
+    if (!supported()) {
+      return Uri.EMPTY;
+    }
+
+    Uri sound = getNotificationManager(context).getNotificationChannel(getMessagesChannel(context)).getSound();
+    return sound == null ? Uri.EMPTY : sound;
+  }
+
 //  public static @Nullable Uri getMessageRingtone(@NonNull Context context, @NonNull Recipient recipient) {
 //    if (!supported() || recipient.getNotificationChannel() == null) {
 //      return null;
@@ -278,17 +278,17 @@ public class NotificationChannels {
 //    DatabaseFactory.getRecipientDatabase(context).setNotificationChannel(recipient, success ? newChannelId : null);
 //  }
 //
-//  /**
-//   * @return The vibrate settings for the default message channel.
-//   */
-//  public static boolean getMessageVibrate(@NonNull Context context) {
-//    if (!supported()) {
-//      return false;
-//    }
-//
-//    return getNotificationManager(context).getNotificationChannel(getMessagesChannel(context)).shouldVibrate();
-//  }
-//
+  /**
+   * @return The vibrate settings for the default message channel.
+   */
+  public static boolean getMessageVibrate(@NonNull Context context) {
+    if (!supported()) {
+      return false;
+    }
+
+    return getNotificationManager(context).getNotificationChannel(getMessagesChannel(context)).shouldVibrate();
+  }
+
 //  /**
 //   * @return The vibrate setting for a specific recipient. If that recipient has no channel, this
 //   *         will return the setting for the default message channel.
@@ -404,12 +404,14 @@ public class NotificationChannels {
   private static void onUpgrade(@NonNull NotificationManager notificationManager, int oldVersion, int newVersion) {
     Log.i(TAG, "Upgrading channels from " + oldVersion + " to " + newVersion);
 
-    if (oldVersion < VERSION_SOME_FUTURE_MOD) {
-//      notificationManager.deleteNotificationChannel("messages");
-//      notificationManager.deleteNotificationChannel("calls");
-//      notificationManager.deleteNotificationChannel("locked_status");
-//      notificationManager.deleteNotificationChannel("backups");
-//      notificationManager.deleteNotificationChannel("other");
+    if (oldVersion < VERSION_MESSAGES_CATEGORY) {
+      notificationManager.deleteNotificationChannel("messages");
+      notificationManager.deleteNotificationChannel("calls");
+      notificationManager.deleteNotificationChannel("locked_status");
+      notificationManager.deleteNotificationChannel("backups");
+      notificationManager.deleteNotificationChannel("other");
+      notificationManager.deleteNotificationChannel("forsta_channel_01");
+      notificationManager.deleteNotificationChannel("forsta_channel_02");
     }
   }
 

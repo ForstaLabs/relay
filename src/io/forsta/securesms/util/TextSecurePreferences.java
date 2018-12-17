@@ -102,6 +102,7 @@ public class TextSecurePreferences {
   public static final String NOTIFICATION_FILTER = "pref_notification_filter";
   private static final String NOTIFICATION_CHANNEL_VERSION          = "pref_notification_channel_version";
   private static final String NOTIFICATION_MESSAGES_CHANNEL_VERSION = "pref_notification_messages_channel_version";
+  private static final String GCM_DISABLED_PREF                = "pref_gcm_disabled";
 
 
   public static int getNotificationChannelVersion(Context context) {
@@ -520,6 +521,10 @@ public class TextSecurePreferences {
 
   public static boolean isInterceptAllSmsEnabled(Context context) {
     return getBooleanPreference(context, ALL_SMS_PREF, true);
+  }
+
+  public static boolean isGcmDisabled(Context context) {
+    return getBooleanPreference(context, GCM_DISABLED_PREF, false);
   }
 
   public static boolean isNotificationsEnabled(Context context) {

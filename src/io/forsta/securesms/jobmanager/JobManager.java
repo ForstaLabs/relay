@@ -1,9 +1,8 @@
-package org.thoughtcrime.securesms.jobmanager;
+package io.forsta.securesms.jobmanager;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-
-import org.thoughtcrime.securesms.logging.Log;
+import android.util.Log;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -53,8 +52,7 @@ public class JobManager {
       Data.Builder dataBuilder = new Data.Builder().putInt(Job.KEY_RETRY_COUNT, jobParameters.getRetryCount())
                                                    .putLong(Job.KEY_RETRY_UNTIL, jobParameters.getRetryUntil())
                                                    .putLong(Job.KEY_SUBMIT_TIME, System.currentTimeMillis())
-                                                   .putBoolean(Job.KEY_REQUIRES_NETWORK, jobParameters.requiresNetwork())
-                                                   .putBoolean(Job.KEY_REQUIRES_SQLCIPHER, jobParameters.requiresSqlCipher());
+                                                   .putBoolean(Job.KEY_REQUIRES_NETWORK, jobParameters.requiresNetwork());
       Data data = job.serialize(dataBuilder);
 
       OneTimeWorkRequest.Builder requestBuilder = new OneTimeWorkRequest.Builder(job.getClass())

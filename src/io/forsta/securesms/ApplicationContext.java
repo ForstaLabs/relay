@@ -27,6 +27,8 @@ import android.util.Log;
 
 import com.google.android.gms.security.ProviderInstaller;
 
+import androidx.work.Configuration;
+import androidx.work.WorkManager;
 import io.forsta.securesms.crypto.PRNGFixes;
 import io.forsta.securesms.dependencies.AxolotlStorageModule;
 import io.forsta.securesms.dependencies.InjectableType;

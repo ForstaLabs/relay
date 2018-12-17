@@ -263,11 +263,7 @@ public class MessageNotifier {
 
     NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        notificationManager.createNotificationChannel(builder.getChannel());
-      } else {
-        notificationManager.createNotificationChannel(builder.getNoSoundChannel());
-      }
+      notificationManager.createNotificationChannel(builder.getChannel());
     }
 
     notificationManager.notify(NOTIFICATION_ID, builder.build());
@@ -307,11 +303,7 @@ public class MessageNotifier {
 
     NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        notificationManager.createNotificationChannel(builder.getChannel());
-      } else {
-        notificationManager.createNotificationChannel(builder.getNoSoundChannel());
-      }
+      notificationManager.createNotificationChannel(builder.getChannel());
     }
 
     notificationManager.notify(NOTIFICATION_ID, builder.build());

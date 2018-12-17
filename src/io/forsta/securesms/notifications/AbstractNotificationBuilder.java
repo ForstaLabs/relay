@@ -30,8 +30,6 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
 
   protected Context                       context;
   protected NotificationPrivacyPreference privacy;
-  public static final String CHANNEL_ID = "forsta_channel_01";
-  public static final String QUIET_CHANNEL_ID = "forsta_channel_02";
 
   public AbstractNotificationBuilder(Context context, NotificationPrivacyPreference privacy) {
     super(context);
@@ -39,33 +37,11 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     this.context = context;
     this.privacy = privacy;
 
-    this.setChannelId(CHANNEL_ID);
-
+    setChannelId(NotificationChannels.getMessagesChannel(context));
     setLed();
   }
 
   public NotificationChannel getChannel() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-          "Forsta",
-          NotificationManager.IMPORTANCE_DEFAULT);
-      channel.setDescription("Forsta Channel");
-      this.setChannelId(CHANNEL_ID);
-      return channel;
-    }
-
-    return null;
-  }
-
-  public NotificationChannel getNoSoundChannel() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      NotificationChannel channel = new NotificationChannel(QUIET_CHANNEL_ID,
-          "Forsta No Sound",
-          NotificationManager.IMPORTANCE_LOW);
-      channel.setDescription("Forsta Channel");
-      this.setChannelId(QUIET_CHANNEL_ID);
-      return channel;
-    }
     return null;
   }
 
@@ -79,15 +55,11 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
   }
 
   public void setAlarms(@Nullable Uri ringtone, RecipientPreferenceDatabase.VibrateState vibrate) {
-    String  defaultRingtoneName = TextSecurePreferences.getNotificationRingtone(context);
-    boolean defaultVibrate      = TextSecurePreferences.isNotificationVibrateEnabled(context);
+    Uri     defaultRingtone = NotificationChannels.supported() ? NotificationChannels.getMessageRingtone(context) : Uri.parse(TextSecurePreferences.getNotificationRingtone(context));
+    boolean defaultVibrate  = NotificationChannels.supported() ? NotificationChannels.getMessageVibrate(context)  : TextSecurePreferences.isNotificationVibrateEnabled(context);
 
-    if (ringtone != null)                        {
-      setSound(ringtone);
-    }
-    else if (!TextUtils.isEmpty(defaultRingtoneName)) {
-      setSound(Uri.parse(defaultRingtoneName));
-    }
+    if      (ringtone == null && !TextUtils.isEmpty(defaultRingtone.toString())) setSound(defaultRingtone);
+    else if (ringtone != null && !ringtone.toString().isEmpty())                 setSound(ringtone);
 
     if (vibrate == RecipientPreferenceDatabase.VibrateState.ENABLED ||
         (vibrate == RecipientPreferenceDatabase.VibrateState.DEFAULT && defaultVibrate))
