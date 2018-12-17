@@ -74,6 +74,9 @@
     <string name="ApplicationPreferencesActivity_privacy_summary">Passphrase %1$s, Screen security %2$s</string>
     <string name="ApplicationPreferencesActivity_appearance_summary">Theme %1$s, Language %2$s</string>
 
+    <!-- Job -->
+    <string name="Job_working_in_the_background">Working in the background...</string>
+
     <!-- AppProtectionPreferenceFragment -->
     <plurals name="AppProtectionPreferenceFragment_minutes">
         <item quantity="one">1 minute</item>
