@@ -6,8 +6,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import io.forsta.securesms.service.KeyCachingService;
-import org.whispersystems.jobqueue.requirements.RequirementListener;
-import org.whispersystems.jobqueue.requirements.RequirementProvider;
+import io.forsta.securesms.jobmanager.requirements.RequirementListener;
+import io.forsta.securesms.jobmanager.requirements.RequirementProvider;
 
 public class MasterSecretRequirementProvider implements RequirementProvider {
 

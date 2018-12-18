@@ -13,13 +13,13 @@ import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.dependencies.ContextDependent;
-import org.whispersystems.jobqueue.requirements.Requirement;
+import io.forsta.securesms.jobmanager.dependencies.ContextDependent;
+import io.forsta.securesms.jobmanager.requirements.SimpleRequirement;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class MediaNetworkRequirement implements Requirement, ContextDependent {
+public class MediaNetworkRequirement extends SimpleRequirement implements ContextDependent {
   private static final long   serialVersionUID = 0L;
   private static final String TAG              = MediaNetworkRequirement.class.getSimpleName();
 

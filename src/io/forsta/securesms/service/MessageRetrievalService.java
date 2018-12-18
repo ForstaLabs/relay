@@ -12,12 +12,12 @@ import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.gcm.GcmBroadcastReceiver;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirementProvider;
+import io.forsta.securesms.jobmanager.requirements.RequirementListener;
 import io.forsta.securesms.jobs.PushContentReceiveJob;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
-import org.whispersystems.jobqueue.requirements.NetworkRequirementProvider;
-import org.whispersystems.jobqueue.requirements.RequirementListener;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.signalservice.api.SignalServiceMessagePipe;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
@@ -41,7 +41,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   private static final long   REQUEST_TIMEOUT_MINUTES  = 1;
   public static final  int    FOREGROUND_ID            = 313399;
 
-  private NetworkRequirement         networkRequirement;
+  private NetworkRequirement networkRequirement;
   private NetworkRequirementProvider networkRequirementProvider;
 
   @Inject
