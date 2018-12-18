@@ -184,11 +184,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public void onCreate() {
     super.onCreate();
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      int NOTIFICATION_ID = (int) (System.currentTimeMillis() % 10000);
-      startForeground(NOTIFICATION_ID, new NotificationCompat.Builder(this, AbstractNotificationBuilder.CHANNEL_ID).build());
-    }
-
     initializeResources();
 
     registerIncomingPstnCallReceiver();
