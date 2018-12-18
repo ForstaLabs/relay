@@ -21,6 +21,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -32,13 +33,17 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.PlayServicesProblemActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.SafeData;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 
 import javax.inject.Inject;
+import androidx.work.Data;
+
 
 public class GcmRefreshJob extends ContextJob implements InjectableType {
 
@@ -48,12 +53,30 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
 
   @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
+  public GcmRefreshJob() {
+    super(null, null);
+  }
+
   public GcmRefreshJob(Context context) {
-    super(context, JobParameters.newBuilder().withRequirement(new NetworkRequirement(context)).create());
+    super(context, JobParameters.newBuilder()
+        .withGroupId(TAG)
+        .withDuplicatesIgnored(true)
+        .withNetworkRequirement()
+        .withRetryCount(1)
+        .create());
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
   }
 
   @Override
   public void onAdded() {}
+
+  @Override
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
 
   @Override
   public void onRun() throws Exception {
@@ -89,7 +112,7 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
   private void notifyGcmFailure() {
     Intent                     intent        = new Intent(context, PlayServicesProblemActivity.class);
     PendingIntent              pendingIntent = PendingIntent.getActivity(context, 1122, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-    NotificationCompat.Builder builder       = new NotificationCompat.Builder(context);
+    NotificationCompat.Builder builder       = new NotificationCompat.Builder(context, NotificationChannels.FAILURES);
 
     builder.setSmallIcon(R.drawable.icon_notification);
     builder.setLargeIcon(BitmapFactory.decodeResource(context.getResources(),

@@ -34,7 +34,7 @@ public class JobParameters implements Serializable {
 
   private final List<Requirement> requirements;
   private final boolean           requiresNetwork;
-  private final boolean           requiresSqlCipher;
+  private final boolean           requiresMasterSecret;
   private final int               retryCount;
   private final long              retryUntil;
   private final String            groupId;
@@ -43,7 +43,7 @@ public class JobParameters implements Serializable {
   private JobParameters(String groupId,
                         boolean ignoreDuplicates,
                         boolean requiresNetwork,
-                        boolean requiresSqlCipher,
+                        boolean requiresMasterSecret,
                         int retryCount,
                         long retryUntil)
   {
@@ -51,7 +51,7 @@ public class JobParameters implements Serializable {
     this.ignoreDuplicates  = ignoreDuplicates;
     this.requirements      = Collections.emptyList();
     this.requiresNetwork   = requiresNetwork;
-    this.requiresSqlCipher = requiresSqlCipher;
+    this.requiresMasterSecret = requiresMasterSecret;
     this.retryCount        = retryCount;
     this.retryUntil        = retryUntil;
   }
@@ -105,7 +105,7 @@ public class JobParameters implements Serializable {
     private String            groupId              = null;
     private boolean           ignoreDuplicates     = false;
     private boolean           requiresNetwork      = false;
-    private boolean           requiresSqlCipher    = false;
+    private boolean           requiresMasterSecret = false;
 
     public Builder withNetworkRequirement() {
       requiresNetwork = true;
@@ -113,8 +113,8 @@ public class JobParameters implements Serializable {
     }
 
     @Deprecated
-    public Builder withSqlCipherRequirement() {
-      requiresSqlCipher = true;
+    public Builder withMasterSecretRequirement() {
+      requiresMasterSecret = true;
       return this;
     }
 
@@ -173,7 +173,7 @@ public class JobParameters implements Serializable {
      * @return the JobParameters instance that describes a Job.
      */
     public JobParameters create() {
-      return new JobParameters(groupId, ignoreDuplicates, requiresNetwork, requiresSqlCipher, retryCount, System.currentTimeMillis() + retryDuration);
+      return new JobParameters(groupId, ignoreDuplicates, requiresNetwork, requiresMasterSecret, retryCount, System.currentTimeMillis() + retryDuration);
     }
   }
 }

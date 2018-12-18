@@ -2,9 +2,9 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 
-import org.whispersystems.jobqueue.Job;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.dependencies.ContextDependent;
+import io.forsta.securesms.jobmanager.Job;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.dependencies.ContextDependent;
 
 public abstract class ContextJob extends Job implements ContextDependent {
 

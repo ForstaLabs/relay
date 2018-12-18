@@ -14,8 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.forsta.securesms.jobmanager.requirements;
+package io.forsta.securesms.jobmanager;
 
-public interface RequirementListener {
-  public void onRequirementStatusChanged();
+public class EncryptionKeys {
+
+  private transient final byte[] encoded;
+
+  public EncryptionKeys(byte[] encoded) {
+    this.encoded = encoded;
+  }
+
+  public byte[] getEncoded() {
+    return encoded;
+  }
 }

@@ -17,12 +17,16 @@
 package io.forsta.securesms;
 
 import android.app.Application;
+import android.arch.lifecycle.DefaultLifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
 import android.os.StrictMode.VmPolicy;
+import android.support.annotation.NonNull;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.google.android.gms.security.ProviderInstaller;
@@ -45,18 +49,16 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.voiceengine.WebRtcAudioManager;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
-import org.whispersystems.jobqueue.JobManager;
-import org.whispersystems.jobqueue.dependencies.DependencyInjector;
-import org.whispersystems.jobqueue.requirements.NetworkRequirementProvider;
-
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import io.forsta.securesms.jobmanager.JobManager;
+import io.forsta.securesms.jobmanager.dependencies.DependencyInjector;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirementProvider;
 import io.forsta.securesms.notifications.NotificationChannels;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import dagger.ObjectGraph;
+import io.forsta.securesms.util.Util;
 
 /**
  * Will be called once when the TextSecure process is created.
@@ -66,13 +68,15 @@ import dagger.ObjectGraph;
  *
  * @author Moxie Marlinspike
  */
-public class ApplicationContext extends Application implements DependencyInjector {
+public class ApplicationContext extends MultiDexApplication implements DependencyInjector, DefaultLifecycleObserver {
 
   private static final String TAG = ApplicationContext.class.getName();
 
   private ExpiringMessageManager expiringMessageManager;
   private JobManager             jobManager;
   private ObjectGraph            objectGraph;
+  private boolean                initialized;
+  private volatile boolean       isAppVisible;
 
   private MediaNetworkRequirementProvider mediaNetworkRequirementProvider = new MediaNetworkRequirementProvider();
 
@@ -94,7 +98,30 @@ public class ApplicationContext extends Application implements DependencyInjecto
 //    initializeCircumvention();
     initializeWebRtc();
     NotificationChannels.create(this);
+
   }
+
+  public void ensureInitialized() {
+    synchronized (this) {
+      while (!initialized) {
+        Util.wait(this, 0);
+      }
+    }
+  }
+
+  @Override
+  public void onStart(@NonNull LifecycleOwner owner) {
+    isAppVisible = true;
+    Log.i(TAG, "App is now visible.");
+//    executePendingContactSync();
+  }
+
+  @Override
+  public void onStop(@NonNull LifecycleOwner owner) {
+    isAppVisible = false;
+    Log.i(TAG, "App is no longer visible.");
+  }
+
 
   @Override
   public void injectDependencies(Object object) {
@@ -111,6 +138,10 @@ public class ApplicationContext extends Application implements DependencyInjecto
     return expiringMessageManager;
   }
 
+  public boolean isAppVisible() {
+    return isAppVisible;
+  }
+
   private void initializeRandomNumberFix() {
     PRNGFixes.apply();
   }
@@ -121,16 +152,11 @@ public class ApplicationContext extends Application implements DependencyInjecto
   }
 
   private void initializeJobManager() {
-    this.jobManager = JobManager.newBuilder(this)
-                                .withName("TextSecureJobs")
-                                .withDependencyInjector(this)
-                                .withJobSerializer(new EncryptingJobSerializer())
-                                .withRequirementProviders(new MasterSecretRequirementProvider(this),
-                                                          new ServiceRequirementProvider(this),
-                                                          new NetworkRequirementProvider(this),
-                                                          mediaNetworkRequirementProvider)
-                                .withConsumerThreads(5)
-                                .build();
+    WorkManager.initialize(this, new Configuration.Builder()
+        .setMinimumLoggingLevel(android.util.Log.DEBUG)
+        .build());
+
+    this.jobManager = new JobManager(this, WorkManager.getInstance());
   }
 
   public void notifyMediaControlEvent() {

@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.support.v4.app.NotificationCompat;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
@@ -23,8 +24,6 @@ public class FailedNotificationBuilder extends AbstractNotificationBuilder {
     setContentIntent(PendingIntent.getActivity(context, 0, intent, 0));
     setAutoCancel(true);
     setAlarms(null, RecipientPreferenceDatabase.VibrateState.DEFAULT);
+    setChannelId(NotificationChannels.FAILURES);
   }
-
-
-
 }

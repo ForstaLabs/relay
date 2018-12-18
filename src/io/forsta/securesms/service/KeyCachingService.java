@@ -149,6 +149,18 @@ public class KeyCachingService extends Service {
 
   @Override
   public void onCreate() {
+    Log.i(TAG, "onCreate()");
+    super.onCreate();
+
+//    if (TextSecurePreferences.isPasswordDisabled(this)) {
+//      try {
+//        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(this, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
+//        setMasterSecret(masterSecret);
+//      } catch (InvalidPassphraseException e) {
+//        Log.w("KeyCachingService", e);
+//      }
+//    }
+
     Log.w("KeyCachingService", "onCreate()");
     super.onCreate();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
