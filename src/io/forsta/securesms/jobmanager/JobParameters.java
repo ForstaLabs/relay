@@ -19,6 +19,7 @@ package io.forsta.securesms.jobmanager;
 import io.forsta.securesms.jobmanager.requirements.NetworkBackoffRequirement;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobmanager.requirements.Requirement;
+import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.jobs.requirements.NetworkOrServiceRequirement;
 
 import java.io.Serializable;
@@ -73,6 +74,22 @@ public class JobParameters implements Serializable {
           requirement instanceof NetworkOrServiceRequirement ||
           requirement instanceof NetworkBackoffRequirement)
       {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public boolean requiresMasterSecret() {
+    return requiresMasterSecret || hasMasterSecretRequirement(requirements);
+  }
+
+  private boolean hasMasterSecretRequirement(List<Requirement> requirements) {
+    if (requirements == null || requirements.size() == 0) return false;
+
+    for (Requirement requirement : requirements) {
+      if (requirement instanceof MasterSecretRequirement) {
         return true;
       }
     }

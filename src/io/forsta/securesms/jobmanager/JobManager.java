@@ -52,7 +52,8 @@ public class JobManager {
       Data.Builder dataBuilder = new Data.Builder().putInt(Job.KEY_RETRY_COUNT, jobParameters.getRetryCount())
                                                    .putLong(Job.KEY_RETRY_UNTIL, jobParameters.getRetryUntil())
                                                    .putLong(Job.KEY_SUBMIT_TIME, System.currentTimeMillis())
-                                                   .putBoolean(Job.KEY_REQUIRES_NETWORK, jobParameters.requiresNetwork());
+                                                   .putBoolean(Job.KEY_REQUIRES_NETWORK, jobParameters.requiresNetwork())
+                                                   .putBoolean(Job.KEY_REQUIRES_MASTER_SECRET, jobParameters.requiresMasterSecret());
       Data data = job.serialize(dataBuilder);
 
       OneTimeWorkRequest.Builder requestBuilder = new OneTimeWorkRequest.Builder(job.getClass())
@@ -65,7 +66,7 @@ public class JobManager {
 
       OneTimeWorkRequest request = requestBuilder.build();
 
-      job.onSubmit(context, request.getId());
+      job.onSubmit(request.getId());
 
       String groupId = jobParameters.getGroupId();
       if (groupId != null) {

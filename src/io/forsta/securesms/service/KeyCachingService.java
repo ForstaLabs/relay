@@ -152,32 +152,6 @@ public class KeyCachingService extends Service {
     Log.i(TAG, "onCreate()");
     super.onCreate();
 
-//    if (TextSecurePreferences.isPasswordDisabled(this)) {
-//      try {
-//        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(this, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
-//        setMasterSecret(masterSecret);
-//      } catch (InvalidPassphraseException e) {
-//        Log.w("KeyCachingService", e);
-//      }
-//    }
-
-    Log.w("KeyCachingService", "onCreate()");
-    super.onCreate();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      String CHANNEL_ID = AbstractNotificationBuilder.CHANNEL_ID;
-      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-          "Forsta",
-          NotificationManager.IMPORTANCE_DEFAULT);
-
-      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
-
-      Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-          .setContentTitle("Forsta")
-          .setContentText("Service running...").build();
-
-      startForeground(1, notification);
-    }
-
     this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
                                                                 this, KeyCachingService.class), 0);
 

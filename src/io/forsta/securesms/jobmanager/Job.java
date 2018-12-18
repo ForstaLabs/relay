@@ -33,6 +33,7 @@ public abstract class Job extends Worker implements Serializable {
   static final String KEY_RETRY_COUNT            = "Job_retry_count";
   static final String KEY_RETRY_UNTIL            = "Job_retry_until";
   static final String KEY_SUBMIT_TIME            = "Job_submit_time";
+  static final String KEY_REQUIRES_NETWORK   = "Job_requires_network";
   static final String KEY_REQUIRES_MASTER_SECRET = "Job_requires_master_secret";
 
   private JobParameters parameters;
@@ -67,9 +68,17 @@ public abstract class Job extends Worker implements Serializable {
 
     initialize(new SafeData(data));
 
+    boolean foregroundRunning = false;
+
     try {
       if (withinRetryLimits(data)) {
         if (requirementsMet(data)) {
+          if (needsForegroundService(data)) {
+            Log.i(TAG, "Running a foreground service with description '" + getDescription() + "' to aid in job execution." + logSuffix());
+            GenericForegroundService.startForegroundTask(getApplicationContext(), getDescription());
+            foregroundRunning = true;
+          }
+
           onRun();
           log("Successfully completed." + logSuffix());
           return Result.SUCCESS;
@@ -88,7 +97,19 @@ public abstract class Job extends Worker implements Serializable {
       }
       warn("Failing due to an exception." + logSuffix(), e);
       return cancel();
+    } finally {
+      if (foregroundRunning) {
+        Log.i(TAG, "Stopping the foreground service." + logSuffix());
+        GenericForegroundService.stopForegroundTask(getApplicationContext());
+      }
     }
+  }
+
+  private boolean needsForegroundService(@NonNull Data data) {
+    NetworkRequirement networkRequirement = new NetworkRequirement(getApplicationContext());
+    boolean            requiresNetwork    = data.getBoolean(KEY_REQUIRES_NETWORK, false);
+
+    return requiresNetwork && !networkRequirement.isPresent();
   }
 
   @Override
@@ -101,6 +122,14 @@ public abstract class Job extends Worker implements Serializable {
     onAdded();
   }
 
+
+  /**
+   * @return A string that represents what the task does. Will be shown in a foreground notification
+   *         if necessary.
+   */
+  protected String getDescription() {
+    return getApplicationContext().getString(R.string.Job_working_in_the_background);
+  }
   /**
    * Called after a run has finished and we've determined a retry is required, but before the next
    * attempt is run.
