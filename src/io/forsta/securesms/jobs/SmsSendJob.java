@@ -5,34 +5,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.model.SmsMessageRecord;
-import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
-import io.forsta.securesms.jobs.requirements.NetworkOrServiceRequirement;
-import io.forsta.securesms.jobs.requirements.ServiceRequirement;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.SmsDeliveryListener;
 import io.forsta.securesms.transport.UndeliverableMessageException;
 import io.forsta.securesms.util.NumberUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
 
 import java.util.ArrayList;
 
 public class SmsSendJob extends SendJob {
 
   private static final String TAG = SmsSendJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID   = "message_id";
 
-  private final long messageId;
+  private long messageId;
+
+  public SmsSendJob() {
+    super(null, null);
+  }
 
   public SmsSendJob(Context context, long messageId, String name) {
     super(context, constructParameters(context, name));
@@ -43,6 +48,17 @@ public class SmsSendJob extends SendJob {
   public void onAdded() {
     SmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(context);
     database.markAsSending(messageId);
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    messageId = data.getLong(KEY_MESSAGE_ID);
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId).build();
   }
 
   @Override
@@ -190,16 +206,9 @@ public class SmsSendJob extends SendJob {
 
   private static JobParameters constructParameters(Context context, String name) {
     JobParameters.Builder builder = JobParameters.newBuilder()
-                                                 .withPersistence()
-                                                 .withRequirement(new MasterSecretRequirement(context))
+                                                 .withMasterSecretRequirement()
                                                  .withRetryCount(15)
                                                  .withGroupId(name);
-
-    if (TextSecurePreferences.isWifiSmsEnabled(context)) {
-      builder.withRequirement(new NetworkOrServiceRequirement(context));
-    } else {
-      builder.withRequirement(new ServiceRequirement(context));
-    }
 
     return builder.create();
   }

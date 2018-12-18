@@ -1,8 +1,10 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -11,6 +13,7 @@ import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -35,12 +38,16 @@ import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 public class PushTextSendJob extends PushSendJob implements InjectableType {
 
   private static final long serialVersionUID = 1L;
-
   private static final String TAG = PushTextSendJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID = "message_id";
 
   @Inject transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
-  private final long messageId;
+  private long messageId;
+
+  public PushTextSendJob() {
+    super(null, null);
+  }
 
   public PushTextSendJob(Context context, long messageId, String destination) {
     super(context, constructParameters(context, destination));
@@ -52,6 +59,17 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
     SmsDatabase smsDatabase = DatabaseFactory.getSmsDatabase(context);
     smsDatabase.markAsSending(messageId);
     smsDatabase.markAsPush(messageId);
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    messageId = data.getLong(KEY_MESSAGE_ID);
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId).build();
   }
 
   @Override

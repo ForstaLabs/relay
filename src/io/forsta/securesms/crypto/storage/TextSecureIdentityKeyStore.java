@@ -44,14 +44,14 @@ public class TextSecureIdentityKeyStore implements IdentityKeyStore {
 
     if (trusted) {
       return true;
-    } else if (!TextSecurePreferences.isBlockingIdentityUpdates(context)) {
-      saveIdentity(name, identityKey);
-
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new IdentityUpdateJob(context, recipientId));
-
-      return true;
+//    } else if (!TextSecurePreferences.isBlockingIdentityUpdates(context)) {
+//      saveIdentity(name, identityKey);
+//
+//      ApplicationContext.getInstance(context)
+//                        .getJobManager()
+//                        .add(new IdentityUpdateJob(context, recipientId));
+//
+//      return true;
     } else {
       return false;
     }

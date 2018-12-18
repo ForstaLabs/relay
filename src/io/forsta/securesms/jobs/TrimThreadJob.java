@@ -17,29 +17,47 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.database.DatabaseFactory;
+import io.forsta.securesms.jobmanager.Job;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.Job;
-import org.whispersystems.jobqueue.JobParameters;
 
-public class TrimThreadJob extends Job {
+public class TrimThreadJob extends ContextJob {
 
   private static final String TAG = TrimThreadJob.class.getSimpleName();
+  private static final String KEY_THREAD_ID = "thread_id";
 
-  private final Context context;
-  private final long    threadId;
+  private long    threadId;
+
+  public TrimThreadJob() {
+    super(null, null);
+  }
 
   public TrimThreadJob(Context context, long threadId) {
-    super(JobParameters.newBuilder().withGroupId(TrimThreadJob.class.getSimpleName()).create());
-    this.context  = context;
+    super(context, JobParameters.newBuilder().withGroupId(TrimThreadJob.class.getSimpleName()).create());
+    this.context = context;
     this.threadId = threadId;
   }
 
   @Override
   public void onAdded() {
 
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    threadId = data.getLong(KEY_THREAD_ID);
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_THREAD_ID, threadId).build();
   }
 
   @Override

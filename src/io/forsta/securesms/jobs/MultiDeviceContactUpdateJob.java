@@ -6,20 +6,22 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
@@ -46,10 +48,11 @@ public class MultiDeviceContactUpdateJob extends MasterSecretJob implements Inje
   private static final long serialVersionUID = 1L;
 
   private static final String TAG = MultiDeviceContactUpdateJob.class.getSimpleName();
+  private static final String KEY_RECIPIENT_ID = "recipient_id";
 
   @Inject transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
-  private final long recipientId;
+  private long recipientId;
 
   public MultiDeviceContactUpdateJob(Context context) {
     this(context, -1);
@@ -57,10 +60,9 @@ public class MultiDeviceContactUpdateJob extends MasterSecretJob implements Inje
 
   public MultiDeviceContactUpdateJob(Context context, long recipientId) {
     super(context, JobParameters.newBuilder()
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withNetworkRequirement()
+                                .withMasterSecretRequirement()
                                 .withGroupId(MultiDeviceContactUpdateJob.class.getSimpleName())
-                                .withPersistence()
                                 .create());
 
     this.recipientId = recipientId;
@@ -138,6 +140,17 @@ public class MultiDeviceContactUpdateJob extends MasterSecretJob implements Inje
   @Override
   public void onAdded() {
 
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_RECIPIENT_ID, recipientId).build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    recipientId = data.getLong(KEY_RECIPIENT_ID);
   }
 
   @Override

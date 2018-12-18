@@ -1,18 +1,20 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.PreKeyUtil;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
@@ -32,11 +34,15 @@ public class RefreshPreKeysJob extends MasterSecretJob implements InjectableType
 
   @Inject transient ForstaServiceAccountManager accountManager;
 
+  public RefreshPreKeysJob() {
+    super(null, null);
+  }
+
   public RefreshPreKeysJob(Context context) {
     super(context, JobParameters.newBuilder()
                                 .withGroupId(RefreshPreKeysJob.class.getSimpleName())
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withNetworkRequirement()
+                                .withMasterSecretRequirement()
                                 .withRetryCount(5)
                                 .create());
   }
@@ -45,6 +51,17 @@ public class RefreshPreKeysJob extends MasterSecretJob implements InjectableType
   public void onAdded() {
 
   }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
 
   @Override
   public void onRun(MasterSecret masterSecret) throws IOException {

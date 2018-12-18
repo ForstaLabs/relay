@@ -1,13 +1,15 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.signalservice.api.push.exceptions.NetworkFailureException;
 
 import java.io.IOException;
@@ -22,16 +24,28 @@ public class RefreshAttributesJob extends ContextJob implements InjectableType {
 
   @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
+  public RefreshAttributesJob() {
+    super(null, null);
+  }
+
   public RefreshAttributesJob(Context context) {
     super(context, JobParameters.newBuilder()
-                                .withPersistence()
-                                .withRequirement(new NetworkRequirement(context))
-                                .withWakeLock(true)
+                                .withNetworkRequirement()
                                 .create());
   }
 
   @Override
   public void onAdded() {}
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
 
   @Override
   public void onRun() throws IOException {

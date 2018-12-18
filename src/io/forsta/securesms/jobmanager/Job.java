@@ -12,7 +12,7 @@ import io.forsta.securesms.jobmanager.dependencies.ContextDependent;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.service.GenericForegroundService;
-import org.thoughtcrime.securesms.jobmanager.SafeData;
+import io.forsta.securesms.jobmanager.SafeData;
 
 import java.io.Serializable;
 import java.util.Collections;

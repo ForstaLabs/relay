@@ -1,29 +1,37 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
+import androidx.work.Data;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.IncomingIdentityUpdateMessage;
 import io.forsta.securesms.sms.IncomingTextMessage;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.messages.SignalServiceGroup;
 
 public class IdentityUpdateJob extends MasterSecretJob {
 
-  private final long recipientId;
+  private static final String KEY_RECIPIENT_ID = "recipient_id";
+
+  private long recipientId;
+
+  public IdentityUpdateJob() {
+    super(null, null);
+  }
 
   public IdentityUpdateJob(Context context, long recipientId) {
     super(context, JobParameters.newBuilder()
                                 .withGroupId(IdentityUpdateJob.class.getName())
-                                .withPersistence()
                                 .create());
     this.recipientId = recipientId;
   }
@@ -66,6 +74,17 @@ public class IdentityUpdateJob extends MasterSecretJob {
   @Override
   public void onAdded() {
 
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_RECIPIENT_ID, recipientId).build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    recipientId = data.getLong(KEY_RECIPIENT_ID);
   }
 
   @Override

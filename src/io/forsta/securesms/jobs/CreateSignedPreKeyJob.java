@@ -1,17 +1,20 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.PreKeyUtil;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
@@ -28,17 +31,31 @@ public class CreateSignedPreKeyJob extends MasterSecretJob implements Injectable
 
   @Inject transient ForstaServiceAccountManager accountManager;
 
+  public CreateSignedPreKeyJob() {
+    super(null, null);
+  }
+
   public CreateSignedPreKeyJob(Context context) {
     super(context, JobParameters.newBuilder()
-                                .withPersistence()
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withNetworkRequirement()
+                                .withMasterSecretRequirement()
                                 .withGroupId(CreateSignedPreKeyJob.class.getSimpleName())
                                 .create());
   }
 
   @Override
   public void onAdded() {}
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+
+  }
 
   @Override
   public void onRun(MasterSecret masterSecret) throws IOException {

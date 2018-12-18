@@ -1,13 +1,16 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyStore;
@@ -35,16 +38,32 @@ public class CleanPreKeysJob extends MasterSecretJob implements InjectableType {
   @Inject transient ForstaServiceAccountManager accountManager;
   @Inject transient AxolotlStorageModule.SignedPreKeyStoreFactory signedPreKeyStoreFactory;
 
+  public CleanPreKeysJob() {
+    super(null, null);
+  }
+
   public CleanPreKeysJob(Context context) {
     super(context, JobParameters.newBuilder()
                                 .withGroupId(CleanPreKeysJob.class.getSimpleName())
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withMasterSecretRequirement()
                                 .withRetryCount(5)
                                 .create());
   }
 
+
   @Override
   public void onAdded() {
+
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
 
   }
 

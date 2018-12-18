@@ -35,6 +35,8 @@ import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -50,7 +52,6 @@ import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.webrtc.IceCandidate;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
@@ -80,18 +81,23 @@ import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSy
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import ws.com.google.android.mms.MmsException;
+import androidx.work.Data;
 
 public class PushDecryptJob extends ContextJob {
 
   private static final long serialVersionUID = 2L;
 
   public static final String TAG = PushDecryptJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID = "message_id";
+  private static final String KEY_SMS_MESSAGE_ID = "sms_message_id";
 
-  private final long messageId;
-  private final long smsMessageId;
+  private long messageId;
+  private long smsMessageId;
+
+  public PushDecryptJob() {
+    super(null, null);
+  }
 
   public PushDecryptJob(Context context, long pushMessageId, String sender) {
     this(context, pushMessageId, -1, sender);
@@ -99,9 +105,7 @@ public class PushDecryptJob extends ContextJob {
 
   public PushDecryptJob(Context context, long pushMessageId, long smsMessageId, String sender) {
     super(context, JobParameters.newBuilder()
-                                .withPersistence()
                                 .withGroupId("__PUSH_DECRYPT_JOB__")
-                                .withWakeLock(true, 5, TimeUnit.SECONDS)
                                 .create());
     this.messageId    = pushMessageId;
     this.smsMessageId = smsMessageId;
@@ -109,6 +113,18 @@ public class PushDecryptJob extends ContextJob {
 
   @Override
   public void onAdded() {}
+
+  protected void initialize(@NonNull SafeData data) {
+    messageId    = data.getLong(KEY_MESSAGE_ID);
+    smsMessageId = data.getLong(KEY_SMS_MESSAGE_ID);
+  }
+
+  @Override
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId)
+        .putLong(KEY_SMS_MESSAGE_ID, smsMessageId)
+        .build();
+  }
 
   @Override
   public void onRun() throws NoSuchMessageException {
@@ -301,12 +317,6 @@ public class PushDecryptJob extends ContextJob {
       ApplicationContext.getInstance(context)
                         .getJobManager()
                         .add(new MultiDeviceContactUpdateJob(getContext()));
-    }
-
-    if (message.isGroupsRequest()) {
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new MultiDeviceGroupUpdateJob(getContext()));
     }
 
     if (message.isBlockedListRequest()) {

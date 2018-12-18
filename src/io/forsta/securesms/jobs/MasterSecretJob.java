@@ -3,8 +3,8 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.service.KeyCachingService;
-import org.whispersystems.jobqueue.JobParameters;
 
 public abstract class MasterSecretJob extends ContextJob {
 

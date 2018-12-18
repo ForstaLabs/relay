@@ -1,8 +1,10 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -17,6 +19,7 @@ import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.documents.NetworkFailure;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
@@ -54,10 +57,16 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
   private static final long serialVersionUID = 1L;
 
   private static final String TAG = PushMediaSendJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID = "message_id";
 
   @Inject transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
-  private final long messageId;
+  private long messageId;
+
+  public PushMediaSendJob() {
+    super(null, null);
+  }
+
 
   public PushMediaSendJob(Context context, long messageId, String destination) {
     super(context, constructParameters(context, destination));
@@ -69,6 +78,16 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     MmsDatabase mmsDatabase = DatabaseFactory.getMmsDatabase(context);
     mmsDatabase.markAsSending(messageId);
     mmsDatabase.markAsPush(messageId);
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    messageId = data.getLong(KEY_MESSAGE_ID);
+  }
+
+  @Override
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId).build();
   }
 
   @Override

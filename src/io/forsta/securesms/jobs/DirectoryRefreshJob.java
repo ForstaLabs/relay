@@ -6,14 +6,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.SecurityEvent;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class DirectoryRefreshJob extends ContextJob {
   {
     super(context, JobParameters.newBuilder()
                                 .withGroupId(DirectoryRefreshJob.class.getSimpleName())
-                                .withRequirement(new NetworkRequirement(context))
+                                .withNetworkRequirement()
                                 .create());
 
     this.recipients   = recipients;
@@ -42,6 +43,17 @@ public class DirectoryRefreshJob extends ContextJob {
 
   @Override
   public void onAdded() {}
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+
+  }
 
   @Override
   public void onRun() throws IOException {

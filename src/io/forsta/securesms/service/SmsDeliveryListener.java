@@ -7,8 +7,8 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 import io.forsta.securesms.ApplicationContext;
+import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.SmsSentJob;
-import org.whispersystems.jobqueue.JobManager;
 
 public class SmsDeliveryListener extends BroadcastReceiver {
 

@@ -8,13 +8,11 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.events.PartProgressEvent;
-import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
+import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.mms.PartAuthority;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.Util;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment.ProgressListener;
@@ -39,10 +37,9 @@ public abstract class PushSendJob extends SendJob {
 
   protected static JobParameters constructParameters(Context context, String destination) {
     JobParameters.Builder builder = JobParameters.newBuilder();
-    builder.withPersistence();
     builder.withGroupId(destination);
-    builder.withRequirement(new MasterSecretRequirement(context));
-    builder.withRequirement(new NetworkRequirement(context));
+    builder.withMasterSecretRequirement();
+    builder.withNetworkRequirement();
     builder.withRetryCount(5);
 
     return builder.create();

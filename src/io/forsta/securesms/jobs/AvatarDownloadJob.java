@@ -2,19 +2,21 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.Data;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.mms.AttachmentStreamUriLoader.AttachmentModel;
 import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.util.BitmapDecodingException;
 import io.forsta.securesms.util.BitmapUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 import org.whispersystems.signalservice.internal.push.PushServiceSocket;
 import org.whispersystems.signalservice.internal.util.StaticCredentialsProvider;
@@ -30,9 +32,8 @@ public class AvatarDownloadJob extends MasterSecretJob {
 
   public AvatarDownloadJob(Context context, byte[] groupId) {
     super(context, JobParameters.newBuilder()
-                                .withRequirement(new MasterSecretRequirement(context))
-                                .withRequirement(new NetworkRequirement(context))
-                                .withPersistence()
+                                .withMasterSecretRequirement()
+                                .withNetworkRequirement()
                                 .create());
 
     this.groupId = groupId;
@@ -40,6 +41,17 @@ public class AvatarDownloadJob extends MasterSecretJob {
 
   @Override
   public void onAdded() {}
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+
+  }
 
   @Override
   public void onRun(MasterSecret masterSecret) throws IOException {

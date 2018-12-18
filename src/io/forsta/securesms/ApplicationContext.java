@@ -16,11 +16,10 @@
  */
 package io.forsta.securesms;
 
-import android.app.Application;
 import android.arch.lifecycle.DefaultLifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
@@ -39,10 +38,7 @@ import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.GcmRefreshJob;
-import io.forsta.securesms.jobs.persistence.EncryptingJobSerializer;
-import io.forsta.securesms.jobs.requirements.MasterSecretRequirementProvider;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
-import io.forsta.securesms.jobs.requirements.ServiceRequirementProvider;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.TextSecurePreferences;
 
@@ -51,7 +47,6 @@ import org.webrtc.voiceengine.WebRtcAudioManager;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
 import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobmanager.dependencies.DependencyInjector;
-import io.forsta.securesms.jobmanager.requirements.NetworkRequirementProvider;
 import io.forsta.securesms.notifications.NotificationChannels;
 
 import java.util.HashSet;
@@ -98,7 +93,10 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 //    initializeCircumvention();
     initializeWebRtc();
     NotificationChannels.create(this);
+    ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
+    initialized = true;
+    notifyAll();
   }
 
   public void ensureInitialized() {

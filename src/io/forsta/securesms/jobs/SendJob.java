@@ -9,11 +9,11 @@ import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.MediaStream;
 import io.forsta.securesms.transport.UndeliverableMessageException;
 import io.forsta.securesms.util.Util;
-import org.whispersystems.jobqueue.JobParameters;
 
 import java.io.IOException;
 import java.util.LinkedList;

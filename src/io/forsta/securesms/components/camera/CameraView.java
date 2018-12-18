@@ -41,13 +41,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.util.BitmapUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
-import org.whispersystems.jobqueue.Job;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 @SuppressWarnings("deprecation")
@@ -485,18 +482,13 @@ public class CameraView extends ViewGroup {
   }
 
   private void enqueueTask(SerialAsyncTask job) {
-    ApplicationContext.getInstance(getContext()).getJobManager().add(job);
+    AsyncTask.SERIAL_EXECUTOR.execute(job);
   }
 
-  private static abstract class SerialAsyncTask<Result> extends Job {
+  private static abstract class SerialAsyncTask<Result> implements Runnable {
 
-    public SerialAsyncTask() {
-      super(JobParameters.newBuilder().withGroupId(CameraView.class.getSimpleName()).create());
-    }
-
-    @Override public void onAdded() {}
-
-    @Override public final void onRun() {
+    @Override
+    public final void run() {
       try {
         onWait();
         Util.runOnMainSync(new Runnable() {
@@ -516,12 +508,6 @@ public class CameraView extends ViewGroup {
         Log.w(TAG, "skipping task, preconditions not met in onWait()");
       }
     }
-
-    @Override public boolean onShouldRetry(Exception e) {
-      return false;
-    }
-
-    @Override public void onCanceled() { }
 
     protected void onWait() throws PreconditionsNotMetException {}
     protected void onPreMain() {}
