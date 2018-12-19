@@ -5,24 +5,14 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-import android.text.TextUtils;
 
-import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
-import io.forsta.securesms.database.DatabaseFactory;
-//import io.forsta.securesms.database.Address;
-//import org.thoughtcrime.securesms.database.RecipientDatabase;
-//import org.thoughtcrime.securesms.database.RecipientDatabase.VibrateState;
-//import io.forsta.recipients.Recipient;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.logging.Log;
 

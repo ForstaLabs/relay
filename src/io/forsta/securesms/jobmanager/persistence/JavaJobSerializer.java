@@ -16,7 +16,7 @@
  */
 package io.forsta.securesms.jobmanager.persistence;
 
-import org.thoughtcrime.securesms.jobmanager.util.Base64;
+import io.forsta.securesms.jobmanager.util.Base64;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
