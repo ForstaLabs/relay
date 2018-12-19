@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -95,8 +96,8 @@ public class PushDecryptJob extends ContextJob {
   private long messageId;
   private long smsMessageId;
 
-  public PushDecryptJob() {
-    super(null, null);
+  public PushDecryptJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public PushDecryptJob(Context context, long pushMessageId, String sender) {

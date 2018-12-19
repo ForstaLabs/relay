@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -45,8 +46,8 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
 
   private long messageId;
 
-  public PushTextSendJob() {
-    super(null, null);
+  public PushTextSendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public PushTextSendJob(Context context, long messageId, String destination) {

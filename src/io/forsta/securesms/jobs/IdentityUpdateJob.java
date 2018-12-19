@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -25,8 +26,8 @@ public class IdentityUpdateJob extends MasterSecretJob {
 
   private long recipientId;
 
-  public IdentityUpdateJob() {
-    super(null, null);
+  public IdentityUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public IdentityUpdateJob(Context context, long recipientId) {

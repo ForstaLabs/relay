@@ -2,11 +2,16 @@ package io.forsta.securesms.jobs;
 
 import android.content.Context;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.service.KeyCachingService;
 
 public abstract class MasterSecretJob extends ContextJob {
+
+  protected MasterSecretJob(Context context, WorkerParameters parameters) {
+    super(context, parameters);
+  }
 
   public MasterSecretJob(Context context, JobParameters parameters) {
     super(context, parameters);

@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -63,10 +64,9 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
 
   private long messageId;
 
-  public PushMediaSendJob() {
-    super(null, null);
+  public PushMediaSendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
-
 
   public PushMediaSendJob(Context context, long messageId, String destination) {
     super(context, constructParameters(context, destination));

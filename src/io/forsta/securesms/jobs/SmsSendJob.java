@@ -11,6 +11,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
@@ -35,8 +36,8 @@ public class SmsSendJob extends SendJob {
 
   private long messageId;
 
-  public SmsSendJob() {
-    super(null, null);
+  public SmsSendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public SmsSendJob(Context context, long messageId, String name) {

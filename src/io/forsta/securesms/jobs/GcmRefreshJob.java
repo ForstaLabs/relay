@@ -29,6 +29,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.PlayServicesProblemActivity;
 import io.forsta.securesms.R;
@@ -53,8 +54,8 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
 
   @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
-  public GcmRefreshJob() {
-    super(null, null);
+  public GcmRefreshJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public GcmRefreshJob(Context context) {

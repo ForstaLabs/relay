@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -20,8 +21,8 @@ public class PushContentReceiveJob extends PushReceivedJob {
 
   private String data;
 
-  public PushContentReceiveJob() {
-    super(null, null);
+  public PushContentReceiveJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public PushContentReceiveJob(Context context) {

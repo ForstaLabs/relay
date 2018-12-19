@@ -16,7 +16,7 @@ public abstract class ContextJob extends Job implements ContextDependent {
     super(context, workerParameters);
   }
 
-  protected ContextJob(Context context, JobParameters parameters) {
+  protected ContextJob(@NonNull Context context, @NonNull JobParameters parameters) {
     super(context, parameters);
     this.context = context;
   }

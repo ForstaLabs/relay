@@ -7,6 +7,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -30,8 +31,8 @@ public class SmsSentJob extends MasterSecretJob {
   private String action;
   private int    result;
 
-  public SmsSentJob() {
-    super(null, null);
+  public SmsSentJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public SmsSentJob(Context context, long messageId, String action, int result) {

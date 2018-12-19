@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -31,8 +32,8 @@ public class CreateSignedPreKeyJob extends MasterSecretJob implements Injectable
 
   @Inject transient ForstaServiceAccountManager accountManager;
 
-  public CreateSignedPreKeyJob() {
-    super(null, null);
+  public CreateSignedPreKeyJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public CreateSignedPreKeyJob(Context context) {

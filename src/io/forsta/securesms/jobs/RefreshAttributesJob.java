@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobmanager.JobParameters;
@@ -24,8 +25,8 @@ public class RefreshAttributesJob extends ContextJob implements InjectableType {
 
   @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
-  public RefreshAttributesJob() {
-    super(null, null);
+  public RefreshAttributesJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public RefreshAttributesJob(Context context) {

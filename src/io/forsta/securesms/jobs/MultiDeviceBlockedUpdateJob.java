@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.RecipientPreferenceDatabase;
@@ -34,8 +35,8 @@ public class MultiDeviceBlockedUpdateJob extends MasterSecretJob implements Inje
 
   @Inject transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
-  public MultiDeviceBlockedUpdateJob() {
-    super(null, null);
+  public MultiDeviceBlockedUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public MultiDeviceBlockedUpdateJob(Context context) {

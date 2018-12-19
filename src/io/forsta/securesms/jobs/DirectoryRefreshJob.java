@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.jobmanager.JobParameters;
@@ -24,8 +25,8 @@ public class DirectoryRefreshJob extends ContextJob {
   @Nullable private transient Recipients recipients;
   @Nullable private transient MasterSecret masterSecret;
 
-  public DirectoryRefreshJob(@NonNull Context context) {
-    this(context, null, null);
+  public DirectoryRefreshJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public DirectoryRefreshJob(@NonNull Context context,

@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
@@ -34,8 +35,8 @@ public class RefreshPreKeysJob extends MasterSecretJob implements InjectableType
 
   @Inject transient ForstaServiceAccountManager accountManager;
 
-  public RefreshPreKeysJob() {
-    super(null, null);
+  public RefreshPreKeysJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public RefreshPreKeysJob(Context context) {

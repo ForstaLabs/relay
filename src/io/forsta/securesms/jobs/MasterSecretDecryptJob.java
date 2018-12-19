@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.AsymmetricMasterCipher;
 import io.forsta.securesms.crypto.AsymmetricMasterSecret;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -25,6 +26,10 @@ public class MasterSecretDecryptJob extends MasterSecretJob {
 
   private static final long   serialVersionUID = 1L;
   private static final String TAG              = MasterSecretDecryptJob.class.getSimpleName();
+
+  public MasterSecretDecryptJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public MasterSecretDecryptJob(Context context) {
     super(context, JobParameters.newBuilder()

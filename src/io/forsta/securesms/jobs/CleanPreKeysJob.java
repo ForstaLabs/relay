@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
@@ -38,8 +39,8 @@ public class CleanPreKeysJob extends MasterSecretJob implements InjectableType {
   @Inject transient ForstaServiceAccountManager accountManager;
   @Inject transient AxolotlStorageModule.SignedPreKeyStoreFactory signedPreKeyStoreFactory;
 
-  public CleanPreKeysJob() {
-    super(null, null);
+  public CleanPreKeysJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public CleanPreKeysJob(Context context) {

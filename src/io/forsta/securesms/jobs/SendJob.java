@@ -3,6 +3,7 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.TextSecureExpiredException;
 import io.forsta.securesms.attachments.Attachment;
@@ -24,6 +25,10 @@ import ws.com.google.android.mms.MmsException;
 public abstract class SendJob extends MasterSecretJob {
 
   private final static String TAG = SendJob.class.getSimpleName();
+
+  protected SendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public SendJob(Context context, JobParameters parameters) {
     super(context, parameters);

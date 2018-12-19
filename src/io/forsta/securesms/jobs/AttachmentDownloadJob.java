@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.AttachmentId;
 import io.forsta.securesms.crypto.AsymmetricMasterSecret;
@@ -53,8 +54,8 @@ public class AttachmentDownloadJob extends MasterSecretJob implements Injectable
   private long partRowId;
   private long partUniqueId;
 
-  public AttachmentDownloadJob() {
-    super(null, null);
+  public AttachmentDownloadJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public AttachmentDownloadJob(Context context, long messageId, AttachmentId attachmentId) {

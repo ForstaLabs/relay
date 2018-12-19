@@ -1,8 +1,10 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -30,6 +32,10 @@ import ws.com.google.android.mms.ContentType;
 public abstract class PushSendJob extends SendJob {
 
   private static final String TAG = PushSendJob.class.getSimpleName();
+
+  protected  PushSendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   protected PushSendJob(Context context, JobParameters parameters) {
     super(context, parameters);

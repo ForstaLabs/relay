@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -16,6 +17,7 @@ import io.forsta.securesms.mms.AttachmentStreamUriLoader.AttachmentModel;
 import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.util.BitmapDecodingException;
 import io.forsta.securesms.util.BitmapUtil;
+import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 import org.whispersystems.signalservice.internal.push.PushServiceSocket;
@@ -28,7 +30,13 @@ public class AvatarDownloadJob extends MasterSecretJob {
 
   private static final String TAG = AvatarDownloadJob.class.getSimpleName();
 
-  private final byte[] groupId;
+  private static final String KEY_GROUP_ID = "group_id";
+
+  private byte[] groupId;
+
+  public AvatarDownloadJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public AvatarDownloadJob(Context context, byte[] groupId) {
     super(context, JobParameters.newBuilder()
@@ -42,15 +50,18 @@ public class AvatarDownloadJob extends MasterSecretJob {
   @Override
   public void onAdded() {}
 
-  @NonNull
   @Override
-  protected Data serialize(@NonNull Data.Builder dataBuilder) {
-    return dataBuilder.build();
+  protected void initialize(@NonNull SafeData data) {
+    try {
+      groupId = GroupUtil.getDecodedId(data.getString(KEY_GROUP_ID));
+    } catch (IOException e) {
+      throw new AssertionError(e);
+    }
   }
 
   @Override
-  protected void initialize(@NonNull SafeData data) {
-
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putString(KEY_GROUP_ID, GroupUtil.getEncodedId(groupId)).build();
   }
 
   @Override

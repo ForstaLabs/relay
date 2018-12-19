@@ -12,6 +12,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
@@ -53,6 +54,10 @@ public class MultiDeviceContactUpdateJob extends MasterSecretJob implements Inje
   @Inject transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
   private long recipientId;
+
+  public MultiDeviceContactUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public MultiDeviceContactUpdateJob(Context context) {
     this(context, -1);

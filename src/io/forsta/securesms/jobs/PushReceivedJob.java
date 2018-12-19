@@ -1,8 +1,10 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
@@ -18,6 +20,10 @@ import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 public abstract class PushReceivedJob extends ContextJob {
 
   private static final String TAG = PushReceivedJob.class.getSimpleName();
+
+  protected PushReceivedJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   protected PushReceivedJob(Context context, JobParameters parameters) {
     super(context, parameters);

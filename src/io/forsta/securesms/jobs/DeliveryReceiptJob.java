@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.dependencies.InjectableType;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
@@ -33,8 +34,8 @@ public class DeliveryReceiptJob extends ContextJob implements InjectableType {
   private long   timestamp;
   private String relay;
 
-  public DeliveryReceiptJob() {
-    super(null, null);
+  public DeliveryReceiptJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public DeliveryReceiptJob(Context context, String destination, long timestamp, String relay) {

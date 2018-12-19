@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.jobmanager.SafeData;
@@ -24,8 +25,8 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
 
   @Inject transient SignalServiceMessageReceiver receiver;
 
-  public PushNotificationReceiveJob() {
-    super(null, null);
+  public PushNotificationReceiveJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public PushNotificationReceiveJob(Context context) {

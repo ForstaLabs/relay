@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
@@ -40,8 +41,8 @@ public class MultiDeviceGroupUpdateJob extends MasterSecretJob implements Inject
   @Inject
   transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
-  public MultiDeviceGroupUpdateJob() {
-    super(null, null);
+  public MultiDeviceGroupUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
   }
 
   public MultiDeviceGroupUpdateJob(Context context) {
