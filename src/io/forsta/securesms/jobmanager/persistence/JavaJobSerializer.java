@@ -16,6 +16,8 @@
  */
 package io.forsta.securesms.jobmanager.persistence;
 
+import io.forsta.securesms.jobmanager.EncryptionKeys;
+import io.forsta.securesms.jobmanager.Job;
 import io.forsta.securesms.jobmanager.util.Base64;
 
 import java.io.ByteArrayInputStream;
@@ -26,10 +28,10 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import io.forsta.securesms.jobmanager.EncryptionKeys;
-import io.forsta.securesms.jobmanager.Job;
-
 /**
+ * An implementation of {@link JobSerializer} that uses
+ * Java Serialization.
+ *
  * NOTE: This {@link JobSerializer} does not support encryption. Jobs will be serialized normally,
  * but any corresponding {@link Job} encryption keys will be ignored.
  */

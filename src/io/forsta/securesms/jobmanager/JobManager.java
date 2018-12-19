@@ -66,7 +66,7 @@ public class JobManager {
 
       OneTimeWorkRequest request = requestBuilder.build();
 
-      job.onSubmit(request.getId());
+      job.onSubmit(context, request.getId());
 
       String groupId = jobParameters.getGroupId();
       if (groupId != null) {

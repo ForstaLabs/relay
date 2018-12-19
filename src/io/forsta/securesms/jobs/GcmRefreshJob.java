@@ -67,11 +67,11 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
   }
 
   @Override
-  protected void initialize(@NonNull SafeData data) {
-  }
+  public void onAdded() {}
 
   @Override
-  public void onAdded() {}
+  protected void initialize(@NonNull SafeData data) {
+  }
 
   @Override
   protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {

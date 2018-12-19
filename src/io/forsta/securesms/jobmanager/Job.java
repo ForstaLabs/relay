@@ -30,9 +30,11 @@ public abstract class Job extends Worker implements Serializable {
 
   private static final String TAG = Job.class.getSimpleName();
 
-  static final String KEY_RETRY_COUNT            = "Job_retry_count";
-  static final String KEY_RETRY_UNTIL            = "Job_retry_until";
-  static final String KEY_SUBMIT_TIME            = "Job_submit_time";
+  private static final WorkLockManager WORK_LOCK_MANAGER = new WorkLockManager();
+
+  static final String KEY_RETRY_COUNT        = "Job_retry_count";
+  static final String KEY_RETRY_UNTIL        = "Job_retry_until";
+  static final String KEY_SUBMIT_TIME        = "Job_submit_time";
   static final String KEY_REQUIRES_NETWORK   = "Job_requires_network";
   static final String KEY_REQUIRES_MASTER_SECRET = "Job_requires_master_secret";
 
@@ -52,25 +54,40 @@ public abstract class Job extends Worker implements Serializable {
     this.parameters = parameters;
   }
 
-  @NonNull
   @Override
-  public Result doWork() {
-    Data data = getInputData();
-
+  public @NonNull Result doWork() {
     log("doWork()" + logSuffix());
 
-    ApplicationContext.getInstance(getApplicationContext()).ensureInitialized();
+    try (WorkLockManager.WorkLock workLock = WORK_LOCK_MANAGER.acquire(getId())) {
+      Result result = workLock.getResult();
+
+      if (result == null) {
+        result = doWorkInternal();
+        workLock.setResult(result);
+      } else {
+        log("Using result from preempted run (" + result + ")." + logSuffix());
+      }
+
+      return result;
+    }
+  }
+
+  private @NonNull Result doWorkInternal() {
+    Data data = getInputData();
+
+    log("doWorkInternal()" + logSuffix());
+
     ApplicationContext.getInstance(getApplicationContext()).injectDependencies(this);
 
     if (this instanceof ContextDependent) {
       ((ContextDependent)this).setContext(getApplicationContext());
     }
 
-    initialize(new SafeData(data));
-
     boolean foregroundRunning = false;
 
     try {
+      initialize(new SafeData(data));
+
       if (withinRetryLimits(data)) {
         if (requirementsMet(data)) {
           if (needsForegroundService(data)) {
@@ -80,6 +97,7 @@ public abstract class Job extends Worker implements Serializable {
           }
 
           onRun();
+
           log("Successfully completed." + logSuffix());
           return Result.SUCCESS;
         } else {
@@ -92,7 +110,7 @@ public abstract class Job extends Worker implements Serializable {
       }
     } catch (Exception e) {
       if (onShouldRetry(e)) {
-        log("Retrying after a retryable exception." + logSuffix());
+        log("Retrying after a retryable exception." + logSuffix(), e);
         return retry();
       }
       warn("Failing due to an exception." + logSuffix(), e);
@@ -105,23 +123,20 @@ public abstract class Job extends Worker implements Serializable {
     }
   }
 
-  private boolean needsForegroundService(@NonNull Data data) {
-    NetworkRequirement networkRequirement = new NetworkRequirement(getApplicationContext());
-    boolean            requiresNetwork    = data.getBoolean(KEY_REQUIRES_NETWORK, false);
-
-    return requiresNetwork && !networkRequirement.isPresent();
-  }
-
   @Override
   public void onStopped() {
     log("onStopped()" + logSuffix());
   }
 
-  final void onSubmit(UUID id) {
-    log(id, "onSubmit()");
+  final void onSubmit(@NonNull Context context, @NonNull UUID id) {
+    Log.i(TAG, buildLog(id, "onSubmit() network: " + (new NetworkRequirement(getApplicationContext()).isPresent())));
+
+    if (this instanceof ContextDependent) {
+      ((ContextDependent) this).setContext(context);
+    }
+
     onAdded();
   }
-
 
   /**
    * @return A string that represents what the task does. Will be shown in a foreground notification
@@ -130,6 +145,7 @@ public abstract class Job extends Worker implements Serializable {
   protected String getDescription() {
     return getApplicationContext().getString(R.string.Job_working_in_the_background);
   }
+
   /**
    * Called after a run has finished and we've determined a retry is required, but before the next
    * attempt is run.
@@ -193,18 +209,17 @@ public abstract class Job extends Worker implements Serializable {
     return Result.SUCCESS;
   }
 
-  private boolean requirementsMet(Data data) {
+  private boolean requirementsMet(@NonNull Data data) {
     boolean met = true;
 
     if (data.getBoolean(KEY_REQUIRES_MASTER_SECRET, false)) {
       met &= new MasterSecretRequirement(getApplicationContext()).isPresent();
     }
 
-
     return met;
   }
 
-  private boolean withinRetryLimits(Data data) {
+  private boolean withinRetryLimits(@NonNull Data data) {
     int  retryCount = data.getInt(KEY_RETRY_COUNT, 0);
     long retryUntil = data.getLong(KEY_RETRY_UNTIL, 0);
 
@@ -215,12 +230,19 @@ public abstract class Job extends Worker implements Serializable {
     return System.currentTimeMillis() < retryUntil;
   }
 
-  private void log(@NonNull String message) {
-    log(getId(), message);
+  private boolean needsForegroundService(@NonNull Data data) {
+    NetworkRequirement networkRequirement = new NetworkRequirement(getApplicationContext());
+    boolean            requiresNetwork    = data.getBoolean(KEY_REQUIRES_NETWORK, false);
+
+    return requiresNetwork && !networkRequirement.isPresent();
   }
 
-  private void log(@NonNull UUID id, @NonNull String message) {
-    Log.i(TAG, buildLog(id, message));
+  private void log(@NonNull String message) {
+    log(message, null);
+  }
+
+  private void log(@NonNull String message, @Nullable Throwable t) {
+    Log.i(TAG, buildLog(getId(), message), t);
   }
 
   private void warn(@NonNull String message) {
@@ -235,8 +257,8 @@ public abstract class Job extends Worker implements Serializable {
     return "[" + id + "] " + getClass().getSimpleName() + " :: " + message;
   }
 
-  private String logSuffix() {
+  protected String logSuffix() {
     long timeSinceSubmission = System.currentTimeMillis() - getInputData().getLong(KEY_SUBMIT_TIME, 0);
-    return " (Time since submission: " + timeSinceSubmission + " ms, Run attempt: " + getRunAttemptCount() + ")";
+    return " (Time since submission: " + timeSinceSubmission + " ms, Run attempt: " + getRunAttemptCount() + ", isStopped: " + isStopped() + ")";
   }
 }
