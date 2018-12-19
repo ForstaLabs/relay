@@ -11,17 +11,16 @@ import android.util.Log;
 
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.securesms.ConversationActivity;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 
 public class NotificationItem {
 
-  private final @NonNull
-  Recipients recipients;
-  private final @NonNull
-  Recipient individualRecipient;
-  private final @Nullable Recipients        threadRecipients;
+  private final @NonNull  Recipient individualRecipient;
+  private final @NonNull Recipients        threadRecipients;
+  private final @Nullable ThreadPreferenceDatabase.ThreadPreference threadPreferences;
   private final long                        threadId;
   private final @Nullable CharSequence      title;
   private final @Nullable CharSequence      text;
@@ -29,15 +28,14 @@ public class NotificationItem {
   private final @Nullable SlideDeck         slideDeck;
 
   public NotificationItem(@NonNull   Recipient individualRecipient,
-                          @NonNull   Recipients recipients,
-                          @Nullable  Recipients threadRecipients,
+                          @Nullable ThreadPreferenceDatabase.ThreadPreference threadPreferences,
+                          @NonNull  Recipients threadRecipients,
                           long threadId, @Nullable CharSequence text, @Nullable CharSequence title, long timestamp,
                           @Nullable SlideDeck slideDeck)
   {
     this.individualRecipient = individualRecipient;
-    this.recipients          = recipients;
+    this.threadPreferences = threadPreferences;
     this.threadRecipients    = threadRecipients;
-
     this.text                = text;
     this.title               = title;
     this.threadId            = threadId;
@@ -46,7 +44,11 @@ public class NotificationItem {
   }
 
   public @NonNull  Recipients getRecipients() {
-    return threadRecipients == null ? recipients : threadRecipients;
+    return threadRecipients;
+  }
+
+  public @Nullable ThreadPreferenceDatabase.ThreadPreference getThreadPreferences() {
+    return threadPreferences;
   }
 
   public @NonNull  Recipient getIndividualRecipient() {
@@ -75,9 +77,7 @@ public class NotificationItem {
 
   public PendingIntent getPendingIntent(Context context) {
     Intent     intent           = new Intent(context, ConversationActivity.class);
-    Recipients notifyRecipients = threadRecipients != null ? threadRecipients : recipients;
-    if (notifyRecipients != null) intent.putExtra("recipients", notifyRecipients.getIds());
-
+    intent.putExtra("recipients", threadRecipients.getIds());
     intent.putExtra("thread_id", threadId);
     intent.setData((Uri.parse("custom://"+System.currentTimeMillis())));
 

@@ -52,12 +52,12 @@ dependencies {
     compile 'android.arch.lifecycle:common-java8:1.1.1'
     compile 'android.arch.work:work-runtime:1.0.0-alpha11'
 
-    compile 'com.google.android.gms:play-services-base:15.0.1'
-    compile 'com.google.android.gms:play-services-gcm:15.0.1'
-    compile 'com.google.android.gms:play-services-maps:15.0.1'
-    compile 'com.google.android.gms:play-services-location:15.0.1'
-    compile 'com.google.android.gms:play-services-places:15.0.1'
-    compile 'com.google.android.gms:play-services-safetynet:15.0.1'
+    compile 'com.google.android.gms:play-services-base:11.0.1'
+    compile 'com.google.android.gms:play-services-gcm:11.0.1'
+    compile 'com.google.android.gms:play-services-maps:11.0.1'
+    compile 'com.google.android.gms:play-services-location:11.0.1'
+    compile 'com.google.android.gms:play-services-places:11.0.1'
+    compile 'com.google.android.gms:play-services-safetynet:11.0.1'
     compile('com.doomonafireball.betterpickers:library:1.5.3') {
         exclude group: 'com.android.support', module: 'support-v4'
     }

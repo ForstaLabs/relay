@@ -4,14 +4,18 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.ConversationPopupActivity;
+import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -21,23 +25,37 @@ import io.forsta.securesms.database.RecipientPreferenceDatabase;
 public class NotificationState {
 
   private final LinkedList<NotificationItem> notifications = new LinkedList<>();
-  private final Set<Long>                    threads       = new HashSet<>();
+  private final LinkedHashSet<Long> threads       = new LinkedHashSet<>();
   private boolean notify = false;
 
   private int notificationCount = 0;
 
+  public NotificationState() {}
+
+  public NotificationState(@NonNull List<NotificationItem> items) {
+    for (NotificationItem item : items) {
+      addNotification(item);
+    }
+  }
+
   public void addNotification(NotificationItem item) {
     notifications.addFirst(item);
+
+    if (threads.contains(item.getThreadId())) {
+      threads.remove(item.getThreadId());
+    }
+
     threads.add(item.getThreadId());
     notificationCount++;
   }
 
   public @Nullable Uri getRingtone() {
     if (!notifications.isEmpty()) {
-      Recipients recipients = notifications.getFirst().getRecipients();
-
-      if (recipients != null) {
-        return recipients.getRingtone();
+      ThreadPreferenceDatabase.ThreadPreference threadPreferences = notifications.getFirst().getThreadPreferences();
+      if (threadPreferences != null) {
+        return threadPreferences.getNotification();
+      } else {
+        return Settings.System.DEFAULT_NOTIFICATION_URI;
       }
     }
 
