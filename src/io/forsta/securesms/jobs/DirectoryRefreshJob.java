@@ -29,6 +29,10 @@ public class DirectoryRefreshJob extends ContextJob {
     super(context, workerParameters);
   }
 
+  public DirectoryRefreshJob(@NonNull Context context) {
+    this(context, null, null);
+  }
+
   public DirectoryRefreshJob(@NonNull Context context,
                              @Nullable MasterSecret masterSecret,
                              @Nullable Recipients recipients)
