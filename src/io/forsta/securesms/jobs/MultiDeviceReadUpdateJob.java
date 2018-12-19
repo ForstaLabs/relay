@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import androidx.work.Data;
 import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -123,10 +125,13 @@ public class MultiDeviceReadUpdateJob extends MasterSecretJob implements Injecta
 
     private static final long serialVersionUID = 1L;
 
+    @JsonProperty
     private final String sender;
+
+    @JsonProperty
     private final long   timestamp;
 
-    private SerializableSyncMessageId(String sender, long timestamp) {
+    private SerializableSyncMessageId(@JsonProperty("sender") String sender, @JsonProperty("timestamp") long timestamp) {
       this.sender = sender;
       this.timestamp = timestamp;
     }
