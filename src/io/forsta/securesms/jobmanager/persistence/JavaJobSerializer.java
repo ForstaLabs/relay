@@ -30,9 +30,6 @@ import io.forsta.securesms.jobmanager.EncryptionKeys;
 import io.forsta.securesms.jobmanager.Job;
 
 /**
- * An implementation of {@link org.thoughtcrime.securesms.jobmanager.persistence.JobSerializer} that uses
- * Java Serialization.
- *
  * NOTE: This {@link JobSerializer} does not support encryption. Jobs will be serialized normally,
  * but any corresponding {@link Job} encryption keys will be ignored.
  */

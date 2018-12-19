@@ -81,22 +81,24 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 
   @Override
   public void onCreate() {
-    super.onCreate();
-    initializeRandomNumberFix();
-    initializeLogging();
-    initializeDependencyInjection();
-    initializeJobManager();
-    initializeExpiringMessageManager();
-    initializeGcmCheck();
-    initializeSignedPreKeyCheck();
+    synchronized(this) {
+      super.onCreate();
+      initializeRandomNumberFix();
+      initializeLogging();
+      initializeDependencyInjection();
+      initializeJobManager();
+      initializeExpiringMessageManager();
+      initializeGcmCheck();
+      initializeSignedPreKeyCheck();
 //    initializePeriodicTasks();
 //    initializeCircumvention();
-    initializeWebRtc();
-    NotificationChannels.create(this);
-    ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
+      initializeWebRtc();
+      NotificationChannels.create(this);
+      ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
-    initialized = true;
-    notifyAll();
+      initialized = true;
+      notifyAll();
+    }
   }
 
   public void ensureInitialized() {
@@ -150,10 +152,6 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
   }
 
   private void initializeJobManager() {
-    WorkManager.initialize(this, new Configuration.Builder()
-        .setMinimumLoggingLevel(android.util.Log.DEBUG)
-        .build());
-
     this.jobManager = new JobManager(this, WorkManager.getInstance());
   }
 

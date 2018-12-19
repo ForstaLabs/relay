@@ -17,14 +17,14 @@
 package io.forsta.securesms.jobmanager.requirements;
 
 /**
- * Notifies listeners when a {@link org.thoughtcrime.securesms.jobmanager.requirements.Requirement}'s
+ * Notifies listeners when a {@link Requirement}'s
  * state is likely to have changed.
  */
 public interface RequirementProvider {
 
   /**
-   * The {@link org.thoughtcrime.securesms.jobmanager.requirements.RequirementListener} to call when
-   * a {@link org.thoughtcrime.securesms.jobmanager.requirements.Requirement}'s status is likely to
+   * The {@link RequirementListener} to call when
+   * a {@link Requirement}'s status is likely to
    * have changed.
    *
    * @param listener The listener to call.
