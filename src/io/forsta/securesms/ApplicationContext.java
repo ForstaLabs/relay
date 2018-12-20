@@ -40,6 +40,7 @@ import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.GcmRefreshJob;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
 import io.forsta.securesms.service.ExpiringMessageManager;
+import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.webrtc.PeerConnectionFactory;
@@ -101,6 +102,20 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
     }
   }
 
+  @Override
+  public void onStart(@NonNull LifecycleOwner owner) {
+    isAppVisible = true;
+    Log.i(TAG, "App is now visible.");
+    KeyCachingService.onAppForegrounded(this);
+  }
+
+  @Override
+  public void onStop(@NonNull LifecycleOwner owner) {
+    isAppVisible = false;
+    Log.i(TAG, "App is no longer visible.");
+    KeyCachingService.onAppBackgrounded(this);
+  }
+
   public void ensureInitialized() {
     synchronized (this) {
       while (!initialized) {
@@ -108,20 +123,6 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
       }
     }
   }
-
-  @Override
-  public void onStart(@NonNull LifecycleOwner owner) {
-    isAppVisible = true;
-    Log.i(TAG, "App is now visible.");
-//    executePendingContactSync();
-  }
-
-  @Override
-  public void onStop(@NonNull LifecycleOwner owner) {
-    isAppVisible = false;
-    Log.i(TAG, "App is no longer visible.");
-  }
-
 
   @Override
   public void injectDependencies(Object object) {

@@ -38,8 +38,10 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   public static final  String ACTION_ACTIVITY_STARTED  = "ACTIVITY_STARTED";
   public static final  String ACTION_ACTIVITY_FINISHED = "ACTIVITY_FINISHED";
   public static final  String ACTION_PUSH_RECEIVED     = "PUSH_RECEIVED";
-  private static final long   REQUEST_TIMEOUT_MINUTES  = 1;
+  public static final  String ACTION_INITIALIZE        = "INITIALIZE";
   public static final  int    FOREGROUND_ID            = 313399;
+
+  private static final long   REQUEST_TIMEOUT_MINUTES  = 1;
 
   private NetworkRequirement networkRequirement;
   private NetworkRequirementProvider networkRequirementProvider;
@@ -50,6 +52,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   private int          activeActivities = 0;
   private List<Intent> pushPending      = new LinkedList<>();
   private MessageRetrievalThread retrievalThread  = null;
+
   public static SignalServiceMessagePipe pipe = null;
 
   @Override

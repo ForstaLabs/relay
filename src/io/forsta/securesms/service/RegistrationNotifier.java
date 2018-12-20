@@ -10,11 +10,12 @@ import android.support.v4.app.NotificationCompat;
 
 import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
+import io.forsta.securesms.notifications.NotificationChannels;
 
 public class RegistrationNotifier extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationChannels.OTHER);
     builder.setSmallIcon(R.drawable.icon_notification);
     builder.setContentTitle(intent.getStringExtra(RegistrationService.NOTIFICATION_TITLE));
     builder.setContentText(intent.getStringExtra(RegistrationService.NOTIFICATION_TEXT));

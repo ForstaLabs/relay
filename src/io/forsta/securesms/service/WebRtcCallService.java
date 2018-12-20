@@ -195,7 +195,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public int onStartCommand(final Intent intent, int flags, int startId) {
     Log.w(TAG, "onStartCommand...");
     if (intent == null || intent.getAction() == null) {
-      Log.w(TAG, "Service intent is null");
       return START_NOT_STICKY;
     }
 
