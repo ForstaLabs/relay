@@ -87,6 +87,7 @@ public class MessageNotifier {
 
   private static final String TAG = MessageNotifier.class.getSimpleName();
   public static final int NOTIFICATION_ID = 1338;
+  private static final String NOTIFICATION_GROUP = "messages";
 
   private volatile static long notificationThreadId;
   private volatile static long visibleThread = -1;
@@ -230,6 +231,8 @@ public class MessageNotifier {
     builder.setPrimaryMessageBody(recipients, notifications.get(0).getIndividualRecipient(),
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
     builder.setContentIntent(notifications.get(0).getPendingIntent(context));
+    builder.setGroup(NOTIFICATION_GROUP);
+    builder.setOnlyAlertOnce(!signal);
 
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
@@ -267,7 +270,8 @@ public class MessageNotifier {
 
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
     builder.setMostRecentSender(notifications.get(0).getIndividualRecipient());
-
+    builder.setGroup(NOTIFICATION_GROUP);
+    builder.setOnlyAlertOnce(!signal);
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
 
