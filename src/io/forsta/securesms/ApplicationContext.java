@@ -106,14 +106,12 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
   public void onStart(@NonNull LifecycleOwner owner) {
     isAppVisible = true;
     Log.i(TAG, "App is now visible.");
-    KeyCachingService.onAppForegrounded(this);
   }
 
   @Override
   public void onStop(@NonNull LifecycleOwner owner) {
     isAppVisible = false;
     Log.i(TAG, "App is no longer visible.");
-    KeyCachingService.onAppBackgrounded(this);
   }
 
   public void ensureInitialized() {
