@@ -91,7 +91,9 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
   @Override
   protected void onResume() {
     super.onResume();
-    mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this) + ":" + ForstaPreferences.getForstaOrgName(this));
+    if (!TextUtils.isEmpty(ForstaPreferences.getForstaUsername(this))) {
+      mSendTokenUsername.setText(ForstaPreferences.getForstaUsername(this) + ":" + ForstaPreferences.getForstaOrgName(this));
+    }
     if (ForstaPreferences.getForstaLoginPending(LoginActivity.this)) {
       showVerifyForm();
     } else if (!ForstaPreferences.getRegisteredKey(LoginActivity.this).equals("")) {
@@ -578,6 +580,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
           Log.w(TAG, "Login Success. Token Received.");
 
           ForstaPreferences.setForstaUser(context, user.toString());
+
           ForstaPreferences.setRegisteredForsta(context, token);
           ForstaPreferences.setForstaLoginPending(context, false);
           finishLoginActivity();
