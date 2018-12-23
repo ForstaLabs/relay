@@ -502,8 +502,15 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
       Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+      long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
+
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
           ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
@@ -537,6 +544,11 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
@@ -553,6 +565,11 @@ public class PushDecryptJob extends ContextJob {
           else                                                context.startService(intent);
           break;
         case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
           for (IceCandidate ice : iceUpdate.getIceCandidates()) {
             Intent iceIntent = new Intent(context, WebRtcCallService.class);
@@ -570,6 +587,11 @@ public class PushDecryptJob extends ContextJob {
 
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
           Intent leaveIntent = new Intent(context, WebRtcCallService.class);
           leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
@@ -581,6 +603,11 @@ public class PushDecryptJob extends ContextJob {
           break;
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
           Log.w(TAG, "" + callAcceptOffer.toString());
           Intent acceptIntent = new Intent(context, WebRtcCallService.class);

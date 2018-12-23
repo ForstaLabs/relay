@@ -113,6 +113,7 @@ public class WebRtcCallScreen extends FrameLayout {
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
+    localMemberLayout.setVisibility(VISIBLE);
     endCallButton.show();
   }
 
