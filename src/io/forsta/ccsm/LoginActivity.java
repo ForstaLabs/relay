@@ -557,6 +557,7 @@ public class LoginActivity extends BaseActionBarActivity implements Executor {
         e.printStackTrace();
       }
 
+      //TODO See if token contains org information.
       JSONObject token = CcsmApi.forstaLogin(LoginActivity.this, authObj);
       return token;
     }

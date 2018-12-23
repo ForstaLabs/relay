@@ -1610,7 +1610,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.setAction(ACTION_ICE_CONNECTED);
 
         startService(intent);
-      } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+      } else if (newState == PeerConnection.IceConnectionState.FAILED || newState == PeerConnection.IceConnectionState.DISCONNECTED) {
         Intent intent = new Intent(this.context, WebRtcCallService.class);
         intent.putExtra(EXTRA_CALL_ID, callId);
         intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
