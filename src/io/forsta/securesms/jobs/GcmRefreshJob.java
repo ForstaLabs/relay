@@ -88,6 +88,7 @@ public class GcmRefreshJob extends ContextJob implements InjectableType {
       int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
 
       if (result != ConnectionResult.SUCCESS) {
+        Log.w(TAG, "GCM Refresh failure");
         notifyGcmFailure();
       } else {
         String gcmId = GoogleCloudMessaging.getInstance(context).register(REGISTRATION_ID);
