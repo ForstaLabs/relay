@@ -46,6 +46,7 @@ import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.jobs.MasterSecretDecryptJob;
 import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -246,7 +247,7 @@ public class KeyCachingService extends Service {
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
   private void foregroundServiceModern() {
     Log.w("KeyCachingService", "foregrounding KCS");
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationChannels.LOCKED_STATUS);
 
     builder.setContentTitle(getString(R.string.KeyCachingService_passphrase_cached));
     builder.setContentText(getString(R.string.KeyCachingService_signal_passphrase_cached));

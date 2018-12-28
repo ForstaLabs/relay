@@ -30,6 +30,7 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.notifications.AbstractNotificationBuilder;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
@@ -183,6 +184,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Override
   public void onCreate() {
     super.onCreate();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION, new NotificationCompat.Builder(this, NotificationChannels.CALLS).build());
+    }
 
     initializeResources();
 
