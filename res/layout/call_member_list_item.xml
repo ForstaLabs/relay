@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp" android:gravity="center_horizontal">
+
+    <TextView
+        android:id="@+id/call_member_list_name"
+        android:text="Member Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"/>
+
+    <TextView
+        android:id="@+id/call_member_list_status"
+        android:text="Call Status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"/>
+
+    <io.forsta.securesms.components.AvatarImageView
+        android:id="@+id/call_member_list_avatar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        />
+
+</LinearLayout>

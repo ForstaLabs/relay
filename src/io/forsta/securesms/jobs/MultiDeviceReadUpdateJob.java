@@ -1,16 +1,22 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
+import io.forsta.securesms.util.JsonUtils;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.multidevice.ReadMessage;
@@ -19,6 +25,7 @@ import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,17 +35,21 @@ public class MultiDeviceReadUpdateJob extends MasterSecretJob implements Injecta
 
   private static final long serialVersionUID = 1L;
   private static final String TAG = MultiDeviceReadUpdateJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_IDS = "message_ids";
 
-  private final List<SerializableSyncMessageId> messageIds;
+  private List<SerializableSyncMessageId> messageIds;
 
   @Inject
   transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
+  public MultiDeviceReadUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
+
   public MultiDeviceReadUpdateJob(Context context, List<SyncMessageId> messageIds) {
     super(context, JobParameters.newBuilder()
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MasterSecretRequirement(context))
-                                .withPersistence()
+                                .withNetworkRequirement()
+                                .withMasterSecretRequirement()
                                 .create());
 
     this.messageIds = new LinkedList<>();
@@ -77,6 +88,35 @@ public class MultiDeviceReadUpdateJob extends MasterSecretJob implements Injecta
   }
 
   @Override
+  protected void initialize(@NonNull SafeData data) {
+    String[] ids = data.getStringArray(KEY_MESSAGE_IDS);
+
+    messageIds = new ArrayList<>(ids.length);
+    for (String id : ids) {
+      try {
+        messageIds.add(JsonUtils.fromJson(id, SerializableSyncMessageId.class));
+      } catch (IOException e) {
+        throw new AssertionError(e);
+      }
+    }
+  }
+
+  @Override
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    String[] ids = new String[messageIds.size()];
+
+    for (int i = 0; i < ids.length; i++) {
+      try {
+        ids[i] = JsonUtils.toJson(messageIds.get(i));
+      } catch (IOException e) {
+        throw new AssertionError(e);
+      }
+    }
+
+    return dataBuilder.putStringArray(KEY_MESSAGE_IDS, ids).build();
+  }
+
+  @Override
   public void onCanceled() {
 
   }
@@ -85,10 +125,13 @@ public class MultiDeviceReadUpdateJob extends MasterSecretJob implements Injecta
 
     private static final long serialVersionUID = 1L;
 
+    @JsonProperty
     private final String sender;
+
+    @JsonProperty
     private final long   timestamp;
 
-    private SerializableSyncMessageId(String sender, long timestamp) {
+    private SerializableSyncMessageId(@JsonProperty("sender") String sender, @JsonProperty("timestamp") long timestamp) {
       this.sender = sender;
       this.timestamp = timestamp;
     }

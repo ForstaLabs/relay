@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
+import androidx.work.WorkerParameters;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
@@ -35,6 +36,8 @@ import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.PushDatabase;
 import io.forsta.securesms.database.ThreadDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
@@ -50,7 +53,6 @@ import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.webrtc.IceCandidate;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
@@ -80,18 +82,23 @@ import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSy
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import ws.com.google.android.mms.MmsException;
+import androidx.work.Data;
 
 public class PushDecryptJob extends ContextJob {
 
   private static final long serialVersionUID = 2L;
 
   public static final String TAG = PushDecryptJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID = "message_id";
+  private static final String KEY_SMS_MESSAGE_ID = "sms_message_id";
 
-  private final long messageId;
-  private final long smsMessageId;
+  private long messageId;
+  private long smsMessageId;
+
+  public PushDecryptJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public PushDecryptJob(Context context, long pushMessageId, String sender) {
     this(context, pushMessageId, -1, sender);
@@ -99,9 +106,7 @@ public class PushDecryptJob extends ContextJob {
 
   public PushDecryptJob(Context context, long pushMessageId, long smsMessageId, String sender) {
     super(context, JobParameters.newBuilder()
-                                .withPersistence()
                                 .withGroupId("__PUSH_DECRYPT_JOB__")
-                                .withWakeLock(true, 5, TimeUnit.SECONDS)
                                 .create());
     this.messageId    = pushMessageId;
     this.smsMessageId = smsMessageId;
@@ -109,6 +114,18 @@ public class PushDecryptJob extends ContextJob {
 
   @Override
   public void onAdded() {}
+
+  protected void initialize(@NonNull SafeData data) {
+    messageId    = data.getLong(KEY_MESSAGE_ID);
+    smsMessageId = data.getLong(KEY_SMS_MESSAGE_ID);
+  }
+
+  @Override
+  protected @NonNull Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId)
+        .putLong(KEY_SMS_MESSAGE_ID, smsMessageId)
+        .build();
+  }
 
   @Override
   public void onRun() throws NoSuchMessageException {
@@ -303,12 +320,6 @@ public class PushDecryptJob extends ContextJob {
                         .add(new MultiDeviceContactUpdateJob(getContext()));
     }
 
-    if (message.isGroupsRequest()) {
-      ApplicationContext.getInstance(context)
-                        .getJobManager()
-                        .add(new MultiDeviceGroupUpdateJob(getContext()));
-    }
-
     if (message.isBlockedListRequest()) {
       ApplicationContext.getInstance(context)
                         .getJobManager()
@@ -435,6 +446,8 @@ public class PushDecryptJob extends ContextJob {
 
       return threadId;
     } else {
+      Log.w(TAG, "handleSynchronizeSentMediaMessage Type: " + forstaMessage.getControlType());
+      Log.w(TAG, message.getMessage().getBody().get());
       handleControlMessage(forstaMessage, message.getMessage().getBody().get(), message.getTimestamp());
       return -1;
     }
@@ -489,8 +502,15 @@ public class PushDecryptJob extends ContextJob {
   private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
     try {
       Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+      long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
+
           ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
           ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
 
@@ -524,6 +544,11 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
@@ -540,6 +565,11 @@ public class PushDecryptJob extends ContextJob {
           else                                                context.startService(intent);
           break;
         case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
           for (IceCandidate ice : iceUpdate.getIceCandidates()) {
             Intent iceIntent = new Intent(context, WebRtcCallService.class);
@@ -557,6 +587,11 @@ public class PushDecryptJob extends ContextJob {
 
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
           Intent leaveIntent = new Intent(context, WebRtcCallService.class);
           leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
@@ -568,6 +603,11 @@ public class PushDecryptJob extends ContextJob {
           break;
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+          // Temporary fix
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            return;
+          }
           ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
           Log.w(TAG, "" + callAcceptOffer.toString());
           Intent acceptIntent = new Intent(context, WebRtcCallService.class);

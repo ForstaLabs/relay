@@ -19,6 +19,7 @@ import com.melnykov.fab.FloatingActionButton;
 import com.nineoldandroids.animation.ArgbEvaluator;
 
 import io.forsta.securesms.IntroPagerAdapter.IntroPage;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -189,7 +190,7 @@ public class ExperienceUpgradeActivity extends BaseActionBarActivity {
         if (!experienceUpgrade.isPresent()) return;
 
         Intent       targetIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-        Notification notification = new NotificationCompat.Builder(context)
+        Notification notification = new NotificationCompat.Builder(context, NotificationChannels.OTHER)
                                         .setSmallIcon(R.drawable.icon_notification)
                                         .setColor(context.getResources().getColor(R.color.signal_primary))
                                         .setContentTitle(context.getString(experienceUpgrade.get().getNotificationTitle()))

@@ -2,32 +2,42 @@ package io.forsta.securesms.jobs;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.model.SmsMessageRecord;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.service.SmsDeliveryListener;
-import org.whispersystems.jobqueue.JobParameters;
 
 public class SmsSentJob extends MasterSecretJob {
 
   private static final String TAG = SmsSentJob.class.getSimpleName();
+  private static final String KEY_MESSAGE_ID = "message_id";
+  private static final String KEY_ACTION     = "action";
+  private static final String KEY_RESULT     = "result";
 
-  private final long   messageId;
-  private final String action;
-  private final int    result;
+  private long   messageId;
+  private String action;
+  private int    result;
+
+  public SmsSentJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public SmsSentJob(Context context, long messageId, String action, int result) {
     super(context, JobParameters.newBuilder()
-                                .withPersistence()
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withMasterSecretRequirement()
                                 .create());
 
     this.messageId = messageId;
@@ -39,6 +49,23 @@ public class SmsSentJob extends MasterSecretJob {
   public void onAdded() {
 
   }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    messageId = data.getLong(KEY_MESSAGE_ID);
+    action    = data.getString(KEY_ACTION);
+    result    = data.getInt(KEY_RESULT);
+  }
+
+  @Override
+  protected @NonNull
+  Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId)
+        .putString(KEY_ACTION, action)
+        .putInt(KEY_RESULT, result)
+        .build();
+  }
+
 
   @Override
   public void onRun(MasterSecret masterSecret) {

@@ -86,8 +86,8 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 public class MessageNotifier {
 
   private static final String TAG = MessageNotifier.class.getSimpleName();
-  private static final long ALARM_DEBOUNCE_TIME = 5000L;
   public static final int NOTIFICATION_ID = 1338;
+  private static final String NOTIFICATION_GROUP = "messages";
 
   private volatile static long notificationThreadId;
   private volatile static long visibleThread = -1;
@@ -189,10 +189,6 @@ public class MessageNotifier {
 
       NotificationState notificationState = constructNotificationState(context, masterSecret, telcoCursor);
 
-      if (includePushDatabase) {
-        appendPushNotificationState(context, notificationState, pushCursor);
-      }
-
       if (notificationState.getNotify()) {
         if (notificationState.hasMultipleThreads()) {
           sendMultipleThreadNotification(context, notificationState, signal);
@@ -235,6 +231,8 @@ public class MessageNotifier {
     builder.setPrimaryMessageBody(recipients, notifications.get(0).getIndividualRecipient(),
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
     builder.setContentIntent(notifications.get(0).getPendingIntent(context));
+    builder.setGroup(NOTIFICATION_GROUP);
+    builder.setOnlyAlertOnce(!signal);
 
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
@@ -252,24 +250,12 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      Log.w(TAG, "Debounce diff: " + (System.currentTimeMillis() - lastUpdate));
-
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
-      }
+      builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
     }
 
     NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        notificationManager.createNotificationChannel(builder.getChannel());
-      } else {
-        notificationManager.createNotificationChannel(builder.getNoSoundChannel());
-      }
-    }
-
     notificationManager.notify(NOTIFICATION_ID, builder.build());
 
     lastUpdate = System.currentTimeMillis();
@@ -284,7 +270,8 @@ public class MessageNotifier {
 
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
     builder.setMostRecentSender(notifications.get(0).getIndividualRecipient());
-
+    builder.setGroup(NOTIFICATION_GROUP);
+    builder.setOnlyAlertOnce(!signal);
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
 
@@ -298,22 +285,12 @@ public class MessageNotifier {
     }
 
     if (signal) {
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
-      }
+      builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
     }
 
     NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      if (System.currentTimeMillis() - lastUpdate > ALARM_DEBOUNCE_TIME) {
-        notificationManager.createNotificationChannel(builder.getChannel());
-      } else {
-        notificationManager.createNotificationChannel(builder.getNoSoundChannel());
-      }
-    }
-
     notificationManager.notify(NOTIFICATION_ID, builder.build());
 
     lastUpdate = System.currentTimeMillis();
@@ -367,35 +344,6 @@ public class MessageNotifier {
     ringtone.play();
   }
 
-  private static void appendPushNotificationState(@NonNull Context context,
-                                                  @NonNull NotificationState notificationState,
-                                                  @NonNull Cursor cursor)
-  {
-    PushDatabase.Reader reader = null;
-    SignalServiceEnvelope envelope;
-
-    try {
-      reader = DatabaseFactory.getPushDatabase(context).readerFor(cursor);
-
-      while ((envelope = reader.getNext()) != null) {
-        Recipients      recipients = RecipientFactory.getRecipientsFromString(context, envelope.getSource(), false);
-        Recipient       recipient  = recipients.getPrimaryRecipient();
-        long            threadId   = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-        SpannableString body       = new SpannableString(context.getString(R.string.MessageNotifier_locked_message));
-        body.setSpan(new StyleSpan(android.graphics.Typeface.ITALIC), 0, body.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        ThreadPreferenceDatabase.ThreadPreference threadPreference = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
-
-        if (threadPreference == null || !threadPreference.isMuted()) {
-          notificationState.addNotification(new NotificationItem(recipient, recipients, null, threadId, body, "Locked",0, null));
-        }
-      }
-    } finally {
-      if (reader != null)
-        reader.close();
-    }
-  }
-
   private static NotificationState constructNotificationState(@NonNull  Context context,
                                                               @Nullable MasterSecret masterSecret,
                                                               @NonNull  Cursor cursor)
@@ -411,9 +359,14 @@ public class MessageNotifier {
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
-      Recipient    recipient        = record.getIndividualRecipient();
-      Recipients   recipients       = record.getRecipients();
+      Recipient    sender        = record.getIndividualRecipient();
+      if (threadRecipients == null || threadRecipients.isEmpty()) {
+        Log.w(TAG, "Thread has no recipients. Setting to sender");
+          threadRecipients = record.getRecipients();
+      }
       ForstaThread forstaThread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+      ThreadPreferenceDatabase.ThreadPreference threadPreferences = DatabaseFactory.getThreadPreferenceDatabase(context).getThreadPreferences(threadId);
+
       CharSequence title = forstaThread != null ? forstaThread.getTitle() : "";
       CharSequence body             = record.getPlainTextBody();
       SlideDeck    slideDeck        = null;
@@ -436,7 +389,7 @@ public class MessageNotifier {
 
       if (threadRecipients != null && threadNotification && messageNotification) {
         notificationState.setNotify(true);
-        notificationState.addNotification(new NotificationItem(recipient, recipients, threadRecipients, threadId, body, title, timestamp, slideDeck));
+        notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
       } else {
         notificationState.setNotify(false);
       }

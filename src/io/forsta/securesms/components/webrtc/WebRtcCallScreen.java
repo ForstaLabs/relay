@@ -22,6 +22,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.telecom.Call;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -41,12 +43,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import io.forsta.ccsm.components.webrtc.CallMemberView;
+import io.forsta.ccsm.webrtc.CallMemberListAdapter;
+import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
 //import io.forsta.securesms.mms.GlideApp;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
 import io.forsta.securesms.recipients.RecipientFactory;
+import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -56,6 +61,8 @@ import org.webrtc.SurfaceViewRenderer;
 import org.whispersystems.libsignal.IdentityKey;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.forsta.securesms.recipients.Recipient;
@@ -79,10 +86,12 @@ public class WebRtcCallScreen extends FrameLayout {
   private WebRtcAnswerDeclineButton incomingCallButton;
 
   private Recipient localRecipient;
-  private CallMemberView localMemberLayout;
+  private FrameLayout localMemberLayout;
   private CallMemberView remoteMemberLayout;
   private CallMemberView remoteMemberLayout2;
   private CallMemberView remoteMemberLayout3;
+  private Map<String, CallRecipient> remoteCallMembers = new HashMap<>();
+  private RecyclerView remoteCallMemberList;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -102,9 +111,9 @@ public class WebRtcCallScreen extends FrameLayout {
   public void setActiveCall(@NonNull Recipient callRecipient, int callOrder, @NonNull String message) {
     updateCallMember(callRecipient, callOrder, message);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer, WebRtcCallService.remoteRenderer2, WebRtcCallService.remoteRenderer3);
-    localMemberLayout.setRecipient(localRecipient);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
+    localMemberLayout.setVisibility(VISIBLE);
     endCallButton.show();
   }
 
@@ -125,17 +134,25 @@ public class WebRtcCallScreen extends FrameLayout {
     updateCallMember(callRecipient, callOrder, message);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
-    localMemberLayout.setRecipient(localRecipient);
   }
 
   public void setIncomingCall(Recipient recipient, int callOrder, Map<Integer, Recipient> remoteCallRecipients) {
     for (Map.Entry<Integer, Recipient> entry : remoteCallRecipients.entrySet()) {
       updateCallMember(entry.getValue(), entry.getKey(), "Incoming call");
     }
-    localMemberLayout.setRecipient(localRecipient);
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
+    Recipients remoteRecipients = RecipientFactory.getRecipientsFor(getContext(), remoteCallRecipients.values(), true);
+    // This is temporary. pass recipient addresses through view model.
+//    for (Recipient r : remoteRecipients) {
+//      String message = "Wating";
+//      if (r.equals(recipient)) {
+//        message = "Incomming Call";
+//      }
+//      remoteCallMembers.put(r.getAddress(), new CallRecipient(r, message));
+//    }
+//    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallMembers.values().toArray(new Recipient[remoteCallMembers.size()])));
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
@@ -198,14 +215,20 @@ public class WebRtcCallScreen extends FrameLayout {
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.callHeader                   = findViewById(R.id.call_info_1);
+    this.remoteCallMemberList = findViewById(R.id.call_member_list_recyclerview);
 
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
+
+    LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+    layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+    remoteCallMemberList.setLayoutManager(layoutManager);
+
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
                             SurfaceViewRenderer remoteRenderer, SurfaceViewRenderer remoteRenderer2, SurfaceViewRenderer remoteRenderer3)
   {
-    if (localMemberLayout.memberVideo.getChildCount() == 0 && remoteMemberLayout.memberVideo.getChildCount() == 0) {
+    if (localMemberLayout.getChildCount() == 0 && remoteMemberLayout.memberVideo.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
         ((ViewGroup)localRenderer.getParent()).removeView(localRenderer);
       }
@@ -214,19 +237,21 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-      if (remoteRenderer2.getParent() != null) {
-        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
-      }
-
-      if (remoteRenderer3.getParent() != null) {
-        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
-      }
-//      localRenderer.setMirror(true);
-//      localRenderer.setZOrderMediaOverlay(true);
-      localMemberLayout.setActiveCall(localRenderer);
+//      if (remoteRenderer2.getParent() != null) {
+//        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
+//      }
+//
+//      if (remoteRenderer3.getParent() != null) {
+//        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
+//      }
+      localRenderer.setMirror(true);
+      localRenderer.setZOrderMediaOverlay(true);
+//      localMemberLayout.setActiveCall(localRenderer);
+      localMemberLayout.addView(localRenderer);
+      localMemberLayout.setVisibility(VISIBLE);
       remoteMemberLayout.setActiveCall(remoteRenderer);
-      remoteMemberLayout2.setActiveCall(remoteRenderer2);
-      remoteMemberLayout3.setActiveCall(remoteRenderer3);
+//      remoteMemberLayout2.setActiveCall(remoteRenderer2);
+//      remoteMemberLayout3.setActiveCall(remoteRenderer3);
     }
   }
 

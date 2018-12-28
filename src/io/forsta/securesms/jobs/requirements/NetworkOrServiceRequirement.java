@@ -2,11 +2,13 @@ package io.forsta.securesms.jobs.requirements;
 
 import android.content.Context;
 
-import org.whispersystems.jobqueue.dependencies.ContextDependent;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
-import org.whispersystems.jobqueue.requirements.Requirement;
+import io.forsta.securesms.jobmanager.dependencies.ContextDependent;
+import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
+import io.forsta.securesms.jobmanager.requirements.SimpleRequirement;
 
-public class NetworkOrServiceRequirement implements Requirement, ContextDependent {
+import io.forsta.securesms.jobmanager.requirements.SimpleRequirement;
+
+public class NetworkOrServiceRequirement extends SimpleRequirement implements ContextDependent {
 
   private transient Context context;
 

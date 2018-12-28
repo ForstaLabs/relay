@@ -1,24 +1,29 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
 import io.forsta.securesms.database.NotInDirectoryException;
 import io.forsta.securesms.database.TextSecureDirectory;
+import io.forsta.securesms.jobmanager.JobManager;
+import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.service.KeyCachingService;
-import org.whispersystems.jobqueue.JobManager;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 public abstract class PushReceivedJob extends ContextJob {
 
   private static final String TAG = PushReceivedJob.class.getSimpleName();
+
+  protected PushReceivedJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   protected PushReceivedJob(Context context, JobParameters parameters) {
     super(context, parameters);
@@ -53,6 +58,7 @@ public abstract class PushReceivedJob extends ContextJob {
       Log.w(TAG, "*** Received blocked push message, ignoring...");
     }
 
+    //TODO Remove this?
     if (sendExplicitReceipt) {
       jobManager.add(new DeliveryReceiptJob(context, envelope.getSource(),
                                             envelope.getTimestamp(),

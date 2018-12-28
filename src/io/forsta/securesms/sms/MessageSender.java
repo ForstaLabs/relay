@@ -24,32 +24,23 @@ import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.OutgoingMessage;
-import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.ApplicationContext;
-import io.forsta.securesms.ConversationActivity;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.NotInDirectoryException;
-import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.jobs.MmsSendJob;
-import io.forsta.securesms.jobs.PushGroupSendJob;
+import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
 import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.SlideDeck;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
-import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
-import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
@@ -57,18 +48,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
-import org.whispersystems.jobqueue.JobManager;
-import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import io.forsta.securesms.webrtc.IceUpdateMessage;
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {

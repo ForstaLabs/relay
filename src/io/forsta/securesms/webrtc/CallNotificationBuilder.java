@@ -13,6 +13,7 @@ import android.support.v4.app.NotificationCompat;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
@@ -42,7 +43,7 @@ public class CallNotificationBuilder {
 
     PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, contentIntent, 0);
 
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationChannels.CALLS)
         .setSmallIcon(R.drawable.ic_call_secure_white_24dp)
         .setContentIntent(pendingIntent)
         .setOngoing(true)

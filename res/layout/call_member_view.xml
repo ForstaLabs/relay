@@ -4,32 +4,39 @@
     <LinearLayout android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:orientation="vertical">
-    <TextView
-        android:id="@+id/call_member_name"
-        android:text=""
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <TextView
-        android:id="@+id/call_member_status"
-        android:text=""
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <io.forsta.securesms.components.AvatarImageView
-        android:id="@+id/call_member_avatar"
-        android:layout_gravity="center"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:visibility="visible"
-        android:cropToPadding="true"
-        android:foreground="@drawable/contact_photo_background"
-        tools:src="@drawable/ic_contact_picture"
-        />
-    <FrameLayout
-        android:id="@+id/call_member_video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:visibility="gone"/>
+        <LinearLayout android:id="@+id/call_member_info_container"
+            android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="vertical">
+            <TextView
+                android:id="@+id/call_member_name"
+                android:text=""
+                android:textAlignment="center"
+                style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/call_member_status"
+                android:text=""
+                android:textAlignment="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <io.forsta.securesms.components.AvatarImageView
+            android:id="@+id/call_member_avatar"
+            android:layout_gravity="center"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:visibility="visible"
+            android:cropToPadding="true"
+            android:foreground="@drawable/contact_photo_background"
+            tools:src="@drawable/ic_contact_picture"
+            />
+        <FrameLayout
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/call_member_video"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:visibility="gone"/>
     </LinearLayout>
 </merge>

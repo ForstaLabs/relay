@@ -33,6 +33,7 @@ import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.IdentityKeyMismatchList;
 import io.forsta.securesms.database.model.DisplayRecord;
 import io.forsta.securesms.database.model.SmsMessageRecord;
+import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.TrimThreadJob;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -43,7 +44,6 @@ import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.JsonUtils;
 import io.forsta.securesms.util.Util;
 
-import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;

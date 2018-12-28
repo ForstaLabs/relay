@@ -6,6 +6,20 @@
     <string name="delete">Delete</string>
     <string name="please_wait">Please wait...</string>
 
+    <!-- Notification Channels -->
+    <string name="NotificationChannel_messages">Messages</string>
+    <string name="NotificationChannel_calls">Calls</string>
+    <string name="NotificationChannel_failures">Failures</string>
+    <string name="NotificationChannel_backups">Backups</string>
+    <string name="NotificationChannel_locked_status">Locked status</string>
+    <string name="NotificationChannel_app_updates">App updates</string>
+    <string name="NotificationChannel_group_messages">Messages</string>
+    <string name="NotificationChannel_other">Other</string>
+    <string name="NotificationChannel_missing_display_name">Unknown</string>
+
+    <string name="MessageRetrievalService_forsta">Forsta Message Retrieval Service</string>
+    <string name="MessageRetrievalService_background_connection_enabled">Background connection enabled</string>
+
     <!-- Forsta Strings -->
     <string name="forsta_login_title">Login to Forsta</string>
     <string name="forsta_login_title_join">Join Forsta</string>
@@ -73,6 +87,9 @@
     <string name="ApplicationPreferencesActivity_sms_mms_summary">SMS %1$s, MMS %2$s</string>
     <string name="ApplicationPreferencesActivity_privacy_summary">Passphrase %1$s, Screen security %2$s</string>
     <string name="ApplicationPreferencesActivity_appearance_summary">Theme %1$s, Language %2$s</string>
+
+    <!-- Job -->
+    <string name="Job_working_in_the_background">Working in the background...</string>
 
     <!-- AppProtectionPreferenceFragment -->
     <plurals name="AppProtectionPreferenceFragment_minutes">

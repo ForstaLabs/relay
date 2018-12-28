@@ -14,7 +14,6 @@ import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceGroupUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceReadUpdateJob;
-import io.forsta.securesms.jobs.PushGroupSendJob;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushNotificationReceiveJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
@@ -35,7 +34,6 @@ import dagger.Provides;
 @Module(complete = false, injects = {CleanPreKeysJob.class,
                                      CreateSignedPreKeyJob.class,
                                      DeliveryReceiptJob.class,
-                                     PushGroupSendJob.class,
                                      PushTextSendJob.class,
                                      PushMediaSendJob.class,
                                      AttachmentDownloadJob.class,
