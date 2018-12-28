@@ -139,7 +139,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_BUSY       = "REMOTE_BUSY";
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
-  private static final int MAX_PEERS = 3;
+  private static final int MAX_PEERS = 1;
 
   private CallState callState          = CallState.STATE_IDLE;
   private boolean   microphoneEnabled  = true;
@@ -402,13 +402,22 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       int memberCount = 0;
       for (String memberAddress : members) {
-        if (!memberAddress.equals(localCallMember.getRecipient().getAddress())) {
-          if (++memberCount > MAX_PEERS) break;
-          remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
+//        if (!memberAddress.equals(localCallMember.getRecipient().getAddress())) {
+//          if (++memberCount > MAX_PEERS) break;
+//          remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
+//        }
+        // Restrict to single caller until UI challenges can be resolved.
+        if (memberAddress.equals(incomingAddress)) {
+          remoteCallMembers.put(incomingAddress, new CallMember(this, incomingAddress));
         }
       }
 
       final CallMember incomingMember = remoteCallMembers.get(incomingAddress);
+      if (incomingMember == null) {
+        Log.w(TAG, "Unknown caller");
+        terminateCall(false);
+        return;
+      }
       incomingMember.callOrder = 1;
       for (CallMember callMember : remoteCallMembers.values()) {
         if (!callMember.equals(incomingMember)) {

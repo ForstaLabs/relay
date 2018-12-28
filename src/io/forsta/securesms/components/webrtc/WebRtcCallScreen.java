@@ -128,9 +128,6 @@ public class WebRtcCallScreen extends FrameLayout {
       remoteMemberLayout3.setRecipient(recipient);
       remoteMemberLayout3.setCallStatus(message);
     }
-    // Find this recipient and update in the full list of remote recipients passed to the
-    // RecyclerView's ListAdapter.
-    
   }
 
   public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
@@ -247,8 +244,8 @@ public class WebRtcCallScreen extends FrameLayout {
 //      if (remoteRenderer3.getParent() != null) {
 //        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
 //      }
-//      localRenderer.setMirror(true);
-//      localRenderer.setZOrderMediaOverlay(true);
+      localRenderer.setMirror(true);
+      localRenderer.setZOrderMediaOverlay(true);
 //      localMemberLayout.setActiveCall(localRenderer);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);
