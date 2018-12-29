@@ -147,7 +147,7 @@ dependencyVerification {
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
     buildToolsVersion '26.0.2'
     useLibrary 'org.apache.http.legacy'
 
