@@ -105,27 +105,6 @@ public class ContactsCursorLoader extends CursorLoader {
       List<ForstaUser> localUsers = DbFactory.getContactDb(getContext()).getActiveForstaUsers(filter);
 
       try {
-//        if (!TextUtils.isEmpty(filter) && localUsers.size() < 1) {
-//          Log.w(TAG, "No local users found for filter.");
-//          NetworkInfo network = ServiceUtil.getConnectivityManager(getContext()).getActiveNetworkInfo();
-//          if (network != null && network.isConnectedOrConnecting()) {
-//            JSONObject results = CcsmApi.searchUserDirectory(getContext(), filter);
-//            Log.w(TAG, results.toString());
-//            List<ForstaUser> searchResults = CcsmApi.parseUsers(getContext(), results);
-//            for (ForstaUser user : searchResults) {
-//              if (!localUsers.contains(user)) {
-//                localUsers.add(user);
-//              }
-//            }
-//          }
-//        }
-//        Collections.sort(localUsers, new Comparator<ForstaUser>() {
-//          @Override
-//          public int compare(ForstaUser forstaUser, ForstaUser t1) {
-//            return forstaUser.getName().compareToIgnoreCase(t1.getName());
-//          }
-//        });
-
         for (ForstaUser user : localUsers) {
           if (!localUid.equals(user.getUid())) {
             forstaContactsCursor.addRow(new Object[] {
