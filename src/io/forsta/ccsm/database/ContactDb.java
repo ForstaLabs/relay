@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.w3c.dom.Text;
 import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 import java.util.ArrayList;
@@ -292,7 +293,7 @@ public class ContactDb extends DbBase {
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
       String user = filter;
-      String org = filter;
+      String org = "";
       String[] parts = filter.split(":");
       if (parts.length > 0) {
         user = parts[0];
@@ -300,8 +301,13 @@ public class ContactDb extends DbBase {
           org = parts[1];
         }
       }
-      queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + ORGSLUG + " LIKE ? OR " + NUMBER + " LIKE ? OR " + EMAIL + " LIKE ?)";
-      queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + org + "%", "%" + user + "%", "%" + user + "%" };
+      if (!TextUtils.isEmpty(org)) {
+        queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? AND " + ORGSLUG + " LIKE ? OR " + NUMBER + " LIKE ? OR " + EMAIL + " LIKE ?)";
+        queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + org + "%", "%" + user + "%", "%" + user + "%" };
+      } else {
+        queryFilter += " AND (" + NAME + " LIKE ? OR " + SLUG + " LIKE ? OR " + NUMBER + " LIKE ? OR " + EMAIL + " LIKE ?)";
+        queryValues = new String[] { "%" + user + "%", "%" + user + "%", "%" + user + "%", "%" + user + "%" };
+      }
     }
 
     try {
