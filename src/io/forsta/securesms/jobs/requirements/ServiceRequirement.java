@@ -3,10 +3,10 @@ package io.forsta.securesms.jobs.requirements;
 import android.content.Context;
 
 import io.forsta.securesms.sms.TelephonyServiceState;
-import org.whispersystems.jobqueue.dependencies.ContextDependent;
-import org.whispersystems.jobqueue.requirements.Requirement;
+import io.forsta.securesms.jobmanager.dependencies.ContextDependent;
+import io.forsta.securesms.jobmanager.requirements.SimpleRequirement;
 
-public class ServiceRequirement implements Requirement, ContextDependent {
+public class ServiceRequirement extends SimpleRequirement implements ContextDependent {
 
   private static final String TAG = ServiceRequirement.class.getSimpleName();
 

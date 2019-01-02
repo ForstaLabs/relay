@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.ArrayRes;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.h6ah4i.android.compat.content.SharedPreferenceCompat;
@@ -49,6 +50,7 @@ public class TextSecurePreferences {
   public  static final String RINGTONE_PREF                    = "pref_key_ringtone";
   private static final String VIBRATE_PREF                     = "pref_key_vibrate";
   private static final String NOTIFICATION_PREF                = "pref_key_enable_notifications";
+  public  static final String NOTIFICATION_PRIORITY_PREF       = "pref_notification_priority";
   public  static final String LED_COLOR_PREF                   = "pref_led_color";
   public  static final String LED_BLINK_PREF                   = "pref_led_blink";
   private static final String LED_BLINK_PREF_CUSTOM            = "pref_led_blink_custom";
@@ -100,6 +102,26 @@ public class TextSecurePreferences {
   public  static final String DIRECT_CAPTURE_CAMERA_ID         = "pref_direct_capture_camera_id";
   public  static final String LOCAL_DEVICE_ID         = "pref_local_device_id";
   public static final String NOTIFICATION_FILTER = "pref_notification_filter";
+  private static final String NOTIFICATION_CHANNEL_VERSION          = "pref_notification_channel_version";
+  private static final String NOTIFICATION_MESSAGES_CHANNEL_VERSION = "pref_notification_messages_channel_version";
+  private static final String GCM_DISABLED_PREF                = "pref_gcm_disabled";
+
+
+  public static int getNotificationChannelVersion(Context context) {
+    return getIntegerPreference(context, NOTIFICATION_CHANNEL_VERSION, 1);
+  }
+
+  public static void setNotificationChannelVersion(Context context, int version) {
+    setIntegerPrefrence(context, NOTIFICATION_CHANNEL_VERSION, version);
+  }
+
+  public static int getNotificationMessagesChannelVersion(Context context) {
+    return getIntegerPreference(context, NOTIFICATION_MESSAGES_CHANNEL_VERSION, 1);
+  }
+
+  public static void setNotificationMessagesChannelVersion(Context context, int version) {
+    setIntegerPrefrence(context, NOTIFICATION_MESSAGES_CHANNEL_VERSION, version);
+  }
 
   public static void setNotificationPreferences(Context context, Set<String> notificationPrefs) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -503,8 +525,16 @@ public class TextSecurePreferences {
     return getBooleanPreference(context, ALL_SMS_PREF, true);
   }
 
+  public static boolean isGcmDisabled(Context context) {
+    return getBooleanPreference(context, GCM_DISABLED_PREF, false);
+  }
+
   public static boolean isNotificationsEnabled(Context context) {
     return getBooleanPreference(context, NOTIFICATION_PREF, true);
+  }
+
+  public static int getNotificationPriority(Context context) {
+    return Integer.valueOf(getStringPreference(context, NOTIFICATION_PRIORITY_PREF, String.valueOf(NotificationCompat.PRIORITY_HIGH)));
   }
 
   public static String getNotificationRingtone(Context context) {

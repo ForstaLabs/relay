@@ -46,6 +46,7 @@ import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.jobs.MasterSecretDecryptJob;
 import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.notifications.MessageNotifier;
+import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -149,22 +150,8 @@ public class KeyCachingService extends Service {
 
   @Override
   public void onCreate() {
-    Log.w("KeyCachingService", "onCreate()");
+    Log.i(TAG, "onCreate()");
     super.onCreate();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      String CHANNEL_ID = AbstractNotificationBuilder.CHANNEL_ID;
-      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-          "Forsta",
-          NotificationManager.IMPORTANCE_DEFAULT);
-
-      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
-
-      Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-          .setContentTitle("Forsta")
-          .setContentText("Service running...").build();
-
-      startForeground(1, notification);
-    }
 
     this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
                                                                 this, KeyCachingService.class), 0);
@@ -260,7 +247,7 @@ public class KeyCachingService extends Service {
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
   private void foregroundServiceModern() {
     Log.w("KeyCachingService", "foregrounding KCS");
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationChannels.LOCKED_STATUS);
 
     builder.setContentTitle(getString(R.string.KeyCachingService_passphrase_cached));
     builder.setContentText(getString(R.string.KeyCachingService_signal_passphrase_cached));

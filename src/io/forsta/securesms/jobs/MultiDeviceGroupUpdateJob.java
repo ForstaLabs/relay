@@ -1,17 +1,20 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
@@ -38,12 +41,15 @@ public class MultiDeviceGroupUpdateJob extends MasterSecretJob implements Inject
   @Inject
   transient TextSecureCommunicationModule.TextSecureMessageSenderFactory messageSenderFactory;
 
+  public MultiDeviceGroupUpdateJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
+
   public MultiDeviceGroupUpdateJob(Context context) {
     super(context, JobParameters.newBuilder()
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withNetworkRequirement()
+                                .withMasterSecretRequirement()
                                 .withGroupId(MultiDeviceGroupUpdateJob.class.getSimpleName())
-                                .withPersistence()
                                 .create());
   }
 
@@ -89,6 +95,17 @@ public class MultiDeviceGroupUpdateJob extends MasterSecretJob implements Inject
 
   @Override
   public void onAdded() {
+
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
 
   }
 

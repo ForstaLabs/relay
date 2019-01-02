@@ -3,17 +3,18 @@ package io.forsta.securesms.jobs;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.TextSecureExpiredException;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.AttachmentDatabase;
+import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.MediaStream;
 import io.forsta.securesms.transport.UndeliverableMessageException;
 import io.forsta.securesms.util.Util;
-import org.whispersystems.jobqueue.JobParameters;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -24,6 +25,10 @@ import ws.com.google.android.mms.MmsException;
 public abstract class SendJob extends MasterSecretJob {
 
   private final static String TAG = SendJob.class.getSimpleName();
+
+  protected SendJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public SendJob(Context context, JobParameters parameters) {
     super(context, parameters);

@@ -21,6 +21,7 @@ import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.SmsMigrator;
+import io.forsta.securesms.notifications.NotificationChannels;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
@@ -125,7 +126,7 @@ public class ApplicationMigrationService extends Service
   }
 
   private NotificationCompat.Builder initializeBackgroundNotification() {
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationChannels.OTHER);
 
     builder.setSmallIcon(R.drawable.icon_notification);
     builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.icon_notification));
@@ -185,7 +186,7 @@ public class ApplicationMigrationService extends Service
   private static class CompletedReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-      NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+      NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationChannels.OTHER);
       builder.setSmallIcon(R.drawable.icon_notification);
       builder.setContentTitle(context.getString(R.string.ApplicationMigrationService_import_complete));
       builder.setContentText(context.getString(R.string.ApplicationMigrationService_system_database_import_is_complete));

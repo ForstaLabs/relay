@@ -1,9 +1,12 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.attachments.AttachmentId;
 import io.forsta.securesms.crypto.AsymmetricMasterSecret;
@@ -14,12 +17,12 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.PartProgressEvent;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirement;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.util.VisibleForTesting;
-import org.whispersystems.jobqueue.JobParameters;
-import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment.ProgressListener;
@@ -32,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.inject.Inject;
+import androidx.work.Data;
 
 import org.greenrobot.eventbus.EventBus;
 import ws.com.google.android.mms.MmsException;
@@ -40,19 +44,25 @@ public class AttachmentDownloadJob extends MasterSecretJob implements Injectable
   private static final long   serialVersionUID = 1L;
   private static final String TAG              = AttachmentDownloadJob.class.getSimpleName();
 
+  private static final String KEY_MESSAGE_ID    = "message_id";
+  private static final String KEY_PART_ROW_ID   = "part_row_id";
+  private static final String KEY_PAR_UNIQUE_ID = "part_unique_id";
+
   @Inject transient SignalServiceMessageReceiver messageReceiver;
 
-  private final long messageId;
-  private final long partRowId;
-  private final long partUniqueId;
+  private long messageId;
+  private long partRowId;
+  private long partUniqueId;
+
+  public AttachmentDownloadJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
 
   public AttachmentDownloadJob(Context context, long messageId, AttachmentId attachmentId) {
     super(context, JobParameters.newBuilder()
                                 .withGroupId(AttachmentDownloadJob.class.getCanonicalName())
-                                .withRequirement(new MasterSecretRequirement(context))
-                                .withRequirement(new NetworkRequirement(context))
-                                .withRequirement(new MediaNetworkRequirement(context, messageId, attachmentId))
-                                .withPersistence()
+                                .withMasterSecretRequirement()
+                                .withNetworkRequirement()
                                 .create());
 
     this.messageId    = messageId;
@@ -62,6 +72,23 @@ public class AttachmentDownloadJob extends MasterSecretJob implements Injectable
 
   @Override
   public void onAdded() {
+    Log.i(TAG, "onAdded() messageId: " + messageId + "  partRowId: " + partRowId + "  partUniqueId: " + partUniqueId);
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.putLong(KEY_MESSAGE_ID, messageId)
+        .putLong(KEY_PART_ROW_ID, partRowId)
+        .putLong(KEY_PAR_UNIQUE_ID, partUniqueId)
+        .build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
+    messageId    = data.getLong(KEY_MESSAGE_ID);
+    partRowId    = data.getLong(KEY_PART_ROW_ID);
+    partUniqueId = data.getLong(KEY_PAR_UNIQUE_ID);
   }
 
   @Override

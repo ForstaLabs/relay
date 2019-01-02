@@ -1,23 +1,23 @@
 package io.forsta.securesms.jobs;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.work.Data;
+import androidx.work.WorkerParameters;
 import io.forsta.securesms.crypto.AsymmetricMasterCipher;
 import io.forsta.securesms.crypto.AsymmetricMasterSecret;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.crypto.MasterSecretUtil;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.database.model.SmsMessageRecord;
-import io.forsta.securesms.jobs.requirements.MasterSecretRequirement;
+import io.forsta.securesms.jobmanager.JobParameters;
+import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.notifications.MessageNotifier;
-import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.io.IOException;
@@ -27,9 +27,13 @@ public class MasterSecretDecryptJob extends MasterSecretJob {
   private static final long   serialVersionUID = 1L;
   private static final String TAG              = MasterSecretDecryptJob.class.getSimpleName();
 
+  public MasterSecretDecryptJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+    super(context, workerParameters);
+  }
+
   public MasterSecretDecryptJob(Context context) {
     super(context, JobParameters.newBuilder()
-                                .withRequirement(new MasterSecretRequirement(context))
+                                .withMasterSecretRequirement()
                                 .create());
   }
 
@@ -61,6 +65,17 @@ public class MasterSecretDecryptJob extends MasterSecretJob {
 
   @Override
   public void onAdded() {
+
+  }
+
+  @NonNull
+  @Override
+  protected Data serialize(@NonNull Data.Builder dataBuilder) {
+    return dataBuilder.build();
+  }
+
+  @Override
+  protected void initialize(@NonNull SafeData data) {
 
   }
 

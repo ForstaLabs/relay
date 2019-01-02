@@ -16,44 +16,45 @@
  */
 package io.forsta.securesms;
 
-import android.app.Application;
+import android.arch.lifecycle.DefaultLifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.StrictMode;
 import android.os.StrictMode.ThreadPolicy;
 import android.os.StrictMode.VmPolicy;
+import android.support.annotation.NonNull;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.google.android.gms.security.ProviderInstaller;
 
+import androidx.work.Configuration;
+import androidx.work.WorkManager;
 import io.forsta.securesms.crypto.PRNGFixes;
 import io.forsta.securesms.dependencies.AxolotlStorageModule;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.GcmRefreshJob;
-import io.forsta.securesms.jobs.persistence.EncryptingJobSerializer;
-import io.forsta.securesms.jobs.requirements.MasterSecretRequirementProvider;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
-import io.forsta.securesms.jobs.requirements.ServiceRequirementProvider;
-import io.forsta.securesms.service.DirectoryRefreshListener;
 import io.forsta.securesms.service.ExpiringMessageManager;
+import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.voiceengine.WebRtcAudioManager;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
-import org.whispersystems.jobqueue.JobManager;
-import org.whispersystems.jobqueue.dependencies.DependencyInjector;
-import org.whispersystems.jobqueue.requirements.NetworkRequirementProvider;
-//import org.whispersystems.libsignal.logging.SignalProtocolLoggerProvider;
-//import org.whispersystems.libsignal.util.AndroidSignalProtocolLogger;
+import io.forsta.securesms.jobmanager.JobManager;
+import io.forsta.securesms.jobmanager.dependencies.DependencyInjector;
+import io.forsta.securesms.notifications.NotificationChannels;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import dagger.ObjectGraph;
+import io.forsta.securesms.util.Util;
 
 /**
  * Will be called once when the TextSecure process is created.
@@ -63,13 +64,15 @@ import dagger.ObjectGraph;
  *
  * @author Moxie Marlinspike
  */
-public class ApplicationContext extends Application implements DependencyInjector {
+public class ApplicationContext extends MultiDexApplication implements DependencyInjector, DefaultLifecycleObserver {
 
   private static final String TAG = ApplicationContext.class.getName();
 
   private ExpiringMessageManager expiringMessageManager;
   private JobManager             jobManager;
   private ObjectGraph            objectGraph;
+  private boolean                initialized;
+  private volatile boolean       isAppVisible;
 
   private MediaNetworkRequirementProvider mediaNetworkRequirementProvider = new MediaNetworkRequirementProvider();
 
@@ -79,17 +82,44 @@ public class ApplicationContext extends Application implements DependencyInjecto
 
   @Override
   public void onCreate() {
-    super.onCreate();
-    initializeRandomNumberFix();
-    initializeLogging();
-    initializeDependencyInjection();
-    initializeJobManager();
-    initializeExpiringMessageManager();
-    initializeGcmCheck();
-    initializeSignedPreKeyCheck();
+    synchronized(this) {
+      super.onCreate();
+      initializeRandomNumberFix();
+      initializeLogging();
+      initializeDependencyInjection();
+      initializeJobManager();
+      initializeExpiringMessageManager();
+      initializeGcmCheck();
+      initializeSignedPreKeyCheck();
 //    initializePeriodicTasks();
 //    initializeCircumvention();
-    initializeWebRtc();
+      initializeWebRtc();
+      NotificationChannels.create(this);
+      ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
+
+      initialized = true;
+      notifyAll();
+    }
+  }
+
+  @Override
+  public void onStart(@NonNull LifecycleOwner owner) {
+    isAppVisible = true;
+    Log.i(TAG, "App is now visible.");
+  }
+
+  @Override
+  public void onStop(@NonNull LifecycleOwner owner) {
+    isAppVisible = false;
+    Log.i(TAG, "App is no longer visible.");
+  }
+
+  public void ensureInitialized() {
+    synchronized (this) {
+      while (!initialized) {
+        Util.wait(this, 0);
+      }
+    }
   }
 
   @Override
@@ -107,6 +137,10 @@ public class ApplicationContext extends Application implements DependencyInjecto
     return expiringMessageManager;
   }
 
+  public boolean isAppVisible() {
+    return isAppVisible;
+  }
+
   private void initializeRandomNumberFix() {
     PRNGFixes.apply();
   }
@@ -117,16 +151,7 @@ public class ApplicationContext extends Application implements DependencyInjecto
   }
 
   private void initializeJobManager() {
-    this.jobManager = JobManager.newBuilder(this)
-                                .withName("TextSecureJobs")
-                                .withDependencyInjector(this)
-                                .withJobSerializer(new EncryptingJobSerializer())
-                                .withRequirementProviders(new MasterSecretRequirementProvider(this),
-                                                          new ServiceRequirementProvider(this),
-                                                          new NetworkRequirementProvider(this),
-                                                          mediaNetworkRequirementProvider)
-                                .withConsumerThreads(5)
-                                .build();
+    this.jobManager = new JobManager(this, WorkManager.getInstance());
   }
 
   public void notifyMediaControlEvent() {
@@ -175,7 +200,9 @@ public class ApplicationContext extends Application implements DependencyInjecto
           WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true);
         }
 
-        PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true);
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(this)
+            .setEnableVideoHwAcceleration(true)
+            .createInitializationOptions());
       }
     } catch (UnsatisfiedLinkError e) {
       Log.w(TAG, e);

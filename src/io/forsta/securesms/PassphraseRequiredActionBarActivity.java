@@ -52,7 +52,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
 
     final MasterSecret masterSecret = KeyCachingService.getMasterSecret(this);
     routeApplicationState(masterSecret);
+
     super.onCreate(savedInstanceState);
+
     if (!isFinishing()) {
       initializeClearKeyReceiver();
       onCreate(savedInstanceState, masterSecret);
@@ -67,7 +69,9 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     Log.w(TAG, "onResume()");
     super.onResume();
     KeyCachingService.registerPassphraseActivityStarted(this);
+
     MessageRetrievalService.registerActivityStarted(this);
+
     isVisible = true;
   }
 

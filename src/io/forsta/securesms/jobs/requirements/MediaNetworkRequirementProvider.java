@@ -1,7 +1,7 @@
 package io.forsta.securesms.jobs.requirements;
 
-import org.whispersystems.jobqueue.requirements.RequirementListener;
-import org.whispersystems.jobqueue.requirements.RequirementProvider;
+import io.forsta.securesms.jobmanager.requirements.RequirementListener;
+import io.forsta.securesms.jobmanager.requirements.RequirementProvider;
 
 public class MediaNetworkRequirementProvider implements RequirementProvider {
 

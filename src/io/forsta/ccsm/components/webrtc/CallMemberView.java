@@ -25,6 +25,7 @@ import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.service.WebRtcCallService;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
 public class CallMemberView extends LinearLayout implements Recipient.RecipientModifiedListener {
@@ -35,6 +36,7 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
   private TextView callMemberStatus;
   private AvatarImageView memberAvatar;
   public FrameLayout memberVideo;
+  private LinearLayout memberInfoContainer;
 
   public CallMemberView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
@@ -64,6 +66,7 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
     callMemberStatus = (TextView) findViewById(R.id.call_member_status);
     memberAvatar = (AvatarImageView) findViewById(R.id.call_member_avatar);
     memberVideo = (FrameLayout) findViewById(R.id.call_member_video);
+    memberInfoContainer = findViewById(R.id.call_member_info_container);
   }
 
   public void setRecipient(Recipient recipient) {
@@ -71,6 +74,9 @@ public class CallMemberView extends LinearLayout implements Recipient.RecipientM
     this.recipient.addListener(this);
     memberName.setText(recipient.getName());
     memberAvatar.setAvatar(recipient, false);
+    if (recipient.getAddress().equals(TextSecurePreferences.getLocalNumber(getContext()))) {
+      memberInfoContainer.setVisibility(GONE);
+    }
   }
 
   public void setActiveCall(SurfaceViewRenderer renderer) {

@@ -28,6 +28,7 @@ import io.forsta.securesms.preferences.NotificationPrivacyPreference;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.BitmapUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
 import java.util.LinkedList;
@@ -42,6 +43,8 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
 
   private       SlideDeck    slideDeck;
   private final MasterSecret masterSecret;
+  private CharSequence contentTitle;
+  private CharSequence contentText;
 
   public SingleRecipientNotificationBuilder(@NonNull Context context,
                                             @Nullable MasterSecret masterSecret,
@@ -52,12 +55,16 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
 
     setSmallIcon(R.drawable.icon_notification);
     setColor(context.getResources().getColor(R.color.textsecure_primary));
-    setPriority(NotificationCompat.PRIORITY_HIGH);
     setCategory(NotificationCompat.CATEGORY_MESSAGE);
-    setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(MessageNotifier.DeleteReceiver.DELETE_REMINDER_ACTION), 0));
+
+    if (!NotificationChannels.supported()) {
+      setPriority(TextSecurePreferences.getNotificationPriority(context));
+    }
   }
 
   public void setThread(@NonNull final Recipients recipients, String title) { // Need to pass color.
+    setChannelId(NotificationChannels.getMessagesChannel(context));
+
     if (privacy.isDisplayContact()) {
       if (!TextUtils.isEmpty(title)) {
         setContentTitle(title);

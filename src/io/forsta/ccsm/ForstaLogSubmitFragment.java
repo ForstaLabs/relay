@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.text.ClipboardManager;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
@@ -44,6 +45,7 @@ import java.util.Locale;
 
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.util.NetworkUtils;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 
 /**
@@ -147,8 +149,13 @@ public class ForstaLogSubmitFragment extends Fragment {
         emailIntent.setType("vnd.android.cursor.dir/email");
         emailIntent.putExtra(Intent.EXTRA_EMAIL,   new String[] { "androidsupport@forsta.io" });
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Android App Debug Log");
+        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         String out = outFile.getAbsolutePath();
-        emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outFile));
+        Uri fileUri = FileProvider.getUriForFile(
+            getContext(),
+            BuildConfig.APPLICATION_ID + ".provider.external_files",
+            outFile);
+        emailIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
         startActivity(Intent.createChooser(emailIntent, "Send email..."));
         mListener.onSuccess();
       }

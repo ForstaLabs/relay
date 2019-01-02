@@ -5,10 +5,10 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 
-import org.whispersystems.jobqueue.requirements.RequirementListener;
-import org.whispersystems.jobqueue.requirements.RequirementProvider;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.forsta.securesms.jobmanager.requirements.RequirementListener;
+import io.forsta.securesms.jobmanager.requirements.RequirementProvider;
 
 public class ServiceRequirementProvider implements RequirementProvider {
 
