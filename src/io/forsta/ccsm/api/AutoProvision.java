@@ -89,7 +89,6 @@ public class AutoProvision {
             org.whispersystems.signalservice.internal.push.ProvisioningProtos.ProvisionMessage provisionMessage = provisionCipher.decrypt(envelope, ourPrivKey);
 
             if (provisionMessage != null) {
-              webSocket.disconnect();
               Log.w(TAG, "New Provision Message");
               KeyProvider keyProvider = new KeyProvider();
               ECPrivateKey newPrivateKey = Curve.decodePrivatePoint(provisionMessage.getIdentityKeyPrivate().toByteArray());
@@ -102,12 +101,6 @@ public class AutoProvision {
               provisioningFailed("Unable to decrypt provision message");
             }
 
-          } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
-            provisioningFailed(e.getMessage());
-          } catch (InvalidKeyException e) {
-            e.printStackTrace();
-            provisioningFailed(e.getMessage());
           } catch (Exception e) {
             provisioningFailed(e.getMessage());
           }
