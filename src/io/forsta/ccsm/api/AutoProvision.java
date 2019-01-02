@@ -101,12 +101,6 @@ public class AutoProvision {
               provisioningFailed("Unable to decrypt provision message");
             }
 
-          } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
-            provisioningFailed(e.getMessage());
-          } catch (InvalidKeyException e) {
-            e.printStackTrace();
-            provisioningFailed(e.getMessage());
           } catch (Exception e) {
             provisioningFailed(e.getMessage());
           }
