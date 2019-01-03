@@ -247,6 +247,7 @@ public class ConversationItem extends LinearLayout
       setAudioViewTint(messageRecord, conversationRecipients);
     } else {
       int color = recipient.getColor().toConversationColor(context);
+      color = Color.DKGRAY;
       bodyBubble.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
       mediaThumbnail.setBackgroundColorHint(color);
     }
