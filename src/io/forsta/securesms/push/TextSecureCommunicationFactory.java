@@ -3,7 +3,9 @@ package io.forsta.securesms.push;
 import android.content.Context;
 
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
+import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.util.TextSecurePreferences;
+
 
 public class TextSecureCommunicationFactory {
 
@@ -14,13 +16,8 @@ public class TextSecureCommunicationFactory {
    */
   private static String getAndUpdateServerUrl(Context context) {
     String url = TextSecurePreferences.getServer(context);
-    String updatedUrl = null;
-    if (url.matches("https://forsta-signalserver-dev.herokuapp.com")) {
-      updatedUrl = "https://signal-dev.forsta.io";
-    } else if (url.matches("https://forsta-signalserver-prod.herokuapp.com")) {
-      updatedUrl = "https://signal.forsta.io";
-    }
-    if (updatedUrl != null) {
+    if (url.endsWith(".herokuapp.com")) {
+      url = BuildConfig.SIGNAL_API_URL;
       TextSecurePreferences.setServer(context, url);
     }
     return url;
