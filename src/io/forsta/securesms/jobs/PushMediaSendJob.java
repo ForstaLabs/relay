@@ -161,12 +161,10 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
           database.markAsSentFailed(messageId);
           notifyMediaMessageDeliveryFailed(context, messageId);
         }
-      } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
+      } catch (InvalidNumberException | Exception e) {
         Log.w(TAG, e);
         database.markAsSentFailed(messageId);
         notifyMediaMessageDeliveryFailed(context, messageId);
-      } catch (Exception e) {
-        Log.w(TAG, "General exception: " + e.getMessage());
       }
     }
   }
