@@ -172,8 +172,8 @@ android {
         prototype {
             applicationIdSuffix '.prototype'
             versionNameSuffix "-prototype-" + timestamp()
-            buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev.forsta.io\""
-            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
+            buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev-v2.forsta.io\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://signal-dev-v2.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
@@ -182,17 +182,8 @@ android {
             applicationIdSuffix '.dev'
             versionNameSuffix "-dev-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-dev.forsta.io\""
-            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-dev.herokuapp.com\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://signal-dev.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"1e1116aa-31b3-4fb2-a4db-21e8136d4f3a\""
-            resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
-            resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
-        }
-        stage {
-            applicationIdSuffix '.stage'
-            versionNameSuffix "-stage-" + timestamp()
-            buildConfigField "String", "FORSTA_API_URL", "\"https://atlas-stage.forsta.io\""
-            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-stage.herokuapp.com\""
-            buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"88e7165e-d2da-4c3f-a14a-bb802bb0cefb\""
             resValue "string", "forsta_authorities", defaultConfig.applicationId + applicationIdSuffix + '.provider.ccsm'
             resValue "string", "forsta_account_type", defaultConfig.applicationId + applicationIdSuffix
         }
@@ -276,9 +267,6 @@ android {
         }
         dev {
             res.srcDirs = ['res-dev']
-        }
-        stage {
-            res.srcDirs = ['res-stage']
         }
         androidTest {
             java.srcDirs = ['test/androidTest/java']
