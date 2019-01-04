@@ -190,7 +190,7 @@ android {
         prod {
             versionNameSuffix "-" + timestamp()
             buildConfigField "String", "FORSTA_API_URL", "\"https://atlas.forsta.io\""
-            buildConfigField "String", "SIGNAL_API_URL", "\"https://forsta-signalserver-prod.herokuapp.com\""
+            buildConfigField "String", "SIGNAL_API_URL", "\"https://signal.forsta.io\""
             buildConfigField "String", "FORSTA_SYNC_NUMBER", "\"cf40fca2-dfa8-4356-8ae7-45f56f7551ca\""
         }
     }
