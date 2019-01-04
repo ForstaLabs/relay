@@ -61,7 +61,7 @@ dependencies {
     compile('com.doomonafireball.betterpickers:library:1.5.3') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
-    compile('com.github.ForstaLabs:libsignal-service-java:forsta-v2.3.1.14') {
+    compile('com.github.ForstaLabs:libsignal-service-java:forsta-v2.3.1.15') {
         exclude group: 'org.whispersystems', module: 'curve25519-java'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
