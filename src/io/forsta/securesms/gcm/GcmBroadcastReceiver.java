@@ -21,7 +21,6 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
   public void onReceive(Context context, Intent intent) {
     GoogleCloudMessaging gcm         = GoogleCloudMessaging.getInstance(context);
     String               messageType = gcm.getMessageType(intent);
-    Log.w(TAG, "GCM message...");
 
     if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
       if (!TextSecurePreferences.isPushRegistered(context)) {
@@ -31,7 +30,6 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
       String messageData = intent.getStringExtra("message");
       String receiptData = intent.getStringExtra("receipt");
-      String callData    = intent.getStringExtra("call");
 
       if      (!TextUtils.isEmpty(messageData)) {
         Log.w(TAG, "Gcm message " + messageData);
