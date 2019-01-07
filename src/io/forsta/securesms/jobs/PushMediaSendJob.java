@@ -161,12 +161,10 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
           database.markAsSentFailed(messageId);
           notifyMediaMessageDeliveryFailed(context, messageId);
         }
-      } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
+      } catch (InvalidNumberException | Exception e) {
         Log.w(TAG, e);
         database.markAsSentFailed(messageId);
         notifyMediaMessageDeliveryFailed(context, messageId);
-      } catch (Exception e) {
-        Log.w(TAG, "General exception: " + e.getMessage());
       }
     }
   }
@@ -198,7 +196,6 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = getPushAddresses(recipients);
     Log.w(TAG, "Sending message: " + messageId);
     Log.w(TAG, "Addresses: " + recipients.toFullString());
-    Log.w(TAG, "" + message.getBody());
     messageSender.sendMessage(addresses, mediaMessage);
   }
 
