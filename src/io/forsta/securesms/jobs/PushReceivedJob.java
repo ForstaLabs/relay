@@ -39,8 +39,10 @@ public abstract class PushReceivedJob extends ContextJob {
     }
 
     if (envelope.isReceipt()) {
+      Log.w(TAG, "handleReceipt");
       handleReceipt(envelope);
     } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {
+      Log.w(TAG, "handleMessage");
       handleMessage(envelope, sendExplicitReceipt);
     } else {
       Log.w(TAG, "Received envelope of unknown type: " + envelope.getType());

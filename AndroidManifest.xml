@@ -346,6 +346,8 @@
                 android:resource="@xml/forstasyncadapter"/>
         </service>
 
+        <service android:name=".service.GenericForegroundService"/>
+
         <receiver
             android:name=".gcm.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">

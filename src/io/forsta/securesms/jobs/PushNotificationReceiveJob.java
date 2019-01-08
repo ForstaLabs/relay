@@ -51,6 +51,7 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
 
   @Override
   public void onRun() throws IOException {
+    Log.w(TAG, "onRun");
     receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
       @Override
       public void onMessage(SignalServiceEnvelope envelope) {

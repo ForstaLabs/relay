@@ -21,6 +21,7 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
   public void onReceive(Context context, Intent intent) {
     GoogleCloudMessaging gcm         = GoogleCloudMessaging.getInstance(context);
     String               messageType = gcm.getMessageType(intent);
+    Log.w(TAG, "onReceive..." + messageType);
 
     if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
       if (!TextSecurePreferences.isPushRegistered(context)) {
