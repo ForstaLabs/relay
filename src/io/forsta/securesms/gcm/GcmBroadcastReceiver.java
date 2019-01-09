@@ -31,7 +31,6 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
       String messageData = intent.getStringExtra("message");
       String receiptData = intent.getStringExtra("receipt");
-      String callData    = intent.getStringExtra("call");
 
       if      (!TextUtils.isEmpty(messageData)) {
         Log.w(TAG, "PushNotification message " + messageData);
