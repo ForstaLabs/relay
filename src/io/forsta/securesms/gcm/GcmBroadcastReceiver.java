@@ -21,7 +21,7 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
   public void onReceive(Context context, Intent intent) {
     GoogleCloudMessaging gcm         = GoogleCloudMessaging.getInstance(context);
     String               messageType = gcm.getMessageType(intent);
-    Log.w(TAG, "GCM message...");
+    Log.w(TAG, "PushNotification...");
 
     if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
       if (!TextSecurePreferences.isPushRegistered(context)) {
@@ -34,16 +34,18 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
       String callData    = intent.getStringExtra("call");
 
       if      (!TextUtils.isEmpty(messageData)) {
-        Log.w(TAG, "Gcm message " + messageData);
+        Log.w(TAG, "PushNotification message " + messageData);
         handleReceivedMessage(context, messageData);
       }
       else if (!TextUtils.isEmpty(receiptData)) {
-        Log.w(TAG, "Gcm reciept " + receiptData);
+        Log.w(TAG, "PushNotification reciept " + receiptData);
         handleReceivedMessage(context, receiptData);
       }
       else if (intent.hasExtra("notification")) {
-        Log.w(TAG, "Gcm notification");
+        Log.w(TAG, "PushNotification notification");
         handleReceivedNotification(context);
+      } else {
+        Log.w(TAG, "PushNotification no notification information:");
       }
     }
   }
