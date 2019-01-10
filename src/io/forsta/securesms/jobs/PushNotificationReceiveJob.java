@@ -15,6 +15,7 @@ import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -51,12 +52,14 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
 
   @Override
   public void onRun() throws IOException {
-    receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
+    List<SignalServiceEnvelope> envelopes = receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
       @Override
       public void onMessage(SignalServiceEnvelope envelope) {
+        Log.w(TAG, "Retrieved envelope: " + envelope.getSource());
         handle(envelope, false);
       }
     });
+    Log.w(TAG, "Retrieved envelopes: " + envelopes.size());
   }
 
   @Override
