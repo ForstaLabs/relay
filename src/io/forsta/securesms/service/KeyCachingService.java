@@ -153,6 +153,10 @@ public class KeyCachingService extends Service {
     Log.i(TAG, "onCreate()");
     super.onCreate();
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      startForeground(SERVICE_RUNNING_ID, new Notification.Builder(this, NotificationChannels.OTHER).build());
+    }
+
     this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
                                                                 this, KeyCachingService.class), 0);
 
