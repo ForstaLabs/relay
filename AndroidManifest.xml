@@ -310,6 +310,7 @@
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|fontScale"
             android:launchMode="singleTask"/>
 
+        <service android:name=".service.GenericForegroundService"/>
         <service android:enabled="true" android:name=".service.WebRtcCallService"/>
         <service
             android:name=".service.ApplicationMigrationService"
