@@ -147,6 +147,7 @@
 
 
         <item name="conversation_item_bubble_background">@color/white</item>
+        <item name="conversation_item_bubble_incoming_background">#ff333333</item>
         <item name="conversation_item_sent_text_primary_color">@color/grey_800</item>
         <item name="conversation_item_sent_text_secondary_color">@color/grey_900</item>
         <item name="conversation_item_sent_text_indicator_tab_color">#99000000</item>
@@ -236,6 +237,7 @@
         <item name="conversation_group_member_name">#99ffffff</item>
 
         <item name="conversation_item_bubble_background">#ff333333</item>
+        <item name="conversation_item_bubble_incoming_background">#ff999999</item>
         <item name="conversation_item_sent_text_primary_color">#ffffffff</item>
         <item name="conversation_item_sent_text_secondary_color">#aaeeeeee</item>
         <item name="conversation_item_sent_text_indicator_tab_color">#99ffffff</item>

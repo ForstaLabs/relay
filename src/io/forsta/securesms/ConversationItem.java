@@ -123,6 +123,7 @@ public class ConversationItem extends LinearLayout
   private int giphyLoopCounter = 0;
 
   private int defaultBubbleColor;
+  private int defaultIncomingBubbleColor;
 
   private final PassthroughClickListener        passthroughClickListener   = new PassthroughClickListener();
 
@@ -217,10 +218,11 @@ public class ConversationItem extends LinearLayout
   private void initializeAttributes() {
     final int[]      attributes = new int[] {R.attr.conversation_item_bubble_background,
                                              R.attr.conversation_list_item_background_selected,
-                                             R.attr.conversation_item_background};
+                                             R.attr.conversation_item_background, R.attr.conversation_item_bubble_incoming_background};
     final TypedArray attrs      = context.obtainStyledAttributes(attributes);
 
     defaultBubbleColor = attrs.getColor(0, Color.WHITE);
+    defaultIncomingBubbleColor = attrs.getColor(3, Color.DKGRAY);
     attrs.recycle();
   }
 
@@ -246,7 +248,7 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setBackgroundColorHint(defaultBubbleColor);
       setAudioViewTint(messageRecord, conversationRecipients);
     } else {
-      int color = recipient.getColor().toConversationColor(context);
+      int color = Color.GRAY;
       bodyBubble.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
       mediaThumbnail.setBackgroundColorHint(color);
     }
