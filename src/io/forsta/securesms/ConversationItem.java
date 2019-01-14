@@ -248,9 +248,8 @@ public class ConversationItem extends LinearLayout
       mediaThumbnail.setBackgroundColorHint(defaultBubbleColor);
       setAudioViewTint(messageRecord, conversationRecipients);
     } else {
-      int color = Color.GRAY;
-      bodyBubble.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
-      mediaThumbnail.setBackgroundColorHint(color);
+      bodyBubble.getBackground().setColorFilter(defaultIncomingBubbleColor, PorterDuff.Mode.MULTIPLY);
+      mediaThumbnail.setBackgroundColorHint(defaultIncomingBubbleColor);
     }
   }
 
