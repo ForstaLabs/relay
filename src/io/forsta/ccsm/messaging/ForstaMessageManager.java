@@ -239,7 +239,7 @@ public class ForstaMessageManager {
               Log.w(TAG, "Call leave from: " + callId + " From : " + originator);
               break;
             default:
-              Log.w(TAG, "Not a control message");
+              Log.w(TAG, "Unsupported control message");
           }
         }
       }
