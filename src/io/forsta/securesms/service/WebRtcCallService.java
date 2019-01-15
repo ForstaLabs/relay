@@ -24,9 +24,13 @@ import android.util.Log;
 import org.greenrobot.eventbus.EventBus;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.IncomingMessage;
 import io.forsta.securesms.WebRtcCallActivity;
 
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.MasterSecretUnion;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.notifications.AbstractNotificationBuilder;
@@ -46,6 +50,7 @@ import io.forsta.securesms.webrtc.IncomingPstnCallReceiver;
 import io.forsta.securesms.webrtc.PeerConnectionFactoryOptions;
 import io.forsta.securesms.webrtc.PeerConnectionWrapper;
 import io.forsta.securesms.webrtc.UncaughtExceptionHandlerManager;
+import io.forsta.securesms.webrtc.WebRtcDataProtos;
 import io.forsta.securesms.webrtc.audio.BluetoothStateManager;
 import io.forsta.securesms.webrtc.audio.OutgoingRinger;
 import io.forsta.securesms.webrtc.audio.SignalAudioManager;
@@ -1227,6 +1232,28 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         MessageSender.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
+        return true;
+      }
+    };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> insertStatusMessage(@NonNull final String threadUID,
+                                                             @NonNull final String message)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        Context context = getApplicationContext();
+        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
+        Recipients recipients = RecipientFactory.getRecipientsFor(context, localCallMember.recipient, false);
+        long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(threadUID);
+        IncomingMessage infoMessage = ForstaMessageManager.createLocalInformationalMessage(getApplicationContext(), message, recipients, threadId, 0);
+        DatabaseFactory.getMmsDatabase(context).insertSecureDecryptedMessageInbox(new MasterSecretUnion(masterSecret), infoMessage, threadId);
         return true;
       }
     };

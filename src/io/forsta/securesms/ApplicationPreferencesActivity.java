@@ -18,6 +18,7 @@ package io.forsta.securesms;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -120,7 +121,11 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
 
       Intent intent = new Intent(this, KeyCachingService.class);
       intent.setAction(KeyCachingService.LOCALE_CHANGE_EVENT);
-      startService(intent);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        startForegroundService(intent);
+      } else {
+        startService(intent);
+      }
     }
   }
 
