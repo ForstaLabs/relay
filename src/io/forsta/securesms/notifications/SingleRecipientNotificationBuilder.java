@@ -15,6 +15,7 @@ import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.app.RemoteInput;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.bumptech.glide.Glide;
 
@@ -76,12 +77,13 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
         addPerson(recipients.getPrimaryRecipient().getContactUri().toString());
       }
 
-      if (recipients.isSingleRecipient() && !TextUtils.isEmpty(recipients.getPrimaryRecipient().getGravitarUrl())) {
+      String gravatar = recipients.getPrimaryRecipient().getGravitarUrl();
+      if (recipients.isSingleRecipient() && !TextUtils.isEmpty(gravatar)) {
         try {
           Bitmap bitmap = Glide.with(context).load(recipients.getPrimaryRecipient().getGravitarUrl()).asBitmap().into(-1, -1).get();
           setLargeIcon(new BitmapContactPhoto(bitmap).asDrawable(context, recipients.getColor().toConversationColor(context)));
         } catch (InterruptedException | ExecutionException e) {
-          e.printStackTrace();
+          Log.w(TAG, e.getMessage() + " URL: " + gravatar);
         }
       } else {
         setLargeIcon(recipients.getContactPhoto()
