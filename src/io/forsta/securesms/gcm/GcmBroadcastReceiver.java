@@ -26,6 +26,7 @@ import javax.inject.Inject;
 
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
+import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobs.PushContentReceiveJob;
 import io.forsta.securesms.jobs.PushNotificationReceiveJob;
@@ -33,7 +34,7 @@ import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.service.GenericForegroundService;
 import io.forsta.securesms.util.TextSecurePreferences;
 
-public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
+public class GcmBroadcastReceiver extends WakefulBroadcastReceiver implements InjectableType {
 
   private static final String TAG = GcmBroadcastReceiver.class.getSimpleName();
 
