@@ -8,6 +8,16 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
+
+import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.jobs.PushContentReceiveJob;
 import io.forsta.securesms.jobs.PushNotificationReceiveJob;
@@ -17,8 +27,15 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
   private static final String TAG = GcmBroadcastReceiver.class.getSimpleName();
 
+  private static final Executor MESSAGE_EXECUTOR = new ThreadPoolExecutor(1, 1, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> new Thread(r, "GcmProcessing"));
+  @Inject transient SignalServiceMessageReceiver receiver;
+
+  private static int activeCount = 0;
+
   @Override
   public void onReceive(Context context, Intent intent) {
+    ApplicationContext.getInstance(context).injectDependencies(this);
+
     GoogleCloudMessaging gcm         = GoogleCloudMessaging.getInstance(context);
     String               messageType = gcm.getMessageType(intent);
     Log.w(TAG, "PushNotification...");
@@ -37,7 +54,7 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
         handleReceivedMessage(context, messageData);
       }
       else if (!TextUtils.isEmpty(receiptData)) {
-        Log.w(TAG, "PushNotification reciept " + receiptData);
+        Log.w(TAG, "PushNotification receipt " + receiptData);
         handleReceivedMessage(context, receiptData);
       }
       else if (intent.hasExtra("notification")) {
@@ -56,6 +73,14 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
   }
 
   private void handleReceivedNotification(Context context) {
+    try {
+      receiver.retrieveMessages(envelope -> {
+
+      });
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
     ApplicationContext.getInstance(context)
                       .getJobManager()
                       .add(new PushNotificationReceiveJob(context));
