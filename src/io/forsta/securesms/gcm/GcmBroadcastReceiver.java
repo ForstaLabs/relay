@@ -38,7 +38,7 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
   private static final String TAG = GcmBroadcastReceiver.class.getSimpleName();
 
   private static final Executor MESSAGE_EXECUTOR = newCachedSingleThreadExecutor("GcmProcessing");
-  @Inject transient SignalServiceMessageReceiver receiver;
+  @Inject transient SignalServiceMessageReceiver messageReceiver;
 
   private static int activeCount = 0;
 
@@ -109,7 +109,7 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
     MESSAGE_EXECUTOR.execute(() -> {
       try {
-        new PushNotificationReceiveJob(context).pullAndProcessMessages(receiver, TAG, startTime);
+        new PushNotificationReceiveJob(context).pullAndProcessMessages(messageReceiver, TAG, startTime);
       } catch (IOException e) {
         Log.i(TAG, "Failed to retrieve the envelope. Scheduling on JobManager.", e);
         ApplicationContext.getInstance(context)
