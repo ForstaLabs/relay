@@ -9,6 +9,7 @@ import androidx.work.WorkerParameters;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.jobmanager.SafeData;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
@@ -52,14 +53,26 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
 
   @Override
   public void onRun() throws IOException {
-    List<SignalServiceEnvelope> envelopes = receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
-      @Override
-      public void onMessage(SignalServiceEnvelope envelope) {
-        Log.w(TAG, "Retrieved envelope: " + envelope.getSource());
+    pullAndProcessMessages(receiver, TAG, System.currentTimeMillis());
+//    List<SignalServiceEnvelope> envelopes = receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
+//      @Override
+//      public void onMessage(SignalServiceEnvelope envelope) {
+//        Log.w(TAG, "Retrieved envelope: " + envelope.getSource());
+//        handle(envelope, false);
+//      }
+//    });
+//    Log.w(TAG, "Retrieved envelopes: " + envelopes.size());
+  }
+
+  public void pullAndProcessMessages(SignalServiceMessageReceiver receiver, String tag, long startTime) throws IOException {
+    synchronized (PushReceivedJob.RECEIVE_LOCK) {
+      receiver.retrieveMessages(envelope -> {
+        Log.i(tag, "Retrieved an envelope." + timeSuffix(startTime));
         handle(envelope, false);
-      }
-    });
-    Log.w(TAG, "Retrieved envelopes: " + envelopes.size());
+        Log.i(tag, "Successfully processed an envelope." + timeSuffix(startTime));
+      });
+      TextSecurePreferences.setNeedsMessagePull(context, false);
+    }
   }
 
   @Override
@@ -71,5 +84,9 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
   @Override
   public void onCanceled() {
     Log.w(TAG, "***** Failed to download pending message!");
+  }
+
+  private static String timeSuffix(long startTime) {
+    return " (" + (System.currentTimeMillis() - startTime) + " ms elapsed)";
   }
 }

@@ -6,6 +6,9 @@
     <string name="delete">Delete</string>
     <string name="please_wait">Please wait...</string>
 
+    <!-- GcmBroadcastReceiver -->
+    <string name="GcmBroadcastReceiver_retrieving_a_message">Retrieving a message...</string>
+
     <!-- Notification Channels -->
     <string name="NotificationChannel_messages">Messages</string>
     <string name="NotificationChannel_messages_low">Messages: Low importance</string>
