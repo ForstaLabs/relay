@@ -37,7 +37,7 @@ public class GenericForegroundService extends Service {
 
   @Override
   public void onCreate() {
-
+    Log.w(TAG, "onCreate...");
   }
 
   @Override

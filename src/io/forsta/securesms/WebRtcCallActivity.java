@@ -19,11 +19,13 @@ package io.forsta.securesms;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,9 +38,14 @@ import android.view.WindowManager;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.IncomingMessage;
 import io.forsta.securesms.components.webrtc.WebRtcAnswerDeclineButton;
 import io.forsta.securesms.components.webrtc.WebRtcCallControls;
 import io.forsta.securesms.components.webrtc.WebRtcCallScreen;
+import io.forsta.securesms.crypto.MasterSecretUnion;
+import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.events.WebRtcViewModel;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
@@ -46,6 +53,7 @@ import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.ServiceUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.ViewUtil;
+import ws.com.google.android.mms.MmsException;
 
 public class WebRtcCallActivity extends Activity {
 
@@ -280,6 +288,7 @@ public class WebRtcCallActivity extends Activity {
   private void delayedFinish(int delayMillis) {
     callScreen.postDelayed(new Runnable() {
       public void run() {
+
         WebRtcCallActivity.this.finish();
       }
     }, delayMillis);

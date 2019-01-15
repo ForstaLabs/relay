@@ -786,6 +786,8 @@ public class MmsDatabase extends MessagingDatabase {
     return threadId;
   }
 
+
+
   private Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
                                               IncomingMediaMessage retrieved,
                                               String contentLocation,
