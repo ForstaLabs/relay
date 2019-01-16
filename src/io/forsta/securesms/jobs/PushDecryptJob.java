@@ -584,9 +584,6 @@ public class PushDecryptJob extends ContextJob {
             iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
 
             context.startService(iceIntent);
-
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
-//            else                                                context.startService(iceIntent);
           }
 
           break;
@@ -603,8 +600,6 @@ public class PushDecryptJob extends ContextJob {
           leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
 
           context.startService(leaveIntent);
-//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
-//          else                                                context.startService(leaveIntent);
           break;
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
@@ -622,8 +617,6 @@ public class PushDecryptJob extends ContextJob {
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
 
           context.startService(acceptIntent);
-//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
-//          else                                                context.startService(acceptIntent);
           break;
       }
 

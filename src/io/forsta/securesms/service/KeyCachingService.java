@@ -230,17 +230,10 @@ public class KeyCachingService extends Service {
     boolean timeoutEnabled   = TextSecurePreferences.isPassphraseTimeoutEnabled(context);
     boolean passLockActive   = timeoutEnabled && !TextSecurePreferences.isPasswordDisabled(context);
 
-//    long    screenTimeout    = TextSecurePreferences.getScreenLockTimeout(context);
-//    boolean screenLockActive = screenTimeout >= 60 && TextSecurePreferences.isScreenLockEnabled(context);
-
     if (!appVisible && secretSet && (passLockActive)) {
       long passphraseTimeoutMinutes = TextSecurePreferences.getPassphraseTimeoutInterval(context);
-//      long screenLockTimeoutSeconds = TextSecurePreferences.getScreenLockTimeout(context);
 
       long timeoutMillis = TimeUnit.MINUTES.toMillis(passphraseTimeoutMinutes);
-
-//      if (!TextSecurePreferences.isPasswordDisabled(context)) timeoutMillis = TimeUnit.MINUTES.toMillis(passphraseTimeoutMinutes);
-//      else                                                    timeoutMillis = TimeUnit.SECONDS.toMillis(screenLockTimeoutSeconds);
 
       Log.i(TAG, "Starting timeout: " + timeoutMillis);
 
