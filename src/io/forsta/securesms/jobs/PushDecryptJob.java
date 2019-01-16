@@ -583,8 +583,10 @@ public class PushDecryptJob extends ContextJob {
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
             iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
-            else                                                context.startService(iceIntent);
+            context.startService(iceIntent);
+
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
+//            else                                                context.startService(iceIntent);
           }
 
           break;
@@ -600,8 +602,9 @@ public class PushDecryptJob extends ContextJob {
           leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
           leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
-          else                                                context.startService(leaveIntent);
+          context.startService(leaveIntent);
+//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
+//          else                                                context.startService(leaveIntent);
           break;
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
@@ -618,8 +621,9 @@ public class PushDecryptJob extends ContextJob {
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
-          else                                                context.startService(acceptIntent);
+          context.startService(acceptIntent);
+//          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
+//          else                                                context.startService(acceptIntent);
           break;
       }
 

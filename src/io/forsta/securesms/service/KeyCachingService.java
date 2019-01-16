@@ -317,15 +317,4 @@ public class KeyCachingService extends Service {
       return KeyCachingService.this;
     }
   }
-
-  public static void registerPassphraseActivityStarted(Context activity) {
-    Intent intent = new Intent(activity, KeyCachingService.class);
-    intent.setAction(KeyCachingService.ACTIVITY_START_EVENT);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      activity.startForegroundService(intent);
-    } else {
-      activity.startService(intent);
-    }
-
-  }
 }
