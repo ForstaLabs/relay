@@ -129,31 +129,31 @@ public class PushDecryptJob extends ContextJob {
 
   @Override
   public void onRun() throws NoSuchMessageException {
+    synchronized (PushReceivedJob.RECEIVE_LOCK) {
+      if (!IdentityKeyUtil.hasIdentityKey(context)) {
+        Log.w(TAG, "Skipping job, waiting for migration...");
+        MessageNotifier.updateNotification(context, null, true, -2);
+        return;
+      }
 
-    if (!IdentityKeyUtil.hasIdentityKey(context)) {
-      Log.w(TAG, "Skipping job, waiting for migration...");
-      MessageNotifier.updateNotification(context, null, true, -2);
-      return;
-    }
+      PushDatabase          database             = DatabaseFactory.getPushDatabase(context);
+      SignalServiceEnvelope envelope             = database.get(messageId);
+      Optional<Long>        optionalSmsMessageId = smsMessageId > 0 ? Optional.of(smsMessageId) :
+                                                                   Optional.<Long>absent();
 
+      try {
+        MasterSecretUnion masterSecretUnion;
+  //    MasterSecret          masterSecret         = KeyCachingService.getMasterSecret(context);
+        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
+        if (masterSecret == null) masterSecretUnion = new MasterSecretUnion(MasterSecretUtil.getAsymmetricMasterSecret(context, null));
+        else                      masterSecretUnion = new MasterSecretUnion(masterSecret);
 
-    PushDatabase          database             = DatabaseFactory.getPushDatabase(context);
-    SignalServiceEnvelope envelope             = database.get(messageId);
-    Optional<Long>        optionalSmsMessageId = smsMessageId > 0 ? Optional.of(smsMessageId) :
-                                                                 Optional.<Long>absent();
-
-    try {
-      MasterSecretUnion masterSecretUnion;
-//    MasterSecret          masterSecret         = KeyCachingService.getMasterSecret(context);
-      MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
-      if (masterSecret == null) masterSecretUnion = new MasterSecretUnion(MasterSecretUtil.getAsymmetricMasterSecret(context, null));
-      else                      masterSecretUnion = new MasterSecretUnion(masterSecret);
-
-      handleMessage(masterSecretUnion, envelope, optionalSmsMessageId);
-      database.delete(messageId);
-    } catch (Exception e) {
-      Log.e(TAG, "Exception: " + e.getMessage());
-      e.printStackTrace();
+        handleMessage(masterSecretUnion, envelope, optionalSmsMessageId);
+        database.delete(messageId);
+      } catch (Exception e) {
+        Log.e(TAG, "Exception: " + e.getMessage());
+        e.printStackTrace();
+      }
     }
   }
 
@@ -168,58 +168,60 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleMessage(MasterSecretUnion masterSecret, SignalServiceEnvelope envelope, Optional<Long> smsMessageId) {
-    try {
-      SignalProtocolStore  axolotlStore = new SignalProtocolStoreImpl(context);
-      SignalServiceAddress localAddress = new SignalServiceAddress(TextSecurePreferences.getLocalNumber(context));
-      SignalServiceCipher  cipher       = new SignalServiceCipher(localAddress, axolotlStore);
-
-      SignalServiceContent content = null;
+    synchronized (PushReceivedJob.RECEIVE_LOCK) {
       try {
-        content = cipher.decrypt(envelope);
-      } catch (UntrustedIdentityException e) {
-        SignalServiceCipher updatedCypher = autoHandleUntrustedIdentity(envelope, localAddress, axolotlStore);
-        content = updatedCypher.decrypt(envelope);
-      }
+        SignalProtocolStore  axolotlStore = new SignalProtocolStoreImpl(context);
+        SignalServiceAddress localAddress = new SignalServiceAddress(TextSecurePreferences.getLocalNumber(context));
+        SignalServiceCipher  cipher       = new SignalServiceCipher(localAddress, axolotlStore);
 
-      if (content.getDataMessage().isPresent()) {
-        SignalServiceDataMessage message = content.getDataMessage().get();
+        SignalServiceContent content = null;
+        try {
+          content = cipher.decrypt(envelope);
+        } catch (UntrustedIdentityException e) {
+          SignalServiceCipher updatedCypher = autoHandleUntrustedIdentity(envelope, localAddress, axolotlStore);
+          content = updatedCypher.decrypt(envelope);
+        }
 
-        if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
-        else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
-        else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
-      } else if (content.getSyncMessage().isPresent()) {
-        SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
+        if (content.getDataMessage().isPresent()) {
+          SignalServiceDataMessage message = content.getDataMessage().get();
 
-        if      (syncMessage.getSent().isPresent())    handleSynchronizeSentMessage(masterSecret, envelope, syncMessage.getSent().get(), smsMessageId);
-        else if (syncMessage.getRequest().isPresent()) handleSynchronizeRequestMessage(masterSecret, syncMessage.getRequest().get());
-        else if (syncMessage.getRead().isPresent())    handleSynchronizeReadMessage(masterSecret, syncMessage.getRead().get(), envelope.getTimestamp());
-        else                                           Log.w(TAG, "Contains no known sync types...");
-      }
+          if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
+          else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
+          else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
+        } else if (content.getSyncMessage().isPresent()) {
+          SignalServiceSyncMessage syncMessage = content.getSyncMessage().get();
 
-      if (envelope.isPreKeySignalMessage()) {
-        ApplicationContext.getInstance(context).getJobManager().add(new RefreshPreKeysJob(context));
-      }
-    } catch (InvalidVersionException e) {
-      Log.w(TAG, e);
+          if      (syncMessage.getSent().isPresent())    handleSynchronizeSentMessage(masterSecret, envelope, syncMessage.getSent().get(), smsMessageId);
+          else if (syncMessage.getRequest().isPresent()) handleSynchronizeRequestMessage(masterSecret, syncMessage.getRequest().get());
+          else if (syncMessage.getRead().isPresent())    handleSynchronizeReadMessage(masterSecret, syncMessage.getRead().get(), envelope.getTimestamp());
+          else                                           Log.w(TAG, "Contains no known sync types...");
+        }
+
+        if (envelope.isPreKeySignalMessage()) {
+          ApplicationContext.getInstance(context).getJobManager().add(new RefreshPreKeysJob(context));
+        }
+      } catch (InvalidVersionException e) {
+        Log.w(TAG, e);
 //      handleInvalidVersionMessage(masterSecret, envelope, smsMessageId);
-    } catch (InvalidMessageException | InvalidKeyIdException | InvalidKeyException | MmsException e) {
-      Log.w(TAG, e);
+      } catch (InvalidMessageException | InvalidKeyIdException | InvalidKeyException | MmsException e) {
+        Log.w(TAG, e);
 //      handleCorruptMessage(masterSecret, envelope, smsMessageId);
-    } catch (NoSessionException e) {
-      Log.w(TAG, e);
+      } catch (NoSessionException e) {
+        Log.w(TAG, e);
 //      handleNoSessionMessage(masterSecret, envelope, smsMessageId);
-    } catch (LegacyMessageException e) {
-      Log.w(TAG, e);
+      } catch (LegacyMessageException e) {
+        Log.w(TAG, e);
 //      handleLegacyMessage(masterSecret, envelope, smsMessageId);
-    } catch (DuplicateMessageException e) {
-      Log.w(TAG, e);
+      } catch (DuplicateMessageException e) {
+        Log.w(TAG, e);
 //      handleDuplicateMessage(masterSecret, envelope, smsMessageId);
-    } catch (UntrustedIdentityException e) {
-      Log.w(TAG, e);
+      } catch (UntrustedIdentityException e) {
+        Log.w(TAG, e);
 //      handleUntrustedIdentityMessage(masterSecret, envelope, smsMessageId);
-    } catch (InvalidMessagePayloadException e) {
-      Log.e(TAG, "Invalid Forsta message body");
-      e.printStackTrace();
+      } catch (InvalidMessagePayloadException e) {
+        Log.e(TAG, "Invalid Forsta message body");
+        e.printStackTrace();
+      }
     }
   }
 
@@ -544,11 +546,13 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
-          // Temporary fix
           if (threadId == -1) {
             Log.w(TAG, "No such thread id");
-            return;
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+            Recipients recipients = getDistributionRecipients(distribution);
+            DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
           }
+
           ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
@@ -581,8 +585,7 @@ public class PushDecryptJob extends ContextJob {
             iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
             iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(iceIntent);
-            else                                                context.startService(iceIntent);
+            context.startService(iceIntent);
           }
 
           break;
@@ -598,8 +601,7 @@ public class PushDecryptJob extends ContextJob {
           leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
           leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(leaveIntent);
-          else                                                context.startService(leaveIntent);
+          context.startService(leaveIntent);
           break;
 
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
@@ -616,8 +618,7 @@ public class PushDecryptJob extends ContextJob {
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
           acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
 
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(acceptIntent);
-          else                                                context.startService(acceptIntent);
+          context.startService(acceptIntent);
           break;
       }
 

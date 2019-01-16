@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms.service;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -30,6 +31,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -73,6 +75,7 @@ public class KeyCachingService extends Service {
   public  static final String ACTIVITY_START_EVENT     = "io.forsta.securesms.service.action.ACTIVITY_START_EVENT";
   public  static final String ACTIVITY_STOP_EVENT      = "io.forsta.securesms.service.action.ACTIVITY_STOP_EVENT";
   public  static final String LOCALE_CHANGE_EVENT      = "io.forsta.securesms.service.action.LOCALE_CHANGE_EVENT";
+  public  static final String LOCK_TOGGLED_EVENT       = "io.forsta.securesms.service.action.LOCK_ENABLED_EVENT";
 
   private DynamicLanguage dynamicLanguage = new DynamicLanguage();
 
@@ -84,38 +87,38 @@ public class KeyCachingService extends Service {
 
   public KeyCachingService() {}
 
+  public static synchronized boolean isLocked(Context context) {
+    return getMasterSecret(context) == null;
+  }
+
   public static synchronized @Nullable MasterSecret getMasterSecret(Context context) {
-    if (masterSecret == null && TextSecurePreferences.isPasswordDisabled(context)) {
+    if (masterSecret == null && (TextSecurePreferences.isPasswordDisabled(context))) {
       try {
-        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
-        Intent       intent       = new Intent(context, KeyCachingService.class);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-          context.startForegroundService(intent);
-        } else {
-          context.startService(intent);
-        }
-
-        return masterSecret;
+        return MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
       } catch (InvalidPassphraseException e) {
-        Log.w(TAG, e);
+        Log.w("KeyCachingService", e);
       }
     }
 
     return masterSecret;
   }
 
+  public static void onAppForegrounded(@NonNull Context context) {
+    ServiceUtil.getAlarmManager(context).cancel(buildExpirationPendingIntent(context));
+  }
+
+  public static void onAppBackgrounded(@NonNull Context context) {
+    startTimeoutIfAppropriate(context);
+  }
+
+  @SuppressLint("StaticFieldLeak")
   public void setMasterSecret(final MasterSecret masterSecret) {
     synchronized (KeyCachingService.class) {
       KeyCachingService.masterSecret = masterSecret;
 
       foregroundService();
       broadcastNewSecret();
-      startTimeoutIfAppropriate();
-
-      if (!TextSecurePreferences.isPasswordDisabled(this)) {
-        ApplicationContext.getInstance(this).getJobManager().add(new MasterSecretDecryptJob(this));
-      }
+      startTimeoutIfAppropriate(this);
 
       new AsyncTask<Void, Void, Void>() {
         @Override
@@ -125,7 +128,7 @@ public class KeyCachingService extends Service {
           }
           return null;
         }
-      }.execute();
+      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
   }
 
@@ -137,11 +140,10 @@ public class KeyCachingService extends Service {
     if (intent.getAction() != null) {
       switch (intent.getAction()) {
         case CLEAR_KEY_ACTION:         handleClearKey();        break;
-        case ACTIVITY_START_EVENT:     handleActivityStarted(); break;
-        case ACTIVITY_STOP_EVENT:      handleActivityStopped(); break;
         case PASSPHRASE_EXPIRED_EVENT: handleClearKey();        break;
         case DISABLE_ACTION:           handleDisableService();  break;
         case LOCALE_CHANGE_EVENT:      handleLocaleChanged();   break;
+        case LOCK_TOGGLED_EVENT:       handleLockToggled();     break;
       }
     }
 
@@ -152,9 +154,6 @@ public class KeyCachingService extends Service {
   public void onCreate() {
     Log.i(TAG, "onCreate()");
     super.onCreate();
-
-    this.pending = PendingIntent.getService(this, 0, new Intent(PASSPHRASE_EXPIRED_EVENT, null,
-                                                                this, KeyCachingService.class), 0);
 
     if (TextSecurePreferences.isPasswordDisabled(this)) {
       try {
@@ -169,7 +168,7 @@ public class KeyCachingService extends Service {
   @Override
   public void onDestroy() {
     super.onDestroy();
-    Log.w("KeyCachingService", "KCS Is Being Destroyed!");
+    Log.w(TAG, "KCS Is Being Destroyed!");
     handleClearKey();
   }
 
@@ -182,21 +181,6 @@ public class KeyCachingService extends Service {
     Intent intent = new Intent(this, DummyActivity.class);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(intent);
-  }
-
-  private void handleActivityStarted() {
-    Log.w("KeyCachingService", "Incrementing activity count...");
-
-    AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
-    alarmManager.cancel(pending);
-    activitiesRunning++;
-  }
-
-  private void handleActivityStopped() {
-    Log.w("KeyCachingService", "Decrementing activity count...");
-
-    activitiesRunning--;
-    startTimeoutIfAppropriate();
   }
 
   private void handleClearKey() {
@@ -215,7 +199,18 @@ public class KeyCachingService extends Service {
         MessageNotifier.updateNotification(KeyCachingService.this, null);
         return null;
       }
-    }.execute();
+    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+  }
+
+  private void handleLockToggled() {
+    stopForeground(true);
+
+    try {
+      MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(this, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
+      setMasterSecret(masterSecret);
+    } catch (InvalidPassphraseException e) {
+      Log.w(TAG, e);
+    }
   }
 
   private void handleDisableService() {
@@ -228,19 +223,25 @@ public class KeyCachingService extends Service {
     foregroundService();
   }
 
-  private void startTimeoutIfAppropriate() {
-    boolean timeoutEnabled = TextSecurePreferences.isPassphraseTimeoutEnabled(this);
+  private static void startTimeoutIfAppropriate(@NonNull Context context) {
+    boolean appVisible       = ApplicationContext.getInstance(context).isAppVisible();
+    boolean secretSet        = KeyCachingService.masterSecret != null;
 
-    if ((activitiesRunning == 0) && (KeyCachingService.masterSecret != null) && timeoutEnabled && !TextSecurePreferences.isPasswordDisabled(this)) {
-      long timeoutMinutes = TextSecurePreferences.getPassphraseTimeoutInterval(this);
-      long timeoutMillis  = TimeUnit.MINUTES.toMillis(timeoutMinutes);
+    boolean timeoutEnabled   = TextSecurePreferences.isPassphraseTimeoutEnabled(context);
+    boolean passLockActive   = timeoutEnabled && !TextSecurePreferences.isPasswordDisabled(context);
 
-      Log.w("KeyCachingService", "Starting timeout: " + timeoutMillis);
+    if (!appVisible && secretSet && (passLockActive)) {
+      long passphraseTimeoutMinutes = TextSecurePreferences.getPassphraseTimeoutInterval(context);
 
-      AlarmManager alarmManager = ServiceUtil.getAlarmManager(this);
+      long timeoutMillis = TimeUnit.MINUTES.toMillis(passphraseTimeoutMinutes);
 
-      alarmManager.cancel(pending);
-      alarmManager.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + timeoutMillis, pending);
+      Log.i(TAG, "Starting timeout: " + timeoutMillis);
+
+      AlarmManager  alarmManager     = ServiceUtil.getAlarmManager(context);
+      PendingIntent expirationIntent = buildExpirationPendingIntent(context);
+
+      alarmManager.cancel(expirationIntent);
+      alarmManager.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + timeoutMillis, expirationIntent);
     }
   }
 
@@ -294,6 +295,11 @@ public class KeyCachingService extends Service {
     return launchIntent;
   }
 
+  private static PendingIntent buildExpirationPendingIntent(@NonNull Context context) {
+    Intent expirationIntent = new Intent(PASSPHRASE_EXPIRED_EVENT, null, context, KeyCachingService.class);
+    return PendingIntent.getService(context, 0, expirationIntent, 0);
+  }
+
   @Override
   public IBinder onBind(Intent arg0) {
     return binder;
@@ -303,17 +309,5 @@ public class KeyCachingService extends Service {
     public KeyCachingService getService() {
       return KeyCachingService.this;
     }
-  }
-
-  public static void registerPassphraseActivityStarted(Context activity) {
-    Intent intent = new Intent(activity, KeyCachingService.class);
-    intent.setAction(KeyCachingService.ACTIVITY_START_EVENT);
-    activity.startService(intent);
-  }
-
-  public static void registerPassphraseActivityStopped(Context activity) {
-    Intent intent = new Intent(activity, KeyCachingService.class);
-    intent.setAction(KeyCachingService.ACTIVITY_STOP_EVENT);
-    activity.startService(intent);
   }
 }

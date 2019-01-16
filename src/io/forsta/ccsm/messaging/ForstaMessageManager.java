@@ -48,6 +48,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.MediaUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 import ws.com.google.android.mms.MmsException;
 
@@ -239,7 +240,7 @@ public class ForstaMessageManager {
               Log.w(TAG, "Call leave from: " + callId + " From : " + originator);
               break;
             default:
-              Log.w(TAG, "Not a control message");
+              Log.w(TAG, "Unsupported control message");
           }
         }
       }
@@ -503,4 +504,12 @@ public class ForstaMessageManager {
     return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
   }
 
+  public static IncomingMessage createLocalInformationalMessage(Context context, String message, Recipients recipients, long threadId, long expiresIn) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    String uid = UUID.randomUUID().toString();
+    String jsonPayload = createContentMessage(context, message, user, recipients, new ArrayList<Attachment>(), thread, uid);
+    IncomingMessage incomingMessage = new IncomingMessage(user.getUid(), user.getUid(), jsonPayload, System.currentTimeMillis(), expiresIn);
+    return incomingMessage;
+  }
 }

@@ -21,6 +21,8 @@ public abstract class PushReceivedJob extends ContextJob {
 
   private static final String TAG = PushReceivedJob.class.getSimpleName();
 
+  public static final Object RECEIVE_LOCK = new Object();
+
   protected PushReceivedJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
     super(context, workerParameters);
   }
@@ -30,20 +32,22 @@ public abstract class PushReceivedJob extends ContextJob {
   }
 
   public void handle(SignalServiceEnvelope envelope, boolean sendExplicitReceipt) {
-    if (!isActiveNumber(context, envelope.getSource())) {
-      TextSecureDirectory directory           = TextSecureDirectory.getInstance(context);
-      ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
-      contactTokenDetails.setNumber(envelope.getSource());
+    synchronized (RECEIVE_LOCK) {
+      if (!isActiveNumber(context, envelope.getSource())) {
+        TextSecureDirectory directory           = TextSecureDirectory.getInstance(context);
+        ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
+        contactTokenDetails.setNumber(envelope.getSource());
 
-      directory.setNumber(contactTokenDetails, true);
-    }
+        directory.setNumber(contactTokenDetails, true);
+      }
 
-    if (envelope.isReceipt()) {
-      handleReceipt(envelope);
-    } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {
-      handleMessage(envelope, sendExplicitReceipt);
-    } else {
-      Log.w(TAG, "Received envelope of unknown type: " + envelope.getType());
+      if (envelope.isReceipt()) {
+        handleReceipt(envelope);
+      } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {
+        handleMessage(envelope, sendExplicitReceipt);
+      } else {
+        Log.w(TAG, "Received envelope of unknown type: " + envelope.getType());
+      }
     }
   }
 

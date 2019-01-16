@@ -50,6 +50,7 @@ import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
 import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
 import java.io.IOException;
@@ -242,14 +243,16 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
 
   private void updateRecipients(MessageRecord messageRecord, Recipients recipients) {
     final int toFromRes;
-    if (messageRecord.isMms() && !messageRecord.isPush() && !messageRecord.isOutgoing()) {
-      toFromRes = R.string.message_details_header__with;
-    } else if (messageRecord.isOutgoing()) {
+    if (messageRecord.isOutgoing()) {
       toFromRes = R.string.message_details_header__to;
     } else {
       toFromRes = R.string.message_details_header__from;
     }
     toFrom.setText(toFromRes);
+    Recipient from = messageRecord.getIndividualRecipient();
+    if (TextSecurePreferences.getLocalNumber(MessageDetailsActivity.this).equals(from.getAddress())) {
+      recipients = RecipientFactory.getRecipientsFor(MessageDetailsActivity.this, from, true);
+    }
     conversationItem.bind(masterSecret, messageRecord, dynamicLanguage.getCurrentLocale(),
                          new HashSet<MessageRecord>(), recipients);
     recipientsList.setAdapter(new MessageDetailsRecipientAdapter(this, masterSecret, messageRecord,
@@ -279,7 +282,6 @@ public class MessageDetailsActivity extends PassphraseRequiredActionBarActivity 
         throw new AssertionError("no valid message type specified");
     }
   }
-
 
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {

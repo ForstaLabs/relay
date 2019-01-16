@@ -36,8 +36,6 @@ public class MessageDetailsLoader extends AbstractCursorLoader {
   @Override
   public Cursor getCursor() {
     switch (type) {
-      case MmsSmsDatabase.SMS_TRANSPORT:
-        return DatabaseFactory.getEncryptingSmsDatabase(context).getMessage(messageId);
       case MmsSmsDatabase.MMS_TRANSPORT:
         return DatabaseFactory.getMmsDatabase(context).getMessage(messageId);
       default:

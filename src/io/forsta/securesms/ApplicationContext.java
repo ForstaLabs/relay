@@ -38,6 +38,7 @@ import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.GcmRefreshJob;
+import io.forsta.securesms.jobs.PushNotificationReceiveJob;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.service.KeyCachingService;
@@ -94,9 +95,9 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 //    initializePeriodicTasks();
 //    initializeCircumvention();
       initializeWebRtc();
+      initializePendingMessages();
       NotificationChannels.create(this);
       ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
-
       initialized = true;
       notifyAll();
     }
@@ -106,12 +107,14 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
   public void onStart(@NonNull LifecycleOwner owner) {
     isAppVisible = true;
     Log.i(TAG, "App is now visible.");
+    KeyCachingService.onAppForegrounded(this);
   }
 
   @Override
   public void onStop(@NonNull LifecycleOwner owner) {
     isAppVisible = false;
     Log.i(TAG, "App is no longer visible.");
+    KeyCachingService.onAppBackgrounded(this);
   }
 
   public void ensureInitialized() {
@@ -139,6 +142,14 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 
   public boolean isAppVisible() {
     return isAppVisible;
+  }
+
+  private void initializePendingMessages() {
+    if (TextSecurePreferences.getNeedsMessagePull(this)) {
+      Log.i(TAG, "Scheduling a message fetch.");
+      ApplicationContext.getInstance(this).getJobManager().add(new PushNotificationReceiveJob(this));
+      TextSecurePreferences.setNeedsMessagePull(this, false);
+    }
   }
 
   private void initializeRandomNumberFix() {

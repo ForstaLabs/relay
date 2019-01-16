@@ -30,6 +30,7 @@ public class NotificationChannels {
   private static final String CONTACT_PREFIX    = "contact_";
   private static final String MESSAGES_PREFIX   = "messages_";
 
+  public static final String MESSAGES_LOW = "messages_low";
   public static final String CALLS         = "calls_v2";
   public static final String FAILURES      = "failures";
   public static final String APP_UPDATES   = "app_updates";
@@ -363,7 +364,8 @@ public class NotificationChannels {
     NotificationChannelGroup messagesGroup = new NotificationChannelGroup(CATEGORY_MESSAGES, context.getResources().getString(R.string.NotificationChannel_group_messages));
     notificationManager.createNotificationChannelGroup(messagesGroup);
 
-    NotificationChannel messages     = new NotificationChannel(getMessagesChannel(context), context.getString(R.string.NotificationChannel_messages), NotificationManager.IMPORTANCE_HIGH);
+    NotificationChannel messages = new NotificationChannel(getMessagesChannel(context), context.getString(R.string.NotificationChannel_messages), NotificationManager.IMPORTANCE_HIGH);
+    NotificationChannel messagesLow = new NotificationChannel(MESSAGES_LOW, context.getString(R.string.NotificationChannel_messages_low), NotificationManager.IMPORTANCE_LOW);
     NotificationChannel calls        = new NotificationChannel(CALLS, context.getString(R.string.NotificationChannel_calls), NotificationManager.IMPORTANCE_LOW);
     NotificationChannel failures     = new NotificationChannel(FAILURES, context.getString(R.string.NotificationChannel_failures), NotificationManager.IMPORTANCE_HIGH);
     NotificationChannel backups      = new NotificationChannel(BACKUPS, context.getString(R.string.NotificationChannel_backups), NotificationManager.IMPORTANCE_LOW);
@@ -371,16 +373,18 @@ public class NotificationChannels {
     NotificationChannel other        = new NotificationChannel(OTHER, context.getString(R.string.NotificationChannel_other), NotificationManager.IMPORTANCE_LOW);
 
     messages.setGroup(CATEGORY_MESSAGES);
+    messagesLow.setGroup(CATEGORY_MESSAGES);
     messages.enableVibration(TextSecurePreferences.isNotificationVibrateEnabled(context));
     messages.setSound(Uri.parse(TextSecurePreferences.getNotificationRingtone(context)), getRingtoneAudioAttributes());
     setLedPreference(messages, TextSecurePreferences.getNotificationLedColor(context));
 
+    messagesLow.setShowBadge(true);
     calls.setShowBadge(false);
     backups.setShowBadge(false);
     lockedStatus.setShowBadge(false);
     other.setShowBadge(false);
 
-    notificationManager.createNotificationChannels(Arrays.asList(messages, calls, failures, backups, lockedStatus, other));
+    notificationManager.createNotificationChannels(Arrays.asList(messages, calls, failures, backups, lockedStatus, other, messagesLow));
 
 //    if (BuildConfig.PLAY_STORE_DISABLED) {
 //      NotificationChannel appUpdates = new NotificationChannel(APP_UPDATES, context.getString(R.string.NotificationChannel_app_updates), NotificationManager.IMPORTANCE_HIGH);

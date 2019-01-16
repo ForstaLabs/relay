@@ -73,6 +73,7 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
+import io.forsta.ccsm.messaging.IncomingMessage;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
@@ -92,9 +93,11 @@ import io.forsta.securesms.components.reminder.ReminderView;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
+import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
@@ -102,6 +105,7 @@ import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentManager.MediaType;
 import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
 import io.forsta.securesms.mms.AudioSlide;
+import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
@@ -147,6 +151,7 @@ import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
 import ws.com.google.android.mms.ContentType;
+import ws.com.google.android.mms.MmsException;
 
 /**
  * Activity for displaying a message thread, as well as
