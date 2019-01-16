@@ -26,6 +26,7 @@ import org.greenrobot.eventbus.EventBus;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 
 import io.forsta.securesms.crypto.MasterSecret;
@@ -867,7 +868,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         member.terminate();
       }
     }
-
+    insertStatusMessage(threadUID, getString(R.string.CallService_declined_call));
     terminateCall(true);
   }
 
@@ -881,6 +882,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         remoteCallMember.terminate();
       }
     }
+    insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
   }
 
@@ -1242,8 +1244,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> insertStatusMessage(@NonNull final String threadUID,
-                                                             @NonNull final String message)
+  private ListenableFutureTask<Boolean> insertStatusMessage(@NonNull final String thread, @NonNull final String message)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
@@ -1251,9 +1252,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         Context context = getApplicationContext();
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
         Recipients recipients = RecipientFactory.getRecipientsFor(context, localCallMember.recipient, false);
-        long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(threadUID);
-        IncomingMessage infoMessage = ForstaMessageManager.createLocalInformationalMessage(getApplicationContext(), message, recipients, threadId, 0);
-        DatabaseFactory.getMmsDatabase(context).insertSecureDecryptedMessageInbox(new MasterSecretUnion(masterSecret), infoMessage, threadId);
+        long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(thread);
+        if (threadId != -1) {
+          IncomingMessage infoMessage = ForstaMessageManager.createLocalInformationalMessage(context, message, recipients, threadId, 0);
+          DatabaseFactory.getMmsDatabase(context).insertSecureDecryptedMessageInbox(new MasterSecretUnion(masterSecret), infoMessage, threadId);
+        }
         return true;
       }
     };

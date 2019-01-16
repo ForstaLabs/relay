@@ -5,6 +5,7 @@ import android.content.Context;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.DeviceListFragment;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
+import io.forsta.securesms.gcm.GcmBroadcastReceiver;
 import io.forsta.securesms.jobs.AttachmentDownloadJob;
 import io.forsta.securesms.jobs.CleanPreKeysJob;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
@@ -46,6 +47,7 @@ import dagger.Provides;
                                      MultiDeviceBlockedUpdateJob.class,
                                      DeviceListFragment.class,
                                      RefreshAttributesJob.class,
+                                     GcmBroadcastReceiver.class,
                                      GcmRefreshJob.class})
 public class TextSecureCommunicationModule {
 

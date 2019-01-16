@@ -141,11 +141,7 @@ public class AppProtectionPreferenceFragment extends PreferenceFragment {
 
             Intent intent = new Intent(getActivity(), KeyCachingService.class);
             intent.setAction(KeyCachingService.DISABLE_ACTION);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-              getActivity().startForegroundService(intent);
-            } else {
-              getActivity().startService(intent);
-            }
+            getActivity().startService(intent);
           }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
