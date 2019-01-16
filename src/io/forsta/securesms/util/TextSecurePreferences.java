@@ -105,7 +105,15 @@ public class TextSecurePreferences {
   private static final String NOTIFICATION_CHANNEL_VERSION          = "pref_notification_channel_version";
   private static final String NOTIFICATION_MESSAGES_CHANNEL_VERSION = "pref_notification_messages_channel_version";
   private static final String GCM_DISABLED_PREF                = "pref_gcm_disabled";
+  private static final String NEEDS_MESSAGE_PULL = "pref_needs_message_pull";
 
+  public static boolean getNeedsMessagePull(Context context) {
+    return getBooleanPreference(context, NEEDS_MESSAGE_PULL, false);
+  }
+
+  public static void setNeedsMessagePull(Context context, boolean needsMessagePull) {
+    setBooleanPreference(context, NEEDS_MESSAGE_PULL, needsMessagePull);
+  }
 
   public static int getNotificationChannelVersion(Context context) {
     return getIntegerPreference(context, NOTIFICATION_CHANNEL_VERSION, 1);

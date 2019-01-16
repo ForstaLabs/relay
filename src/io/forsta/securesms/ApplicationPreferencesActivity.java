@@ -121,11 +121,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
 
       Intent intent = new Intent(this, KeyCachingService.class);
       intent.setAction(KeyCachingService.LOCALE_CHANGE_EVENT);
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        startForegroundService(intent);
-      } else {
-        startService(intent);
-      }
+      startService(intent);
     }
   }
 
