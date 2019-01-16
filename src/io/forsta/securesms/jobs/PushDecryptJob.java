@@ -546,11 +546,13 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
-          // Temporary fix
           if (threadId == -1) {
             Log.w(TAG, "No such thread id");
-            return;
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+            Recipients recipients = getDistributionRecipients(distribution);
+            DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
           }
+
           ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
           Intent intent = new Intent(context, WebRtcCallService.class);
           intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);

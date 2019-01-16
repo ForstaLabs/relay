@@ -507,7 +507,15 @@ public class ThreadDatabase extends Database {
     return null;
   }
 
+  public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution, String threadUID) {
+    return allocateThread(recipients, distribution, 0, threadUID);
+  }
+
   public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution, int threadType) {
+    return allocateThread(recipients, distribution, threadType, null);
+  }
+
+  public ForstaThread allocateThread(Recipients recipients, ForstaDistribution distribution, int threadType, String threadUID) {
     long[] recipientIds    = getRecipientIds(recipients);
     String recipientsList  = getRecipientsAsString(recipientIds);
     ContentValues contentValues = new ContentValues();
@@ -516,7 +524,11 @@ public class ThreadDatabase extends Database {
     contentValues.put(DATE, date - date % 1000);
     contentValues.put(RECIPIENT_IDS, recipientsList);
     contentValues.put(TYPE, DistributionTypes.DEFAULT);
-    contentValues.put(UID, UUID.randomUUID().toString());
+    if (TextUtils.isEmpty(threadUID)) {
+      contentValues.put(UID, UUID.randomUUID().toString());
+    } else {
+      contentValues.put(UID, threadUID);
+    }
     contentValues.put(DISTRIBUTION, distribution.universal);
     contentValues.put(PRETTY_EXPRESSION, distribution.pretty);
     contentValues.put(MESSAGE_COUNT, 0);
