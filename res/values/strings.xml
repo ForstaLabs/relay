@@ -448,6 +448,10 @@
     <!-- NotificationMmsMessageRecord -->
     <string name="NotificationMmsMessageRecord_multimedia_message">Multimedia message</string>
 
+    <!-- Call Messages -->
+    <string name="CallService_in_call">You were in a call</string>
+    <string name="CallService_declined_call">You declined a call</string>
+
     <!-- MessageRecord -->
     <string name="MessageRecord_message_encrypted_with_a_legacy_protocol_version_that_is_no_longer_supported">Received a message encrypted using an old version of Forsta that is no longer supported. Please ask the sender to update to the most recent version and resend the message.</string>
     <string name="MessageRecord_left_group">You have left the group.</string>

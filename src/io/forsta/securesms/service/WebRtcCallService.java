@@ -26,6 +26,7 @@ import org.greenrobot.eventbus.EventBus;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 
 import io.forsta.securesms.crypto.MasterSecret;
@@ -867,7 +868,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         member.terminate();
       }
     }
-    insertStatusMessage(threadUID, "You declined a call");
+    insertStatusMessage(threadUID, getString(R.string.CallService_declined_call));
     terminateCall(true);
   }
 
@@ -881,7 +882,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         remoteCallMember.terminate();
       }
     }
-    insertStatusMessage(threadUID, "You were in a call");
+    insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
   }
 
