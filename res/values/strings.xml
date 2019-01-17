@@ -12,6 +12,7 @@
     <!-- Notification Channels -->
     <string name="NotificationChannel_messages">Messages</string>
     <string name="NotificationChannel_messages_low">Messages: Low importance</string>
+    <string name="NotificationChannel_messages_min">Messages: Low importance</string>
     <string name="NotificationChannel_calls">Calls</string>
     <string name="NotificationChannel_failures">Failures</string>
     <string name="NotificationChannel_backups">Backups</string>

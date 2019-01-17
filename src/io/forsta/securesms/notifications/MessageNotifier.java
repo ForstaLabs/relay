@@ -267,6 +267,7 @@ public class MessageNotifier {
                                                      boolean signal)
   {
     MultipleRecipientNotificationBuilder builder       = new MultipleRecipientNotificationBuilder(context, TextSecurePreferences.getNotificationPrivacy(context));
+    builder.setNotificationChannel(notificationState.getNotificationChannel(context));
     List<NotificationItem>               notifications = notificationState.getNotifications();
 
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
@@ -388,12 +389,12 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
+      notificationState.setNotify(true);
+      notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
       if (threadRecipients != null && threadNotification && messageNotification) {
-        notificationState.setNotify(true);
-        notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
-
+        notificationState.setNotificationChannel(NotificationChannels.getMessagesChannel(context));
       } else {
-        notificationState.setNotificationChannel(NotificationChannels.MESSAGES_LOW);
+        notificationState.setNotificationChannel(NotificationChannels.MESSAGES_MIN);
       }
     }
 
