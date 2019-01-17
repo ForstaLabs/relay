@@ -68,6 +68,7 @@ import io.forsta.securesms.util.SpanUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -273,8 +274,8 @@ public class MessageNotifier {
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
     builder.setMostRecentSender(notifications.get(0).getIndividualRecipient());
     builder.setGroup(NOTIFICATION_GROUP);
-    Log.w(TAG, "Signal " + signal);
-    builder.setOnlyAlertOnce(true);
+    Log.w(TAG, "Vibrate " + notificationState.getVibrateState());
+    builder.setOnlyAlertOnce(!notificationState.getVibrateState());
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
 
@@ -359,6 +360,8 @@ public class MessageNotifier {
     if (masterSecret == null) reader = DatabaseFactory.getMmsDatabase(context).readerFor(cursor);
     else                      reader = DatabaseFactory.getMmsDatabase(context).readerFor(masterSecret, cursor);
 
+    Set<Long> notifyThreadIds = new HashSet<>();
+
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
@@ -393,8 +396,13 @@ public class MessageNotifier {
 
       notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
       if (threadRecipients != null && threadNotification && messageNotification) {
+        if (notifyThreadIds.contains(threadId)) {
+          notificationState.setVibrateState(false);
+        } else {
+          notificationState.setVibrateState(true);
+        }
+        notifyThreadIds.add(threadId);
         notificationState.setNotify(true);
-        notificationState.setVibrateState(true);
       } else if (notificationState.getVibrateState()) {
         notificationState.setNotify(true);
         notificationState.setVibrateState(false);
