@@ -30,7 +30,7 @@ public class MultipleRecipientNotificationBuilder extends AbstractNotificationBu
     setContentIntent(PendingIntent.getActivity(context, 0, new Intent(context, ConversationListActivity.class), 0));
     setCategory(NotificationCompat.CATEGORY_MESSAGE);
     setPriority(NotificationCompat.PRIORITY_HIGH);
-    setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(MessageNotifier.DeleteReceiver.DELETE_REMINDER_ACTION), 0));
+    setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(context, MessageNotifier.DeleteReceiver.class), 0));
   }
 
   public void setMessageCount(int messageCount, int threadCount) {

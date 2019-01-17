@@ -201,6 +201,7 @@ public class MessageNotifier {
       updateBadge(context, unreadMessageCount);
 
       if (signal) {
+        Log.w(TAG, "Scheduling reminder. count: " + reminderCount);
         scheduleReminder(context, reminderCount);
       }
     } finally {
@@ -233,6 +234,7 @@ public class MessageNotifier {
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
     builder.setContentIntent(notifications.get(0).getPendingIntent(context));
     builder.setGroup(NOTIFICATION_GROUP);
+    Log.w(TAG, "Signal " + signal);
     builder.setOnlyAlertOnce(true);
 
     long timestamp = notifications.get(0).getTimestamp();
@@ -273,6 +275,7 @@ public class MessageNotifier {
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
     builder.setMostRecentSender(notifications.get(0).getIndividualRecipient());
     builder.setGroup(NOTIFICATION_GROUP);
+    Log.w(TAG, "Signal " + signal);
     builder.setOnlyAlertOnce(true);
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
@@ -455,8 +458,6 @@ public class MessageNotifier {
   }
 
   public static class DeleteReceiver extends BroadcastReceiver {
-
-    public static final String DELETE_REMINDER_ACTION = "io.forsta.securesms.MessageNotifier.DELETE_REMINDER_ACTION";
 
     @Override
     public void onReceive(Context context, Intent intent) {
