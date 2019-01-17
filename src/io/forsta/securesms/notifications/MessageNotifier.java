@@ -233,8 +233,8 @@ public class MessageNotifier {
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
     builder.setContentIntent(notifications.get(0).getPendingIntent(context));
     builder.setGroup(NOTIFICATION_GROUP);
-    Log.w(TAG, "Signal " + signal);
-    builder.setOnlyAlertOnce(true);
+    Log.w(TAG, "Vibrate " + notificationState.getVibrateState());
+    builder.setOnlyAlertOnce(!notificationState.getVibrateState());
 
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
@@ -251,7 +251,7 @@ public class MessageNotifier {
       builder.addMessageBody(item.getRecipients(), item.getIndividualRecipient(), item.getText());
     }
 
-    if (signal) {
+    if (notificationState.getVibrateState()) {
       builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
