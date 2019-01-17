@@ -28,6 +28,7 @@ public class NotificationState {
   private final LinkedList<NotificationItem> notifications = new LinkedList<>();
   private final LinkedHashSet<Long> threads       = new LinkedHashSet<>();
   private boolean notify = false;
+  private boolean vibrate = false;
   private String notificationChannel;
 
   private int notificationCount = 0;
@@ -62,6 +63,14 @@ public class NotificationState {
     }
 
     return null;
+  }
+
+  public void setVibrateState(boolean vibrateState) {
+    vibrate = vibrateState;
+  }
+
+  public boolean getVibrateState() {
+    return vibrate;
   }
 
   public RecipientPreferenceDatabase.VibrateState getVibrate() {

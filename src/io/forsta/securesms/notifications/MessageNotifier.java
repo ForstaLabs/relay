@@ -189,12 +189,10 @@ public class MessageNotifier {
 
       NotificationState notificationState = constructNotificationState(context, masterSecret, telcoCursor);
 
-      if (notificationState.getNotify()) {
-        if (notificationState.hasMultipleThreads()) {
-          sendMultipleThreadNotification(context, notificationState, signal);
-        } else {
-          sendSingleThreadNotification(context, masterSecret, notificationState, signal);
-        }
+      if (notificationState.hasMultipleThreads()) {
+        sendMultipleThreadNotification(context, notificationState, signal);
+      } else {
+        sendSingleThreadNotification(context, masterSecret, notificationState, signal);
       }
 
       int unreadMessageCount = telcoCursor.getCount();
@@ -392,13 +390,27 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
-      notificationState.setNotify(true);
+
       notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
       if (threadRecipients != null && threadNotification && messageNotification) {
-        notificationState.setNotificationChannel(NotificationChannels.getMessagesChannel(context));
+        notificationState.setNotify(true);
+        notificationState.setVibrateState(true);
+      } else if (notificationState.getVibrateState()) {
+        notificationState.setNotify(true);
+        notificationState.setVibrateState(false);
       } else {
-        notificationState.setNotificationChannel(NotificationChannels.MESSAGES_MIN);
+        notificationState.setNotify(false);
+        notificationState.setVibrateState(false);
       }
+    }
+
+    if (notificationState.getVibrateState()) {
+      notificationState.setNotificationChannel(NotificationChannels.getMessagesChannel(context));
+    } else if (notificationState.getNotify()) {
+      notificationState.setNotificationChannel(NotificationChannels.MESSAGES_LOW);
+    } else {
+      // Update badge only
+      notificationState.setNotificationChannel(NotificationChannels.MESSAGES_MIN);
     }
 
     reader.close();
