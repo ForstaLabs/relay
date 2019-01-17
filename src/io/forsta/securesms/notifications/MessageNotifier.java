@@ -223,6 +223,7 @@ public class MessageNotifier {
     }
 
     SingleRecipientNotificationBuilder builder       = new SingleRecipientNotificationBuilder(context, masterSecret, TextSecurePreferences.getNotificationPrivacy(context));
+    builder.setNotificationChannel(notificationState.getNotificationChannel(context));
     List<NotificationItem>             notifications = notificationState.getNotifications();
     Recipients                         recipients    = notifications.get(0).getRecipients();
 
@@ -390,8 +391,9 @@ public class MessageNotifier {
       if (threadRecipients != null && threadNotification && messageNotification) {
         notificationState.setNotify(true);
         notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
+
       } else {
-        notificationState.setNotify(false);
+        notificationState.setNotificationChannel(NotificationChannels.MESSAGES_LOW);
       }
     }
 

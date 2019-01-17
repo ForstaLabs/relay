@@ -1,5 +1,6 @@
 package io.forsta.securesms.notifications;
 
+import android.app.NotificationChannel;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,7 @@ public class NotificationState {
   private final LinkedList<NotificationItem> notifications = new LinkedList<>();
   private final LinkedHashSet<Long> threads       = new LinkedHashSet<>();
   private boolean notify = false;
+  private String notificationChannel;
 
   private int notificationCount = 0;
 
@@ -139,5 +141,17 @@ public class NotificationState {
 
   public boolean getNotify() {
     return notify;
+  }
+
+  public void setNotificationChannel(String channel) {
+    this.notificationChannel = channel;
+  }
+
+  public String getNotificationChannel(Context context) {
+    if (notificationChannel == null) {
+      notificationChannel = NotificationChannels.getMessagesChannel(context);
+      return notificationChannel;
+    }
+    return notificationChannel;
   }
 }

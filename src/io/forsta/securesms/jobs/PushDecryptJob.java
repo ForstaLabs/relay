@@ -143,8 +143,8 @@ public class PushDecryptJob extends ContextJob {
 
       try {
         MasterSecretUnion masterSecretUnion;
-  //    MasterSecret          masterSecret         = KeyCachingService.getMasterSecret(context);
-        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
+        MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
+//        MasterSecret masterSecret = MasterSecretUtil.getMasterSecret(context, MasterSecretUtil.UNENCRYPTED_PASSPHRASE);
         if (masterSecret == null) masterSecretUnion = new MasterSecretUnion(MasterSecretUtil.getAsymmetricMasterSecret(context, null));
         else                      masterSecretUnion = new MasterSecretUnion(masterSecret);
 

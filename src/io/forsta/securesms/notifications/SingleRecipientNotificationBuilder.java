@@ -64,8 +64,6 @@ public class SingleRecipientNotificationBuilder extends AbstractNotificationBuil
   }
 
   public void setThread(@NonNull final Recipients recipients, String title) { // Need to pass color.
-    setChannelId(NotificationChannels.getMessagesChannel(context));
-
     if (privacy.isDisplayContact()) {
       if (!TextUtils.isEmpty(title)) {
         setContentTitle(title);
