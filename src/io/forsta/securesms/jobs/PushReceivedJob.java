@@ -33,14 +33,6 @@ public abstract class PushReceivedJob extends ContextJob {
 
   public void handle(SignalServiceEnvelope envelope, boolean sendExplicitReceipt) {
     synchronized (RECEIVE_LOCK) {
-      if (!isActiveNumber(context, envelope.getSource())) {
-        TextSecureDirectory directory           = TextSecureDirectory.getInstance(context);
-        ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
-        contactTokenDetails.setNumber(envelope.getSource());
-
-        directory.setNumber(contactTokenDetails, true);
-      }
-
       if (envelope.isReceipt()) {
         handleReceipt(envelope);
       } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {

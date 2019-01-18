@@ -147,8 +147,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
     options.add("Canonical Address Db");
-    options.add("TextSecure Recipients");
-    options.add("TextSecure Directory");
     options.add("Messages Top 10");
     options.add("Threads");
     options.add("Forsta Contacts");
@@ -175,43 +173,36 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             getAddresses.execute();
             break;
           case 2:
-            GetRecipientsList task = new GetRecipientsList();
-            task.execute();
-            break;
-          case 3:
-            mDebugText.setText(printDirectory());
-            break;
-          case 4:
             GetMessages getMessages = new GetMessages();
             getMessages.execute();
             break;
-          case 5:
+          case 3:
             mDebugText.setText(printThreads());
             break;
-          case 6:
+          case 4:
             mDebugText.setText(printForstaContacts());
             break;
-          case 7:
+          case 5:
             mDebugText.setText(printGroups());
             break;
-          case 8:
+          case 6:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 9:
+          case 7:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
-          case 10:
+          case 8:
             mDebugText.setText("");
             GetDirectory directory = new GetDirectory();
             directory.execute();
             break;
-          case 11:
+          case 9:
             mDebugText.setText("");
             showScrollView();
             new MessageTests().execute();

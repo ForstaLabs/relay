@@ -53,8 +53,7 @@ public abstract class PushSendJob extends SendJob {
 
   protected SignalServiceAddress getPushAddress(String number) throws InvalidNumberException {
     String e164number = Util.canonicalizeNumber(context, number);
-    String relay      = TextSecureDirectory.getInstance(context).getRelay(e164number);
-    return new SignalServiceAddress(e164number, Optional.fromNullable(relay));
+    return new SignalServiceAddress(e164number, Optional.fromNullable(null));
   }
 
   protected List<SignalServiceAttachment> getAttachmentsFor(MasterSecret masterSecret, List<Attachment> parts) {

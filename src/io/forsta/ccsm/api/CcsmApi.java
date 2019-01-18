@@ -258,9 +258,7 @@ public class CcsmApi {
     JSONObject response = getTags(context);
     List<ForstaTag> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    db.updateGroups(groups, activeNumbers);
+    db.updateGroups(groups);
   }
 
   private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
