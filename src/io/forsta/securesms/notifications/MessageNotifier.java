@@ -68,6 +68,7 @@ import io.forsta.securesms.util.SpanUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -189,18 +190,17 @@ public class MessageNotifier {
 
       NotificationState notificationState = constructNotificationState(context, masterSecret, telcoCursor);
 
-      if (notificationState.getNotify()) {
-        if (notificationState.hasMultipleThreads()) {
-          sendMultipleThreadNotification(context, notificationState, signal);
-        } else {
-          sendSingleThreadNotification(context, masterSecret, notificationState, signal);
-        }
+      if (notificationState.hasMultipleThreads()) {
+        sendMultipleThreadNotification(context, notificationState, signal);
+      } else {
+        sendSingleThreadNotification(context, masterSecret, notificationState, signal);
       }
 
       int unreadMessageCount = telcoCursor.getCount();
       updateBadge(context, unreadMessageCount);
 
       if (signal) {
+        Log.w(TAG, "Scheduling reminder. count: " + reminderCount);
         scheduleReminder(context, reminderCount);
       }
     } finally {
@@ -223,6 +223,7 @@ public class MessageNotifier {
     }
 
     SingleRecipientNotificationBuilder builder       = new SingleRecipientNotificationBuilder(context, masterSecret, TextSecurePreferences.getNotificationPrivacy(context));
+    builder.setNotificationChannel(notificationState.getNotificationChannel(context));
     List<NotificationItem>             notifications = notificationState.getNotifications();
     Recipients                         recipients    = notifications.get(0).getRecipients();
 
@@ -232,7 +233,8 @@ public class MessageNotifier {
                                   notifications.get(0).getText(), notifications.get(0).getSlideDeck());
     builder.setContentIntent(notifications.get(0).getPendingIntent(context));
     builder.setGroup(NOTIFICATION_GROUP);
-    builder.setOnlyAlertOnce(!signal);
+    Log.w(TAG, "Vibrate " + notificationState.getVibrateState());
+    builder.setOnlyAlertOnce(!notificationState.getVibrateState());
 
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
@@ -249,7 +251,7 @@ public class MessageNotifier {
       builder.addMessageBody(item.getRecipients(), item.getIndividualRecipient(), item.getText());
     }
 
-    if (signal) {
+    if (notificationState.getVibrateState()) {
       builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
@@ -266,12 +268,14 @@ public class MessageNotifier {
                                                      boolean signal)
   {
     MultipleRecipientNotificationBuilder builder       = new MultipleRecipientNotificationBuilder(context, TextSecurePreferences.getNotificationPrivacy(context));
+    builder.setNotificationChannel(notificationState.getNotificationChannel(context));
     List<NotificationItem>               notifications = notificationState.getNotifications();
 
     builder.setMessageCount(notificationState.getMessageCount(), notificationState.getThreadCount());
     builder.setMostRecentSender(notifications.get(0).getIndividualRecipient());
     builder.setGroup(NOTIFICATION_GROUP);
-    builder.setOnlyAlertOnce(!signal);
+    Log.w(TAG, "Vibrate " + notificationState.getVibrateState());
+    builder.setOnlyAlertOnce(!notificationState.getVibrateState());
     long timestamp = notifications.get(0).getTimestamp();
     if (timestamp != 0) builder.setWhen(timestamp);
 
@@ -284,7 +288,7 @@ public class MessageNotifier {
       builder.addMessageBody(item.getIndividualRecipient(), item.getText());
     }
 
-    if (signal) {
+    if (notificationState.getVibrateState()) {
       builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
@@ -356,6 +360,8 @@ public class MessageNotifier {
     if (masterSecret == null) reader = DatabaseFactory.getMmsDatabase(context).readerFor(cursor);
     else                      reader = DatabaseFactory.getMmsDatabase(context).readerFor(masterSecret, cursor);
 
+    Set<Long> notifyThreadIds = new HashSet<>();
+
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
       Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
@@ -387,12 +393,32 @@ public class MessageNotifier {
         slideDeck = ((MediaMmsMessageRecord)record).getSlideDeck();
       }
 
+
+      notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
       if (threadRecipients != null && threadNotification && messageNotification) {
+        if (notifyThreadIds.contains(threadId)) {
+          notificationState.setVibrateState(false);
+        } else {
+          notificationState.setVibrateState(true);
+        }
+        notifyThreadIds.add(threadId);
         notificationState.setNotify(true);
-        notificationState.addNotification(new NotificationItem(sender, threadPreferences, threadRecipients, threadId, body, title, timestamp, slideDeck));
+      } else if (notificationState.getVibrateState()) {
+        notificationState.setNotify(true);
+        notificationState.setVibrateState(false);
       } else {
         notificationState.setNotify(false);
+        notificationState.setVibrateState(false);
       }
+    }
+
+    if (notificationState.getVibrateState()) {
+      notificationState.setNotificationChannel(NotificationChannels.getMessagesChannel(context));
+    } else if (notificationState.getNotify()) {
+      notificationState.setNotificationChannel(NotificationChannels.MESSAGES_LOW);
+    } else {
+      // Update badge only
+      notificationState.setNotificationChannel(NotificationChannels.MESSAGES_MIN);
     }
 
     reader.close();
@@ -416,7 +442,7 @@ public class MessageNotifier {
     }
 
     AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-    Intent       alarmIntent  = new Intent(ReminderReceiver.REMINDER_ACTION);
+    Intent       alarmIntent  = new Intent(context, ReminderReceiver.class);
     alarmIntent.putExtra("reminder_count", count);
 
     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -426,16 +452,13 @@ public class MessageNotifier {
   }
 
   private static void clearReminder(Context context) {
-    Intent        alarmIntent   = new Intent(ReminderReceiver.REMINDER_ACTION);
+    Intent        alarmIntent   = new Intent(context, ReminderReceiver.class);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
     AlarmManager  alarmManager  = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
     alarmManager.cancel(pendingIntent);
   }
 
   public static class ReminderReceiver extends BroadcastReceiver {
-
-    public static final String REMINDER_ACTION = "io.forsta.securesms.MessageNotifier.REMINDER_ACTION";
-
     @Override
     public void onReceive(final Context context, final Intent intent) {
       new AsyncTask<Void, Void, Void>() {
@@ -452,8 +475,6 @@ public class MessageNotifier {
   }
 
   public static class DeleteReceiver extends BroadcastReceiver {
-
-    public static final String DELETE_REMINDER_ACTION = "io.forsta.securesms.MessageNotifier.DELETE_REMINDER_ACTION";
 
     @Override
     public void onReceive(Context context, Intent intent) {
