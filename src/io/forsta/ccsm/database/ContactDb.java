@@ -186,8 +186,6 @@ public class ContactDb extends DbBase {
   public void updateUsers(List<ForstaUser> users, boolean removeExisting) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     Map<String, String> uids = getUids();
-    // Temporary. To remove ephemeral user type from directory
-    Set<String> ephemeralUsers = new HashSet<>();
 
     db.beginTransaction();
     try {
