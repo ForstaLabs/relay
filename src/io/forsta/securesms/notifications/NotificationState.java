@@ -74,14 +74,6 @@ public class NotificationState {
   }
 
   public RecipientPreferenceDatabase.VibrateState getVibrate() {
-    if (!notifications.isEmpty()) {
-      Recipients recipients = notifications.getFirst().getRecipients();
-
-      if (recipients != null) {
-        return recipients.getVibrate();
-      }
-    }
-
     return RecipientPreferenceDatabase.VibrateState.DEFAULT;
   }
 

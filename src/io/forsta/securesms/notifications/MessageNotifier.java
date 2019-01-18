@@ -288,7 +288,7 @@ public class MessageNotifier {
       builder.addMessageBody(item.getIndividualRecipient(), item.getText());
     }
 
-    if (signal) {
+    if (notificationState.getVibrateState()) {
       builder.setAlarms(notificationState.getRingtone(), notificationState.getVibrate());
       builder.setTicker(notifications.get(0).getIndividualRecipient(),
                         notifications.get(0).getText());
