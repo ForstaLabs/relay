@@ -415,14 +415,8 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".notifications.MessageNotifier$ReminderReceiver">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.MessageNotifier.REMINDER_ACTION"/>
-            </intent-filter>
         </receiver>
         <receiver android:name=".notifications.MessageNotifier$DeleteReceiver">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.MessageNotifier.DELETE_REMINDER_ACTION"/>
-            </intent-filter>
         </receiver>
         <receiver android:name=".ExperienceUpgradeActivity$AppUpgradeReceiver">
             <intent-filter>
