@@ -40,7 +40,8 @@ public class ForstaUser {
 
   public enum RecipientType {
     PERSON,
-    BOT
+    BOT,
+    EPHEMERAL
   }
 
   public ForstaUser() {
@@ -63,6 +64,9 @@ public class ForstaUser {
             break;
           case "BOT":
             this.type = RecipientType.BOT;
+            break;
+          case "EPHEMERAL":
+            this.type = RecipientType.EPHEMERAL;
             break;
         }
       }
@@ -144,6 +148,10 @@ public class ForstaUser {
 
   public String getDbId() {
     return id;
+  }
+
+  public RecipientType getRecipientType() {
+    return type;
   }
 
   public String getName() {

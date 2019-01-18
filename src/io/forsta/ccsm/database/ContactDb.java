@@ -288,7 +288,7 @@ public class ContactDb extends DbBase {
   }
 
   private Cursor getActiveRecipients(String filter) {
-    String queryFilter = "(" + TSREGISTERED + " = 1 AND " + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0 AND " + USERTYPE + " = 'PERSON')";
+    String queryFilter = "(" + ISACTIVE + " = 1 AND " + ISMONITOR + " = 0 AND " + USERTYPE + " = 'PERSON')";
 
     String[] queryValues = null;
     if (filter != null && filter.length() > 0) {
