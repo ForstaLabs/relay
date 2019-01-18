@@ -392,9 +392,7 @@ public class CcsmApi {
         try {
           JSONObject user = results.getJSONObject(i);
           ForstaUser forstaUser = new ForstaUser(user);
-          if (forstaUser.getRecipientType() == ForstaUser.RecipientType.PERSON) {
-            users.add(forstaUser);
-          }
+          users.add(forstaUser);
         } catch (Exception e) {
           Log.e(TAG, "parseUsers exception: " + e.getMessage());
         }
