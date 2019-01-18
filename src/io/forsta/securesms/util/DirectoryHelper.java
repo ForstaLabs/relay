@@ -11,7 +11,6 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.util.Pair;
 
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.CcsmApi;
@@ -22,16 +21,13 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.SessionUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.NotInDirectoryException;
 import io.forsta.securesms.database.TextSecureDirectory;
-import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.IncomingJoinedMessage;
 import io.forsta.securesms.util.DirectoryHelper.UserCapabilities.Capability;
 
 import org.json.JSONObject;
@@ -41,7 +37,6 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -88,7 +83,7 @@ public class DirectoryHelper {
       }
 
       directory.setNumbers(activeTokens, eligibleContactAddresses);
-      contactsDb.setActiveForstaAddresses(activeTokens, eligibleContactAddresses);
+      contactsDb.setRegisteredForstaAddresses(activeTokens, eligibleContactAddresses);
     }
     notifyRefresh(context);
   }
@@ -105,7 +100,7 @@ public class DirectoryHelper {
         List<ContactTokenDetails> details = accountManager.getContacts(new HashSet<>(addresses));
         if (details.size() > 0) {
           directory.setNumbers(details, new ArrayList<String>());
-          contactsDb.setActiveForstaAddresses(details);
+          contactsDb.setRegisteredForstaAddresses(details);
           notifyRefresh(context);
         }
       }
@@ -125,7 +120,7 @@ public class DirectoryHelper {
         if (details.size() > 0) {
           directory.setNumbers(details, new ArrayList<String>());
           ContactDb contactsDb = DbFactory.getContactDb(context);
-          contactsDb.setActiveForstaAddresses(details);
+          contactsDb.setRegisteredForstaAddresses(details);
           notifyRefresh(context);
         }
       }
