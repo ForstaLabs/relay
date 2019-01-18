@@ -40,7 +40,6 @@ import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
@@ -393,7 +392,9 @@ public class CcsmApi {
         try {
           JSONObject user = results.getJSONObject(i);
           ForstaUser forstaUser = new ForstaUser(user);
-          users.add(forstaUser);
+          if (forstaUser.getRecipientType() == ForstaUser.RecipientType.PERSON) {
+            users.add(forstaUser);
+          }
         } catch (Exception e) {
           Log.e(TAG, "parseUsers exception: " + e.getMessage());
         }
