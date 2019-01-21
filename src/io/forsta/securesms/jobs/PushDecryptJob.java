@@ -333,14 +333,7 @@ public class PushDecryptJob extends ContextJob {
                                             long envelopeTimestamp)
   {
     for (ReadMessage readMessage : readMessages) {
-      List<Pair<Long, Long>> expiringText = DatabaseFactory.getSmsDatabase(context).setTimestampRead(new SyncMessageId(readMessage.getSender(), readMessage.getTimestamp()), envelopeTimestamp);
       List<Pair<Long, Long>> expiringMedia = DatabaseFactory.getMmsDatabase(context).setTimestampRead(new SyncMessageId(readMessage.getSender(), readMessage.getTimestamp()), envelopeTimestamp);
-
-      for (Pair<Long, Long> expiringMessage : expiringText) {
-        ApplicationContext.getInstance(context)
-                          .getExpiringMessageManager()
-                          .scheduleDeletion(expiringMessage.first, false, envelopeTimestamp, expiringMessage.second);
-      }
 
       for (Pair<Long, Long> expiringMessage : expiringMedia) {
         ApplicationContext.getInstance(context)
