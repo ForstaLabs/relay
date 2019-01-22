@@ -46,19 +46,13 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.EncryptingSmsDatabase;
 import io.forsta.securesms.database.GroupDatabase;
 import io.forsta.securesms.database.IdentityDatabase;
 import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.MmsSmsDatabase;
-import io.forsta.securesms.database.SmsDatabase;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.model.MessageRecord;
-import io.forsta.securesms.database.model.SmsMessageRecord;
 import io.forsta.securesms.database.model.ThreadRecord;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.io.IOException;
@@ -147,8 +141,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     List<String> options = new ArrayList<String>();
     options.add("Choose an option");
     options.add("Canonical Address Db");
-    options.add("TextSecure Recipients");
-    options.add("TextSecure Directory");
     options.add("Messages Top 10");
     options.add("Threads");
     options.add("Forsta Contacts");
@@ -175,43 +167,36 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
             getAddresses.execute();
             break;
           case 2:
-            GetRecipientsList task = new GetRecipientsList();
-            task.execute();
-            break;
-          case 3:
-            mDebugText.setText(printDirectory());
-            break;
-          case 4:
             GetMessages getMessages = new GetMessages();
             getMessages.execute();
             break;
-          case 5:
+          case 3:
             mDebugText.setText(printThreads());
             break;
-          case 6:
+          case 4:
             mDebugText.setText(printForstaContacts());
             break;
-          case 7:
+          case 5:
             mDebugText.setText(printGroups());
             break;
-          case 8:
+          case 6:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagUsers tagTask = new GetTagUsers();
             tagTask.execute();
             break;
-          case 9:
+          case 7:
             mDebugText.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
             GetTagGroups groupTask = new GetTagGroups();
             groupTask.execute();
             break;
-          case 10:
+          case 8:
             mDebugText.setText("");
             GetDirectory directory = new GetDirectory();
             directory.execute();
             break;
-          case 11:
+          case 9:
             mDebugText.setText("");
             showScrollView();
             new MessageTests().execute();
@@ -352,42 +337,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     return sb.toString();
   }
 
-  private String printDirectory() {
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
-    Cursor cursor = dir.getAllNumbers();
-    StringBuilder sb = new StringBuilder();
-    sb.append("Count: ").append(cursor.getCount()).append("\n");
-    try {
-      while (cursor != null && cursor.moveToNext()) {
-        for (int i = 0; i < cursor.getColumnCount(); i++) {
-          if (!cursor.getColumnName(i).equals("timestamp") && !cursor.getColumnName(i).equals("relay") && !cursor.getColumnName(i).equals("voice")) {
-            sb.append(cursor.getColumnName(i)).append(": ");
-            try {
-              sb.append(cursor.getString(i)).append(" ");
-            } catch (Exception e) {
-              sb.append("Bad value");
-            }
-          }
-        }
-        sb.append("\n");
-      }
-    } finally {
-      if (cursor != null)
-        cursor.close();
-    }
-    return sb.toString();
-  }
-
-  private List<String> getDirectoryActiveNumbers() {
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(this);
-    return dir.getActiveNumbers();
-  }
-
-  private Recipients getDirectoryActiveRecipients(List<String> dirNumbers) {
-    Recipients recipients = RecipientFactory.getRecipientsFromStrings(DashboardActivity.this, dirNumbers, false);
-    return recipients;
-  }
-
   private String printIdentities() {
     IdentityDatabase idb = DatabaseFactory.getIdentityDatabase(DashboardActivity.this);
     Cursor cdb = idb.getIdentities();
@@ -507,68 +456,6 @@ public class DashboardActivity extends PassphraseRequiredActionBarActivity {
     treader.close();
 
     return sb.toString();
-  }
-
-  private String printSmsMessages() {
-    if (mMasterSecret != null) {
-      EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(DashboardActivity.this);
-      SmsDatabase.Reader reader = database.getMessages(mMasterSecret, 0, 50);
-      SmsMessageRecord record;
-      StringBuilder sb = new StringBuilder();
-      while ((record = reader.getNext()) != null) {
-        Date sent = new Date(record.getDateSent());
-        Date received = new Date(record.getDateReceived());
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy h:mm a");
-
-        Recipients recipients = record.getRecipients();
-        List<Recipient> rlist = recipients.getRecipientsList();
-        sb.append("ThreadId: ");
-        sb.append(record.getThreadId());
-        sb.append("\n");
-        sb.append("Sent: ");
-        sb.append(formatter.format(sent)).append("\n");
-        sb.append("To: ");
-        for (Recipient r : rlist) {
-          sb.append(r.getAddress()).append(" ");
-          sb.append("ID: ");
-          sb.append(r.getRecipientId()).append(" ");
-        }
-        sb.append("\n");
-        sb.append("Received: ");
-        sb.append(formatter.format(received)).append(" ");
-        sb.append("\n");
-        sb.append("Message: ");
-        sb.append(record.getDisplayBody().toString());
-        sb.append("\n");
-        sb.append("\n");
-      }
-      reader.close();
-      return sb.toString();
-    }
-    return "MasterSecret NULL";
-  }
-
-  private class GetRecipientsList extends AsyncTask<Void, Void, Recipients> {
-
-    @Override
-    protected Recipients doInBackground(Void... params) {
-      List<String> dirNumbers = getDirectoryActiveNumbers();
-      return getDirectoryActiveRecipients(dirNumbers);
-    }
-
-    @Override
-    protected void onPostExecute(Recipients recipients) {
-      List<Recipient> list = recipients.getRecipientsList();
-      StringBuilder sb = new StringBuilder();
-
-      for (Recipient item : list) {
-        sb.append("Number: ").append(item.getAddress()).append(" ID: ").append(item.getRecipientId());
-        sb.append(" Name: ").append(item.getName());
-        sb.append("\n");
-      }
-      sb.append(printIdentities());
-      mDebugText.setText(sb.toString());
-    }
   }
 
   private class GetMessages extends AsyncTask<Void, Void, String> {

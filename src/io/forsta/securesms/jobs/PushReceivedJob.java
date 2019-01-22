@@ -8,14 +8,11 @@ import androidx.work.WorkerParameters;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
-import io.forsta.securesms.database.NotInDirectoryException;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
-import org.whispersystems.signalservice.api.push.ContactTokenDetails;
 
 public abstract class PushReceivedJob extends ContextJob {
 
@@ -33,14 +30,6 @@ public abstract class PushReceivedJob extends ContextJob {
 
   public void handle(SignalServiceEnvelope envelope, boolean sendExplicitReceipt) {
     synchronized (RECEIVE_LOCK) {
-      if (!isActiveNumber(context, envelope.getSource())) {
-        TextSecureDirectory directory           = TextSecureDirectory.getInstance(context);
-        ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
-        contactTokenDetails.setNumber(envelope.getSource());
-
-        directory.setNumber(contactTokenDetails, true);
-      }
-
       if (envelope.isReceipt()) {
         handleReceipt(envelope);
       } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {
@@ -75,18 +64,4 @@ public abstract class PushReceivedJob extends ContextJob {
     DatabaseFactory.getMmsDatabase(context).incrementDeliveryReceiptCount(new SyncMessageId(envelope.getSource(),
                                                                                                envelope.getTimestamp()));
   }
-
-  private boolean isActiveNumber(Context context, String e164number) {
-    boolean isActiveNumber;
-
-    try {
-      isActiveNumber = TextSecureDirectory.getInstance(context).isSecureTextSupported(e164number);
-    } catch (NotInDirectoryException e) {
-      isActiveNumber = false;
-    }
-
-    return isActiveNumber;
-  }
-
-
 }

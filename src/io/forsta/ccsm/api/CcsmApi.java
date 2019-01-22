@@ -40,7 +40,6 @@ import io.forsta.securesms.contacts.ContactsDatabase;
 import io.forsta.securesms.database.CanonicalAddressDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.database.TextSecureDirectory;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
@@ -258,9 +257,7 @@ public class CcsmApi {
     JSONObject response = getTags(context);
     List<ForstaTag> groups = parseTagGroups(response);
     GroupDatabase db = DatabaseFactory.getGroupDatabase(context);
-    TextSecureDirectory dir = TextSecureDirectory.getInstance(context);
-    List<String> activeNumbers = dir.getActiveNumbers();
-    db.updateGroups(groups, activeNumbers);
+    db.updateGroups(groups);
   }
 
   private static JSONObject getUsersByPhone(Context context, Set<String> phoneNumbers) {
