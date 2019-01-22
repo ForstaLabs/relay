@@ -31,6 +31,7 @@ import io.forsta.securesms.recipients.RecipientProvider.RecipientDetails;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.GroupUtil;
 import io.forsta.securesms.util.ListenableFutureTask;
+import io.forsta.securesms.util.TextSecurePreferences;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -297,7 +297,7 @@ public class PushDecryptJob extends ContextJob {
     Long threadId;
 
     if (message.getMessage().isEndSession()) {
-      Log.e(TAG, "Sync end session is invalid: Only send to directly to peers");
+      Log.e(TAG, "Sync end session is invalid: Only send directly to peers");
       //threadId = handleSynchronizeSentEndSessionMessage(message);
       threadId = -1L;
     } else if (message.getMessage().isExpirationUpdate()) {

@@ -209,9 +209,6 @@ public class MessageSender {
     database.markAsSent(messageId);
     database.markAsPush(messageId);
 
-    long newMessageId = database.copyMessageInbox(masterSecret, messageId);
-    database.markAsPush(newMessageId);
-
     Recipient you = RecipientFactory.getRecipient(context, TextSecurePreferences.getLocalNumber(context), false);
     Recipients recipients = RecipientFactory.getRecipientsFor(context, you, false);
     sendMediaPush(context, recipients, messageId);
