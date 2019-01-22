@@ -55,7 +55,7 @@ public class GenericForegroundService extends Service {
   private void handleStart(@NonNull Intent intent) {
     String title     = Preconditions.checkNotNull(intent.getStringExtra(EXTRA_TITLE));
     String channelId = Preconditions.checkNotNull(intent.getStringExtra(EXTRA_CHANNEL_ID));
-    int    iconRes   = intent.getIntExtra(EXTRA_ICON_RES, R.drawable.ic_signal_grey_24dp);
+    int    iconRes   = intent.getIntExtra(EXTRA_ICON_RES, R.drawable.ic_forsta_notification);
 
 
 
