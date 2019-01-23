@@ -91,7 +91,6 @@ public class WebRtcCallScreen extends FrameLayout {
   private CallMemberView remoteMemberLayout2;
   private CallMemberView remoteMemberLayout3;
   private Map<String, CallRecipient> remoteCallMembers = new HashMap<>();
-  private RecyclerView remoteCallMemberList;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -215,14 +214,11 @@ public class WebRtcCallScreen extends FrameLayout {
     this.endCallButton                = findViewById(R.id.hangup_fab);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.callHeader                   = findViewById(R.id.call_info_1);
-    this.remoteCallMemberList = findViewById(R.id.call_member_list_recyclerview);
 
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
 
     LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-    remoteCallMemberList.setLayoutManager(layoutManager);
-
   }
 
   private void setConnected(SurfaceViewRenderer localRenderer,
@@ -237,21 +233,21 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-//      if (remoteRenderer2.getParent() != null) {
-//        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
-//      }
-//
-//      if (remoteRenderer3.getParent() != null) {
-//        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
-//      }
+      if (remoteRenderer2.getParent() != null) {
+        ((ViewGroup)remoteRenderer2.getParent()).removeView(remoteRenderer2);
+      }
+
+      if (remoteRenderer3.getParent() != null) {
+        ((ViewGroup)remoteRenderer3.getParent()).removeView(remoteRenderer3);
+      }
       localRenderer.setMirror(true);
       localRenderer.setZOrderMediaOverlay(true);
 //      localMemberLayout.setActiveCall(localRenderer);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);
       remoteMemberLayout.setActiveCall(remoteRenderer);
-//      remoteMemberLayout2.setActiveCall(remoteRenderer2);
-//      remoteMemberLayout3.setActiveCall(remoteRenderer3);
+      remoteMemberLayout2.setActiveCall(remoteRenderer2);
+      remoteMemberLayout3.setActiveCall(remoteRenderer3);
     }
   }
 
