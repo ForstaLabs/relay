@@ -482,27 +482,27 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             registerPowerButtonReceiver();
 
             setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
-            // Now setup peer connections and send call offers to all other(2) peers?
-            final String localPeerId = UUID.randomUUID().toString();
-            for (CallMember callMember : remoteCallMembers.values()) {
-              if (!callMember.equals(incomingMember) && callMember.peerConnection == null) {
-
-                callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
-                SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
-                callMember.peerConnection.setLocalDescription(sdp);
-
-                Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-                ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
-                listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
-                  @Override
-                  public void onFailureContinue(Throwable error) {
-                    Log.w(TAG, error);
-                    sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-                    callMember.terminate();
-                  }
-                });
-              }
-            }
+//            // Now setup peer connections and send call offers to all other(2) peers?
+//            final String localPeerId = UUID.randomUUID().toString();
+//            for (CallMember callMember : remoteCallMembers.values()) {
+//              if (!callMember.equals(incomingMember) && callMember.peerConnection == null) {
+//
+//                callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
+//                SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
+//                callMember.peerConnection.setLocalDescription(sdp);
+//
+//                Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
+//                ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+//                listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+//                  @Override
+//                  public void onFailureContinue(Throwable error) {
+//                    Log.w(TAG, error);
+//                    sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+//                    callMember.terminate();
+//                  }
+//                });
+//              }
+//            }
 
           } catch (PeerConnectionWrapper.PeerConnectionException e) {
             Log.w(TAG, e);
@@ -609,7 +609,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       if (member.peerConnection == null) {
         Log.w(TAG, "No peer connection for this call accept offer");
-//        throw new AssertionError("No peer connection for this call member");
         return;
       }
 
@@ -703,7 +702,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     CallMember member = getCallMember(intent);
     if (member.recipient == null) {
       Log.w(TAG, "No recipient for this call member");
-//      throw new AssertionError("assert");
       return;
     }
 
@@ -803,9 +801,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleAnswerCall");
     CallMember activeMember = null;
     for (CallMember callMember : remoteCallMembers.values()) {
-      SessionDescription remoteDesc = callMember.peerConnection.getRemoteDescription();
-      if (callMember.peerId != null && callMember.peerConnection != null && remoteDesc != null) {
-        Log.w(TAG, "Have remote description for " + callMember);
+      if (callMember.peerId != null && callMember.peerConnection != null) {
+        SessionDescription remoteDesc = callMember.peerConnection.getRemoteDescription();
+        if (remoteDesc != null) {
+          Log.w(TAG, "Have remote description for " + callMember);
+        }
         if (callMember.callOrder == 1) {
           activeMember = callMember;
           break;
@@ -814,6 +814,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     final CallMember member = activeMember;
+    Log.w(TAG, "Answering call from " + member);
 
     if (callState != CallState.STATE_LOCAL_RINGING) {
       Log.w(TAG, "Can only answer from ringing!");
@@ -851,6 +852,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     setLocalVideoEnabled(true);
     setLocalAudioEnabled(true);
+
+    sendRemoteCallOffers();
 
     intent.putExtra(EXTRA_CALL_ID, callId);
     intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
@@ -1016,6 +1019,33 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return member;
     }
     return null;
+  }
+
+  private void sendRemoteCallOffers() {
+    // Now setup peer connections and send call offers to all other(2) peers?
+    final String localPeerId = UUID.randomUUID().toString();
+    for (CallMember callMember : remoteCallMembers.values()) {
+      if (callMember.peerConnection == null) {
+        try {
+          callMember.createPeerConnection(iceServiers, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
+          SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
+          callMember.peerConnection.setLocalDescription(sdp);
+
+          Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+          listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+            @Override
+            public void onFailureContinue(Throwable error) {
+              Log.w(TAG, error);
+              sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+              callMember.terminate();
+            }
+          });
+        } catch (PeerConnectionWrapper.PeerConnectionException e) {
+          Log.e(TAG, "Error creating peer connection for " + callMember);
+        }
+      }
+    }
   }
 
   private boolean isBusy() {
