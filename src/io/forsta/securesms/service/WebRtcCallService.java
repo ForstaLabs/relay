@@ -462,7 +462,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       initializeVideo();
 
       retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
-
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           WebRtcCallService.this.iceServiers = result;
@@ -482,32 +481,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             registerPowerButtonReceiver();
 
             setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
-//            // Now setup peer connections and send call offers to all other(2) peers?
-//            final String localPeerId = UUID.randomUUID().toString();
-//            for (CallMember callMember : remoteCallMembers.values()) {
-//              if (!callMember.equals(incomingMember) && callMember.peerConnection == null) {
-//
-//                callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
-//                SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
-//                callMember.peerConnection.setLocalDescription(sdp);
-//
-//                Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-//                ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
-//                listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
-//                  @Override
-//                  public void onFailureContinue(Throwable error) {
-//                    Log.w(TAG, error);
-//                    sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//                    callMember.terminate();
-//                  }
-//                });
-//              }
-//            }
-
           } catch (PeerConnectionWrapper.PeerConnectionException e) {
             Log.w(TAG, e);
             incomingMember.terminate();
-//            terminateCall(true);
+            terminateCall(true);
           }
         }
       });
