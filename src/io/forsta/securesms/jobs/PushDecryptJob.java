@@ -259,9 +259,6 @@ public class PushDecryptJob extends ContextJob {
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
 
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
   }
 
   private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
@@ -333,14 +330,7 @@ public class PushDecryptJob extends ContextJob {
                                             long envelopeTimestamp)
   {
     for (ReadMessage readMessage : readMessages) {
-      List<Pair<Long, Long>> expiringText = DatabaseFactory.getSmsDatabase(context).setTimestampRead(new SyncMessageId(readMessage.getSender(), readMessage.getTimestamp()), envelopeTimestamp);
       List<Pair<Long, Long>> expiringMedia = DatabaseFactory.getMmsDatabase(context).setTimestampRead(new SyncMessageId(readMessage.getSender(), readMessage.getTimestamp()), envelopeTimestamp);
-
-      for (Pair<Long, Long> expiringMessage : expiringText) {
-        ApplicationContext.getInstance(context)
-                          .getExpiringMessageManager()
-                          .scheduleDeletion(expiringMessage.first, false, envelopeTimestamp, expiringMessage.second);
-      }
 
       for (Pair<Long, Long> expiringMessage : expiringMedia) {
         ApplicationContext.getInstance(context)
@@ -389,10 +379,6 @@ public class PushDecryptJob extends ContextJob {
 
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getMessage().getExpiresInSeconds());
 
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
-
     return threadId;
   }
 
@@ -430,10 +416,6 @@ public class PushDecryptJob extends ContextJob {
         ApplicationContext.getInstance(context)
             .getJobManager()
             .add(new AttachmentDownloadJob(context, messageId, attachment.getAttachmentId()));
-      }
-
-      if (smsMessageId.isPresent()) {
-        DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
       }
 
       if (message.getMessage().getExpiresInSeconds() > 0) {
