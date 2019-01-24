@@ -258,10 +258,6 @@ public class PushDecryptJob extends ContextJob {
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
-
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
   }
 
   private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
@@ -382,10 +378,6 @@ public class PushDecryptJob extends ContextJob {
 
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getMessage().getExpiresInSeconds());
 
-    if (smsMessageId.isPresent()) {
-      DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
-    }
-
     return threadId;
   }
 
@@ -423,10 +415,6 @@ public class PushDecryptJob extends ContextJob {
         ApplicationContext.getInstance(context)
             .getJobManager()
             .add(new AttachmentDownloadJob(context, messageId, attachment.getAttachmentId()));
-      }
-
-      if (smsMessageId.isPresent()) {
-        DatabaseFactory.getSmsDatabase(context).deleteMessage(smsMessageId.get());
       }
 
       if (message.getMessage().getExpiresInSeconds() > 0) {
@@ -616,7 +604,6 @@ public class PushDecryptJob extends ContextJob {
 
     } catch (Exception e) {
       Log.e(TAG, "Control message excption: " + e.getMessage());
-      e.printStackTrace();
     }
   }
 
