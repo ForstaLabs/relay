@@ -801,7 +801,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (member == null || member.peerConnection == null || member.recipient == null || callId == null) {
       Log.w(TAG, "No caller information for this caller");
       return;
-//      throw new AssertionError("assert");
     }
 
     try {
