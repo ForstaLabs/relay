@@ -146,7 +146,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_BUSY       = "REMOTE_BUSY";
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
-  private static final int MAX_PEERS = 1;
+  private static final int MAX_PEERS = 3;
 
   private CallState callState          = CallState.STATE_IDLE;
   private boolean   microphoneEnabled  = true;
@@ -420,14 +420,14 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       int memberCount = 0;
       for (String memberAddress : members) {
-//        if (!memberAddress.equals(localCallMember.getRecipient().getAddress())) {
-//          if (++memberCount > MAX_PEERS) break;
-//          remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
-//        }
-        // Restrict to single caller until UI challenges can be resolved.
-        if (memberAddress.equals(incomingAddress)) {
-          remoteCallMembers.put(incomingAddress, new CallMember(this, incomingAddress));
+        if (!memberAddress.equals(localCallMember.getRecipient().getAddress())) {
+          if (++memberCount > MAX_PEERS) break;
+          remoteCallMembers.put(memberAddress, new CallMember(this, memberAddress));
         }
+        // Restrict to single caller until UI challenges can be resolved.
+//        if (memberAddress.equals(incomingAddress)) {
+//          remoteCallMembers.put(incomingAddress, new CallMember(this, incomingAddress));
+//        }
       }
 
       final CallMember incomingMember = remoteCallMembers.get(incomingAddress);
@@ -726,16 +726,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleCallConnected...");
     CallMember member = getCallMember(intent);
 
-//    if (callState == CallState.STATE_CONNECTED) {
-//      sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//      return;
-//    }
-
-    if (callState != CallState.STATE_REMOTE_RINGING && callState != CallState.STATE_LOCAL_RINGING) {
-      Log.w(TAG, "Ignoring call connected for unknown state: " + callState);
-      return;
-    }
-
     String id = getCallId(intent);
     if (callId != null && !callId.equals(id)) {
       Log.w(TAG, "Ignoring connected for unknown call id: " + id);
@@ -745,7 +735,16 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (member == null || member.recipient == null || member.peerConnection == null) {
       Log.w(TAG, "No call information for this caller");
       return;
-//      throw new AssertionError("assert");
+    }
+
+    if (callState == CallState.STATE_CONNECTED && !member.isActiveConnection()) {
+      sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, remoteVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      return;
+    }
+
+    if (callState != CallState.STATE_REMOTE_RINGING && callState != CallState.STATE_LOCAL_RINGING) {
+      Log.w(TAG, "Ignoring call connected for unknown state: " + callState);
+      return;
     }
 
     audioManager.startCommunication(callState == CallState.STATE_REMOTE_RINGING);
