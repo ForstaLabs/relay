@@ -139,6 +139,8 @@ public class WebRtcCallScreen extends FrameLayout {
       remoteMemberLayout.setRecipient(recipient);
       remoteMemberLayout.setCallStatus(message);
     }
+    remoteCallMembers.get(callOrder).setCallStatus(message);
+    remoteCallMemberList.getAdapter().notifyItemChanged(callOrder);
   }
 
   public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
