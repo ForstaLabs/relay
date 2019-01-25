@@ -46,7 +46,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
     Recipient recipient = recipients.getRecipientsList().get(position);
-    Recipient callRecipient = callRecipients[position];
+//    Recipient callRecipient = callRecipients[position];
     holder.recipientName.setText(recipient.getName());
     holder.callStatus.setText("Idle");
     holder.avatar.setAvatar(recipient, false);
