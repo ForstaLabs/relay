@@ -88,7 +88,7 @@ public class WebRtcCallScreen extends FrameLayout {
   private Recipient localRecipient;
   private FrameLayout localMemberLayout;
   private CallMemberView remoteMemberLayout;
-  private Map<String, CallRecipient> remoteCallMembers = new HashMap<>();
+  private Map<Integer, CallRecipient> remoteCallMembers = new HashMap<>();
   private RecyclerView remoteCallMemberList;
 
   public WebRtcCallScreen(Context context) {
@@ -149,12 +149,13 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void setIncomingCall(Recipient recipient, int callOrder, Map<Integer, Recipient> remoteCallRecipients) {
     for (Map.Entry<Integer, Recipient> entry : remoteCallRecipients.entrySet()) {
+      remoteCallMembers.put(entry.getKey(), new CallRecipient(entry.getValue(), "Incoming call"));
       updateCallMember(entry.getValue(), entry.getKey(), "Incoming call");
     }
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
-    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallRecipients));
+    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallMembers));
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {

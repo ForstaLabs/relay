@@ -15,7 +15,15 @@ public class CallRecipient {
     this.callStatus = message;
   }
 
+  public Recipient getRecipient() {
+    return recipient;
+  }
+
   public void setCallStatus(String message) {
     this.callStatus = message;
+  }
+
+  public String getCallStatus() {
+    return callStatus;
   }
 }

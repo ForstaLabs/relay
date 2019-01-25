@@ -18,9 +18,9 @@ import io.forsta.securesms.recipients.Recipients;
 
 public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAdapter.CallMemberViewHolder> {
 
-  private Map<Integer, Recipient> callRecipients;
+  private Map<Integer, CallRecipient> callRecipients;
 
-  public CallMemberListAdapter(Map<Integer, Recipient> callRecipients) {
+  public CallMemberListAdapter(Map<Integer, CallRecipient> callRecipients) {
     if (callRecipients == null) {
       throw new IllegalArgumentException(
           "recipients must not be null");
@@ -37,10 +37,10 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
 
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
-    Recipient recipient = callRecipients.get(position);
-    holder.recipientName.setText(recipient.getName());
-    holder.callStatus.setText("Idle");
-    holder.avatar.setAvatar(recipient, false);
+    CallRecipient callRecipient = callRecipients.get(position);
+    holder.recipientName.setText(callRecipient.getRecipient().getName());
+    holder.callStatus.setText(callRecipient.getCallStatus());
+    holder.avatar.setAvatar(callRecipient.getRecipient(), false);
   }
 
   @Override
