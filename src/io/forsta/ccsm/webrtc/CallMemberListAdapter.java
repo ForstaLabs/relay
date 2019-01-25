@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Collection;
+import java.util.Map;
 
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AvatarImageView;
@@ -17,23 +18,14 @@ import io.forsta.securesms.recipients.Recipients;
 
 public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAdapter.CallMemberViewHolder> {
 
-  private Recipients recipients;
-  private Recipient[] callRecipients;
+  private Map<Integer, Recipient> callRecipients;
 
-  public CallMemberListAdapter(Recipients recipients) {
-    if (recipients == null) {
+  public CallMemberListAdapter(Map<Integer, Recipient> callRecipients) {
+    if (callRecipients == null) {
       throw new IllegalArgumentException(
           "recipients must not be null");
     }
-    this.recipients = recipients;
-  }
-
-  public CallMemberListAdapter(Recipient[] recipients) {
-    if (recipients == null) {
-      throw new IllegalArgumentException(
-          "recipients must not be null");
-    }
-    this.callRecipients = recipients;
+    this.callRecipients = callRecipients;
   }
 
   @Override
@@ -45,8 +37,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
 
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
-    Recipient recipient = recipients.getRecipientsList().get(position);
-//    Recipient callRecipient = callRecipients[position];
+    Recipient recipient = callRecipients.get(position);
     holder.recipientName.setText(recipient.getName());
     holder.callStatus.setText("Idle");
     holder.avatar.setAvatar(recipient, false);
@@ -54,7 +45,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
 
   @Override
   public int getItemCount() {
-    return recipients.getRecipientsList().size();
+    return callRecipients.size();
   }
 
   protected static class CallMemberViewHolder extends RecyclerView.ViewHolder {

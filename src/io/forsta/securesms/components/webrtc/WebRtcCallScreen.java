@@ -154,8 +154,7 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
-    Recipients remoteRecipients = RecipientFactory.getRecipientsFor(getContext(), remoteCallRecipients.values(), true);
-    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteRecipients));
+    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallRecipients));
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
