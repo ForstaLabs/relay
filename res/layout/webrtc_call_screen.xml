@@ -25,92 +25,44 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:animateLayoutChanges="true">
-        <TableLayout
-            android:id="@+id/call_container_1"
-            android:layout_width="match_parent"
-            android:layout_height="280dp"
-            android:layout_alignParentTop="true">
-            <TableRow>
+        <LinearLayout android:id="@+id/call_banner_1"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:orientation="vertical">
 
-                <LinearLayout android:id="@+id/call_banner_1"
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:layout_weight="1"
-                              android:orientation="vertical">
+            <io.forsta.securesms.components.webrtc.WebRtcCallControls
+                android:id="@+id/inCallControls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/textsecure_primary"
+                android:paddingLeft="24dp"
+                android:paddingRight="20dp"
+                android:paddingTop="15dp"
+                android:paddingBottom="5dp"
+                android:clickable="true"/>
+            <FrameLayout
+                android:id="@+id/local_call_member"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/black"
+                android:visibility="visible"
+                />
+        </LinearLayout>
 
-                    <io.forsta.securesms.components.webrtc.WebRtcCallControls
-                        android:id="@+id/inCallControls"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/textsecure_primary"
-                        android:paddingLeft="24dp"
-                        android:paddingRight="20dp"
-                        android:paddingTop="15dp"
-                        android:paddingBottom="5dp"
-                        android:clickable="true"/>
-                    <FrameLayout
-                        android:id="@+id/local_call_member"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/black"
-                        android:visibility="visible"
-                        />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    >
-
-                    <io.forsta.ccsm.components.webrtc.CallMemberView
-                        android:id="@+id/remote_call_member"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"/>
-                </LinearLayout>
-            </TableRow>
-        </TableLayout>
-
-        <TableLayout
-            android:id="@+id/call_container_2"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="200dp"
-            android:layout_below="@id/call_container_1">
+            android:orientation="vertical"
+            >
 
-            <TableRow>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <io.forsta.ccsm.components.webrtc.CallMemberView
-                        android:id="@+id/remote_call_member2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <io.forsta.ccsm.components.webrtc.CallMemberView
-                        android:id="@+id/remote_call_member3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        />
-                </LinearLayout>
-            </TableRow>
-        </TableLayout>
-
+            <io.forsta.ccsm.components.webrtc.CallMemberView
+                android:id="@+id/remote_call_member"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"/>
+        </LinearLayout>
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"
             android:layout_width="match_parent"
