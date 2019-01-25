@@ -113,7 +113,8 @@
         <meta-data
             android:name="io.forsta.securesms.mms.TextSecureGlideModule"
             android:value="GlideModule"/>
-
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+                   android:resource="@drawable/ic_forsta_notification_black" />
         <activity
             android:name=".CountrySelectionActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
