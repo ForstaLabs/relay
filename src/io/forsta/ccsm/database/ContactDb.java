@@ -259,7 +259,7 @@ public class ContactDb extends DbBase {
     }
   }
 
-  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
+  public void setRegisteredForstaAddresses(List<ContactTokenDetails> activeTokens, Set<String> eligibleAddresses) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3)
     for (ContactTokenDetails token : activeTokens) {
@@ -276,7 +276,7 @@ public class ContactDb extends DbBase {
     }
   }
 
-  public void setActiveForstaAddresses(List<ContactTokenDetails> activeTokens) {
+  public void setRegisteredForstaAddresses(List<ContactTokenDetails> activeTokens) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     // This could be done with a update TABLE_NAME set TSREGISTERED = 1 where number in (1,2,3), or batch the transaction.
     for (ContactTokenDetails token : activeTokens) {

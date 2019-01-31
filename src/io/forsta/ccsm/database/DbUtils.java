@@ -12,8 +12,6 @@ import java.util.Set;
 
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.database.TextSecureDirectory;
-
 /**
  * Created by jlewis on 4/7/17.
  */

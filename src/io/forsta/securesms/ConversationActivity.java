@@ -336,20 +336,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case PICK_CONTACT_INFO:
       addAttachmentContactInfo(data.getData());
       break;
-    case GROUP_EDIT:
-      recipients = RecipientFactory.getRecipientsForIds(this, data.getLongArrayExtra(GroupCreateActivity.GROUP_RECIPIENT_EXTRA), true);
-      recipients.addListener(this);
-      supportInvalidateOptionsMenu();
-      break;
     case TAKE_PHOTO:
       if (attachmentManager.getCaptureUri() != null) {
         setMedia(attachmentManager.getCaptureUri(), MediaType.IMAGE);
       }
-      break;
-    case ADD_CONTACT:
-      recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, recipients.getIds(), true);
-      recipients.addListener(this);
-      fragment.reloadList();
       break;
     case PICK_LOCATION:
       SignalPlace place = new SignalPlace(PlacePicker.getPlace(data, this));
@@ -651,24 +641,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           Intent activityIntent = new Intent(this, WebRtcCallActivity.class);
           activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
           startActivity(activityIntent);
-        })
-        .execute();
-  }
-
-  private void handleAddToContacts() {
-    Permissions.with(ConversationActivity.this)
-        .request(Manifest.permission.WRITE_CONTACTS)
-        .ifNecessary()
-        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
-        .onAllGranted(() -> {
-          try {
-            final Intent intent = new Intent(Intent.ACTION_INSERT_OR_EDIT);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, recipients.getPrimaryRecipient().getAddress());
-            intent.setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE);
-            startActivityForResult(intent, ADD_CONTACT);
-          } catch (ActivityNotFoundException e) {
-            Log.w(TAG, e);
-          }
         })
         .execute();
   }

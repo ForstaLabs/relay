@@ -156,7 +156,7 @@ public class GroupDatabase extends Database {
     return RecipientFactory.getRecipientsFor(context, recipients, false);
   }
 
-  public void updateGroups(List<ForstaTag> groups, List<String> activeNumbers) {
+  public void updateGroups(List<ForstaTag> groups) {
     SQLiteDatabase db = databaseHelper.getWritableDatabase();
     Set<String> groupIds = new HashSet<>();
     // Don't get locally created groups.
@@ -172,11 +172,6 @@ public class GroupDatabase extends Database {
       for (ForstaTag group : groups) {
         String id = group.getEncodedId();
         List<String> members = new ArrayList<>(group.members);
-        for (int i=0; i<members.size(); i++) {
-          if (!activeNumbers.contains(members.get(i))) {
-            members.remove(i);
-          }
-        }
         Collections.sort(members);
         String thisNumber = TextSecurePreferences.getLocalNumber(context);
 
