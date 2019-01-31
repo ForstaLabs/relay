@@ -41,6 +41,10 @@ public abstract class AbstractNotificationBuilder extends NotificationCompat.Bui
     setLed();
   }
 
+  protected void setNotificationChannel(String channel) {
+    setChannelId(channel);
+  }
+
   protected CharSequence getStyledMessage(@NonNull Recipient recipient, @Nullable CharSequence message) {
     SpannableStringBuilder builder = new SpannableStringBuilder();
     builder.append(Util.getBoldedString(recipient.toShortString()));
