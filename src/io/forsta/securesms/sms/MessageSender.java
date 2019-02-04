@@ -35,7 +35,6 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
-import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.SlideDeck;
@@ -134,16 +133,6 @@ public class MessageSender {
     }
   }
 
-  public static void sendSmsInvite(final Context context, final MasterSecret masterSecret, final OutgoingTextMessage message) {
-    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
-    Recipients            recipients  = message.getRecipients();
-
-    long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), -1,
-        message, true, System.currentTimeMillis());
-
-    sendSms(context, recipients, messageId);
-  }
-
   public static void resend(Context context, MasterSecret masterSecret, MessageRecord messageRecord) {
     try {
       long       messageId   = messageRecord.getId();
@@ -227,12 +216,6 @@ public class MessageSender {
   private static void sendMediaPush(Context context, Recipients recipients, long messageId) {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
     jobManager.add(new PushMediaSendJob(context, messageId, recipients.getPrimaryRecipient().getAddress()));
-  }
-
-  // Keep for sending invitations.
-  private static void sendSms(Context context, Recipients recipients, long messageId) {
-    JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
-    jobManager.add(new SmsSendJob(context, messageId, recipients.getPrimaryRecipient().getName()));
   }
 
   private static boolean isSelfSend(Context context, Recipients recipients) {
