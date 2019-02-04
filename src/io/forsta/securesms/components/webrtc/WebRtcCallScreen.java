@@ -87,7 +87,7 @@ public class WebRtcCallScreen extends FrameLayout {
 
   private Recipient localRecipient;
   private FrameLayout localMemberLayout;
-  private CallMemberView remoteMemberLayout;
+  private FrameLayout remoteMemberLayout;
   private Map<Integer, CallRecipient> remoteCallMembers = new HashMap<>();
   private RecyclerView remoteCallMemberList;
 
@@ -135,12 +135,10 @@ public class WebRtcCallScreen extends FrameLayout {
   }
 
   public void updateCallMember(@NonNull Recipient recipient, int callOrder, @NonNull String message) {
-    if (callOrder == 1) {
-      remoteMemberLayout.setRecipient(recipient);
-      remoteMemberLayout.setCallStatus(message);
-    }
     remoteCallMembers.get(callOrder).setCallStatus(message);
-    remoteCallMemberList.getAdapter().notifyItemChanged(callOrder);
+    if (remoteCallMemberList != null && remoteCallMemberList.getAdapter() != null) {
+      remoteCallMemberList.getAdapter().notifyItemChanged(callOrder - 1);
+    }
   }
 
   public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
@@ -209,7 +207,7 @@ public class WebRtcCallScreen extends FrameLayout {
   private void setConnected(SurfaceViewRenderer localRenderer,
                             SurfaceViewRenderer remoteRenderer)
   {
-    if (localMemberLayout.getChildCount() == 0 && remoteMemberLayout.memberVideo.getChildCount() == 0) {
+    if (localMemberLayout.getChildCount() == 0 && remoteMemberLayout.getChildCount() == 0) {
       if (localRenderer.getParent() != null) {
         ((ViewGroup)localRenderer.getParent()).removeView(localRenderer);
       }
@@ -222,7 +220,7 @@ public class WebRtcCallScreen extends FrameLayout {
       localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);
-      remoteMemberLayout.setActiveCall(remoteRenderer);
+      remoteMemberLayout.addView(remoteRenderer);
     }
   }
 

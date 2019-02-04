@@ -12,6 +12,7 @@ public class CallRecipient {
   }
 
   public CallRecipient(Recipient recipient, String message) {
+    this.recipient = recipient;
     this.callStatus = message;
   }
 
