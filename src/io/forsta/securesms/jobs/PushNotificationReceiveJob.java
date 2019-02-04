@@ -54,14 +54,6 @@ public class PushNotificationReceiveJob extends PushReceivedJob implements Injec
   @Override
   public void onRun() throws IOException {
     pullAndProcessMessages(receiver, TAG, System.currentTimeMillis());
-//    List<SignalServiceEnvelope> envelopes = receiver.retrieveMessages(new SignalServiceMessageReceiver.MessageReceivedCallback() {
-//      @Override
-//      public void onMessage(SignalServiceEnvelope envelope) {
-//        Log.w(TAG, "Retrieved envelope: " + envelope.getSource());
-//        handle(envelope, false);
-//      }
-//    });
-//    Log.w(TAG, "Retrieved envelopes: " + envelopes.size());
   }
 
   public void pullAndProcessMessages(SignalServiceMessageReceiver receiver, String tag, long startTime) throws IOException {

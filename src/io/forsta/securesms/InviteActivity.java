@@ -12,6 +12,7 @@ import android.support.annotation.AnimRes;
 import android.support.annotation.NonNull;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewAnimationUtils;
@@ -236,7 +237,7 @@ public class InviteActivity extends PassphraseRequiredActionBarActivity implemen
         Recipients recipients = RecipientFactory.getRecipientsFromString(context, number, false);
 
         if (recipients.getPrimaryRecipient() != null) {
-          MessageSender.sendSmsInvite(context, masterSecret, new OutgoingTextMessage(recipients, message, -1));
+          Log.w("InviteActivity", "SMS no longer supported");
         }
       }
       return null;

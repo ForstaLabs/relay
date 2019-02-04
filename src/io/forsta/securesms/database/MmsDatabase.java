@@ -988,15 +988,16 @@ public class MmsDatabase extends MessagingDatabase {
     }
     contentValues.put(MESSAGE_ID, message.getMessageId());
 
-    for (Recipient recipient : message.getRecipients()) {
-      try {
-        contentValues.put(RECEIPT_COUNT, earlyReceiptCache.remove(message.getSentTimeMillis(),
-            Util.canonicalizeNumber(context, recipient.getAddress())));
-      } catch (InvalidNumberException e) {
-        Log.w(TAG, e);
+    Recipients recipients = message.getRecipients();
+    boolean isSelfSend = recipients.isSingleRecipient() &&recipients.includesSelf(context);
+    if (isSelfSend) {
+      contentValues.put(RECEIPT_COUNT, 1);
+    } else {
+      for (Recipient recipient : message.getRecipients()) {
+        long receiptCount = earlyReceiptCache.remove(message.getSentTimeMillis(), recipient.getAddress());
+        contentValues.put(RECEIPT_COUNT, receiptCount);
       }
     }
-
     contentValues.remove(ADDRESS);
 
     long messageId = insertMediaMessage(masterSecret, addresses, message.getBody(),

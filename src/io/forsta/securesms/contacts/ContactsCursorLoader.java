@@ -100,22 +100,18 @@ public class ContactsCursorLoader extends CursorLoader {
       }
     } else {
       MatrixCursor forstaContactsCursor = new MatrixCursor(columns, 1);
-      // XXX Remove self from list of recipients
-      String localUid = TextSecurePreferences.getLocalNumber(getContext());
       List<ForstaUser> localUsers = DbFactory.getContactDb(getContext()).getActiveForstaUsers(filter);
 
       try {
         for (ForstaUser user : localUsers) {
-          if (!localUid.equals(user.getUid())) {
-            forstaContactsCursor.addRow(new Object[] {
-                user.getDbId(),
-                user.getName(),
-                user.getUid(),
-                user.getTag(),
-                user.getOrgTag(),
-                ContactsDatabase.PUSH_TYPE
-            });
-          }
+          forstaContactsCursor.addRow(new Object[] {
+              user.getDbId(),
+              user.getName(),
+              user.getUid(),
+              user.getTag(),
+              user.getOrgTag(),
+              ContactsDatabase.PUSH_TYPE
+          });
         }
       } catch (Exception e) {
         e.printStackTrace();
