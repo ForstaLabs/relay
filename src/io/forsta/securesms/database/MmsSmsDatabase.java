@@ -139,7 +139,6 @@ public class MmsSmsDatabase extends Database {
   }
 
   public void incrementDeliveryReceiptCount(SyncMessageId syncMessageId) {
-    DatabaseFactory.getSmsDatabase(context).incrementDeliveryReceiptCount(syncMessageId);
     DatabaseFactory.getMmsDatabase(context).incrementDeliveryReceiptCount(syncMessageId);
   }
 

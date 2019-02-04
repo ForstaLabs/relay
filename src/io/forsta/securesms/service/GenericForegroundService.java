@@ -55,11 +55,13 @@ public class GenericForegroundService extends Service {
   private void handleStart(@NonNull Intent intent) {
     String title     = Preconditions.checkNotNull(intent.getStringExtra(EXTRA_TITLE));
     String channelId = Preconditions.checkNotNull(intent.getStringExtra(EXTRA_CHANNEL_ID));
-    int    iconRes   = intent.getIntExtra(EXTRA_ICON_RES, R.drawable.ic_signal_grey_24dp);
+    int    iconRes   = intent.getIntExtra(EXTRA_ICON_RES, R.drawable.ic_forsta_notification_black);
 
-    Log.i(TAG, "handleStart() Title: " + title + "  ChannelId: " + channelId);
+
 
     foregroundCount++;
+
+    Log.i(TAG, "handleStart() Title: " + title + "  ChannelId: " + channelId + " foregroundCount: " +foregroundCount);
 
     if (foregroundCount == 1) {
       Log.d(TAG, "First request. Title: " + title + "  ChannelId: " + channelId);
@@ -77,7 +79,7 @@ public class GenericForegroundService extends Service {
     postObligatoryForegroundNotification(activeTitle, activeChannelId, activeIconRes);
 
     foregroundCount--;
-
+    Log.w(TAG, "foregroundCount " + foregroundCount);
     if (foregroundCount == 0) {
       Log.d(TAG, "Last request. Ending foreground service.");
       stopForeground(true);

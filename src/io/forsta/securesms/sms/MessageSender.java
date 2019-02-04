@@ -39,6 +39,8 @@ import io.forsta.securesms.jobs.SmsSendJob;
 import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.SlideDeck;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -207,8 +209,9 @@ public class MessageSender {
     database.markAsSent(messageId);
     database.markAsPush(messageId);
 
-    long newMessageId = database.copyMessageInbox(masterSecret, messageId);
-    database.markAsPush(newMessageId);
+    Recipient you = RecipientFactory.getRecipient(context, TextSecurePreferences.getLocalNumber(context), false);
+    Recipients recipients = RecipientFactory.getRecipientsFor(context, you, false);
+    sendMediaPush(context, recipients, messageId);
 
     if (expiresIn > 0) {
       database.markExpireStarted(messageId);

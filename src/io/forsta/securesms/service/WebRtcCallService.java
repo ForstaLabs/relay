@@ -789,6 +789,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void insertMissedCall(@NonNull Recipient recipient, boolean signal) {
     Log.w(TAG, "Missed call from: " + recipient.getAddress());
+    insertStatusMessage(threadUID, getString(R.string.CallService_missed_call));
     setCallInProgressNotification(TYPE_INCOMING_MISSED, recipient);
   }
 
