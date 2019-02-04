@@ -258,7 +258,6 @@ public class PushDecryptJob extends ContextJob {
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
-
   }
 
   private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
@@ -294,7 +293,7 @@ public class PushDecryptJob extends ContextJob {
     Long threadId;
 
     if (message.getMessage().isEndSession()) {
-      Log.e(TAG, "Sync end session is invalid: Only send to directly to peers");
+      Log.e(TAG, "Sync end session is invalid: Only send directly to peers");
       //threadId = handleSynchronizeSentEndSessionMessage(message);
       threadId = -1L;
     } else if (message.getMessage().isExpirationUpdate()) {
@@ -604,7 +603,6 @@ public class PushDecryptJob extends ContextJob {
 
     } catch (Exception e) {
       Log.e(TAG, "Control message excption: " + e.getMessage());
-      e.printStackTrace();
     }
   }
 

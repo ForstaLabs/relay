@@ -51,8 +51,6 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.WRITE_SMS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
@@ -113,19 +111,14 @@
         <meta-data
             android:name="io.forsta.securesms.mms.TextSecureGlideModule"
             android:value="GlideModule"/>
-
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+                   android:resource="@drawable/ic_forsta_notification_black" />
         <activity
             android:name=".CountrySelectionActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
         <activity
             android:name=".ImportExportActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
-        <activity
-            android:name=".InviteActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:parentActivityName=".ConversationListActivity"
-            android:theme="@style/TextSecure.HighlightTheme"
-            android:windowSoftInputMode="stateHidden"/>
         <activity
             android:name=".DeviceProvisioningActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
@@ -354,13 +347,6 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
 
                 <category android:name="io.forsta.securesms"/>
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".service.SmsDeliveryListener"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.services.MESSAGE_SENT"/>
             </intent-filter>
         </receiver>
         <receiver

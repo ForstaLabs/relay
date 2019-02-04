@@ -390,7 +390,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
 
       inflater.inflate(R.menu.conversation, menu);
-      if (recipients.isSingleRecipient()) {
+      if (recipients.isSingleRecipient() && !recipients.includesSelf(this)) {
         Recipient recipient = recipients.getPrimaryRecipient();
         if (!TextUtils.isEmpty(recipient.getAddress())) {
           final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
