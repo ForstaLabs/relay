@@ -146,7 +146,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_clear_passphrase:  handleClearPassphrase(); return true;
       case R.id.menu_mark_all_read:     handleMarkAllRead();     return true;
       case R.id.menu_import_export:     handleImportExport();    return true;
-      case R.id.menu_invite:            handleInvite();          return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();          return true;
       case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
@@ -219,17 +218,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
         return null;
       }
     }.execute();
-  }
-
-  private void handleInvite() {
-    Permissions.with(ConversationListActivity.this)
-        .request(Manifest.permission.WRITE_CONTACTS)
-        .ifNecessary()
-        .withPermanentDenialDialog(this.getString(R.string.Permissions_required_contacts))
-        .onAllGranted(() -> {
-          startActivity(new Intent(this, InviteActivity.class));
-        })
-        .execute();
   }
 
   private void handleHelp() {

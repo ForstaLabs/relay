@@ -120,12 +120,6 @@
             android:name=".ImportExportActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"/>
         <activity
-            android:name=".InviteActivity"
-            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize"
-            android:parentActivityName=".ConversationListActivity"
-            android:theme="@style/TextSecure.HighlightTheme"
-            android:windowSoftInputMode="stateHidden"/>
-        <activity
             android:name=".DeviceProvisioningActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize">
             <intent-filter>
@@ -353,13 +347,6 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
 
                 <category android:name="io.forsta.securesms"/>
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".service.SmsDeliveryListener"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="io.forsta.securesms.services.MESSAGE_SENT"/>
             </intent-filter>
         </receiver>
         <receiver
