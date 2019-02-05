@@ -34,7 +34,7 @@
 
         <LinearLayout android:id="@+id/call_banner_1"
                       android:layout_marginLeft="10dp"
-                      android:layout_marginTop="50dp"
+                      android:layout_marginTop="20dp"
                       android:layout_alignParentTop="true"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
@@ -56,17 +56,7 @@
                 android:layout_width="250dp"
                 android:layout_height="150dp"
                 />
-        </LinearLayout>  <!-- End of call_banner for call_info #1. -->
-
-        <TableLayout
-            android:id="@+id/call_container_1"
-            android:layout_below="@id/call_banner_1"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:visibility="gone">
-            <TableRow>
-            </TableRow>
-        </TableLayout>
+        </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"

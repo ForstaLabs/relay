@@ -20,6 +20,23 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/gray20">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/webrtc_video_mute_button"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/webrtc_speaker_button"/>
+
+    </LinearLayout>
+
     <io.forsta.securesms.components.AvatarImageView
         android:id="@+id/call_member_list_avatar"
         android:layout_width="50dp"

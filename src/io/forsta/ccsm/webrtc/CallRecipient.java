@@ -6,6 +6,8 @@ public class CallRecipient {
 
   private Recipient recipient;
   private String callStatus;
+  private boolean videoEnabled = false;
+  private boolean audioEnabled = false;
 
   public CallRecipient(Recipient recipient) {
     this.recipient = recipient;
@@ -14,6 +16,22 @@ public class CallRecipient {
   public CallRecipient(Recipient recipient, String message) {
     this.recipient = recipient;
     this.callStatus = message;
+  }
+
+  public void setVideoEnabled(boolean state) {
+    videoEnabled = state;
+  }
+
+  public void setAudioEnabled(boolean state) {
+    audioEnabled = state;
+  }
+
+  public boolean isVideoEnabled() {
+    return videoEnabled;
+  }
+
+  public boolean isAudioEnabled() {
+    return audioEnabled;
   }
 
   public Recipient getRecipient() {
