@@ -179,8 +179,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   @Nullable public  static SurfaceViewRenderer localRenderer;
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
-  @Nullable public  static SurfaceViewRenderer remoteRenderer2;
-  @Nullable public  static SurfaceViewRenderer remoteRenderer3;
   @Nullable private static EglBase             eglBase;
 
   private ExecutorService          serviceExecutor = Executors.newSingleThreadExecutor();
@@ -554,13 +552,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private SurfaceViewRenderer pickRemoteRenderer(int callOrder) {
-    if (callOrder == 1) {
-      return remoteRenderer;
-    } else if (callOrder == 2) {
-      return remoteRenderer2;
-    } else {
-      return remoteRenderer3;
-    }
+    return remoteRenderer;
   }
 
   private void handleAcceptOffer(Intent intent) {
@@ -1041,13 +1033,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         eglBase        = EglBase.create();
         localRenderer  = new SurfaceViewRenderer(WebRtcCallService.this);
         remoteRenderer = new SurfaceViewRenderer(WebRtcCallService.this);
-        remoteRenderer2 = new SurfaceViewRenderer(WebRtcCallService.this);
-        remoteRenderer3 = new SurfaceViewRenderer(WebRtcCallService.this);
 
         localRenderer.init(eglBase.getEglBaseContext(), null);
         remoteRenderer.init(eglBase.getEglBaseContext(), null);
-        remoteRenderer2.init(eglBase.getEglBaseContext(), null);
-        remoteRenderer3.init(eglBase.getEglBaseContext(), null);
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
                                                             eglBase.getEglBaseContext());
@@ -1108,17 +1096,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
-    if (eglBase != null && localRenderer != null && remoteRenderer != null && remoteRenderer2 != null && remoteRenderer3 != null) {
+    if (eglBase != null && localRenderer != null && remoteRenderer != null) {
       localRenderer.release();
       remoteRenderer.release();
-      remoteRenderer2.release();
-      remoteRenderer3.release();
       eglBase.release();
 
       localRenderer = null;
       remoteRenderer = null;
-      remoteRenderer2 = null;
-      remoteRenderer3 = null;
       eglBase = null;
     }
 
