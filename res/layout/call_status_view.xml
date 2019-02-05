@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="20dp"
+    android:layout_width="20dp"
+    android:orientation="vertical">
+
+    <ImageView android:id="@+id/connected_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_phone_grey600_32dp"
+        android:visibility="gone" />
+
+    <ImageView android:id="@+id/disconnected_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_call_end_grey600_32dp"
+        android:visibility="visible" />
+</LinearLayout>
