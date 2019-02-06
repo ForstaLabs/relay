@@ -141,10 +141,12 @@ public class WebRtcCallScreen extends FrameLayout {
     }
   }
 
-  public void setOutgoingCall(CallRecipient callRecipient, int callOrder) {
+  public void setOutgoingCall(CallRecipient callRecipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {
     updateCallMember(callRecipient, callOrder);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
+    endCallButton.setVisibility(VISIBLE);
+    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallMembers));
   }
 
   public void setIncomingCall(CallRecipient recipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {

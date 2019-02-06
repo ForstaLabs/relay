@@ -199,12 +199,11 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleIncomingCall(@NonNull WebRtcViewModel event) {
-    // Do not need to pass the recipient ref, just the call order. Pick the CallRecipient from the list.
     callScreen.setIncomingCall(event.getCallRecipient(), event.getCallOrder(), event.getRemoteCallRecipients());
   }
 
   private void handleOutgoingCall(@NonNull WebRtcViewModel event) {
-    callScreen.setOutgoingCall(event.getCallRecipient(), event.getCallOrder());
+    callScreen.setOutgoingCall(event.getCallRecipient(), event.getCallOrder(), event.getRemoteCallRecipients());
   }
 
   private void handleTerminate(@NonNull WebRtcViewModel event) {
