@@ -333,7 +333,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       try {
         if (callState == CallState.STATE_CONNECTED) {
-
           SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
           member.peerConnection.setLocalDescription(sdp);
           ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
@@ -353,8 +352,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             }
             member.pendingIncomingIceUpdates = null;
           }
-
-          sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
       } catch (PeerConnectionWrapper.PeerConnectionException e) {
         e.printStackTrace();
@@ -496,7 +493,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Dialing from non-idle?");
 
     try {
-      this.callState = CallState.STATE_DIALING;
+//      this.callState = CallState.STATE_DIALING;
+      this.callState = CallState.STATE_REMOTE_RINGING;
+      this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
       this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
       String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
       this.callId = UUID.randomUUID().toString();
@@ -596,7 +595,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       member.pendingOutgoingIceUpdates = null;
       if (callState != CallState.STATE_CONNECTED) {
-        sendMessage(WebRtcViewModel.State.CALL_RINGING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+        handleCallConnected(intent);
+//        sendMessage(WebRtcViewModel.State.CALL_RINGING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       }
 //      if (callState == CallState.STATE_CONNECTED) {
 //        sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -680,17 +680,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     } else if (callState == CallState.STATE_DIALING) {
       Log.w(TAG, "handleIceConnected dialing...");
 
-      this.callState = CallState.STATE_REMOTE_RINGING;
-      this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
+//      this.callState = CallState.STATE_REMOTE_RINGING;
+//      this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
     }
 
     if (callState == CallState.STATE_CONNECTED) {
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
-//    intent.putExtra(EXTRA_CALL_ID, callId);
-//    intent.putExtra(EXTRA_REMOTE_ADDRESS, member.address);
-//    intent.putExtra(EXTRA_PEER_ID, member.peerId);
-//    handleCallConnected(intent);
   }
 
   private void handleCallConnected(Intent intent) {
@@ -748,7 +744,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       }
 
-      if (callState == CallState.STATE_DIALING) {
+      if (callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING) {
         terminateCall(true);
       }
 
@@ -880,7 +876,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
-      terminateCall(callState == CallState.STATE_DIALING || callState == CallState.STATE_CONNECTED);
+      terminateCall(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
