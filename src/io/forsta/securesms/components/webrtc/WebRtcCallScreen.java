@@ -30,6 +30,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,7 +75,7 @@ import io.forsta.securesms.recipients.Recipient;
  * @author Moxie Marlinspike
  *
  */
-public class WebRtcCallScreen extends FrameLayout {
+public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapter.ItemClickListener {
 
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
@@ -156,7 +157,9 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
-    remoteCallMemberList.setAdapter(new CallMemberListAdapter(remoteCallMembers));
+    CallMemberListAdapter adapter = new CallMemberListAdapter(remoteCallMembers);
+    adapter.setClickListener(this);
+    remoteCallMemberList.setAdapter(adapter);
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
@@ -223,6 +226,11 @@ public class WebRtcCallScreen extends FrameLayout {
       localMemberLayout.setVisibility(VISIBLE);
       remoteMemberLayout.addView(remoteRenderer);
     }
+  }
+
+  @Override
+  public void onItemClick(int position) {
+    Log.w(TAG, "Clicked item..." + position);
   }
 
   public interface HangupButtonListener {

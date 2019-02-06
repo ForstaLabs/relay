@@ -146,8 +146,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_HANGUP     = "REMOTE_HANGUP";
   public static final String ACTION_REMOTE_BUSY       = "REMOTE_BUSY";
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
+  public static final String ACTION_REMOTE_VIDEO_ENABLE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
-  private static final int MAX_PEERS = 3;
+  private static final int MAX_PEERS = 4;
 
   private CallState callState          = CallState.STATE_IDLE;
   private boolean   microphoneEnabled  = true;
@@ -230,6 +231,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
         else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
+        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoveVideoEnable(intent);
       }
     });
 
@@ -949,6 +951,18 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     {
       Log.w(TAG, "Silencing incoming ringer...");
       audioManager.silenceIncomingRinger();
+    }
+  }
+
+  private void handleRemoveVideoEnable(Intent intent) {
+    CallMember member = getCallMember(intent);
+
+    for (CallMember callMember : remoteCallMembers.values()) {
+      if (member.address.equals(callMember.address)) {
+        callMember.setVideoEnabled();
+      } else {
+        callMember.videoTrack.setEnabled(false);
+      }
     }
   }
 

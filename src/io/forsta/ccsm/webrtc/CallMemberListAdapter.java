@@ -16,6 +16,7 @@ import io.forsta.securesms.components.AvatarImageView;
 public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAdapter.CallMemberViewHolder> {
 
   private Map<Integer, CallRecipient> callRecipients;
+  private ItemClickListener clickListener;
 
   public CallMemberListAdapter(Map<Integer, CallRecipient> callRecipients) {
     if (callRecipients == null) {
@@ -23,6 +24,10 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
           "recipients must not be null");
     }
     this.callRecipients = callRecipients;
+  }
+
+  public void setClickListener(ItemClickListener listener) {
+    clickListener = listener;
   }
 
   @Override
@@ -38,6 +43,12 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
     holder.recipientName.setText(callRecipient.getRecipient().getName());
     holder.callState.setCallState(callRecipient.getCallState());
     holder.avatar.setAvatar(callRecipient.getRecipient(), false);
+    holder.itemView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (clickListener != null) clickListener.onItemClick(position);
+      }
+    });
   }
 
   @Override
@@ -57,5 +68,9 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
       callState = itemView.findViewById(R.id.call_member_call_state);
       avatar = itemView.findViewById(R.id.call_member_list_avatar);
     }
+  }
+
+  public interface ItemClickListener {
+    void onItemClick(int position);
   }
 }

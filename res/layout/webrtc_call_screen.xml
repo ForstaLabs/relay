@@ -60,8 +60,9 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"/>
+            android:layout_height="100dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"/>
     </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
