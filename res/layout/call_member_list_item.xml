@@ -13,15 +13,8 @@
         android:layout_height="wrap_content"
         android:textAlignment="center" />
 
-    <TextView
-        android:id="@+id/call_member_list_status"
-        android:text="Call Status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center" />
-
-    <io.forsta.ccsm.components.webrtc.CallStatusView
-        android:id="@+id/call_member_call_status"
+    <io.forsta.ccsm.components.webrtc.CallStateView
+        android:id="@+id/call_member_call_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

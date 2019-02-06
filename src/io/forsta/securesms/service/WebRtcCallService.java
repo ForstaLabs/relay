@@ -26,6 +26,7 @@ import org.greenrobot.eventbus.EventBus;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 
@@ -327,7 +328,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void addCallMember(CallMember member, String incomingPeerId, String offer, List<PeerConnection.IceServer> iceServerUpdate) {
     try {
-      member.createPeerConnection(iceServerUpdate, pickRemoteRenderer(member.callOrder), localMediaStream, incomingPeerId, member.callOrder);
+      member.createPeerConnection(iceServerUpdate, remoteRenderer, localMediaStream, incomingPeerId, member.callOrder);
       member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
       try {
         SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
@@ -371,7 +372,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
     final String incomingThreadId = intent.getStringExtra(EXTRA_THREAD_UID);
 
-    Log.w(TAG, "handleIncomingCall...callId: " + incomingCallId + " address: " + incomingAddress);
+    Log.w(TAG, "handleIncomingCall callState: " + callState + " callId: " + incomingCallId + " address: " + incomingAddress);
     if (callId != null) {
       // Existing call. Member joining
       if (!callId.equals(incomingCallId)) {
@@ -523,7 +524,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           for (CallMember callMember : remoteCallMembers.values()) {
             try {
-              callMember.createPeerConnection(result, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
+              callMember.createPeerConnection(result, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
               SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
               callMember.peerConnection.setLocalDescription(sdp);
 
@@ -551,14 +552,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
   }
 
-  private SurfaceViewRenderer pickRemoteRenderer(int callOrder) {
-    return remoteRenderer;
-  }
-
   private void handleAcceptOffer(Intent intent) {
 
     CallMember member = getCallMember(intent);
-    Log.w(TAG, "handleAcceptOffer callId: " + getCallId(intent) + " member: " + member);
+    Log.w(TAG, "handleAcceptOffer callState: " + callState + " callId: " + getCallId(intent) + " member: " + member);
     try {
       if (member == null) {
         Log.w(TAG, "Got answer for unknown call member");
@@ -662,7 +659,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleIceConnected(Intent intent) {
-    Log.w(TAG, "handleIceConnected...");
+    Log.w(TAG, "handleIceConnected callState: " + callState);
+
     CallMember member = getCallMember(intent);
     if (member.recipient == null) {
       Log.w(TAG, "No recipient for this call member");
@@ -685,7 +683,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleCallConnected(Intent intent) {
-    Log.w(TAG, "handleCallConnected...");
+    Log.w(TAG, "handleCallConnected callState: " + callState);
     CallMember member = getCallMember(intent);
 
     String id = getCallId(intent);
@@ -696,11 +694,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (member == null || member.recipient == null || member.peerConnection == null) {
       Log.w(TAG, "No call information for this caller");
-      return;
-    }
-
-    if (callState == CallState.STATE_CONNECTED && !member.isActiveConnection()) {
-      sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       return;
     }
 
@@ -728,16 +721,20 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleCheckTimeout(Intent intent) {
-    Log.w(TAG, "handleCheckTimeout");
+    Log.w(TAG, "handleCheckTimeout state: " + callState);
 
     CallMember member = getCallMember(intent);
     if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
-      Log.w(TAG, "Timing out call: " + callId);
-      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
 
       if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
-        terminateCall(false);
-        insertMissedCall(member.recipient, true);
+        if (member.callOrder == 1) {
+          sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+          terminateCall(false);
+          insertMissedCall(member.recipient, true);
+        } else {
+          sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+        }
       }
 
       if (callState == CallState.STATE_DIALING) {
@@ -763,7 +760,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleAnswerCall(Intent intent) {
-    Log.w(TAG, "handleAnswerCall");
+    Log.w(TAG, "handleAnswerCall callState: " + callState);
     CallMember activeMember = null;
     for (CallMember callMember : remoteCallMembers.values()) {
       if (callMember.peerId != null && callMember.peerConnection != null) {
@@ -991,11 +988,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     for (CallMember callMember : remoteCallMembers.values()) {
       if (callMember.peerConnection == null) {
         try {
-          callMember.createPeerConnection(iceServiers, pickRemoteRenderer(callMember.callOrder), localMediaStream, localPeerId, callMember.callOrder);
+          callMember.createPeerConnection(iceServiers, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
           SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
 
           Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
+          Log.w(TAG, "Sending call offer to: " + remoteRecipient);
           ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
             @Override
@@ -1148,14 +1146,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                            boolean localVideoEnabled,
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
-    Log.w(TAG, "EventBus message: " + callMember.getRecipient().getLocalTag() + " Remote Video: " + (callMember.videoEnabled ? "true" : "false"));
-    Map<Integer, Recipient> remoteCallRecipients = new HashMap<>();
+    Map<Integer, CallRecipient> remoteCallRecipients = new HashMap<>();
     if (remoteCallMembers != null) {
       for (CallMember member : remoteCallMembers) {
-        remoteCallRecipients.put(member.callOrder, member.recipient);
+        remoteCallRecipients.put(member.callOrder, new CallRecipient(member.recipient, state));
       }
+    } else {
+      remoteCallRecipients.put(callMember.callOrder, new CallRecipient(callMember.getRecipient(), state));
     }
-    EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, callMember.recipient, callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
+    EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
   private ListenableFutureTask<Boolean> sendIceUpdateMessage(@NonNull final Recipient recipient, String threadUID,
@@ -1566,10 +1565,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private Recipient recipient;
     private int callOrder = 0;
     @Nullable private PeerConnectionWrapper peerConnection;
+    @Nullable private VideoTrack videoTrack;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
     @NonNull VideoRenderer.Callbacks renderer;
     private boolean videoEnabled = false;
+    private boolean audioEnabled = true;
 
     private CallMember(Context context, String address) {
       this.context = context;
@@ -1618,7 +1619,20 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return recipient;
     }
 
+    public void setVideoEnabled() {
+      this.videoEnabled = true;
+      videoTrack.addRenderer(new VideoRenderer(renderer));
+      videoTrack.setEnabled(true);
+    }
+
+    public void disableVideo(VideoRenderer videoRenderer) {
+      this.videoEnabled = false;
+      videoTrack.setEnabled(false);
+      videoTrack.removeRenderer(videoRenderer);
+    }
+
     private void terminate() {
+      videoTrack = null;
       if (peerConnection != null) {
         peerConnection.dispose(localMediaStream);
         peerConnection = null;
@@ -1698,9 +1712,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
       if (stream.videoTracks != null && stream.videoTracks.size() == 1) {
-        VideoTrack videoTrack = stream.videoTracks.getFirst();
-        videoTrack.setEnabled(true);
-        videoTrack.addRenderer(new VideoRenderer(renderer));
+        videoTrack = stream.videoTracks.getFirst();
+        if (callOrder == 1) {
+          setVideoEnabled();
+        }
       }
     }
 

@@ -125,8 +125,8 @@ public class WebRtcCallScreen extends FrameLayout {
     remoteCallMemberList.setLayoutManager(layoutManager);
   }
 
-  public void setActiveCall(@NonNull Recipient callRecipient, int callOrder, @NonNull String message) {
-    updateCallMember(callRecipient, callOrder, message);
+  public void setActiveCall(@NonNull CallRecipient callRecipient, int callOrder) {
+    updateCallMember(callRecipient, callOrder);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
@@ -134,24 +134,21 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.show();
   }
 
-  public void updateCallMember(@NonNull Recipient recipient, int callOrder, @NonNull String message) {
-    remoteCallMembers.get(callOrder).setCallStatus(message);
+  public void updateCallMember(@NonNull CallRecipient callRecipient, int callOrder) {
+    remoteCallMembers.put(callOrder, callRecipient);
     if (remoteCallMemberList != null && remoteCallMemberList.getAdapter() != null) {
       remoteCallMemberList.getAdapter().notifyItemChanged(callOrder - 1);
     }
   }
 
-  public void setOutgoingCall(Recipient callRecipient, int callOrder, String message) {
-    updateCallMember(callRecipient, callOrder, message);
+  public void setOutgoingCall(CallRecipient callRecipient, int callOrder) {
+    updateCallMember(callRecipient, callOrder);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
   }
 
-  public void setIncomingCall(Recipient recipient, int callOrder, Map<Integer, Recipient> remoteCallRecipients) {
-    for (Map.Entry<Integer, Recipient> entry : remoteCallRecipients.entrySet()) {
-      remoteCallMembers.put(entry.getKey(), new CallRecipient(entry.getValue(), "Incoming call"));
-      updateCallMember(entry.getValue(), entry.getKey(), "Incoming call");
-    }
+  public void setIncomingCall(CallRecipient recipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {
+    remoteCallMembers = remoteCallRecipients;
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
