@@ -107,7 +107,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private static final String TAG = WebRtcCallService.class.getSimpleName();
 
   private enum CallState {
-    STATE_IDLE, STATE_DIALING, STATE_ANSWERING, STATE_REMOTE_RINGING, STATE_LOCAL_RINGING, STATE_CONNECTED, STATE_REMOTE_JOINING
+    STATE_IDLE, STATE_ANSWERING, STATE_REMOTE_RINGING, STATE_LOCAL_RINGING, STATE_CONNECTED, STATE_REMOTE_JOINING
   }
 
   private static final String DATA_CHANNEL_NAME = "signaling";
@@ -495,7 +495,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Dialing from non-idle?");
 
     try {
-//      this.callState = CallState.STATE_DIALING;
       this.callState = CallState.STATE_REMOTE_RINGING;
       this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
       this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
@@ -679,11 +678,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (callState == CallState.STATE_ANSWERING) {
       Log.w(TAG, "handleIceConnected answering...");
-    } else if (callState == CallState.STATE_DIALING) {
-      Log.w(TAG, "handleIceConnected dialing...");
-
-//      this.callState = CallState.STATE_REMOTE_RINGING;
-//      this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
+    } else if (callState == CallState.STATE_REMOTE_RINGING) {
+      Log.w(TAG, "handleIceConnected remote ringing...");
     }
 
     if (callState == CallState.STATE_CONNECTED) {
@@ -746,7 +742,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       }
 
-      if (callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING) {
+      if (callState == CallState.STATE_REMOTE_RINGING) {
         terminateCall(true);
       }
 
@@ -868,7 +864,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     member.terminate();
     if (!hasActiveCalls()) {
-      if (callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING) {
+      if (callState == CallState.STATE_REMOTE_RINGING) {
         sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       } else {
         sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -878,7 +874,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
-      terminateCall(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
+      terminateCall(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
@@ -926,7 +922,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleWiredHeadsetChange...");
 
     if (callState == CallState.STATE_CONNECTED ||
-        callState == CallState.STATE_DIALING   ||
         callState == CallState.STATE_REMOTE_RINGING)
     {
       AudioManager audioManager = ServiceUtil.getAudioManager(this);
@@ -1094,7 +1089,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
     stopForeground(removeNotification);
 
-    audioManager.stop(callState == CallState.STATE_DIALING || callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
+    audioManager.stop(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     bluetoothStateManager.setWantsConnection(false);
 
     for (CallMember member : remoteCallMembers.values()) {
@@ -1342,19 +1337,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     networkExecutor.execute(futureTask);
 
     return futureTask;
-  }
-
-  private WebRtcViewModel.State viewModelStateFor(CallState state) {
-    switch (state) {
-      case STATE_CONNECTED:      return WebRtcViewModel.State.CALL_CONNECTED;
-      case STATE_DIALING:        return WebRtcViewModel.State.CALL_OUTGOING;
-      case STATE_REMOTE_RINGING: return WebRtcViewModel.State.CALL_RINGING;
-      case STATE_LOCAL_RINGING:  return WebRtcViewModel.State.CALL_INCOMING;
-      case STATE_ANSWERING:      return WebRtcViewModel.State.CALL_INCOMING;
-      case STATE_IDLE:           return WebRtcViewModel.State.CALL_DISCONNECTED;
-    }
-
-    return WebRtcViewModel.State.CALL_DISCONNECTED;
   }
 
   private static class WiredHeadsetStateReceiver extends BroadcastReceiver {
