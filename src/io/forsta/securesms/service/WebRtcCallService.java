@@ -1077,7 +1077,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       localVideoTrack = peerConnectionFactory.createVideoTrack("ARDAMSv0", localVideoSource);
 
       localVideoTrack.addRenderer(new VideoRenderer(localRenderer));
-      localVideoTrack.setEnabled(false);
+      localVideoTrack.setEnabled(true);
       localMediaStream.addTrack(localVideoTrack);
     } else {
       localVideoSource = null;
