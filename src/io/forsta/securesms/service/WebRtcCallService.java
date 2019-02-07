@@ -1639,12 +1639,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     private void terminate() {
-      videoTrack = null;
-      if (peerConnection != null) {
-        peerConnection.dispose(localMediaStream);
-        peerConnection = null;
-      }
-
       videoEnabled = false;
       if (videoTrack != null) {
         if (videoRenderer != null) {
@@ -1654,6 +1648,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         videoTrack.dispose();
         videoTrack = null;
         videoRenderer = null;
+      }
+
+      if (peerConnection != null) {
+        peerConnection.dispose(localMediaStream);
+        peerConnection = null;
       }
 
       pendingOutgoingIceUpdates = null;
