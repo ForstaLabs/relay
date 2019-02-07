@@ -40,6 +40,9 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
     CallRecipient callRecipient = callRecipients.get(position + 1);
+    if (callRecipient.isVideoEnabled()) {
+      holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.white));
+    }
     holder.recipientName.setText(callRecipient.getRecipient().getName());
     holder.callState.setCallState(callRecipient.getCallState());
     holder.avatar.setAvatar(callRecipient.getRecipient(), false);
