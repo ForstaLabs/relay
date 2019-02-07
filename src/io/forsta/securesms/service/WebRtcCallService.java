@@ -125,6 +125,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String EXTRA_THREAD_UID         = "thread_uid";
   public static final String EXTRA_PEER_ID            = "peer_id";
   public static final String EXTRA_CALL_MEMBERS       = "call_members";
+  public static final String EXTRA_CALL_ORDER       = "call_order";
 
   public static final String ACTION_INCOMING_CALL        = "CALL_INCOMING";
   public static final String ACTION_OUTGOING_CALL        = "CALL_OUTGOING";
@@ -956,7 +957,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (member.address.equals(callMember.address)) {
         callMember.setVideoEnabled();
       } else {
-        callMember.videoTrack.setEnabled(false);
+        callMember.disableVideo();
       }
     }
   }
@@ -1569,6 +1570,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private int callOrder = 0;
     @Nullable private PeerConnectionWrapper peerConnection;
     @Nullable private VideoTrack videoTrack;
+    @Nullable private VideoRenderer videoRenderer;
     @Nullable private List<IceCandidate> pendingOutgoingIceUpdates;
     @Nullable private List<IceCandidate> pendingIncomingIceUpdates;
     @NonNull VideoRenderer.Callbacks renderer;
@@ -1624,11 +1626,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     public void setVideoEnabled() {
       this.videoEnabled = true;
-      videoTrack.addRenderer(new VideoRenderer(renderer));
+      videoRenderer = new VideoRenderer(renderer);
+      videoTrack.addRenderer(videoRenderer);
       videoTrack.setEnabled(true);
     }
 
-    public void disableVideo(VideoRenderer videoRenderer) {
+    public void disableVideo() {
       this.videoEnabled = false;
       videoTrack.setEnabled(false);
       videoTrack.removeRenderer(videoRenderer);
@@ -1641,6 +1644,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         peerConnection = null;
       }
 
+      videoRenderer.dispose();
+      videoTrack.removeRenderer(videoRenderer);
+      videoTrack.dispose();
+      videoTrack = null;
+      videoRenderer = null;
       pendingOutgoingIceUpdates = null;
       pendingIncomingIceUpdates = null;
     }

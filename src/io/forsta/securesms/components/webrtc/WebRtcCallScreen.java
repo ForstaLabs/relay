@@ -128,6 +128,10 @@ public class WebRtcCallScreen extends FrameLayout {
     remoteCallMemberList.setLayoutManager(layoutManager);
   }
 
+  public CallRecipient getCallRecipient(int callOrder) {
+    return remoteCallMembers.get(callOrder);
+  }
+
   public void setActiveCall(@NonNull CallRecipient callRecipient, int callOrder) {
     updateCallMember(callRecipient, callOrder);
     setConnected(WebRtcCallService.localRenderer, WebRtcCallService.remoteRenderer);

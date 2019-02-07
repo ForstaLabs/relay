@@ -30,6 +30,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -42,6 +43,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
 import io.forsta.ccsm.webrtc.CallMemberListAdapter;
+import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.components.webrtc.WebRtcAnswerDeclineButton;
 import io.forsta.securesms.components.webrtc.WebRtcCallControls;
 import io.forsta.securesms.components.webrtc.WebRtcCallScreen;
@@ -67,7 +69,7 @@ public class WebRtcCallActivity extends Activity {
   public static final String DENY_ACTION     = WebRtcCallActivity.class.getCanonicalName() + ".DENY_ACTION";
   public static final String END_CALL_ACTION = WebRtcCallActivity.class.getCanonicalName() + ".END_CALL_ACTION";
 
-  private WebRtcCallScreen           callScreen;
+  private WebRtcCallScreen callScreen;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -384,6 +386,12 @@ public class WebRtcCallActivity extends Activity {
     @Override
     public void onItemClick(int position) {
       Log.w(TAG, "Clicked item: " + position + 1);
+      CallRecipient recipient = callScreen.getCallRecipient(position + 1);
+      Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
+      intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
+      intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);
+      intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
+      startService(intent);
     }
   }
 }
