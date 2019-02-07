@@ -952,12 +952,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleRemoveVideoEnable(Intent intent) {
     CallMember member = getCallMember(intent);
-
-    for (CallMember callMember : remoteCallMembers.values()) {
-      if (member.address.equals(callMember.address)) {
-        callMember.setVideoEnabled();
-      } else {
-        callMember.disableVideo();
+    if (!member.videoEnabled) {
+      for (CallMember callMember : remoteCallMembers.values()) {
+        if (member.address.equals(callMember.address)) {
+          callMember.setVideoEnabled();
+        } else {
+          callMember.disableVideo();
+        }
       }
     }
   }
@@ -1644,6 +1645,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         peerConnection = null;
       }
 
+      videoEnabled = false;
       if (videoTrack != null) {
         if (videoRenderer != null) {
           videoTrack.removeRenderer(videoRenderer);
