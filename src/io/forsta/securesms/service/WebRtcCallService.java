@@ -1171,14 +1171,14 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Map<Integer, CallRecipient> remoteCallRecipients = new HashMap<>();
     if (remoteCallMembers != null) {
       for (CallMember member : remoteCallMembers) {
-        remoteCallRecipients.put(member.callOrder, new CallRecipient(member.recipient, state));
+        remoteCallRecipients.put(member.callOrder, new CallRecipient(member.recipient, state, member.videoEnabled));
         // Outgoing call with no specific callMember, get the first one.
         if (callMember == null) {
           callMember = member;
         }
       }
     } else {
-      remoteCallRecipients.put(callMember.callOrder, new CallRecipient(callMember.getRecipient(), state));
+      remoteCallRecipients.put(callMember.callOrder, new CallRecipient(callMember.getRecipient(), state, callMember.videoEnabled));
     }
 
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));

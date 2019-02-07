@@ -11,10 +11,11 @@ public class CallRecipient {
   private boolean videoEnabled = false;
   private boolean audioEnabled = true;
 
-  public CallRecipient(Recipient recipient, WebRtcViewModel.State state) {
+  public CallRecipient(Recipient recipient, WebRtcViewModel.State state, boolean videoEnabled) {
     this.recipient = recipient;
     this.callState = state;
     this.callStatus = callState.name();
+    this.videoEnabled = videoEnabled;
   }
 
   public void setVideoEnabled(boolean state) {
