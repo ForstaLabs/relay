@@ -863,6 +863,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       Log.w(TAG, "Received hangup from invalid call member");
     }
 
+    if (member.videoEnabled) {
+      for (CallMember otherMember : remoteCallMembers.values()) {
+        if (otherMember.isActiveConnection() && !otherMember.videoEnabled) {
+          otherMember.setVideoEnabled();
+          break;
+        }
+      }
+    }
+
     member.terminate();
     if (!hasActiveCalls()) {
       if (callState == CallState.STATE_REMOTE_RINGING) {
@@ -1639,20 +1648,19 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     private void terminate() {
+      if (peerConnection != null) {
+        peerConnection.dispose(localMediaStream);
+        peerConnection = null;
+      }
+
       videoEnabled = false;
       if (videoTrack != null) {
         if (videoRenderer != null) {
           videoTrack.removeRenderer(videoRenderer);
           videoRenderer.dispose();
         }
-        videoTrack.dispose();
         videoTrack = null;
         videoRenderer = null;
-      }
-
-      if (peerConnection != null) {
-        peerConnection.dispose(localMediaStream);
-        peerConnection = null;
       }
 
       pendingOutgoingIceUpdates = null;
