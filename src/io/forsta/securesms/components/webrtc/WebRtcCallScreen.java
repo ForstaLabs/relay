@@ -75,7 +75,7 @@ import io.forsta.securesms.recipients.Recipient;
  * @author Moxie Marlinspike
  *
  */
-public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapter.ItemClickListener {
+public class WebRtcCallScreen extends FrameLayout {
 
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
@@ -91,6 +91,8 @@ public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapt
   private FrameLayout remoteMemberLayout;
   private Map<Integer, CallRecipient> remoteCallMembers = new HashMap<>();
   private RecyclerView remoteCallMemberList;
+  private CallMemberListAdapter callMemberListAdapter;
+  private CallMemberListAdapter.ItemClickListener callMemberClickListener;
 
   public WebRtcCallScreen(Context context) {
     super(context);
@@ -157,9 +159,11 @@ public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapt
     endCallButton.setVisibility(View.INVISIBLE);
     incomingCallButton.setVisibility(View.VISIBLE);
     incomingCallButton.startRingingAnimation();
-    CallMemberListAdapter adapter = new CallMemberListAdapter(remoteCallMembers);
-    adapter.setClickListener(this);
-    remoteCallMemberList.setAdapter(adapter);
+    callMemberListAdapter = new CallMemberListAdapter(remoteCallMembers);
+    if (callMemberClickListener != null) {
+      callMemberListAdapter.setItemClickListener(callMemberClickListener);
+    }
+    remoteCallMemberList.setAdapter(callMemberListAdapter);
   }
 
   public void setIncomingCallActionListener(WebRtcAnswerDeclineButton.AnswerDeclineListener listener) {
@@ -184,6 +188,10 @@ public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapt
 
   public void setHangupButtonListener(final HangupButtonListener listener) {
     endCallButton.setOnClickListener(v -> listener.onClick());
+  }
+
+  public void setCallRecipientsClickListener(CallMemberListAdapter.ItemClickListener listener) {
+    callMemberClickListener = listener;
   }
 
   public void updateAudioState(boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
@@ -226,11 +234,6 @@ public class WebRtcCallScreen extends FrameLayout implements CallMemberListAdapt
       localMemberLayout.setVisibility(VISIBLE);
       remoteMemberLayout.addView(remoteRenderer);
     }
-  }
-
-  @Override
-  public void onItemClick(int position) {
-    Log.w(TAG, "Clicked item..." + position);
   }
 
   public interface HangupButtonListener {

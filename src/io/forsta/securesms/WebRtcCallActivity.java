@@ -41,6 +41,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.ccsm.webrtc.CallMemberListAdapter;
 import io.forsta.securesms.components.webrtc.WebRtcAnswerDeclineButton;
 import io.forsta.securesms.components.webrtc.WebRtcCallControls;
 import io.forsta.securesms.components.webrtc.WebRtcCallScreen;
@@ -138,7 +139,7 @@ public class WebRtcCallActivity extends Activity {
     callScreen.setVideoMuteButtonListener(new VideoMuteButtonListener());
     callScreen.setSpeakerButtonListener(new SpeakerButtonListener());
     callScreen.setBluetoothButtonListener(new BluetoothButtonListener());
-
+    callScreen.setCallRecipientsClickListener(new CallRecipientClickListener());
   }
 
   private void handleSetMuteAudio(boolean enabled) {
@@ -378,4 +379,11 @@ public class WebRtcCallActivity extends Activity {
     }
   }
 
+  private class CallRecipientClickListener implements CallMemberListAdapter.ItemClickListener {
+
+    @Override
+    public void onItemClick(int position) {
+      Log.w(TAG, "Clicked item: " + position + 1);
+    }
+  }
 }

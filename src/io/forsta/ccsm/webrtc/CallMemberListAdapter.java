@@ -26,7 +26,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
     this.callRecipients = callRecipients;
   }
 
-  public void setClickListener(ItemClickListener listener) {
+  public void setItemClickListener(ItemClickListener listener) {
     clickListener = listener;
   }
 
