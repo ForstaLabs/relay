@@ -1644,11 +1644,16 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         peerConnection = null;
       }
 
-      videoRenderer.dispose();
-      videoTrack.removeRenderer(videoRenderer);
-      videoTrack.dispose();
-      videoTrack = null;
-      videoRenderer = null;
+      if (videoTrack != null) {
+        if (videoRenderer != null) {
+          videoTrack.removeRenderer(videoRenderer);
+          videoRenderer.dispose();
+        }
+        videoTrack.dispose();
+        videoTrack = null;
+        videoRenderer = null;
+      }
+
       pendingOutgoingIceUpdates = null;
       pendingIncomingIceUpdates = null;
     }
