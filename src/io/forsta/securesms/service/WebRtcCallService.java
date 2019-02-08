@@ -595,13 +595,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       member.pendingOutgoingIceUpdates = null;
       if (callState != CallState.STATE_CONNECTED) {
         handleCallConnected(intent);
-//        sendMessage(WebRtcViewModel.State.CALL_RINGING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       }
-//      if (callState == CallState.STATE_CONNECTED) {
-//        sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//      } else {
-//        sendMessage(WebRtcViewModel.State.CALL_RINGING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//      }
     } catch (PeerConnectionWrapper.PeerConnectionException e) {
       Log.w(TAG, e);
       member.terminate();

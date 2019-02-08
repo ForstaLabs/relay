@@ -48,12 +48,14 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
     holder.recipientName.setText(callRecipient.getRecipient().getName());
     holder.callState.setCallState(callRecipient.getCallState());
     holder.avatar.setAvatar(callRecipient.getRecipient(), false);
-    holder.itemView.setOnClickListener(new View.OnClickListener() {
+    View.OnClickListener listener = new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         if (clickListener != null) clickListener.onItemClick(position);
       }
-    });
+    };
+    holder.avatar.setOnClickListener(listener);
+    holder.itemView.setOnClickListener(listener);
   }
 
   @Override
