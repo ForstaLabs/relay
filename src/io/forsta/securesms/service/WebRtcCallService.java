@@ -1643,8 +1643,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     public void disableVideo() {
       this.videoEnabled = false;
-      videoTrack.setEnabled(false);
-      videoTrack.removeRenderer(videoRenderer);
+      if (videoTrack != null) {
+        videoTrack.setEnabled(false);
+        videoTrack.removeRenderer(videoRenderer);
+      }
     }
 
     private void terminate() {

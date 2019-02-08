@@ -394,13 +394,17 @@ public class WebRtcCallActivity extends Activity {
     public void onItemClick(int position) {
       Log.w(TAG, "Clicked item: " + (position + 1));
       CallRecipient recipient = callScreen.getCallRecipient(position + 1);
-      if (!recipient.isVideoEnabled()) {
+      if (isValidCallState(recipient.getCallState()) && !recipient.isVideoEnabled()) {
         Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
         intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
         intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);
         intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
         startService(intent);
       }
+    }
+
+    private boolean isValidCallState(WebRtcViewModel.State state) {
+      return state == WebRtcViewModel.State.CALL_CONNECTED || state == WebRtcViewModel.State.CALL_MEMBER_JOINING || state == WebRtcViewModel.State.CALL_MEMBER_VIDEO;
     }
   }
 }
