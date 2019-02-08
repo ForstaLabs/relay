@@ -45,6 +45,10 @@ public class CallStateView extends LinearLayout {
         connectedIndicator.setVisibility(VISIBLE);
         disconnectedIndictor.setVisibility(GONE);
         break;
+      case CALL_MEMBER_VIDEO:
+        connectedIndicator.setVisibility(VISIBLE);
+        disconnectedIndictor.setVisibility(GONE);
+        break;
       default:
         connectedIndicator.setVisibility(GONE);
         disconnectedIndictor.setVisibility(VISIBLE);

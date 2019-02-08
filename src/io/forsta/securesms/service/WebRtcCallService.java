@@ -18,7 +18,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
-import android.util.ArraySet;
 import android.util.Log;
 
 import org.greenrobot.eventbus.EventBus;
@@ -35,7 +34,6 @@ import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.events.WebRtcViewModel;
-import io.forsta.securesms.notifications.AbstractNotificationBuilder;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -52,7 +50,6 @@ import io.forsta.securesms.webrtc.IncomingPstnCallReceiver;
 import io.forsta.securesms.webrtc.PeerConnectionFactoryOptions;
 import io.forsta.securesms.webrtc.PeerConnectionWrapper;
 import io.forsta.securesms.webrtc.UncaughtExceptionHandlerManager;
-import io.forsta.securesms.webrtc.WebRtcDataProtos;
 import io.forsta.securesms.webrtc.audio.BluetoothStateManager;
 import io.forsta.securesms.webrtc.audio.OutgoingRinger;
 import io.forsta.securesms.webrtc.audio.SignalAudioManager;
@@ -232,7 +229,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
         else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
-        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoveVideoEnable(intent);
+        else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoteVideoEnable(intent);
       }
     });
 
@@ -959,7 +956,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
   }
 
-  private void handleRemoveVideoEnable(Intent intent) {
+  private void handleRemoteVideoEnable(Intent intent) {
     CallMember member = getCallMember(intent);
     if (!member.videoEnabled) {
       for (CallMember callMember : remoteCallMembers.values()) {
@@ -970,6 +967,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       }
     }
+    sendMessage(WebRtcViewModel.State.CALL_MEMBER_VIDEO, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
   /// Helper Methods

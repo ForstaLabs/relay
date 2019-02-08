@@ -154,6 +154,14 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(VISIBLE);
   }
 
+  public void updateVideoSelection(@NonNull CallRecipient callRecipient, int callOrder) {
+    for (CallRecipient recipient : remoteCallMembers.values()) {
+      recipient.setVideoEnabled(false);
+    }
+    remoteCallMembers.put(callOrder, callRecipient);
+    remoteCallMemberList.getAdapter().notifyDataSetChanged();
+  }
+
   public void updateCallMember(@NonNull CallRecipient callRecipient, int callOrder) {
     remoteCallMembers.put(callOrder, callRecipient);
     if (remoteCallMemberList != null && remoteCallMemberList.getAdapter() != null) {

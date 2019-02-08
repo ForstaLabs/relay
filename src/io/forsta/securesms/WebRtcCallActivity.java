@@ -248,6 +248,12 @@ public class WebRtcCallActivity extends Activity {
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
   }
 
+  private void handleCallMemberVideoOn(@NonNull WebRtcViewModel event) {
+    Log.w(TAG, "Member video on. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
+    callScreen.updateVideoSelection(event.getCallRecipient(), event.getCallOrder());
+
+  }
+
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
     delayedFinish();
@@ -313,6 +319,7 @@ public class WebRtcCallActivity extends Activity {
       case CALL_BUSY:               handleCallBusy(event);                 break;
       case CALL_MEMBER_JOINING:     handleCallMemberJoining(event);        break;
       case CALL_MEMBER_LEAVING:     handleCallMemberLeaving(event);        break;
+      case CALL_MEMBER_VIDEO:       handleCallMemberVideoOn(event);        break;
     }
 
     callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());
@@ -385,8 +392,9 @@ public class WebRtcCallActivity extends Activity {
 
     @Override
     public void onItemClick(int position) {
-      Log.w(TAG, "Clicked item: " + position + 1);
+      Log.w(TAG, "Clicked item: " + (position + 1));
       CallRecipient recipient = callScreen.getCallRecipient(position + 1);
+
       Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
       intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
       intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);

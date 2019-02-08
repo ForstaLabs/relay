@@ -26,6 +26,7 @@ public class WebRtcViewModel {
     CALL_DISCONNECTED,
     CALL_MEMBER_JOINING,
     CALL_MEMBER_LEAVING,
+    CALL_MEMBER_VIDEO,
     VIDEO_ENABLE,
 
     // Error states
