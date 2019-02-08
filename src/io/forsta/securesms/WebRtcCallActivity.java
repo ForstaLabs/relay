@@ -400,6 +400,8 @@ public class WebRtcCallActivity extends Activity {
         intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);
         intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
         startService(intent);
+      } else {
+        // Show dialog to restart connection if there is some kind of failure or timeout?
       }
     }
 

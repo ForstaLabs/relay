@@ -22,10 +22,11 @@
     <RelativeLayout android:id="@+id/call_info_1"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:animateLayoutChanges="true">
+                    android:animateLayoutChanges="true"
+                    android:background="@color/black">
 
         <FrameLayout
-            android:background="@color/black"
+
             android:visibility="visible"
             android:id="@+id/remote_call_member"
             android:layout_width="wrap_content"
@@ -64,7 +65,7 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"
-            android:background="@color/transparent_white_dd"
+            android:background="@color/transparent_white_aa"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" android:padding="5dp"/>

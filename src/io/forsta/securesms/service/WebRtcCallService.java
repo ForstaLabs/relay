@@ -723,6 +723,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     CallMember member = getCallMember(intent);
     if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
       Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
+      member.terminate();
 
       if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
         if (member.callOrder == 1) {
@@ -732,13 +733,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         } else {
           sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
-      }
-
-      if (callState == CallState.STATE_REMOTE_RINGING) {
+      } else if (callState == CallState.STATE_REMOTE_RINGING) {
         terminateCall(true);
       }
-
-      member.terminate();
     }
   }
 
