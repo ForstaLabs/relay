@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -80,7 +81,8 @@ public class WebRtcCallScreen extends FrameLayout {
   @SuppressWarnings("unused")
   private static final String TAG = WebRtcCallScreen.class.getSimpleName();
 
-  private FloatingActionButton endCallButton;
+  private ImageButton endCallButton;
+  private ImageButton callMembersButton;
   private WebRtcCallControls   controls;
   private ViewGroup            callHeader;
 
@@ -116,16 +118,27 @@ public class WebRtcCallScreen extends FrameLayout {
     this.localMemberLayout = findViewById(R.id.local_call_member);
     this.remoteMemberLayout = findViewById(R.id.remote_call_member);
     this.controls                     = findViewById(R.id.inCallControls);
-    this.endCallButton                = findViewById(R.id.hangup_fab);
+    this.endCallButton                = findViewById(R.id.hangup_button);
     this.incomingCallButton           = findViewById(R.id.answer_decline_button);
     this.callHeader                   = findViewById(R.id.call_info_1);
     this.remoteCallMemberList = findViewById(R.id.call_member_list_recyclerview);
+    this.callMembersButton = findViewById(R.id.call_members_button);
 
     localRecipient = RecipientFactory.getRecipient(getContext(), TextSecurePreferences.getLocalNumber(getContext()), true);
 
     LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
     remoteCallMemberList.setLayoutManager(layoutManager);
+    callMembersButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (remoteCallMemberList.getVisibility() == GONE) {
+          remoteCallMemberList.setVisibility(VISIBLE);
+        } else {
+          remoteCallMemberList.setVisibility(GONE);
+        }
+      }
+    });
   }
 
   public CallRecipient getCallRecipient(int callOrder) {
@@ -138,7 +151,7 @@ public class WebRtcCallScreen extends FrameLayout {
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     localMemberLayout.setVisibility(VISIBLE);
-    endCallButton.show();
+    endCallButton.setVisibility(VISIBLE);
   }
 
   public void updateCallMember(@NonNull CallRecipient callRecipient, int callOrder) {

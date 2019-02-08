@@ -736,8 +736,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_LOCAL_RINGING) {
         if (member.callOrder == 1) {
           sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-          terminateCall(false);
           insertMissedCall(member.recipient, true);
+          terminateCall(true);
         } else {
           sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }

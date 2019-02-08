@@ -42,6 +42,8 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
     CallRecipient callRecipient = callRecipients.get(position + 1);
     if (callRecipient.isVideoEnabled()) {
       holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.white));
+    } else {
+      holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.transparent));
     }
     holder.recipientName.setText(callRecipient.getRecipient().getName());
     holder.callState.setCallState(callRecipient.getCallState());
