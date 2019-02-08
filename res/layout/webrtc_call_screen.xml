@@ -61,12 +61,13 @@
         android:orientation="vertical"
         android:layout_gravity="bottom"
         android:animateLayoutChanges="true">
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/call_member_list_recyclerview"
             android:background="@color/transparent_white_dd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingBottom="5dp"/>
+            android:orientation="horizontal" android:padding="5dp"/>
 
         <RelativeLayout
             android:layout_width="match_parent"

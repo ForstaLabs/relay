@@ -146,7 +146,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_REMOTE_VIDEO_ENABLE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
-  private static final int MAX_PEERS = 4;
+  private static final int MAX_PEERS = 10;
 
   private CallState callState          = CallState.STATE_IDLE;
   private boolean   microphoneEnabled  = true;
