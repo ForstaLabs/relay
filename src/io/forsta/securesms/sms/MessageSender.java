@@ -262,7 +262,7 @@ public class MessageSender {
       ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
       ForstaUser user = ForstaUser.getLocalForstaUser(context);
       String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId, callMembers);
-      Log.w(TAG, "Sending call accept offer: " + payload);
+      Log.w(TAG, "Sending call accept offer to: " + recipients);
       OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
       sendControlMessage(context, masterSecret, message);
     } catch (Exception e) {

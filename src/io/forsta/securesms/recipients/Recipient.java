@@ -222,6 +222,11 @@ public class Recipient {
   }
 
   @Override
+  public String toString() {
+    return "" + this.getFullTag() + " (" + this.name + ")";
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof Recipient)) return false;
