@@ -715,7 +715,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     setLocalVideoEnabled(localVideoEnabled);
     setLocalAudioEnabled(microphoneEnabled);
-    sendRemoteCallOffers();
   }
 
   private void handleCheckTimeout(Intent intent) {
@@ -800,6 +799,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     intent.putExtra(EXTRA_CALL_ID, callId);
     intent.putExtra(EXTRA_REMOTE_ADDRESS, originator.address);
     handleCallConnected(intent);
+    sendRemoteCallOffers();
   }
 
   private void handleDenyCall(Intent intent) {
