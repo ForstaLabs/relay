@@ -212,7 +212,6 @@ public class WebRtcCallActivity extends Activity {
   private void handleTerminate(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "handleTerminate called");
 
-
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
     EventBus.getDefault().removeStickyEvent(WebRtcViewModel.class);
 

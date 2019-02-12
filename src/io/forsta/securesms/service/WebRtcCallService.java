@@ -576,8 +576,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return;
       }
 
-
-
       try {
         member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       } catch (PeerConnectionWrapper.PeerConnectionException e) {
