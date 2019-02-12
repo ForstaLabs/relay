@@ -45,4 +45,9 @@ public class CallRecipient {
   public String getCallStatus() {
     return callStatus;
   }
+
+  @Override
+  public String toString() {
+    return callState + " " + recipient + " video: " + videoEnabled;
+  }
 }

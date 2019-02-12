@@ -251,7 +251,6 @@ public class WebRtcCallActivity extends Activity {
   private void handleCallMemberVideoOn(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "Member video on. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
     callScreen.updateVideoSelection(event.getCallRecipient(), event.getCallOrder());
-
   }
 
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
