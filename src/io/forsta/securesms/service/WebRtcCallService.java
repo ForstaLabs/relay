@@ -828,10 +828,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     for (CallMember remoteCallMember : remoteCallMembers.values()) {
       if (remoteCallMember.recipient != null && remoteCallMember.isActiveConnection()) {
         sendCallLeaveMessage(remoteCallMember.recipient, threadUID, callId);
-        sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         remoteCallMember.terminate();
       }
     }
+    sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
   }
@@ -1702,7 +1702,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Override
     public void onIceCandidate(IceCandidate candidate) {
       // Why doesn't this just add the candidate directly to the peerConnection?
-      Log.w(TAG, "onIceCandidate:" + candidate);
+      Log.i(TAG, "onIceCandidate:" + candidate);
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
