@@ -40,10 +40,12 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
     CallRecipient callRecipient = callRecipients.get(position + 1);
+    View view = holder.itemView;
     if (callRecipient.isVideoEnabled()) {
-      holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.white));
+      view.setBackground(view.getResources().getDrawable(R.drawable.layout_rounded_bg));
+      view.setClipToOutline(true);
     } else {
-      holder.itemView.setBackgroundColor(holder.itemView.getResources().getColor(R.color.transparent));
+      view.setBackgroundColor(holder.itemView.getResources().getColor(R.color.transparent));
     }
     holder.recipientName.setText(callRecipient.getRecipient().getName());
     holder.callState.setCallState(callRecipient.getCallState());
@@ -55,7 +57,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
       }
     };
     holder.avatar.setOnClickListener(listener);
-    holder.itemView.setOnClickListener(listener);
+    view.setOnClickListener(listener);
   }
 
   @Override

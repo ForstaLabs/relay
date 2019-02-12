@@ -40,6 +40,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.Map;
+
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
 import io.forsta.ccsm.webrtc.CallMemberListAdapter;
@@ -212,8 +214,10 @@ public class WebRtcCallActivity extends Activity {
   private void handleTerminate(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "handleTerminate called");
 
-
-    callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
+    Map<Integer, CallRecipient> callRecipients = event.getRemoteCallRecipients();
+    for (Map.Entry<Integer, CallRecipient> terminateRecipient : callRecipients.entrySet()) {
+      callScreen.updateCallMember(terminateRecipient.getValue(), terminateRecipient.getKey());
+    }
     EventBus.getDefault().removeStickyEvent(WebRtcViewModel.class);
 
     delayedFinish();
@@ -251,7 +255,6 @@ public class WebRtcCallActivity extends Activity {
   private void handleCallMemberVideoOn(@NonNull WebRtcViewModel event) {
     Log.w(TAG, "Member video on. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
     callScreen.updateVideoSelection(event.getCallRecipient(), event.getCallOrder());
-
   }
 
   private void handleRecipientUnavailable(@NonNull WebRtcViewModel event) {
