@@ -576,6 +576,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return;
       }
 
+
+
+      try {
+        member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
+      } catch (PeerConnectionWrapper.PeerConnectionException e) {
+        //Try connection again.
+        member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
+      }
+
       if (member.pendingOutgoingIceUpdates != null && !member.pendingOutgoingIceUpdates.isEmpty()) {
         Log.w(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
         ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(member.recipient, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
@@ -591,7 +600,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         });
       }
 
-      member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       member.pendingOutgoingIceUpdates = null;
       if (callState != CallState.STATE_CONNECTED) {
         handleCallConnected(intent);
@@ -628,7 +636,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (remoteMember == null || remoteMember.recipient == null || callId == null) {
       Log.w(TAG, "No caller for this Ice Candidate");
-//      throw new AssertionError("assert: " + callState + ", " + callId);
       return;
     }
 
@@ -644,9 +651,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     Log.w(TAG, "handleOutgoingIceCandidate sendIceUpdateMessage: " + iceUpdateMessage.toString());
-
     ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(remoteMember.recipient, threadUID, callId, remoteMember.peerId, candidates);
-
     listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
       @Override
       public void onFailureContinue(Throwable error) {
