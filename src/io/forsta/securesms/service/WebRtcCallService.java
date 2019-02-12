@@ -365,7 +365,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   // Handlers
-    private void handleIncomingCall(final Intent intent) {
+  private void handleIncomingCall(final Intent intent) {
     final String incomingCallId = intent.getStringExtra(EXTRA_CALL_ID);
     final String incomingAddress = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     final String incomingPeerId = intent.getStringExtra(EXTRA_PEER_ID);
@@ -477,6 +477,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             registerPowerButtonReceiver();
 
             setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
+            sendRemoteCallOffers();
           } catch (PeerConnectionWrapper.PeerConnectionException e) {
             Log.w(TAG, e);
             incomingMember.terminate();
@@ -576,10 +577,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return;
       }
 
-      try {
-        member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
-      } catch (PeerConnectionWrapper.PeerConnectionException e) {
-        //Try connection again.
+      if (member.peerConnection.getRemoteDescription() == null) {
         member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       }
 
@@ -802,7 +800,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     intent.putExtra(EXTRA_CALL_ID, callId);
     intent.putExtra(EXTRA_REMOTE_ADDRESS, originator.address);
     handleCallConnected(intent);
-    sendRemoteCallOffers();
+//    sendRemoteCallOffers();
   }
 
   private void handleDenyCall(Intent intent) {
@@ -1629,9 +1627,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     public void setVideoEnabled() {
       if (isActiveConnection()) {
         this.videoEnabled = true;
-        videoRenderer = new VideoRenderer(renderer);
-        videoTrack.addRenderer(videoRenderer);
-        videoTrack.setEnabled(true);
+        if (videoTrack != null) {
+          videoRenderer = new VideoRenderer(renderer);
+          videoTrack.addRenderer(videoRenderer);
+          videoTrack.setEnabled(true);
+        }
       }
     }
 
