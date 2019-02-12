@@ -1083,6 +1083,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private synchronized void terminateCall(boolean removeNotification) {
+    Log.w(TAG, "Terminating call...");
     lockManager.updatePhoneState(LockManager.PhoneState.PROCESSING);
     stopForeground(removeNotification);
 
