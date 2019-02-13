@@ -810,10 +810,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (member.recipient == null || callId == null) {
         Log.w(TAG, "No call information or recipient information for this call");
         return;
-//        throw new AssertionError("assert");
       }
+
       if (member.isActiveConnection()) {
-        sendCallLeaveMessage(member.recipient, threadUID, callId);
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+        sendCallLeaveMessage(recipients, threadUID, callId);
         insertMissedCall(member.recipient, true);
         member.terminate();
       }
@@ -825,12 +826,16 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void handleLocalHangup(Intent intent) {
     Log.w(TAG, "handleLocalHangup");
 
+    List<Recipient> callRecipients = new ArrayList<>();
     for (CallMember remoteCallMember : remoteCallMembers.values()) {
       if (remoteCallMember.recipient != null && remoteCallMember.isActiveConnection()) {
-        sendCallLeaveMessage(remoteCallMember.recipient, threadUID, callId);
+        callRecipients.add(remoteCallMember.recipient);
         remoteCallMember.terminate();
       }
     }
+
+    Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callRecipients, false);
+    sendCallLeaveMessage(recipients, threadUID, callId);
     sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
@@ -1230,14 +1235,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> sendCallLeaveMessage(@NonNull final Recipient recipient, String threadUID,
+  private ListenableFutureTask<Boolean> sendCallLeaveMessage(@NonNull final Recipients recipients, String threadUID,
                                                     @NonNull final String callId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
         MessageSender.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
         return true;
       }
