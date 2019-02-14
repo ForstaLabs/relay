@@ -992,7 +992,19 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (callMember != null) {
       Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
       Set<String> callMembers = getCallMembers();
-//      sendCallOffer(recipients, callMembers, )
+      if (callMember.peerConnection != null) {
+        Log.w(TAG, "Restarting existing connection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+        ListenableFutureTask listenableFutureTask = sendCallOffer(recipients, callMembers, threadUID, getCallId(intent), callMember.peerConnection.getLocalDescription(), callMember.peerId);
+        listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+          @Override
+          public void onFailureContinue(Throwable throwable) {
+            Log.w(TAG, "Failed to restart connection");
+            sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable,microphoneEnabled);
+          }
+        });
+      } else {
+        Log.w(TAG, "Restarting connection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+      }
     }
   }
 
@@ -1800,13 +1812,20 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.setAction(ACTION_ICE_CONNECTED);
 
         startService(intent);
-      } else if (newState == PeerConnection.IceConnectionState.FAILED || newState == PeerConnection.IceConnectionState.DISCONNECTED) {
+      } else if (newState == PeerConnection.IceConnectionState.DISCONNECTED) {
         Intent intent = new Intent(this.context, WebRtcCallService.class);
         intent.putExtra(EXTRA_CALL_ID, callId);
         intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
         intent.putExtra(EXTRA_PEER_ID, peerId);
         intent.setAction(ACTION_REMOTE_HANGUP);
 
+        startService(intent);
+      } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+        Intent intent = new Intent(this.context, WebRtcCallService.class);
+        intent.putExtra(EXTRA_CALL_ID, callId);
+        intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
+        intent.putExtra(EXTRA_PEER_ID, peerId);
+        intent.setAction(ACTION_RESTART_CONNECTION);
         startService(intent);
       }
     }

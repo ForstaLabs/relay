@@ -2,6 +2,7 @@ package io.forsta.securesms.webrtc;
 
 
 import android.content.Context;
+import android.se.omapi.Session;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -200,6 +201,10 @@ public class PeerConnectionWrapper {
 
   public SessionDescription getRemoteDescription() {
     return peerConnection.getRemoteDescription();
+  }
+
+  public SessionDescription getLocalDescription() {
+    return peerConnection.getLocalDescription();
   }
 
   private SessionDescription correctSessionDescription(SessionDescription sessionDescription) {
