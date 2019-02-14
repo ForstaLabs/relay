@@ -849,18 +849,18 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleLocalHangup(Intent intent) {
     Log.w(TAG, "handleLocalHangup");
-
     List<Recipient> callRecipients = new ArrayList<>();
     for (CallMember remoteCallMember : remoteCallMembers.values()) {
       if (remoteCallMember.recipient != null && remoteCallMember.isActiveConnection()) {
         callRecipients.add(remoteCallMember.recipient);
-        remoteCallMember.terminate();
       }
     }
-
     Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callRecipients, false);
     sendCallLeave(recipients, threadUID, callId);
     sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    for (CallMember member : remoteCallMembers.values()) {
+      member.terminate();
+    }
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
   }
@@ -989,22 +989,27 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleRestartConnection(Intent intent) {
     CallMember callMember = getCallMember(intent);
-    if (callMember != null) {
-      Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
-      Set<String> callMembers = getCallMembers();
-      if (callMember.peerConnection != null) {
-        Log.w(TAG, "Restarting existing connection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
-        ListenableFutureTask listenableFutureTask = sendCallOffer(recipients, callMembers, threadUID, getCallId(intent), callMember.peerConnection.getLocalDescription(), callMember.peerId);
-        listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
-          @Override
-          public void onFailureContinue(Throwable throwable) {
-            Log.w(TAG, "Failed to restart connection");
-            sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable,microphoneEnabled);
-          }
-        });
-      } else {
-        Log.w(TAG, "Restarting connection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+    try {
+      if (callMember != null) {
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+        Set<String> callMembers = getCallMembers();
+        if (callMember.peerConnection != null) {
+          Log.w(TAG, "Restarting existing connection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+          ListenableFutureTask listenableFutureTask = sendCallOffer(recipients, callMembers, threadUID, getCallId(intent), callMember.peerConnection.getLocalDescription(), callMember.peerId);
+          listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+            @Override
+            public void onFailureContinue(Throwable throwable) {
+              Log.w(TAG, "Failed to restart connection");
+              sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable,microphoneEnabled);
+            }
+          });
+        } else {
+          Log.w(TAG, "Restarting connection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+        }
       }
+    } catch (Exception e) {
+      Log.w(TAG, "Exception restarting connection: " + e.getMessage());
+      e.printStackTrace();
     }
   }
 
