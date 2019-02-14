@@ -1023,9 +1023,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     if (address != null) {
       CallMember member = remoteCallMembers.get(address);
-      if (member != null) {
-        Log.w(TAG, "Getting call member:" + member.toString());
-      } else {
+      if (member == null) {
         Log.w(TAG, "Received intent from invalid call member");
       }
       return member;
@@ -1729,16 +1727,16 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     private void addIncomingIceCandidate(IceCandidate candidate) {
+      Log.w(TAG, "handleIncomingIceCandidate " + this);
       if (peerConnection != null) {
-        Log.w(TAG, "handleIncomingIceCandidate peerConnection: " + candidate.toString());
         peerConnection.addIceCandidate(candidate);
       } else if (pendingIncomingIceUpdates != null) {
-        Log.w(TAG, "handleIncomingIceCandidate pending: " + candidate.toString());
         pendingIncomingIceUpdates.add(candidate);
       }
     }
 
     private void addOutgoingIceCandidate(IceCandidate candidate) {
+      Log.w(TAG, "addOutgoingIceCandidate " + this);
       pendingOutgoingIceUpdates.add(candidate);
     }
 
@@ -1800,7 +1798,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
-      Log.w(TAG, "onIceConnectionChange:" + newState);
+      Log.w(TAG, "onIceConnectionChange:" + newState + " " + toString());
 
       if (newState == PeerConnection.IceConnectionState.CONNECTED ||
           newState == PeerConnection.IceConnectionState.COMPLETED)
@@ -1843,7 +1841,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Override
     public void onIceCandidate(IceCandidate candidate) {
       // Why doesn't this just add the candidate directly to the peerConnection?
-      Log.i(TAG, "onIceCandidate:" + candidate);
+      Log.i(TAG, "onIceCandidate: " + this);
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
@@ -1863,7 +1861,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onAddStream(MediaStream stream) {
-      Log.w(TAG, "onAddStream:" + stream);
+      Log.w(TAG, "onAddStream: " + this);
 
       for (AudioTrack audioTrack : stream.audioTracks) {
         audioTrack.setEnabled(true);
@@ -1894,7 +1892,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
-      Log.w(TAG, "onAddTrack: " + mediaStreams);
+      Log.w(TAG, "onAddTrack: " + this);
     }
 
     @Override
@@ -1903,7 +1901,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (peerConnection != null) {
         connectionInfo = peerConnection.getRemoteDescription() != null ? "Have remote description" : "No remote description";
       }
-      return "" + address + " " + recipient.getLocalTag() + " Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
+      return "Recipient: " + recipient.getLocalTag() + " (" + address + ") Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
     }
   }
 }
