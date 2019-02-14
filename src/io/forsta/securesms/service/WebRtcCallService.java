@@ -23,22 +23,29 @@ import android.util.Log;
 import org.greenrobot.eventbus.EventBus;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.events.WebRtcViewModel;
+import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.transport.UndeliverableMessageException;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.ServiceUtil;
@@ -77,6 +84,12 @@ import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
+import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.SignalServiceMessageSender;
+import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
+import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
+import org.whispersystems.signalservice.api.push.SignalServiceAddress;
+import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -835,7 +848,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callRecipients, false);
-    sendCallLeaveMessage(recipients, threadUID, callId);
+    sendCallLeaveControl(recipients, threadUID, callId);
     sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
@@ -1251,6 +1264,64 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     networkExecutor.execute(listenableFutureTask);
 
     return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> sendCallLeaveControl(@NonNull final Recipients recipients, String threadUID,
+                                    @NonNull final String callId) {
+
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        try {
+          Context context = getApplicationContext();
+          MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
+          Log.w(TAG, "Sending Call Leave: " + payload);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceMessageSender messageSender = TextSecureCommunicationModule.createMessageSender(context);
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callLeave message: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
+        return true;
+      }
+    };
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private List<SignalServiceAddress> getSignalAddresses(Context context, Recipients recipients) {
+    List<SignalServiceAddress> addresses = new LinkedList<>();
+    for (Recipient recipient : recipients.getRecipientsList()) {
+      String localUid = TextSecurePreferences.getLocalNumber(context);
+      if (!localUid.equals(recipient.getAddress())) {
+        addresses.add(new SignalServiceAddress(recipient.getAddress(), Optional.fromNullable(null)));
+      }
+    }
+
+    return addresses;
+  }
+  private SignalServiceDataMessage createSignalServiceDataMessage(MasterSecret masterSecret, OutgoingMediaMessage message) throws UndeliverableMessageException {
+    List<Attachment>              scaledAttachments = new LinkedList<Attachment>();
+    List<SignalServiceAttachment> attachmentStreams = new LinkedList<SignalServiceAttachment>();
+    SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
+        .withBody(message.getBody())
+        .withAttachments(attachmentStreams)
+        .withTimestamp(message.getSentTimeMillis())
+        .withExpiration((int)(message.getExpiresIn() / 1000))
+        .asExpirationUpdate(message.isExpirationUpdate())
+        .build();
+    return mediaMessage;
   }
 
   private ListenableFutureTask<Boolean> insertStatusMessage(@NonNull final String thread, @NonNull final String message)
