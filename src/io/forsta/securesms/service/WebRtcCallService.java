@@ -23,22 +23,29 @@ import android.util.Log;
 import org.greenrobot.eventbus.EventBus;
 
 import io.forsta.ccsm.api.CcsmApi;
+import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.IncomingMessage;
+import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
 import io.forsta.securesms.WebRtcCallActivity;
 
+import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
+import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.events.WebRtcViewModel;
+import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.MessageSender;
+import io.forsta.securesms.transport.UndeliverableMessageException;
 import io.forsta.securesms.util.FutureTaskListener;
 import io.forsta.securesms.util.ListenableFutureTask;
 import io.forsta.securesms.util.ServiceUtil;
@@ -77,6 +84,12 @@ import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
+import org.whispersystems.libsignal.util.guava.Optional;
+import org.whispersystems.signalservice.api.SignalServiceMessageSender;
+import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
+import org.whispersystems.signalservice.api.messages.SignalServiceDataMessage;
+import org.whispersystems.signalservice.api.push.SignalServiceAddress;
+import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -146,6 +159,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_REMOTE_VIDEO_ENABLE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
+  public static final String ACTION_RESTART_CONNECTION     = "RESTART_CONNECTION";
   private static final int MAX_PEERS = 10;
 
   private CallState callState          = CallState.STATE_IDLE;
@@ -181,6 +195,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
   @Nullable private static EglBase             eglBase;
 
+  // Inject this dependency after upgrade to dagger2
+  private SignalServiceMessageSender messageSender;
+
   private ExecutorService          serviceExecutor = Executors.newSingleThreadExecutor();
   private ExecutorService          networkExecutor = Executors.newSingleThreadExecutor();
   private ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(1);
@@ -192,6 +209,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION, new NotificationCompat.Builder(this, NotificationChannels.CALLS).build());
     }
+
+    messageSender = TextSecureCommunicationModule.createMessageSender(getApplicationContext());
 
     initializeResources();
 
@@ -230,6 +249,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
         else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoteVideoEnable(intent);
+        else if (intent.getAction().equals(ACTION_RESTART_CONNECTION))        handleRestartConnection(intent);
       }
     });
 
@@ -335,7 +355,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         if (callState == CallState.STATE_CONNECTED) {
           SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
           member.peerConnection.setLocalDescription(sdp);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOffer(recipients, threadUID, callId, sdp, member.peerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
 
             @Override
@@ -534,8 +555,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
               SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
               callMember.peerConnection.setLocalDescription(sdp);
 
-              Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+              Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOffer(recipients, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
                 @Override
                 public void onFailureContinue(Throwable error) {
@@ -583,7 +604,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       if (member.pendingOutgoingIceUpdates != null && !member.pendingOutgoingIceUpdates.isEmpty()) {
         Log.w(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
-        ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(member.recipient, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+        ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(recipients, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
           @Override
           public void onFailureContinue(Throwable error) {
@@ -647,7 +669,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     Log.w(TAG, "handleOutgoingIceCandidate sendIceUpdateMessage: " + iceUpdateMessage.toString());
-    ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(remoteMember.recipient, threadUID, callId, remoteMember.peerId, candidates);
+    Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), remoteMember.recipient, false);
+    ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(recipients, threadUID, callId, remoteMember.peerId, candidates);
     listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
       @Override
       public void onFailureContinue(Throwable error) {
@@ -664,8 +687,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleIceConnected callState: " + callState);
 
     CallMember member = getCallMember(intent);
-    if (member.recipient == null) {
-      Log.w(TAG, "No recipient for this call member");
+    if (member == null) {
+      Log.w(TAG, "No call member for this call ");
       return;
     }
 
@@ -771,7 +794,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         try {
           SessionDescription sdp = callMember.peerConnection.createAnswer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(callMember.recipient, threadUID, callId, sdp, callMember.peerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOffer(recipients, threadUID, callId, sdp, callMember.peerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
             @Override
             public void onFailureContinue(Throwable error) {
@@ -810,10 +834,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (member.recipient == null || callId == null) {
         Log.w(TAG, "No call information or recipient information for this call");
         return;
-//        throw new AssertionError("assert");
       }
+
       if (member.isActiveConnection()) {
-        sendCallLeaveMessage(member.recipient, threadUID, callId);
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+        sendCallLeave(recipients, threadUID, callId);
         insertMissedCall(member.recipient, true);
         member.terminate();
       }
@@ -824,20 +849,24 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleLocalHangup(Intent intent) {
     Log.w(TAG, "handleLocalHangup");
-
+    List<Recipient> callRecipients = new ArrayList<>();
     for (CallMember remoteCallMember : remoteCallMembers.values()) {
       if (remoteCallMember.recipient != null && remoteCallMember.isActiveConnection()) {
-        sendCallLeaveMessage(remoteCallMember.recipient, threadUID, callId);
-        remoteCallMember.terminate();
+        callRecipients.add(remoteCallMember.recipient);
       }
     }
+    Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callRecipients, false);
+    sendCallLeave(recipients, threadUID, callId);
     sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    for (CallMember member : remoteCallMembers.values()) {
+      member.terminate();
+    }
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
   }
 
   private void handleRemoteHangup(Intent intent) {
-    Log.w(TAG, "handleRemoteHangup");
+    Log.w(TAG, "handleRemoteHangup for state: " + callState);
     if (callId == null || (callId != null && !callId.equals(getCallId(intent)))) {
       Log.w(TAG, "hangup for non-active call...");
       return;
@@ -858,7 +887,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
-    member.terminate();
     if (!hasActiveCalls()) {
       if (callState == CallState.STATE_REMOTE_RINGING) {
         sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -870,8 +898,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
+      member.terminate();
       terminateCall(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
+      member.terminate();
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
   }
@@ -958,6 +988,32 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     sendMessage(WebRtcViewModel.State.CALL_MEMBER_VIDEO, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
+  private void handleRestartConnection(Intent intent) {
+    CallMember callMember = getCallMember(intent);
+    try {
+      if (callMember != null) {
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+        Set<String> callMembers = getCallMembers();
+        if (callMember.peerConnection != null) {
+          Log.w(TAG, "Restarting existing connection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+          ListenableFutureTask listenableFutureTask = sendCallOffer(recipients, callMembers, threadUID, getCallId(intent), callMember.peerConnection.getLocalDescription(), callMember.peerId);
+          listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+            @Override
+            public void onFailureContinue(Throwable throwable) {
+              Log.w(TAG, "Failed to restart connection");
+              sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable,microphoneEnabled);
+            }
+          });
+        } else {
+          Log.w(TAG, "Restarting connection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+        }
+      }
+    } catch (Exception e) {
+      Log.w(TAG, "Exception restarting connection: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
   /// Helper Methods
 
   private boolean hasActiveCalls() {
@@ -973,9 +1029,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
     if (address != null) {
       CallMember member = remoteCallMembers.get(address);
-      if (member != null) {
-        Log.w(TAG, "Getting call member:" + member.toString());
-      } else {
+      if (member == null) {
         Log.w(TAG, "Received intent from invalid call member");
       }
       return member;
@@ -986,16 +1040,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void sendRemoteCallOffers() {
     final String localPeerId = UUID.randomUUID().toString();
     for (CallMember callMember : remoteCallMembers.values()) {
-      Log.w(TAG, "Remote call offers: " + callMember);
       if (callMember.peerConnection == null) {
         try {
           callMember.createPeerConnection(iceServiers, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
           SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
 
-          Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-          Log.w(TAG, "Sending call offer to: " + remoteRecipient);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(WebRtcCallService.this, callMember.recipient, false);
+          Log.w(TAG, "Sending callOffer to: " + recipients.toFullString());
+          ListenableFutureTask<Boolean> listenableFutureTask = sendCallOffer(recipients, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
             @Override
             public void onFailureContinue(Throwable error) {
@@ -1151,7 +1204,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void sendMessage(@NonNull WebRtcViewModel.State state,
                            Collection<CallMember> remoteCallMembers,
-                           @NonNull CallMember callMember,
+                           CallMember callMember,
                            boolean localVideoEnabled,
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
@@ -1160,7 +1213,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (CallMember member : remoteCallMembers) {
         remoteCallRecipients.put(member.callOrder, new CallRecipient(member.recipient, state, member.videoEnabled));
         // Outgoing call with no specific callMember, get the first one.
-        if (callMember == null) {
+        if (callMember == null && member.callOrder == 1) {
           callMember = member;
         }
       }
@@ -1168,19 +1221,44 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       remoteCallRecipients.put(callMember.callOrder, new CallRecipient(callMember.getRecipient(), state, callMember.videoEnabled));
     }
 
+    if (callMember == null) {
+      Log.w(TAG, "No caller information for eventbus message");
+      return;
+    }
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
-  private ListenableFutureTask<Boolean> sendIceUpdateMessage(@NonNull final Recipient recipient, String threadUID,
-                                                    @NonNull final String callId, @NonNull final String peerId, List<IceCandidate> updates)
+
+  private ListenableFutureTask<Boolean> sendIceUpdate(@NonNull final Recipients recipients, String threadUID,
+                                                             @NonNull final String callId, @NonNull final String peerId, List<IceCandidate> updates)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        Set<String> members = getCallMembers();
-        MessageSender.sendIceUpdate(getApplicationContext(), masterSecret, recipients, threadUID, callId, peerId, updates, members);
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          JSONArray jsonUpdates = new JSONArray();
+          for (IceCandidate candidate : updates) {
+            JSONObject jsonCandidate = new JSONObject();
+            jsonCandidate.put("candidate", candidate.sdp);
+            jsonCandidate.put("sdpMid", candidate.sdpMid);
+            jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+            jsonUpdates.put(jsonCandidate);
+          }
+          Set<String> members = getCallMembers();
+          String payload = ForstaMessageManager.createIceCandidateMessage(user, recipients, thread, callId, peerId, jsonUpdates, members);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending ICE Update: " + recipients.toFullString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
         return true;
       }
     };
@@ -1191,16 +1269,28 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> sendAcceptOfferMessage(@NonNull final Recipient recipient, String threadUID,
+  private ListenableFutureTask<Boolean> sendAcceptOffer(@NonNull final Recipients recipients, String threadUID,
                                                                @NonNull final String callId, SessionDescription sdp, String peerId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        Set<String> members = getCallMembers();
-        MessageSender.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId, members);
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          Set<String> members = getCallMembers();
+          String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId, members);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callAcceptOffer to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
         return true;
       }
     };
@@ -1211,15 +1301,28 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> sendCallOfferMessage(@NonNull final Recipient recipient, Set<String> memberAddresses, String threadUID,
-                                                               @NonNull final String callId, SessionDescription sdp, String peerId)
+  private ListenableFutureTask<Boolean> sendCallOffer(@NonNull final Recipients recipients, Set<String> memberAddresses, String threadUID,
+                                                      @NonNull final String callId, SessionDescription sdp, String peerId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        MessageSender.sendCallOffer(getApplicationContext(), masterSecret, recipients, new ArrayList(memberAddresses), threadUID, callId, sdp, peerId);
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallOfferMessage(user, recipients, new ArrayList(memberAddresses), thread, callId, sdp.description, peerId);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callOffer to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
         return true;
       }
     };
@@ -1230,15 +1333,28 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
-  private ListenableFutureTask<Boolean> sendCallLeaveMessage(@NonNull final Recipient recipient, String threadUID,
-                                                    @NonNull final String callId)
+  private ListenableFutureTask<Boolean> sendCallLeave(@NonNull final Recipients recipients, String threadUID,
+                                                      @NonNull final String callId)
   {
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        MessageSender.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callLeave to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
         return true;
       }
     };
@@ -1247,6 +1363,31 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     networkExecutor.execute(listenableFutureTask);
 
     return listenableFutureTask;
+  }
+
+  private List<SignalServiceAddress> getSignalAddresses(Context context, Recipients recipients) {
+    List<SignalServiceAddress> addresses = new LinkedList<>();
+    for (Recipient recipient : recipients.getRecipientsList()) {
+      String localUid = TextSecurePreferences.getLocalNumber(context);
+      if (!localUid.equals(recipient.getAddress())) {
+        addresses.add(new SignalServiceAddress(recipient.getAddress(), Optional.fromNullable(null)));
+      }
+    }
+
+    return addresses;
+  }
+
+  private SignalServiceDataMessage createSignalServiceDataMessage(OutgoingMediaMessage message) throws UndeliverableMessageException {
+    List<Attachment>              scaledAttachments = new LinkedList<Attachment>();
+    List<SignalServiceAttachment> attachmentStreams = new LinkedList<SignalServiceAttachment>();
+    SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
+        .withBody(message.getBody())
+        .withAttachments(attachmentStreams)
+        .withTimestamp(message.getSentTimeMillis())
+        .withExpiration((int)(message.getExpiresIn() / 1000))
+        .asExpirationUpdate(message.isExpirationUpdate())
+        .build();
+    return mediaMessage;
   }
 
   private ListenableFutureTask<Boolean> insertStatusMessage(@NonNull final String thread, @NonNull final String message)
@@ -1596,16 +1737,16 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     private void addIncomingIceCandidate(IceCandidate candidate) {
+      Log.w(TAG, "handleIncomingIceCandidate " + this);
       if (peerConnection != null) {
-        Log.w(TAG, "handleIncomingIceCandidate peerConnection: " + candidate.toString());
         peerConnection.addIceCandidate(candidate);
       } else if (pendingIncomingIceUpdates != null) {
-        Log.w(TAG, "handleIncomingIceCandidate pending: " + candidate.toString());
         pendingIncomingIceUpdates.add(candidate);
       }
     }
 
     private void addOutgoingIceCandidate(IceCandidate candidate) {
+      Log.w(TAG, "addOutgoingIceCandidate " + this);
       pendingOutgoingIceUpdates.add(candidate);
     }
 
@@ -1667,7 +1808,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
-      Log.w(TAG, "onIceConnectionChange:" + newState);
+      Log.w(TAG, "onIceConnectionChange:" + newState + " " + toString());
 
       if (newState == PeerConnection.IceConnectionState.CONNECTED ||
           newState == PeerConnection.IceConnectionState.COMPLETED)
@@ -1679,13 +1820,20 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.setAction(ACTION_ICE_CONNECTED);
 
         startService(intent);
-      } else if (newState == PeerConnection.IceConnectionState.FAILED || newState == PeerConnection.IceConnectionState.DISCONNECTED) {
+      } else if (newState == PeerConnection.IceConnectionState.DISCONNECTED) {
         Intent intent = new Intent(this.context, WebRtcCallService.class);
         intent.putExtra(EXTRA_CALL_ID, callId);
         intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
         intent.putExtra(EXTRA_PEER_ID, peerId);
         intent.setAction(ACTION_REMOTE_HANGUP);
 
+        startService(intent);
+      } else if (newState == PeerConnection.IceConnectionState.FAILED) {
+        Intent intent = new Intent(this.context, WebRtcCallService.class);
+        intent.putExtra(EXTRA_CALL_ID, callId);
+        intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
+        intent.putExtra(EXTRA_PEER_ID, peerId);
+        intent.setAction(ACTION_RESTART_CONNECTION);
         startService(intent);
       }
     }
@@ -1703,7 +1851,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Override
     public void onIceCandidate(IceCandidate candidate) {
       // Why doesn't this just add the candidate directly to the peerConnection?
-      Log.i(TAG, "onIceCandidate:" + candidate);
+      Log.i(TAG, "onIceCandidate: " + this);
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
@@ -1723,7 +1871,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onAddStream(MediaStream stream) {
-      Log.w(TAG, "onAddStream:" + stream);
+      Log.w(TAG, "onAddStream: " + this);
 
       for (AudioTrack audioTrack : stream.audioTracks) {
         audioTrack.setEnabled(true);
@@ -1754,7 +1902,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
-      Log.w(TAG, "onAddTrack: " + mediaStreams);
+      Log.w(TAG, "onAddTrack: " + this);
     }
 
     @Override
@@ -1763,7 +1911,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (peerConnection != null) {
         connectionInfo = peerConnection.getRemoteDescription() != null ? "Have remote description" : "No remote description";
       }
-      return "" + address + " " + recipient.getLocalTag() + " Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
+      return "Recipient: " + recipient.getLocalTag() + " (" + address + ") Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
     }
   }
 }

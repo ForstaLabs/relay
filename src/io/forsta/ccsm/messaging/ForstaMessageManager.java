@@ -237,7 +237,6 @@ public class ForstaMessageManager {
               String originator = data.getString("originator");
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
-              Log.w(TAG, "Call leave from: " + callId + " From : " + originator);
               break;
             default:
               Log.w(TAG, "Unsupported control message");
