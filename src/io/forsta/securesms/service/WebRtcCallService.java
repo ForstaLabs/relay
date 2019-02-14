@@ -194,6 +194,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   @Nullable public  static SurfaceViewRenderer remoteRenderer;
   @Nullable private static EglBase             eglBase;
 
+  // Inject this dependency after upgrade to dagger2
+  private SignalServiceMessageSender messageSender;
+
   private ExecutorService          serviceExecutor = Executors.newSingleThreadExecutor();
   private ExecutorService          networkExecutor = Executors.newSingleThreadExecutor();
   private ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(1);
@@ -205,6 +208,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       startForeground(CallNotificationBuilder.WEBRTC_NOTIFICATION, new NotificationCompat.Builder(this, NotificationChannels.CALLS).build());
     }
+
+    messageSender = TextSecureCommunicationModule.createMessageSender(getApplicationContext());
 
     initializeResources();
 
@@ -348,7 +353,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         if (callState == CallState.STATE_CONNECTED) {
           SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
           member.peerConnection.setLocalDescription(sdp);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(member.recipient, threadUID, callId, sdp, member.peerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOffer(recipients, threadUID, callId, sdp, member.peerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
 
             @Override
@@ -547,8 +553,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
               SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
               callMember.peerConnection.setLocalDescription(sdp);
 
-              Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+              Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOffer(recipients, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
                 @Override
                 public void onFailureContinue(Throwable error) {
@@ -596,7 +602,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       if (member.pendingOutgoingIceUpdates != null && !member.pendingOutgoingIceUpdates.isEmpty()) {
         Log.w(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
-        ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(member.recipient, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
+        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
+        ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(recipients, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
           @Override
           public void onFailureContinue(Throwable error) {
@@ -660,7 +667,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     Log.w(TAG, "handleOutgoingIceCandidate sendIceUpdateMessage: " + iceUpdateMessage.toString());
-    ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdateMessage(remoteMember.recipient, threadUID, callId, remoteMember.peerId, candidates);
+    Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), remoteMember.recipient, false);
+    ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(recipients, threadUID, callId, remoteMember.peerId, candidates);
     listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
       @Override
       public void onFailureContinue(Throwable error) {
@@ -784,7 +792,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         try {
           SessionDescription sdp = callMember.peerConnection.createAnswer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOfferMessage(callMember.recipient, threadUID, callId, sdp, callMember.peerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+          ListenableFutureTask<Boolean> listenableFutureTask = sendAcceptOffer(recipients, threadUID, callId, sdp, callMember.peerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
             @Override
             public void onFailureContinue(Throwable error) {
@@ -827,7 +836,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       if (member.isActiveConnection()) {
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
-        sendCallLeaveMessage(recipients, threadUID, callId);
+        sendCallLeave(recipients, threadUID, callId);
         insertMissedCall(member.recipient, true);
         member.terminate();
       }
@@ -848,7 +857,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callRecipients, false);
-    sendCallLeaveControl(recipients, threadUID, callId);
+    sendCallLeave(recipients, threadUID, callId);
     sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
     terminateCall(true);
@@ -1004,16 +1013,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void sendRemoteCallOffers() {
     final String localPeerId = UUID.randomUUID().toString();
     for (CallMember callMember : remoteCallMembers.values()) {
-      Log.w(TAG, "Remote call offers: " + callMember);
       if (callMember.peerConnection == null) {
         try {
           callMember.createPeerConnection(iceServiers, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
           SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
 
-          Recipient remoteRecipient = RecipientFactory.getRecipient(WebRtcCallService.this, callMember.address, true);
-          Log.w(TAG, "Sending call offer to: " + remoteRecipient);
-          ListenableFutureTask<Boolean> listenableFutureTask = sendCallOfferMessage(remoteRecipient, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+          Recipients recipients = RecipientFactory.getRecipientsFor(WebRtcCallService.this, callMember.recipient, false);
+          Log.w(TAG, "Sending callOffer to: " + recipients.toFullString());
+          ListenableFutureTask<Boolean> listenableFutureTask = sendCallOffer(recipients, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
           listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
             @Override
             public void onFailureContinue(Throwable error) {
@@ -1189,102 +1197,31 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
-  private ListenableFutureTask<Boolean> sendIceUpdateMessage(@NonNull final Recipient recipient, String threadUID,
-                                                    @NonNull final String callId, @NonNull final String peerId, List<IceCandidate> updates)
+
+  private ListenableFutureTask<Boolean> sendIceUpdate(@NonNull final Recipients recipients, String threadUID,
+                                                             @NonNull final String callId, @NonNull final String peerId, List<IceCandidate> updates)
   {
-    Callable<Boolean> callable = new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        Set<String> members = getCallMembers();
-        MessageSender.sendIceUpdate(getApplicationContext(), masterSecret, recipients, threadUID, callId, peerId, updates, members);
-        return true;
-      }
-    };
-
-    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
-    networkExecutor.execute(listenableFutureTask);
-
-    return listenableFutureTask;
-  }
-
-  private ListenableFutureTask<Boolean> sendAcceptOfferMessage(@NonNull final Recipient recipient, String threadUID,
-                                                               @NonNull final String callId, SessionDescription sdp, String peerId)
-  {
-    Callable<Boolean> callable = new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        Set<String> members = getCallMembers();
-        MessageSender.sendCallAcceptOffer(getApplicationContext(), masterSecret, recipients, threadUID, callId, sdp, peerId, members);
-        return true;
-      }
-    };
-
-    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
-    networkExecutor.execute(listenableFutureTask);
-
-    return listenableFutureTask;
-  }
-
-  private ListenableFutureTask<Boolean> sendCallOfferMessage(@NonNull final Recipient recipient, Set<String> memberAddresses, String threadUID,
-                                                               @NonNull final String callId, SessionDescription sdp, String peerId)
-  {
-    Callable<Boolean> callable = new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), recipient, false);
-        MessageSender.sendCallOffer(getApplicationContext(), masterSecret, recipients, new ArrayList(memberAddresses), threadUID, callId, sdp, peerId);
-        return true;
-      }
-    };
-
-    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
-    networkExecutor.execute(listenableFutureTask);
-
-    return listenableFutureTask;
-  }
-
-  private ListenableFutureTask<Boolean> sendCallLeaveMessage(@NonNull final Recipients recipients, String threadUID,
-                                                    @NonNull final String callId)
-  {
-    Callable<Boolean> callable = new Callable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        MasterSecret masterSecret = KeyCachingService.getMasterSecret(getApplicationContext());
-        MessageSender.sendCallLeave(getApplicationContext(), masterSecret, recipients, threadUID, callId);
-        return true;
-      }
-    };
-
-    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
-    networkExecutor.execute(listenableFutureTask);
-
-    return listenableFutureTask;
-  }
-
-  private ListenableFutureTask<Boolean> sendCallLeaveControl(@NonNull final Recipients recipients, String threadUID,
-                                    @NonNull final String callId) {
-
     Callable<Boolean> callable = new Callable<Boolean>() {
       @Override
       public Boolean call() throws Exception {
         try {
           Context context = getApplicationContext();
-          MasterSecret masterSecret = KeyCachingService.getMasterSecret(context);
           ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
           ForstaUser user = ForstaUser.getLocalForstaUser(context);
-          String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
-          Log.w(TAG, "Sending Call Leave: " + payload);
+          JSONArray jsonUpdates = new JSONArray();
+          for (IceCandidate candidate : updates) {
+            JSONObject jsonCandidate = new JSONObject();
+            jsonCandidate.put("candidate", candidate.sdp);
+            jsonCandidate.put("sdpMid", candidate.sdpMid);
+            jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+            jsonUpdates.put(jsonCandidate);
+          }
+          Set<String> members = getCallMembers();
+          String payload = ForstaMessageManager.createIceCandidateMessage(user, recipients, thread, callId, peerId, jsonUpdates, members);
           OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
-
-          SignalServiceMessageSender messageSender = TextSecureCommunicationModule.createMessageSender(context);
-          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(masterSecret, message);
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
-          Log.w(TAG, "Sending callLeave message: " + recipients.toShortString());
+          Log.w(TAG, "Sending ICE Update: " + payload);
           messageSender.sendMessage(addresses, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();
@@ -1294,6 +1231,103 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return true;
       }
     };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> sendAcceptOffer(@NonNull final Recipients recipients, String threadUID,
+                                                               @NonNull final String callId, SessionDescription sdp, String peerId)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          Set<String> members = getCallMembers();
+          String payload = ForstaMessageManager.createAcceptCallOfferMessage(user, recipients, thread, callId, sdp.description, peerId, members);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callAcceptOffer to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
+        return true;
+      }
+    };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> sendCallOffer(@NonNull final Recipients recipients, Set<String> memberAddresses, String threadUID,
+                                                      @NonNull final String callId, SessionDescription sdp, String peerId)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallOfferMessage(user, recipients, new ArrayList(memberAddresses), thread, callId, sdp.description, peerId);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callOffer to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
+        return true;
+      }
+    };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
+  private ListenableFutureTask<Boolean> sendCallLeave(@NonNull final Recipients recipients, String threadUID,
+                                                      @NonNull final String callId)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallLeaveMessage(user, recipients, thread, callId);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callLeave to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
+        return true;
+      }
+    };
+
     ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
     networkExecutor.execute(listenableFutureTask);
 
@@ -1311,7 +1345,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     return addresses;
   }
-  private SignalServiceDataMessage createSignalServiceDataMessage(MasterSecret masterSecret, OutgoingMediaMessage message) throws UndeliverableMessageException {
+
+  private SignalServiceDataMessage createSignalServiceDataMessage(OutgoingMediaMessage message) throws UndeliverableMessageException {
     List<Attachment>              scaledAttachments = new LinkedList<Attachment>();
     List<SignalServiceAttachment> attachmentStreams = new LinkedList<SignalServiceAttachment>();
     SignalServiceDataMessage      mediaMessage      = SignalServiceDataMessage.newBuilder()
