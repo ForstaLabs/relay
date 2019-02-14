@@ -49,7 +49,7 @@ import dagger.Provides;
                                      DeviceListFragment.class,
                                      RefreshAttributesJob.class,
                                      GcmBroadcastReceiver.class,
-                                     GcmRefreshJob.class,WebRtcCallService.class})
+                                     GcmRefreshJob.class})
 public class TextSecureCommunicationModule {
 
   private final Context context;

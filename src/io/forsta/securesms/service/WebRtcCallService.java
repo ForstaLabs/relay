@@ -159,6 +159,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_REMOTE_VIDEO_MUTE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_REMOTE_VIDEO_ENABLE = "REMOTE_VIDEO_MUTE";
   public static final String ACTION_ICE_CONNECTED     = "ICE_CONNECTED";
+  public static final String ACTION_RESTART_CONNECTION     = "RESTART_CONNECTION";
   private static final int MAX_PEERS = 10;
 
   private CallState callState          = CallState.STATE_IDLE;
@@ -248,6 +249,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
         else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoteVideoEnable(intent);
+        else if (intent.getAction().equals(ACTION_RESTART_CONNECTION))        handleRestartConnection(intent);
       }
     });
 
@@ -985,6 +987,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     sendMessage(WebRtcViewModel.State.CALL_MEMBER_VIDEO, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
+  private void handleRestartConnection(Intent intent) {
+    CallMember callMember = getCallMember(intent);
+    if (callMember != null) {
+      Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
+      Set<String> callMembers = getCallMembers();
+//      sendCallOffer(recipients, callMembers, )
+    }
+  }
+
   /// Helper Methods
 
   private boolean hasActiveCalls() {
@@ -1221,7 +1232,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
           SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
-          Log.w(TAG, "Sending ICE Update: " + payload);
+          Log.w(TAG, "Sending ICE Update: " + recipients.toFullString());
           messageSender.sendMessage(addresses, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();

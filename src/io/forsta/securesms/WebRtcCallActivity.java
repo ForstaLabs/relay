@@ -404,7 +404,29 @@ public class WebRtcCallActivity extends Activity {
         intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
         startService(intent);
       } else {
-        // Show dialog to restart connection if there is some kind of failure or timeout?
+        AlertDialog.Builder dialog = new AlertDialog.Builder(WebRtcCallActivity.this);
+        dialog.setTitle("Connection Failure");
+        dialog.setIconAttribute(R.attr.dialog_alert_icon);
+        dialog.setMessage("Restart connection?");
+        dialog.setCancelable(true);
+        dialog.setPositiveButton("Yes", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
+            intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
+            intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);
+            intent.setAction(WebRtcCallService.ACTION_RESTART_CONNECTION);
+            startService(intent);
+          }
+        });
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+          @Override
+          public void onCancel(DialogInterface dialog) {
+            return;
+          }
+        });
+        dialog.show();
+
       }
     }
 
