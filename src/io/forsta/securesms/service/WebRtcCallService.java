@@ -1198,7 +1198,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void sendMessage(@NonNull WebRtcViewModel.State state,
                            Collection<CallMember> remoteCallMembers,
-                           @NonNull CallMember callMember,
+                           CallMember callMember,
                            boolean localVideoEnabled,
                            boolean bluetoothAvailable, boolean microphoneEnabled)
   {
@@ -1207,7 +1207,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       for (CallMember member : remoteCallMembers) {
         remoteCallRecipients.put(member.callOrder, new CallRecipient(member.recipient, state, member.videoEnabled));
         // Outgoing call with no specific callMember, get the first one.
-        if (callMember == null) {
+        if (callMember == null && member.callOrder == 1) {
           callMember = member;
         }
       }
@@ -1215,6 +1215,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       remoteCallRecipients.put(callMember.callOrder, new CallRecipient(callMember.getRecipient(), state, callMember.videoEnabled));
     }
 
+    if (callMember == null) {
+      Log.w(TAG, "No caller information for eventbus message");
+      return;
+    }
     EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
   }
 
