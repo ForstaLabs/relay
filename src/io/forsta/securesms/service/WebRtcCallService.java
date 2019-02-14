@@ -677,8 +677,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     Log.w(TAG, "handleIceConnected callState: " + callState);
 
     CallMember member = getCallMember(intent);
-    if (member.recipient == null) {
-      Log.w(TAG, "No recipient for this call member");
+    if (member == null) {
+      Log.w(TAG, "No call member for this call ");
       return;
     }
 
