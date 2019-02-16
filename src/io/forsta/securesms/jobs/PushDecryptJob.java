@@ -81,6 +81,7 @@ import org.whispersystems.signalservice.api.messages.multidevice.SentTranscriptM
 import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSyncMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
+import java.util.ArrayList;
 import java.util.List;
 import ws.com.google.android.mms.MmsException;
 import androidx.work.Data;
@@ -553,19 +554,41 @@ public class PushDecryptJob extends ContextJob {
             Log.w(TAG, "No such thread id");
             return;
           }
-          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
-          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
-            Intent iceIntent = new Intent(context, WebRtcCallService.class);
-            iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
-            iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
-            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
-            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
-            iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
 
-            context.startService(iceIntent);
+          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
+          ArrayList<String> sdps = new ArrayList<>();
+          ArrayList<String> sdpMids = new ArrayList<>();
+          ArrayList<Integer> sdpMLineIndexes = new ArrayList<>();
+          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
+            sdps.add(ice.sdp);
+            sdpMids.add(ice.sdpMid);
+            sdpMLineIndexes.add(ice.sdpMLineIndex);
           }
+
+          Intent iceIntent = new Intent(context, WebRtcCallService.class);
+          iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
+          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
+          iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+          iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
+          iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LIST, sdps);
+          iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_MID_LIST, sdpMids);
+          iceIntent.putIntegerArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX_LIST, sdpMLineIndexes);
+
+          context.startService(iceIntent);
+
+//          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
+//          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
+//            Intent iceIntent = new Intent(context, WebRtcCallService.class);
+//            iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
+//            iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
+//
+//            context.startService(iceIntent);
+//          }
 
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
