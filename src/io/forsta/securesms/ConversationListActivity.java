@@ -16,7 +16,6 @@
  */
 package io.forsta.securesms;
 
-import android.Manifest;
 import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -50,7 +49,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.notifications.MessageNotifier;
-import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DynamicLanguage;
@@ -241,7 +239,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
+      JSONObject userResponse = CcsmApi.getLocalForstaUser(ConversationListActivity.this);
       if (userResponse.has("id")) {
         CcsmApi.forstaRefreshToken(ConversationListActivity.this);
         ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));

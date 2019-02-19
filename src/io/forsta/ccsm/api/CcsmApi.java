@@ -311,7 +311,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_USER);
   }
 
-  public static JSONObject getForstaUser(Context context) {
+  public static JSONObject getLocalForstaUser(Context context) {
     return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
   }
 

@@ -37,7 +37,6 @@ import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -46,45 +45,24 @@ public class DirectoryHelper {
   private static final String TAG = DirectoryHelper.class.getSimpleName();
 
   public static void resetDirectory(Context context) throws IOException {
-    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), true);
+    refreshDirectory(context, TextSecurePreferences.getLocalNumber(context), true);
   }
 
   public static void refreshDirectory(@NonNull Context context) throws IOException {
-    refreshDirectory(context, TextSecureCommunicationFactory.createManager(context), TextSecurePreferences.getLocalNumber(context), false);
+    refreshDirectory(context, TextSecurePreferences.getLocalNumber(context), false);
   }
 
-  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber) throws IOException {
-    refreshDirectory(context, accountManager, localNumber, false);
+  public static void refreshDirectory(@NonNull Context context, @NonNull String localNumber) throws IOException {
+    refreshDirectory(context, localNumber, false);
   }
 
-  public static void refreshDirectory(@NonNull Context context, @NonNull ForstaServiceAccountManager accountManager, @NonNull String localNumber, boolean resetDirectory) throws IOException {
-    JSONObject localUser = CcsmApi.getForstaUser(context);
+  private static void refreshDirectory(@NonNull Context context, @NonNull String localNumber, boolean resetDirectory) throws IOException {
+    JSONObject localUser = CcsmApi.getLocalForstaUser(context);
     if (localUser == null || !localUser.has("id")) {
       return;
     }
-
     ForstaPreferences.setForstaUser(context, localUser.toString());
     CcsmApi.syncForstaContacts(context, resetDirectory);
-    ContactDb contactsDb = DbFactory.getContactDb(context);
-    Set<String> eligibleContactAddresses = contactsDb.getAddresses();
-    // Two devices had crashes because of a null UID value in the contactsDb
-    if (eligibleContactAddresses.contains(null)) {
-      Log.e(TAG, "Null number in contactsDb!");
-      eligibleContactAddresses.remove(null);
-    }
-
-    eligibleContactAddresses.add(localNumber);
-    TextSecureDirectory directory = TextSecureDirectory.getInstance(context);
-    List<ContactTokenDetails> activeTokens = accountManager.getContacts(eligibleContactAddresses);
-
-    if (activeTokens != null) {
-      for (ContactTokenDetails activeToken : activeTokens) {
-        eligibleContactAddresses.remove(activeToken.getNumber());
-      }
-
-      directory.setNumbers(activeTokens, eligibleContactAddresses);
-      contactsDb.setRegisteredForstaAddresses(activeTokens, eligibleContactAddresses);
-    }
     notifyRefresh(context);
   }
 
