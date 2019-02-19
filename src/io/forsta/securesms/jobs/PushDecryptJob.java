@@ -575,21 +575,6 @@ public class PushDecryptJob extends ContextJob {
           iceIntent.putIntegerArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX_LIST, sdpMLineIndexes);
 
           context.startService(iceIntent);
-
-//          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
-//          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
-//            Intent iceIntent = new Intent(context, WebRtcCallService.class);
-//            iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, ice.sdp);
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, ice.sdpMid);
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, ice.sdpMLineIndex);
-//            iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
-//
-//            context.startService(iceIntent);
-//          }
-
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
           // Temporary fix
