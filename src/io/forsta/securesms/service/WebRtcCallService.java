@@ -131,6 +131,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String EXTRA_ICE_SDP            = "ice_sdp";
   public static final String EXTRA_ICE_SDP_MID        = "ice_sdp_mid";
   public static final String EXTRA_ICE_SDP_LINE_INDEX = "ice_sdp_line_index";
+  public static final String EXTRA_ICE_SDP_LIST            = "ice_sdp_list";
+  public static final String EXTRA_ICE_SDP_MID_LIST        = "ice_sdp_mid_list";
+  public static final String EXTRA_ICE_SDP_LINE_INDEX_LIST = "ice_sdp_line_index_list";
   public static final String EXTRA_RESULT_RECEIVER    = "result_receiver";
   public static final String EXTRA_THREAD_UID         = "thread_uid";
   public static final String EXTRA_PEER_ID            = "peer_id";
@@ -149,6 +152,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String ACTION_SCREEN_OFF           = "SCREEN_OFF";
   public static final String ACTION_CHECK_TIMEOUT        = "CHECK_TIMEOUT";
   public static final String ACTION_IS_IN_CALL_QUERY     = "IS_IN_CALL";
+  public static final String ACTION_ADD_ICE_MESSAGE     = "ADD_ICE_MESSAGE";
 
   public static final String ACTION_RESPONSE_MESSAGE  = "RESPONSE_MESSAGE";
   public static final String ACTION_ICE_MESSAGE       = "ICE_MESSAGE";
@@ -242,7 +246,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_WIRED_HEADSET_CHANGE))      handleWiredHeadsetChange(intent);
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleAcceptOffer(intent);
-        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidate(intent); // X
+        else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidates(intent); // X
         else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
@@ -250,6 +254,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals(ACTION_IS_IN_CALL_QUERY))          handleIsInCallQuery(intent);
         else if (intent.getAction().equals(ACTION_REMOTE_VIDEO_ENABLE))       handleRemoteVideoEnable(intent);
         else if (intent.getAction().equals(ACTION_RESTART_CONNECTION))        handleRestartConnection(intent);
+        else if (intent.getAction().equals(ACTION_ADD_ICE_MESSAGE))        handleAddIceCandidate(intent);
       }
     });
 
@@ -628,16 +633,40 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
   }
 
-  private void handleIncomingIceCandidate(Intent intent) {
-    Log.w(TAG, "handleIncomingIceCandidate...");
+  private void handleAddIceCandidate(Intent intent) {
+    Log.w(TAG, "handleAddIceCandidate...");
     CallMember connection = getCallMember(intent);
-
     if (connection != null && callId != null && callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
           intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
           intent.getStringExtra(EXTRA_ICE_SDP));
-
+      Log.w(TAG, "Adding ice candidate " + candidate + " for: " + connection);
       connection.addIncomingIceCandidate(candidate);
+    } else {
+      Log.w(TAG, "No connection, or invalid callId");
+    }
+  }
+
+  private void handleIncomingIceCandidates(Intent intent) {
+    Log.w(TAG, "handleIncomingIceCandidate...");
+    CallMember connection = getCallMember(intent);
+
+    if (connection != null && callId != null && callId.equals(getCallId(intent))) {
+      ArrayList<String> sdps = intent.getStringArrayListExtra(EXTRA_ICE_SDP_LIST);
+      ArrayList<String> sdpMids = intent.getStringArrayListExtra(EXTRA_ICE_SDP_MID_LIST);
+      ArrayList<Integer> sdpMLineIndexes = intent.getIntegerArrayListExtra(EXTRA_ICE_SDP_LINE_INDEX_LIST);
+      for (int i=0; i< sdps.size(); i++) {
+        Intent iceIntent = new Intent(getApplicationContext(), WebRtcCallService.class);
+        iceIntent.setAction(WebRtcCallService.ACTION_ADD_ICE_MESSAGE);
+        iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, intent.getStringExtra(WebRtcCallService.EXTRA_CALL_ID));
+        iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, intent.getStringExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS));
+        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, sdps.get(i));
+        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, sdpMids.get(i));
+        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, sdpMLineIndexes.get(i));
+        iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, intent.getStringExtra(WebRtcCallService.EXTRA_PEER_ID));
+
+        startService(iceIntent);
+      }
     } else {
       Log.w(TAG, "No connection, or invalid callId");
     }

@@ -171,8 +171,6 @@ public class WebRtcCallActivity extends Activity {
                                       R.drawable.ic_mic_white_48dp, R.drawable.ic_videocam_white_48dp)
                  .withPermanentDenialDialog(getString(R.string.Permissions_required_microphone))
                  .onAllGranted(() -> {
-                   callScreen.setActiveCall(event.getCallRecipient(), event.getCallOrder());
-
                    Intent intent = new Intent(this, WebRtcCallService.class);
                    intent.setAction(WebRtcCallService.ACTION_ANSWER_CALL);
                    startService(intent);
