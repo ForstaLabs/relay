@@ -97,8 +97,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     RefreshForstaToken task = new RefreshForstaToken();
     task.execute();
 
-    ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
-
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       syncIndicator.setVisibility(View.VISIBLE);
       Account account = ForstaSyncAdapter.getAccount(getApplicationContext());
@@ -254,6 +252,7 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
           Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
         }
       } else {
+        ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
         ForstaOrg forstaOrg = ForstaOrg.getLocalForstaOrg(ConversationListActivity.this);
         if (forstaOrg != null) {
           TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
