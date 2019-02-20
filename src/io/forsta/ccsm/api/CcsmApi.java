@@ -453,11 +453,18 @@ public class CcsmApi {
     return parseUsers(context, jsonObject);
   }
 
-  private static boolean isUnauthorizedResponse(JSONObject response) {
+  public static boolean isErrorResponse(JSONObject response) {
+    if (response.has("error")) {
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isUnauthorizedResponse(JSONObject response) {
     if (response == null) {
       return true;
     }
-    if (response.has("error")) {
+    if (isErrorResponse(response)) {
       try {
         String error = response.getString("error");
         Log.e(TAG, error);

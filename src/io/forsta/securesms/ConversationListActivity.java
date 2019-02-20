@@ -93,8 +93,11 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
-    RefreshUserOrg task = new RefreshUserOrg();
+
+    RefreshForstaToken task = new RefreshForstaToken();
     task.execute();
+
+    ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
       syncIndicator.setVisibility(View.VISIBLE);
@@ -235,44 +238,23 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class RefreshUserOrg extends AsyncTask<Void, Void, JSONObject> {
+  public class RefreshForstaToken extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      JSONObject userResponse = CcsmApi.getLocalForstaUser(ConversationListActivity.this);
-      if (userResponse.has("id")) {
-        CcsmApi.forstaRefreshToken(ConversationListActivity.this);
-        ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
-        ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
-        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
-        if (orgResponse.has("id")) {
-          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
-        }
-      } else {
-        return userResponse;
-      }
-      return null;
+      return CcsmApi.forstaRefreshToken(ConversationListActivity.this);
     }
 
     @Override
-    protected void onPostExecute(JSONObject errorResponse) {
-      if (errorResponse != null) {
-        try {
-          String errorResult = errorResponse.getString("error");
-          JSONObject error = new JSONObject(errorResult);
-          if (error.has("401")) {
-            Log.e(TAG, "Not Authorized");
-            handleLogout();
-          } else {
-            Log.e(TAG, "Error: " + errorResult);
-            Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
-          }
-        } catch (JSONException e) {
-          Log.d(TAG, "Error: " + e.getMessage());
-          Toast.makeText(ConversationListActivity.this, "Invalid response from server. Check your network connection.", Toast.LENGTH_LONG).show();
+    protected void onPostExecute(JSONObject response) {
+      if (CcsmApi.isErrorResponse(response)) {
+        if (CcsmApi.isUnauthorizedResponse(response)) {
+          handleLogout();
+        } else {
+          Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
         }
       } else {
-        ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
+        ForstaOrg forstaOrg = ForstaOrg.getLocalForstaOrg(ConversationListActivity.this);
         if (forstaOrg != null) {
           TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
           title.setText(forstaOrg.getName().toLowerCase());

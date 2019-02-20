@@ -19,6 +19,7 @@ import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.BuildConfig;
+import io.forsta.securesms.ConversationListActivity;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
@@ -62,6 +63,12 @@ public class DirectoryHelper {
       return;
     }
     ForstaPreferences.setForstaUser(context, localUser.toString());
+
+    JSONObject orgResponse = CcsmApi.getOrg(context);
+    if (orgResponse != null && orgResponse.has("id")) {
+      ForstaPreferences.setForstaOrg(context, orgResponse.toString());
+    }
+
     CcsmApi.syncForstaContacts(context, resetDirectory);
     notifyRefresh(context);
   }
