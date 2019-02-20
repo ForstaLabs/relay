@@ -303,7 +303,7 @@ public class CcsmApi {
     return getOrg(context, localAccount.org_id);
   }
 
-  public static JSONObject getOrg(Context context, String id) {
+  private static JSONObject getOrg(Context context, String id) {
     return fetchResource(context, "GET", API_ORG + id + "/");
   }
 
