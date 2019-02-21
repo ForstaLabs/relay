@@ -1286,7 +1286,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
           SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
-          Log.w(TAG, "Sending ICE Update: " + recipients.toFullString());
+          Log.d(TAG, "Sending ICE Update: " + recipients.toFullString());
           messageSender.sendMessage(addresses, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();
@@ -1885,7 +1885,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
-      Log.d(TAG, "onIceCandidate (outgoing)");
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
@@ -1900,12 +1899,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceCandidatesRemoved(IceCandidate[] candidates) {
-      Log.w(TAG, "onIceCandidatesRemoved:" + (candidates != null ? candidates.length : null));
+      Log.d(TAG, "onIceCandidatesRemoved:" + (candidates != null ? candidates.length : null));
     }
 
     @Override
     public void onAddStream(MediaStream stream) {
-      Log.w(TAG, "onAddStream: " + this);
+      Log.d(TAG, "onAddStream: " + this);
 
       for (AudioTrack audioTrack : stream.audioTracks) {
         audioTrack.setEnabled(true);
@@ -1921,22 +1920,22 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onRemoveStream(MediaStream mediaStream) {
-      Log.w(TAG, "onRemoveStream:" + mediaStream);
+      Log.d(TAG, "onRemoveStream:" + mediaStream);
     }
 
     @Override
     public void onDataChannel(DataChannel dataChannel) {
-      Log.w(TAG, "onDataChannel:" + dataChannel.label());
+      Log.d(TAG, "onDataChannel:" + dataChannel.label());
     }
 
     @Override
     public void onRenegotiationNeeded() {
-      Log.w(TAG, "onRenegotiationNeeded");
+      Log.d(TAG, "onRenegotiationNeeded");
     }
 
     @Override
     public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
-      Log.w(TAG, "onAddTrack: " + this);
+      Log.d(TAG, "onAddTrack: " + this);
     }
 
     @Override
