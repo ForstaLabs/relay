@@ -49,7 +49,6 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver implements In
 
     GoogleCloudMessaging gcm         = GoogleCloudMessaging.getInstance(context);
     String               messageType = gcm.getMessageType(intent);
-    Log.w(TAG, "PushNotification...");
 
     if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
       if (!TextSecurePreferences.isPushRegistered(context)) {

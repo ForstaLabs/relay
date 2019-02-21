@@ -184,12 +184,10 @@ public class ForstaMessageManager {
                 JSONObject offer = data.getJSONObject("offer");
                 String spd = offer.optString("sdp");
                 String peerId = data.getString("peerId");
-                Log.w(TAG, "Call offer callId: " + callId + " peerId: " + peerId);
                 forstaMessage.setCallOffer(callId, originator, peerId, spd);
 
                 if (data.has("members")) {
                   JSONArray callMembers = data.getJSONArray("members");
-                  Log.w(TAG, "Call members: " + callMembers.toString());
                   ForstaMessage.ForstaCall currentCall = forstaMessage.getCall();
                   for (int i=0; i<callMembers.length(); i++) {
                     String memberId = callMembers.getString(i);
@@ -207,7 +205,6 @@ public class ForstaMessageManager {
                 JSONObject answer = data.getJSONObject("answer");
                 String spd = answer.optString("sdp");
                 String peerId = data.getString("peerId");
-                Log.w(TAG, "Call accept offer callId: " + callId + " peerId: " + peerId);
                 forstaMessage.setCallOffer(callId, originator, peerId, spd);
               } else {
                 Log.w(TAG, "Not a valid callAcceptOffer control message");

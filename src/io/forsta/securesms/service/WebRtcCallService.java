@@ -186,7 +186,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private CallMember localCallMember;
 
   private Map<String, CallMember> remoteCallMembers = new HashMap<>();
-  private List<PeerConnection.IceServer> iceServiers;
+  private List<PeerConnection.IceServer> iceServers;
   @NonNull  private AudioTrack localAudioTrack;
   @NonNull  private AudioSource localAudioSource;
 
@@ -426,8 +426,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
       timeoutExecutor.schedule(new TimeoutRunnable(member), 30, TimeUnit.SECONDS);
 
-      if (iceServiers != null && iceServiers.size() > 0) {
-        addCallMember(member, incomingPeerId, offer, iceServiers);
+      if (iceServers != null && iceServers.size() > 0) {
+        addCallMember(member, incomingPeerId, offer, iceServers);
       } else {
         retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
           @Override
@@ -487,7 +487,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       retrieveTurnServers().addListener(new SuccessOnlyListener<List<PeerConnection.IceServer>>(callState, callId) {
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
-          WebRtcCallService.this.iceServiers = result;
+          WebRtcCallService.this.iceServers = result;
           try {
             incomingMember.createPeerConnection(result, remoteRenderer, localMediaStream, incomingPeerId, incomingMember.callOrder);
             incomingMember.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
@@ -1038,7 +1038,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
             });
           }
         } else {
-          Log.w(TAG, "Restarting connection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
+          Log.w(TAG, "handleRestartConnection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
 //          sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
       }
@@ -1088,7 +1088,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     for (CallMember callMember : remoteCallMembers.values()) {
       if (callMember.peerConnection == null) {
         try {
-          callMember.createPeerConnection(iceServiers, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
+          callMember.createPeerConnection(iceServers, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
           SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
           callMember.peerConnection.setLocalDescription(sdp);
 
