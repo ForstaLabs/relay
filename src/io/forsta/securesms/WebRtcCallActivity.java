@@ -241,7 +241,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
-    Log.w(TAG, "Member joining. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
+    Log.d(TAG, "Member joining. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
   }
 
@@ -306,7 +306,7 @@ public class WebRtcCallActivity extends Activity {
 
   @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
   public void onEventMainThread(final WebRtcViewModel event) {
-    Log.w(TAG, "Got message from service: " + event);
+    Log.d(TAG, "EventBus message: " + event);
 
     switch (event.getState()) {
       case CALL_CONNECTED:          handleCallConnected(event);            break;
@@ -393,9 +393,8 @@ public class WebRtcCallActivity extends Activity {
 
     @Override
     public void onItemClick(int position) {
-      Log.w(TAG, "Clicked item: " + (position + 1));
       CallRecipient recipient = callScreen.getCallRecipient(position + 1);
-      Log.w(TAG, "CallRecipient: " + recipient);
+      Log.d(TAG, "Clicked CallRecipient: " + (position + 1) + " " + recipient);
       if (isValidCallState(recipient.getCallState()) && !recipient.isVideoEnabled()) {
         Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
         intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
