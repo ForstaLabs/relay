@@ -292,7 +292,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   @Override
   public void onBluetoothStateChanged(boolean isAvailable) {
-    Log.w(TAG, "onBluetoothStateChanged: " + isAvailable);
+    Log.d(TAG, "onBluetoothStateChanged: " + isAvailable);
 
     Intent intent = new Intent(this, WebRtcCallService.class);
     intent.setAction(ACTION_BLUETOOTH_CHANGE);
@@ -1875,12 +1875,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceConnectionReceivingChange(boolean receiving) {
-      Log.w(TAG, "onIceConnectionReceivingChange:" + receiving);
+      Log.d(TAG, "onIceConnectionReceivingChange:" + receiving);
     }
 
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
-      Log.w(TAG, "onIceGatheringChange:" + iceGatheringState);
+      Log.d(TAG, "onIceGatheringChange:" + iceGatheringState);
     }
 
     @Override

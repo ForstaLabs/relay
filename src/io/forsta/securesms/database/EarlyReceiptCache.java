@@ -12,8 +12,6 @@ public class EarlyReceiptCache {
   private final LRUCache<Placeholder, Long> cache = new LRUCache<>(100);
 
   public synchronized void increment(long timestamp, String address) {
-    Log.w(TAG, this+"");
-    Log.w(TAG, String.format("Early receipt: %d,%s", timestamp, address));
     Placeholder tuple = new Placeholder(timestamp, address);
     Long        count = cache.get(tuple);
 
@@ -26,8 +24,6 @@ public class EarlyReceiptCache {
 
   public synchronized long remove(long timestamp, String address) {
     Long count = cache.remove(new Placeholder(timestamp, address));
-    Log.w(TAG, this+"");
-    Log.w(TAG, String.format("Checking early receipts (%d, %s): %d", timestamp, address, count));
     return count != null ? count : 0;
   }
 
