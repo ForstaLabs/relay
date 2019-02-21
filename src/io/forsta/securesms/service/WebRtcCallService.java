@@ -778,14 +778,13 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
       Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
       member.terminate();
+      sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
       if (callState == CallState.STATE_LOCAL_RINGING) {
         if (member.callOrder == 1) {
           sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
           insertMissedCall(member.recipient, true);
           terminateCall(true);
-        } else {
-          sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
       } else if (callState == CallState.STATE_REMOTE_RINGING) {
         terminateCall(true);
