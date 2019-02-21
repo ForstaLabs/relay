@@ -609,7 +609,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
       if (member.pendingOutgoingIceUpdates != null && !member.pendingOutgoingIceUpdates.isEmpty()) {
-        Log.w(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
+        Log.d(TAG, "handleAcceptOffer pendingOutgoingIceUpdates sendIceUpdateMessage");
         Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), member.recipient, false);
         ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(recipients, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -1885,6 +1885,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
+      Log.d(TAG, "onIceCandidate (outgoing)");
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
