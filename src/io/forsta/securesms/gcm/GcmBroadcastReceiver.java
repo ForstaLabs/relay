@@ -60,15 +60,12 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver implements In
       String receiptData = intent.getStringExtra("receipt");
 
       if      (!TextUtils.isEmpty(messageData)) {
-        Log.w(TAG, "PushNotification message " + messageData);
         handleReceivedMessage(context, messageData);
       }
       else if (!TextUtils.isEmpty(receiptData)) {
-        Log.w(TAG, "PushNotification receipt " + receiptData);
         handleReceivedMessage(context, receiptData);
       }
       else if (intent.hasExtra("notification")) {
-        Log.w(TAG, "PushNotification notification");
         handleReceivedNotification(context);
       } else {
         Log.w(TAG, "PushNotification no notification information:");
@@ -126,7 +123,6 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver implements In
         }
 
         decrementActiveGcmCount();
-        Log.i(TAG, "Processing complete.");
       }
     });
 
