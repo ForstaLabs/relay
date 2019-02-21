@@ -1837,12 +1837,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onSignalingChange(PeerConnection.SignalingState newState) {
-      Log.d(TAG, "onSignalingChange: " + newState);
+      Log.d(TAG, "onSignalingChange: " + this + " " + newState);
     }
 
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
-      Log.d(TAG, "onIceConnectionChange:" + newState + " " + toString());
+      Log.d(TAG, "onIceConnectionChange: " + this + " " + newState);
 
       if (newState == PeerConnection.IceConnectionState.CONNECTED ||
           newState == PeerConnection.IceConnectionState.COMPLETED)
@@ -1875,16 +1875,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceConnectionReceivingChange(boolean receiving) {
-      Log.d(TAG, "onIceConnectionReceivingChange:" + receiving);
+      Log.d(TAG, "onIceConnectionReceivingChange: " + this + " receiving: " + receiving);
     }
 
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
-      Log.d(TAG, "onIceGatheringChange:" + iceGatheringState);
+      Log.d(TAG, "onIceGatheringChange:" + this + " " + iceGatheringState);
     }
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
+      Log.d(TAG, "onIceCandidate: " + this);
       Intent intent = new Intent(context, WebRtcCallService.class);
 
       intent.setAction(ACTION_ICE_CANDIDATE);
@@ -1899,7 +1900,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceCandidatesRemoved(IceCandidate[] candidates) {
-      Log.d(TAG, "onIceCandidatesRemoved:" + (candidates != null ? candidates.length : null));
+      Log.d(TAG, "onIceCandidatesRemoved:" + this + " " + (candidates != null ? candidates.length : null));
     }
 
     @Override
@@ -1920,7 +1921,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onRemoveStream(MediaStream mediaStream) {
-      Log.d(TAG, "onRemoveStream:" + mediaStream);
+      Log.d(TAG, "onRemoveStream:" + this);
     }
 
     @Override
@@ -1930,7 +1931,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onRenegotiationNeeded() {
-      Log.d(TAG, "onRenegotiationNeeded");
+      Log.d(TAG, "onRenegotiationNeeded: " + this);
     }
 
     @Override
