@@ -352,13 +352,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
   }
 
-  private void addCallMember(CallMember member, String incomingPeerId, String offer, List<PeerConnection.IceServer> iceServerUpdate) {
+  private synchronized void addCallMember(CallMember member, String incomingPeerId, String offer, List<PeerConnection.IceServer> iceServerUpdate) {
     Log.w(TAG, "addCallMember: " + callState + " " + member);
-    try {
-      member.createPeerConnection(iceServerUpdate, remoteRenderer, localMediaStream, incomingPeerId, member.callOrder);
-      member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
-
       try {
+        member.createPeerConnection(iceServerUpdate, remoteRenderer, localMediaStream, incomingPeerId, member.callOrder);
+        member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.OFFER, offer));
+
         if (callState == CallState.STATE_CONNECTED) {
           SessionDescription sdp = member.peerConnection.createAnswer(new MediaConstraints());
           member.peerConnection.setLocalDescription(sdp);
@@ -385,11 +384,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         e.printStackTrace();
         member.terminate();
       }
-
-    } catch (PeerConnectionWrapper.PeerConnectionException e) {
-      Log.w(TAG, e);
-      member.terminate();
-    }
   }
 
   // Handlers
@@ -401,7 +395,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     final String offer = intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION);
     final String incomingThreadId = intent.getStringExtra(EXTRA_THREAD_UID);
 
-    Log.w(TAG, "handleIncomingCall callState: " + callState + " callId: " + incomingCallId + " address: " + incomingAddress);
+    Log.w(TAG, "handleIncomingCall: " + callState + " callId: " + incomingCallId + " address: " + incomingAddress);
     if (callId != null) {
       // Existing call. Member joining
       if (!callId.equals(incomingCallId)) {
@@ -416,8 +410,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return;
       }
 
-      Log.w(TAG, "Adding new member to existing call");
+
       final CallMember member = remoteCallMembers.get(incomingAddress);
+      Log.w(TAG, "Adding member to existing call " + callState + " " + member);
 
       if (isIncomingMessageExpired(intent)) {
         insertMissedCall(member.recipient, true);
@@ -439,7 +434,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
     } else {
-      Log.w(TAG, "Accepting new call request from: " + incomingAddress);
+
       // New call.
       if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Incoming on non-idle");
       threadUID = incomingThreadId;
@@ -455,6 +450,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
 
       final CallMember incomingMember = remoteCallMembers.get(incomingAddress);
+      Log.w(TAG, "New incoming call: " + callState + " " + incomingMember);
+
       if (incomingMember == null) {
         Log.w(TAG, "Unknown caller");
         terminateCall(false);
@@ -635,8 +632,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleAddIceCandidate(Intent intent) {
-    Log.d(TAG, "handleAddIceCandidate: " + callState);
     CallMember connection = getCallMember(intent);
+    Log.d(TAG, "handleAddIceCandidate: " + callState + " " + connection);
+
     if (connection != null && callId != null && callId.equals(getCallId(intent))) {
       IceCandidate candidate = new IceCandidate(intent.getStringExtra(EXTRA_ICE_SDP_MID),
           intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
@@ -673,6 +671,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleOutgoingIceCandidate(Intent intent) {
     CallMember remoteMember = getCallMember(intent);
+    Log.w(TAG, "handleOutgoingIceCandidate: " + callState + " " + remoteMember);
 
     if (callState == CallState.STATE_IDLE || callId == null || !callId.equals(getCallId(intent))) {
       Log.w(TAG, "State is now idle, ignoring ice candidate...");
@@ -797,7 +796,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleAnswerCall(Intent intent) {
-    Log.d(TAG, "handleAnswerCall callState: " + callState);
+    Log.w(TAG, "handleAnswerCall callState: " + callState);
+
     if (callState != CallState.STATE_LOCAL_RINGING) {
       Log.w(TAG, "Can only answer from ringing!");
       return;
@@ -1324,7 +1324,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
           SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
-          Log.w(TAG, "Sending callAcceptOffer to: " + recipients.toShortString());
+          Log.w(TAG, "sendCallAcceptOffer: " + callState + " " + recipients.toShortString());
           messageSender.sendMessage(addresses, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();
@@ -1773,7 +1773,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.peerId = peerId;
       this.renderer = renderer;
       this.callOrder = callOrder;
-      Log.d(TAG, "createPeerConnection: " + this);
+      Log.w(TAG, "createPeerConnection: " + callState + " " + this);
       this.peerConnection = new PeerConnectionWrapper(WebRtcCallService.this, peerConnectionFactory, this, localMediaStream, result);
     }
 
@@ -1951,7 +1951,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       if (peerConnection != null) {
         connectionInfo = peerConnection.getRemoteDescription() != null ? "Have remote description" : "No remote description";
       }
-      return "Recipient: " + recipient.getLocalTag() + " (" + address + ") Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
+      return "" + recipient.getLocalTag() + " (" + address + ") Peer ID: " + peerId + " callOrder: " + callOrder + " connection: " + connectionInfo;
     }
   }
 }

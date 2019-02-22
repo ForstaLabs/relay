@@ -161,6 +161,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleAnswerCall() {
+    Log.w(TAG, "handleAnswerCall: ");
     WebRtcViewModel event = EventBus.getDefault().getStickyEvent(WebRtcViewModel.class);
 
     if (event != null) {
