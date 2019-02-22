@@ -220,7 +220,7 @@ public class RegistrationService extends Service {
     TextSecurePreferences.setWebsocketRegistered(this, true);
 
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());
-    DirectoryHelper.refreshDirectory(this, accountManager, addr);
+    DirectoryHelper.refreshDirectory(this, addr);
     DirectoryRefreshListener.schedule(this);
   }
 

@@ -20,54 +20,24 @@ package io.forsta.securesms.components.webrtc;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.telecom.Call;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-
-import io.forsta.ccsm.components.webrtc.CallMemberView;
 import io.forsta.ccsm.webrtc.CallMemberListAdapter;
 import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.R;
-//import io.forsta.securesms.mms.GlideApp;
-import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.Recipient.RecipientModifiedListener;
 import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.Util;
-//import io.forsta.securesms.util.VerifySpan;
-import io.forsta.securesms.util.ViewUtil;
 import org.webrtc.SurfaceViewRenderer;
-import org.whispersystems.libsignal.IdentityKey;
-
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import io.forsta.securesms.recipients.Recipient;
 
 /**
  * A UI widget that encapsulates the entire in-call screen
@@ -171,10 +141,10 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void setOutgoingCall(CallRecipient callRecipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {
     remoteCallMembers = remoteCallRecipients;
-    updateCallMember(callRecipient, callOrder);
     incomingCallButton.stopRingingAnimation();
     incomingCallButton.setVisibility(View.GONE);
     endCallButton.setVisibility(VISIBLE);
+    updateCallMember(callRecipient, callOrder);
     callMemberListAdapter = new CallMemberListAdapter(remoteCallMembers);
     if (callMemberClickListener != null) {
       callMemberListAdapter.setItemClickListener(callMemberClickListener);

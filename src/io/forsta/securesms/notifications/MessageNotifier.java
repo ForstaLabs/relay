@@ -364,7 +364,8 @@ public class MessageNotifier {
 
     while ((record = reader.getNext()) != null) {
       long         threadId         = record.getThreadId();
-      Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);;
+      RecipientFactory.clearCache(context);
+      Recipients   threadRecipients = DatabaseFactory.getThreadDatabase(context).getRecipientsForThreadId(threadId);
       Recipient    sender        = record.getIndividualRecipient();
       if (threadRecipients == null || threadRecipients.isEmpty()) {
         Log.w(TAG, "Thread has no recipients. Setting to sender");

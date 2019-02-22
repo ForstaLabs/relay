@@ -21,6 +21,7 @@ import org.whispersystems.signalservice.api.push.exceptions.PushNetworkException
 import java.io.IOException;
 
 public class DirectoryRefreshJob extends ContextJob {
+  private static String TAG = DirectoryRefreshJob.class.getSimpleName();
 
   @Nullable private transient Recipients recipients;
   @Nullable private transient MasterSecret masterSecret;
@@ -62,7 +63,7 @@ public class DirectoryRefreshJob extends ContextJob {
 
   @Override
   public void onRun() throws IOException {
-    Log.w("DirectoryRefreshJob", "DirectoryRefreshJob.onRun()");
+    Log.w(TAG, "DirectoryRefreshJob.onRun()");
     PowerManager          powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     PowerManager.WakeLock wakeLock     = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Directory Refresh");
 
