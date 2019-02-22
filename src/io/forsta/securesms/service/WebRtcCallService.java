@@ -1822,6 +1822,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     private void terminate() {
+      Log.w(TAG, "terminate: " + this);
       if (peerConnection != null) {
         peerConnection.dispose(localMediaStream);
         peerConnection = null;
@@ -1843,12 +1844,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onSignalingChange(PeerConnection.SignalingState newState) {
-      Log.d(TAG, "onSignalingChange: " + this + " " + newState);
+      Log.d(TAG, "onSignalingChange: " + newState + " " + this);
     }
 
     @Override
     public void onIceConnectionChange(PeerConnection.IceConnectionState newState) {
-      Log.d(TAG, "onIceConnectionChange: " + this + " " + newState);
+      Log.d(TAG, "onIceConnectionChange: " + newState + " " + this);
 
       if (newState == PeerConnection.IceConnectionState.CONNECTED ||
           newState == PeerConnection.IceConnectionState.COMPLETED)
@@ -1886,7 +1887,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
-      Log.d(TAG, "onIceGatheringChange:" + this + " " + iceGatheringState);
+      Log.d(TAG, "onIceGatheringChange:" + iceGatheringState + " " + this);
     }
 
     @Override
