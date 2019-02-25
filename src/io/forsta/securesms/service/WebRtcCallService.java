@@ -127,6 +127,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   public static final String EXTRA_REMOTE_DESCRIPTION = "remote_description";
   public static final String EXTRA_TIMESTAMP          = "timestamp";
   public static final String EXTRA_CALL_ID            = "call_id";
+  public static final String EXTRA_DEVICE_ID            = "device_id";
   public static final String EXTRA_ICE_SDP            = "ice_sdp";
   public static final String EXTRA_ICE_SDP_MID        = "ice_sdp_mid";
   public static final String EXTRA_ICE_SDP_LINE_INDEX = "ice_sdp_line_index";

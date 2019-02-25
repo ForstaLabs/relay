@@ -350,10 +350,12 @@ public class PushDecryptJob extends ContextJob {
     String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
     forstaMessage.setSenderId(envelope.getSource());
+    forstaMessage.setDeviceId(envelope.getSourceDevice());
+    forstaMessage.setTimeStamp(envelope.getTimestamp());
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
-      handleControlMessage(forstaMessage, message.getBody().get(), envelope.getTimestamp());
+      handleControlMessage(forstaMessage);
     }
   }
 
@@ -389,6 +391,7 @@ public class PushDecryptJob extends ContextJob {
     MmsDatabase           database     = DatabaseFactory.getMmsDatabase(context);
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
+    forstaMessage.setTimeStamp(message.getTimestamp());
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
@@ -430,7 +433,7 @@ public class PushDecryptJob extends ContextJob {
       return threadId;
     } else {
       Log.w(TAG, "handleSynchronizeSentMediaMessage Type: " + forstaMessage.getControlType());
-      handleControlMessage(forstaMessage, message.getMessage().getBody().get(), message.getTimestamp());
+      handleSyncControlMessage(forstaMessage);
       return -1;
     }
   }
@@ -480,9 +483,129 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void handleControlMessage(ForstaMessage forstaMessage, String messageBody, long timestamp) {
+  private void handleCallJoin(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    if (threadId == -1) {
+      Log.w(TAG, "No such thread id");
+      ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+      Recipients recipients = getDistributionRecipients(distribution);
+      DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
+    }
+
+    ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
+    Intent joinIntent = new Intent(context, WebRtcCallService.class);
+    joinIntent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+    joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callJoin.getCallId());
+    joinIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    joinIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());
+    joinIntent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
+    joinIntent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimeStamp());
+    joinIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callJoin.getPeerId());
+    List<String> joinMembers = callJoin.getCallMembers();
+    joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, joinMembers.toArray(new String[joinMembers.size()]));
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(joinIntent);
+    else                                                context.startService(joinIntent);
+  }
+
+  private void handleCallOffer(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    if (threadId == -1) {
+      Log.w(TAG, "No such thread id");
+      ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+      Recipients recipients = getDistributionRecipients(distribution);
+      DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
+    }
+
+    ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
+    Intent intent = new Intent(context, WebRtcCallService.class);
+    intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+    intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
+    intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
+    intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
+    intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimeStamp());
+    intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
+    //No longer in payload.
+    List<String> members = callOffer.getCallMembers();
+    intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, members.toArray(new String[members.size()]));
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
+    else                                                context.startService(intent);
+  }
+
+  private void handleCallIceCandidates(ForstaMessage forstaMessage) {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    // Temporary fix
+    if (threadId == -1) {
+      Log.w(TAG, "No such thread id");
+      return;
+    }
+
+    ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
+    ArrayList<String> sdps = new ArrayList<>();
+    ArrayList<String> sdpMids = new ArrayList<>();
+    ArrayList<Integer> sdpMLineIndexes = new ArrayList<>();
+    for (IceCandidate ice : iceUpdate.getIceCandidates()) {
+      sdps.add(ice.sdp);
+      sdpMids.add(ice.sdpMid);
+      sdpMLineIndexes.add(ice.sdpMLineIndex);
+    }
+
+    Intent iceIntent = new Intent(context, WebRtcCallService.class);
+    iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
+    iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
+    iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
+    iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LIST, sdps);
+    iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_MID_LIST, sdpMids);
+    iceIntent.putIntegerArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX_LIST, sdpMLineIndexes);
+
+    context.startService(iceIntent);
+  }
+
+  private void handleCallAcceptOffer(ForstaMessage forstaMessage) {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    // Temporary fix
+    if (threadId == -1) {
+      Log.w(TAG, "No such thread id");
+      return;
+    }
+    ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
+    Log.w(TAG, "" + callAcceptOffer.toString());
+    Intent acceptIntent = new Intent(context, WebRtcCallService.class);
+    acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
+    acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
+    acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
+
+    context.startService(acceptIntent);
+  }
+
+  private void handleCallLeave(ForstaMessage forstaMessage) {
+    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+    // Temporary fix
+    if (threadId == -1) {
+      Log.w(TAG, "No such thread id");
+      return;
+    }
+    ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
+    Intent leaveIntent = new Intent(context, WebRtcCallService.class);
+    leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
+    leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
+    leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+
+    context.startService(leaveIntent);
+  }
+
+  private void handleSyncControlMessage(ForstaMessage forstaMessage) {
+    handleControlMessage(forstaMessage);
+  }
+
+  private void handleControlMessage(ForstaMessage forstaMessage) {
     try {
       Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
+
       long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
       switch (forstaMessage.getControlType()) {
         case ForstaMessage.ControlTypes.THREAD_UPDATE:
@@ -525,110 +648,19 @@ public class PushDecryptJob extends ContextJob {
           TextSecurePreferences.setMultiDevice(context, true);
           break;
         case ForstaMessage.ControlTypes.CALL_JOIN:
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-            Recipients recipients = getDistributionRecipients(distribution);
-            DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
-          }
-
-          ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
-          Intent joinIntent = new Intent(context, WebRtcCallService.class);
-          joinIntent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
-          joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callJoin.getCallId());
-          joinIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-          joinIntent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
-          joinIntent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
-          joinIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callJoin.getPeerId());
-          List<String> joinMembers = callJoin.getCallMembers();
-          joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, joinMembers.toArray(new String[joinMembers.size()]));
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(joinIntent);
-          else                                                context.startService(joinIntent);
-
+          handleCallJoin(forstaMessage);
           break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-            Recipients recipients = getDistributionRecipients(distribution);
-            DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
-          }
-
-          ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
-          Intent intent = new Intent(context, WebRtcCallService.class);
-          intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
-          intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
-          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-          intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
-          intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
-          intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
-          intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
-          //No longer in payload.
-          List<String> members = callOffer.getCallMembers();
-          intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, members.toArray(new String[members.size()]));
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent);
-          else                                                context.startService(intent);
+          handleCallOffer(forstaMessage);
           break;
         case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
-          // Temporary fix
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            return;
-          }
-
-          ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
-          ArrayList<String> sdps = new ArrayList<>();
-          ArrayList<String> sdpMids = new ArrayList<>();
-          ArrayList<Integer> sdpMLineIndexes = new ArrayList<>();
-          for (IceCandidate ice : iceUpdate.getIceCandidates()) {
-            sdps.add(ice.sdp);
-            sdpMids.add(ice.sdpMid);
-            sdpMLineIndexes.add(ice.sdpMLineIndex);
-          }
-
-          Intent iceIntent = new Intent(context, WebRtcCallService.class);
-          iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
-          iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
-          iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-          iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
-          iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LIST, sdps);
-          iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_MID_LIST, sdpMids);
-          iceIntent.putIntegerArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX_LIST, sdpMLineIndexes);
-
-          context.startService(iceIntent);
+          handleCallIceCandidates(forstaMessage);
           break;
         case ForstaMessage.ControlTypes.CALL_LEAVE:
-          // Temporary fix
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            return;
-          }
-          ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
-          Intent leaveIntent = new Intent(context, WebRtcCallService.class);
-          leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
-          leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
-          leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-
-          context.startService(leaveIntent);
+          handleCallLeave(forstaMessage);
           break;
-
         case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
-          // Temporary fix
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            return;
-          }
-          ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
-          Log.w(TAG, "" + callAcceptOffer.toString());
-          Intent acceptIntent = new Intent(context, WebRtcCallService.class);
-          acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
-          acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
-          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
-          acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
-
-          context.startService(acceptIntent);
+          handleCallAcceptOffer(forstaMessage);
           break;
       }
 

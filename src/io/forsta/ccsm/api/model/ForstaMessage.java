@@ -29,6 +29,8 @@ public class ForstaMessage {
   private String messageRef;
   private int vote;
   private ForstaCall rtcCall;
+  private int deviceId = -1;
+  private long timeStamp;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -156,6 +158,22 @@ public class ForstaMessage {
 
   public ForstaCall getCall() {
     return rtcCall;
+  }
+
+  public long getTimeStamp() {
+    return timeStamp;
+  }
+
+  public int getDeviceId() {
+    return deviceId;
+  }
+
+  public void setTimeStamp(long timeStamp) {
+    this.timeStamp = timeStamp;
+  }
+
+  public void setDeviceId(int deviceId) {
+    this.deviceId = deviceId;
   }
 
   public void setVote(int count) {
