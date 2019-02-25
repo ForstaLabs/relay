@@ -523,7 +523,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
       this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
       String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
-      this.callId = UUID.randomUUID().toString();
+      this.callId = threadUID;
       final String localPeerId = UUID.randomUUID().toString();
 
       int memberCount = 0;
@@ -907,6 +907,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
+    member.terminate();
     if (!hasActiveCalls()) {
       if (callState == CallState.STATE_REMOTE_RINGING) {
         sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -918,10 +919,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
-      member.terminate();
       terminateCall(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
-      member.terminate();
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
   }
@@ -934,7 +933,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleSetMuteVideo(Intent intent) {
-    AudioManager audioManager = ServiceUtil.getAudioManager(this);
     boolean      muted        = intent.getBooleanExtra(EXTRA_MUTE, false);
 
     this.localVideoEnabled = !muted;
@@ -943,14 +941,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (callState == CallState.STATE_CONNECTED) {
       if (localVideoEnabled) this.lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
       else                   this.lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
-    }
-
-    if (localVideoEnabled &&
-        !audioManager.isSpeakerphoneOn() &&
-        !audioManager.isBluetoothScoOn() &&
-        !audioManager.isWiredHeadsetOn())
-    {
-      audioManager.setSpeakerphoneOn(true);
     }
 
     sendMessage(WebRtcViewModel.State.VIDEO_ENABLE, localCallMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
