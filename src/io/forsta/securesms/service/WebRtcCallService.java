@@ -1363,6 +1363,38 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     return listenableFutureTask;
   }
 
+  private ListenableFutureTask<Boolean> sendCallJoin(@NonNull final Recipients recipients, Set<String> memberAddresses, String threadUID,
+                                                      @NonNull final String callId, SessionDescription sdp, String peerId)
+  {
+    Callable<Boolean> callable = new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        try {
+          Context context = getApplicationContext();
+          ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadUID);
+          ForstaUser user = ForstaUser.getLocalForstaUser(context);
+          String payload = ForstaMessageManager.createCallJoinMessage(user, recipients, new ArrayList(memberAddresses), thread, callId, sdp.description, peerId);
+          OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
+
+          SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
+          List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
+          Log.w(TAG, "Sending callJoin to: " + recipients.toShortString());
+          messageSender.sendMessage(addresses, mediaMessage);
+        } catch (Exception e) {
+          e.printStackTrace();
+        } catch (EncapsulatedExceptions encapsulatedExceptions) {
+          encapsulatedExceptions.printStackTrace();
+        }
+        return true;
+      }
+    };
+
+    ListenableFutureTask<Boolean> listenableFutureTask = new ListenableFutureTask<>(callable, null, serviceExecutor);
+    networkExecutor.execute(listenableFutureTask);
+
+    return listenableFutureTask;
+  }
+
   private ListenableFutureTask<Boolean> sendCallLeave(@NonNull final Recipients recipients, String threadUID,
                                                       @NonNull final String callId)
   {

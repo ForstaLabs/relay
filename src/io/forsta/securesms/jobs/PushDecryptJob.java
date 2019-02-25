@@ -524,6 +524,29 @@ public class PushDecryptJob extends ContextJob {
           accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
           TextSecurePreferences.setMultiDevice(context, true);
           break;
+        case ForstaMessage.ControlTypes.CALL_JOIN:
+          if (threadId == -1) {
+            Log.w(TAG, "No such thread id");
+            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+            Recipients recipients = getDistributionRecipients(distribution);
+            DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
+          }
+
+          ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
+          Intent joinIntent = new Intent(context, WebRtcCallService.class);
+          joinIntent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+          joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callJoin.getCallId());
+          joinIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+          joinIntent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
+          joinIntent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
+          joinIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callJoin.getPeerId());
+          List<String> joinMembers = callJoin.getCallMembers();
+          joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, joinMembers.toArray(new String[joinMembers.size()]));
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(joinIntent);
+          else                                                context.startService(joinIntent);
+
+          break;
         case ForstaMessage.ControlTypes.CALL_OFFER:
           if (threadId == -1) {
             Log.w(TAG, "No such thread id");
@@ -541,6 +564,7 @@ public class PushDecryptJob extends ContextJob {
           intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
           intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, timestamp);
           intent.putExtra(WebRtcCallService.EXTRA_PEER_ID, callOffer.getPeerId());
+          //No longer in payload.
           List<String> members = callOffer.getCallMembers();
           intent.putExtra(WebRtcCallService.EXTRA_CALL_MEMBERS, members.toArray(new String[members.size()]));
 
