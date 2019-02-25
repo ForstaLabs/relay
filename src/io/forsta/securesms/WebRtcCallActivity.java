@@ -418,6 +418,12 @@ public class WebRtcCallActivity extends Activity {
             startService(intent);
           }
         });
+        dialog.setNegativeButton("Cancel", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            return;
+          }
+        });
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
           @Override
           public void onCancel(DialogInterface dialog) {

@@ -204,6 +204,12 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void setLocalVideoEnabled(boolean enabled) {
     this.controls.setVideoEnabled(enabled);
+    View video = localMemberLayout.getChildAt(0);
+    if (!enabled) {
+      video.setVisibility(INVISIBLE);
+    } else {
+      video.setVisibility(VISIBLE);
+    }
     localMemberLayout.requestLayout();
   }
 

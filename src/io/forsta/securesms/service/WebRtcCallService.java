@@ -933,7 +933,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleSetMuteVideo(Intent intent) {
-    AudioManager audioManager = ServiceUtil.getAudioManager(this);
     boolean      muted        = intent.getBooleanExtra(EXTRA_MUTE, false);
 
     this.localVideoEnabled = !muted;
@@ -942,14 +941,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     if (callState == CallState.STATE_CONNECTED) {
       if (localVideoEnabled) this.lockManager.updatePhoneState(LockManager.PhoneState.IN_VIDEO);
       else                   this.lockManager.updatePhoneState(LockManager.PhoneState.IN_CALL);
-    }
-
-    if (localVideoEnabled &&
-        !audioManager.isSpeakerphoneOn() &&
-        !audioManager.isBluetoothScoOn() &&
-        !audioManager.isWiredHeadsetOn())
-    {
-      audioManager.setSpeakerphoneOn(true);
     }
 
     sendMessage(WebRtcViewModel.State.VIDEO_ENABLE, localCallMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
