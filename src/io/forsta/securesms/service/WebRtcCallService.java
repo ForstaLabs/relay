@@ -523,7 +523,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.audioManager.startOutgoingRinger(OutgoingRinger.Type.RINGING);
       this.threadUID = intent.getStringExtra(EXTRA_THREAD_UID);
       String[] members = intent.getStringArrayExtra(EXTRA_CALL_MEMBERS);
-      this.callId = UUID.randomUUID().toString();
+      this.callId = threadUID;
       final String localPeerId = UUID.randomUUID().toString();
 
       int memberCount = 0;
