@@ -29,7 +29,9 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_alignParentTop="true"
-            android:src="@drawable/splash_logo"/>
+            android:src="@drawable/splash_logo"
+            android:layout_marginTop="20dp"
+            android:alpha="0.5"/>
         <FrameLayout
             android:visibility="visible"
             android:id="@+id/remote_call_member"

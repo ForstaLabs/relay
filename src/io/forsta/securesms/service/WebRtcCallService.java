@@ -907,6 +907,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       }
     }
 
+    member.terminate();
     if (!hasActiveCalls()) {
       if (callState == CallState.STATE_REMOTE_RINGING) {
         sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -918,10 +919,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
-      member.terminate();
       terminateCall(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
-      member.terminate();
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
   }
