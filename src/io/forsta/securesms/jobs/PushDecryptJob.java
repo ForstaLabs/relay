@@ -519,9 +519,10 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
     Intent intent = new Intent(context, WebRtcCallService.class);
-    intent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+    intent.setAction(WebRtcCallService.ACTION_CALL_OFFER);
     intent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callOffer.getCallId());
     intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    intent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());
     intent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callOffer.getOffer());
     intent.putExtra(WebRtcCallService.EXTRA_THREAD_UID, forstaMessage.getThreadUId());
     intent.putExtra(WebRtcCallService.EXTRA_TIMESTAMP, forstaMessage.getTimeStamp());
@@ -556,6 +557,7 @@ public class PushDecryptJob extends ContextJob {
     iceIntent.setAction(WebRtcCallService.ACTION_ICE_MESSAGE);
     iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, iceUpdate.getCallId());
     iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    iceIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());
     iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, iceUpdate.getPeerId());
     iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_LIST, sdps);
     iceIntent.putStringArrayListExtra(WebRtcCallService.EXTRA_ICE_SDP_MID_LIST, sdpMids);
@@ -577,6 +579,7 @@ public class PushDecryptJob extends ContextJob {
     acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
     acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
     acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    acceptIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());
     acceptIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_DESCRIPTION, callAcceptOffer.getOffer());
 
     context.startService(acceptIntent);
@@ -594,6 +597,7 @@ public class PushDecryptJob extends ContextJob {
     leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
     leaveIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callLeave.getCallId());
     leaveIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
+    leaveIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());
 
     context.startService(leaveIntent);
   }
