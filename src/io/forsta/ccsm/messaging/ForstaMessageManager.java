@@ -363,11 +363,20 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, JSONArray candidates, Set<String> callMembers) {
+  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, List<IceCandidate> candidates, Set<String> callMembers) {
     JSONObject data = new JSONObject();
     try {
+      JSONArray jsonUpdates = new JSONArray();
+      for (IceCandidate candidate : candidates) {
+        JSONObject jsonCandidate = new JSONObject();
+        jsonCandidate.put("candidate", candidate.sdp);
+        jsonCandidate.put("sdpMid", candidate.sdpMid);
+        jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+        jsonUpdates.put(jsonCandidate);
+      }
+
       data.put("control", "callICECandidates");
-      data.put("icecandidates", candidates);
+      data.put("icecandidates", jsonUpdates);
       data.put("peerId", peerId);
       JSONArray members = new JSONArray();
       for (String x : callMembers) {
@@ -376,6 +385,7 @@ public class ForstaMessageManager {
       data.put("members", members);
       data.put("callId", callId);
       data.put("originator", user.getUid());
+      data.put("version", 2);
     } catch (JSONException e) {
       e.printStackTrace();
     }
