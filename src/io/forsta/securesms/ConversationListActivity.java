@@ -16,7 +16,6 @@
  */
 package io.forsta.securesms;
 
-import android.Manifest;
 import android.accounts.Account;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -50,7 +49,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.jobs.DirectoryRefreshJob;
 import io.forsta.securesms.notifications.MessageNotifier;
-import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.util.DynamicLanguage;
@@ -95,7 +93,8 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     registerReceiver(syncReceiver, syncIntentFilter);
     fragment = initFragment(R.id.forsta_conversation_list, new ConversationListFragment(), masterSecret, dynamicLanguage.getCurrentLocale());
 
-    RefreshUserOrg task = new RefreshUserOrg();
+
+    RefreshForstaToken task = new RefreshForstaToken();
     task.execute();
 
     if (ForstaPreferences.getForstaContactSync(this) == -1) {
@@ -237,44 +236,24 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     }
   }
 
-  public class RefreshUserOrg extends AsyncTask<Void, Void, JSONObject> {
+  public class RefreshForstaToken extends AsyncTask<Void, Void, JSONObject> {
 
     @Override
     protected JSONObject doInBackground(Void... voids) {
-      JSONObject userResponse = CcsmApi.getForstaUser(ConversationListActivity.this);
-      if (userResponse.has("id")) {
-        CcsmApi.forstaRefreshToken(ConversationListActivity.this);
-        ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
-        ForstaPreferences.setForstaUser(ConversationListActivity.this, userResponse.toString());
-        JSONObject orgResponse = CcsmApi.getOrg(ConversationListActivity.this);
-        if (orgResponse.has("id")) {
-          ForstaPreferences.setForstaOrg(ConversationListActivity.this, orgResponse.toString());
-        }
-      } else {
-        return userResponse;
-      }
-      return null;
+      return CcsmApi.forstaRefreshToken(ConversationListActivity.this);
     }
 
     @Override
-    protected void onPostExecute(JSONObject errorResponse) {
-      if (errorResponse != null) {
-        try {
-          String errorResult = errorResponse.getString("error");
-          JSONObject error = new JSONObject(errorResult);
-          if (error.has("401")) {
-            Log.e(TAG, "Not Authorized");
-            handleLogout();
-          } else {
-            Log.e(TAG, "Error: " + errorResult);
-            Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
-          }
-        } catch (JSONException e) {
-          Log.d(TAG, "Error: " + e.getMessage());
-          Toast.makeText(ConversationListActivity.this, "Invalid response from server. Check your network connection.", Toast.LENGTH_LONG).show();
+    protected void onPostExecute(JSONObject response) {
+      if (CcsmApi.isErrorResponse(response)) {
+        if (CcsmApi.isUnauthorizedResponse(response)) {
+          handleLogout();
+        } else {
+          Toast.makeText(ConversationListActivity.this, "Error response from server.", Toast.LENGTH_LONG).show();
         }
       } else {
-        ForstaOrg forstaOrg = ForstaOrg.fromJsonString(ForstaPreferences.getForstaOrg(ConversationListActivity.this));
+        ApplicationContext.getInstance(getApplicationContext()).getJobManager().add(new DirectoryRefreshJob(getApplicationContext(), null, null));
+        ForstaOrg forstaOrg = ForstaOrg.getLocalForstaOrg(ConversationListActivity.this);
         if (forstaOrg != null) {
           TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.conversation_list_title);
           title.setText(forstaOrg.getName().toLowerCase());

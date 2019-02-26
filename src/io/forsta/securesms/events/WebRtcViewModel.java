@@ -3,6 +3,7 @@ package io.forsta.securesms.events;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.WebRtcCallService;
@@ -25,6 +26,7 @@ public class WebRtcViewModel {
     CALL_DISCONNECTED,
     CALL_MEMBER_JOINING,
     CALL_MEMBER_LEAVING,
+    CALL_MEMBER_VIDEO,
     VIDEO_ENABLE,
 
     // Error states
@@ -36,9 +38,9 @@ public class WebRtcViewModel {
 
 
   private final @NonNull  State       state;
-  private final @NonNull Recipient callRecipient;
+  private final @NonNull CallRecipient callRecipient;
   private int callOrder = 0;
-  private final Map<Integer, Recipient> remoteCallRecipients;
+  private final Map<Integer, CallRecipient> remoteCallRecipients;
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -47,8 +49,8 @@ public class WebRtcViewModel {
   private final boolean isMicrophoneEnabled;
 
   public WebRtcViewModel(@NonNull State state,
-                         Map<Integer, Recipient> remoteCallRecipients,
-                         @NonNull Recipient callRecipient,
+                         Map<Integer, CallRecipient> remoteCallRecipients,
+                         @NonNull CallRecipient callRecipient,
                          int callOrder,
                          boolean localVideoEnabled, boolean remoteVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
@@ -67,12 +69,12 @@ public class WebRtcViewModel {
     return state;
   }
 
-  public @NonNull Map<Integer, Recipient> getRemoteCallRecipients() {
+  public @NonNull Map<Integer, CallRecipient> getRemoteCallRecipients() {
     return remoteCallRecipients;
   }
 
   public @NonNull
-  Recipient getCallRecipient() {
+  CallRecipient getCallRecipient() {
     return callRecipient;
   }
 
@@ -97,6 +99,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + callRecipient.getFullTag() + " callOrder: " + callOrder + ", remoteVideo: " + remoteVideoEnabled + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + callRecipient.getRecipient() + " callOrder: " + callOrder + ", remoteVideo: " + callRecipient.isVideoEnabled() + ", localVideo: " + localVideoEnabled + "]";
   }
 }

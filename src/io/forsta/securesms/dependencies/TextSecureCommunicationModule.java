@@ -23,6 +23,7 @@ import io.forsta.securesms.jobs.RefreshPreKeysJob;
 import io.forsta.securesms.push.SecurityEventListener;
 import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.service.MessageRetrievalService;
+import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
@@ -55,6 +56,17 @@ public class TextSecureCommunicationModule {
 
   public TextSecureCommunicationModule(Context context) {
     this.context = context;
+  }
+
+  public static SignalServiceMessageSender createMessageSender(Context context) {
+    return new SignalServiceMessageSender(TextSecurePreferences.getServer(context),
+        new TextSecurePushTrustStore(context),
+        TextSecurePreferences.getLocalNumber(context),
+        TextSecurePreferences.getLocalDeviceId(context),
+        TextSecurePreferences.getPushServerPassword(context),
+        new SignalProtocolStoreImpl(context),
+        TextSecurePreferences.getUserAgent(context),
+        Optional.<SignalServiceMessageSender.EventListener>of(new SecurityEventListener(context)));
   }
 
   @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {

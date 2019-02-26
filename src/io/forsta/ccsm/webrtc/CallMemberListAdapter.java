@@ -1,6 +1,5 @@
 package io.forsta.ccsm.webrtc;
 
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,32 +7,27 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Collection;
+import java.util.Map;
 
+import io.forsta.ccsm.components.webrtc.CallStateView;
 import io.forsta.securesms.R;
 import io.forsta.securesms.components.AvatarImageView;
-import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.recipients.Recipients;
 
 public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAdapter.CallMemberViewHolder> {
 
-  private Recipients recipients;
-  private Recipient[] callRecipients;
+  private Map<Integer, CallRecipient> callRecipients;
+  private ItemClickListener clickListener;
 
-  public CallMemberListAdapter(Recipients recipients) {
-    if (recipients == null) {
+  public CallMemberListAdapter(Map<Integer, CallRecipient> callRecipients) {
+    if (callRecipients == null) {
       throw new IllegalArgumentException(
           "recipients must not be null");
     }
-    this.recipients = recipients;
+    this.callRecipients = callRecipients;
   }
 
-  public CallMemberListAdapter(Recipient[] recipients) {
-    if (recipients == null) {
-      throw new IllegalArgumentException(
-          "recipients must not be null");
-    }
-    this.callRecipients = recipients;
+  public void setItemClickListener(ItemClickListener listener) {
+    clickListener = listener;
   }
 
   @Override
@@ -45,29 +39,47 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
 
   @Override
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
-    Recipient recipient = recipients.getRecipientsList().get(position);
-    Recipient callRecipient = callRecipients[position];
-    holder.recipientName.setText(recipient.getName());
-    holder.callStatus.setText("Idle");
-    holder.avatar.setAvatar(recipient, false);
+    CallRecipient callRecipient = callRecipients.get(position + 1);
+    View view = holder.itemView;
+    if (callRecipient.isVideoEnabled()) {
+      view.setBackground(view.getResources().getDrawable(R.drawable.layout_rounded_bg));
+      view.setClipToOutline(true);
+    } else {
+      view.setBackgroundColor(holder.itemView.getResources().getColor(R.color.transparent));
+    }
+    holder.recipientName.setText(callRecipient.getRecipient().getName());
+    holder.callState.setCallState(callRecipient.getCallState());
+    holder.avatar.setAvatar(callRecipient.getRecipient(), false);
+    View.OnClickListener listener = new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (clickListener != null) clickListener.onItemClick(position);
+      }
+    };
+    holder.avatar.setOnClickListener(listener);
+    view.setOnClickListener(listener);
   }
 
   @Override
   public int getItemCount() {
-    return recipients.getRecipientsList().size();
+    return callRecipients.size();
   }
 
   protected static class CallMemberViewHolder extends RecyclerView.ViewHolder {
 
     private TextView recipientName;
-    private TextView callStatus;
+    private CallStateView callState;
     private AvatarImageView avatar;
 
     public CallMemberViewHolder(View itemView) {
       super(itemView);
       recipientName = (TextView) itemView.findViewById(R.id.call_member_list_name);
-      callStatus = (TextView) itemView.findViewById(R.id.call_member_list_status);
+      callState = itemView.findViewById(R.id.call_member_call_state);
       avatar = itemView.findViewById(R.id.call_member_list_avatar);
     }
+  }
+
+  public interface ItemClickListener {
+    void onItemClick(int position);
   }
 }

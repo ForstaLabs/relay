@@ -79,8 +79,8 @@ public abstract class PassphraseRequiredActionBarActivity extends BaseActionBarA
     Log.w(TAG, "onPause()");
     super.onPause();
 //    KeyCachingService.registerPassphraseActivityStopped(this);
-//    MessageRetrievalService.registerActivityStopped(this);
-//    isVisible = false;
+    MessageRetrievalService.registerActivityStopped(this);
+    isVisible = false;
   }
 
   @Override

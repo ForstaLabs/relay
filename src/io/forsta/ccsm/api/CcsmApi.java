@@ -303,7 +303,7 @@ public class CcsmApi {
     return getOrg(context, localAccount.org_id);
   }
 
-  public static JSONObject getOrg(Context context, String id) {
+  private static JSONObject getOrg(Context context, String id) {
     return fetchResource(context, "GET", API_ORG + id + "/");
   }
 
@@ -311,7 +311,7 @@ public class CcsmApi {
     return fetchResource(context, "GET", API_USER);
   }
 
-  public static JSONObject getForstaUser(Context context) {
+  public static JSONObject getLocalForstaUser(Context context) {
     return fetchResource(context, "GET", API_USER + TextSecurePreferences.getLocalNumber(context) + "/");
   }
 
@@ -453,11 +453,18 @@ public class CcsmApi {
     return parseUsers(context, jsonObject);
   }
 
-  private static boolean isUnauthorizedResponse(JSONObject response) {
+  public static boolean isErrorResponse(JSONObject response) {
+    if (response.has("error")) {
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isUnauthorizedResponse(JSONObject response) {
     if (response == null) {
       return true;
     }
-    if (response.has("error")) {
+    if (isErrorResponse(response)) {
       try {
         String error = response.getString("error");
         Log.e(TAG, error);

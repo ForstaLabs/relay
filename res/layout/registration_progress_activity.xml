@@ -46,7 +46,7 @@
                     android:id="@+id/provisioning_continue_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Continue"
+                    android:text="Reset Key"
                     android:paddingRight="20dp"/>
 
                 <Button
@@ -122,8 +122,6 @@
                 android:layout_height="wrap_content">
 
                 <TableRow
-                    layout_height="match_parent"
-                    layout_width="match_parent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
