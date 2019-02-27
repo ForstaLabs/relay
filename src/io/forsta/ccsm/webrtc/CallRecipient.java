@@ -7,15 +7,17 @@ public class CallRecipient {
 
   private Recipient recipient;
   private String callStatus;
+  private int deviceId;
   private WebRtcViewModel.State callState = WebRtcViewModel.State.CALL_DISCONNECTED;
   private boolean videoEnabled = false;
   private boolean audioEnabled = true;
 
-  public CallRecipient(Recipient recipient, WebRtcViewModel.State state, boolean videoEnabled) {
+  public CallRecipient(Recipient recipient, WebRtcViewModel.State state, boolean videoEnabled, int deviceId) {
     this.recipient = recipient;
     this.callState = state;
     this.callStatus = callState.name();
     this.videoEnabled = videoEnabled;
+    this.deviceId = deviceId;
   }
 
   public void setVideoEnabled(boolean state) {

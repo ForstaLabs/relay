@@ -494,7 +494,7 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
     Intent joinIntent = new Intent(context, WebRtcCallService.class);
-    joinIntent.setAction(WebRtcCallService.ACTION_INCOMING_CALL);
+    joinIntent.setAction(WebRtcCallService.ACTION_JOIN_CALL);
     joinIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callJoin.getCallId());
     joinIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, forstaMessage.getSenderId());
     joinIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, forstaMessage.getDeviceId());

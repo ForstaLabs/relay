@@ -211,6 +211,19 @@ public class ForstaMessageManager {
               }
               break;
 
+            case ForstaMessage.ControlTypes.CALL_JOIN:
+              String joinOriginator = data.getString("originator");
+              String joinCallId = data.getString("callId");
+              List<String> members = new ArrayList<>();
+              if (data.has("members")) {
+                JSONArray callMembers = data.getJSONArray("members");
+                for (int i=0; i<callMembers.length(); i++) {
+                  String memberId = callMembers.getString(i);
+                  members.add(memberId);
+                }
+              }
+              forstaMessage.setCallJoin(joinCallId, joinOriginator, members);
+              break;
             case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
               if (data.has("icecandidates")) {
                 String originator = data.getString("originator");
@@ -325,7 +338,7 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createCallJoinMessage(ForstaUser user, Recipients recipients, List<String> memberAddresses, ForstaThread forstaThread, String callId, String description, String peerId) {
+  public static String createCallJoinMessage(ForstaUser user, Recipients recipients, List<String> memberAddresses, ForstaThread forstaThread, String callId, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callJoin");

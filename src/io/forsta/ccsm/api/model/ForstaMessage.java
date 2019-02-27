@@ -224,6 +224,11 @@ public class ForstaMessage {
     this.senderId = senderId;
   }
 
+  public void setCallJoin(String callId, String originator, List<String> members) {
+    this.rtcCall = new ForstaCall(callId, originator);
+    this.rtcCall.members = members;
+  }
+
   public void setCallOffer(String callId, String originator, String peerId, String offer) {
     this.rtcCall = new ForstaCall(callId, originator, peerId, offer);
   }
