@@ -441,7 +441,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       registerPowerButtonReceiver();
 
       setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
-      // This only includes the caller. Need to pass all call addresses to eventbus.
+      // This only includes the caller. Need to pass all call addresses and call order to eventbus.
       sendMessage(WebRtcViewModel.State.CALL_INCOMING, peerCallMembers.members.values(), incomingMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
     } else if (callState == CallState.STATE_CONNECTED) {
@@ -1939,7 +1939,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return new ArrayList<>(remoteAddresses);
     }
 
+    Map<Integer, CallRecipient> getCallRecipients() {
+      Map<Integer, CallRecipient> remoteCallRecipients = new HashMap<>();
 
+      return remoteCallRecipients;
+    }
 
     boolean isCallMember(String address) {
       return remoteAddresses.contains(address);
