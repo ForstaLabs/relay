@@ -478,6 +478,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       });
 
+    } else if (callState == CallState.STATE_REMOTE_RINGING) {
+      // set up call member.
+      // set up peerConnection.
+      // Send offer to remote address:deviceId
     } else {
       Log.w(TAG, "callJoin for incorrect state: " + callState);
     }
@@ -751,7 +755,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleOutgoingCall(Intent intent) {
     Log.w(TAG, "handleOutgoingCall callState: " + callState);
-
     if (callState != CallState.STATE_IDLE) throw new IllegalStateException("Dialing from non-idle?");
 
     try {
@@ -762,13 +765,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       this.callId = threadUID;
       final String localPeerId = UUID.randomUUID().toString();
 
-      int memberCount = 0;
-      for (String member : members) {
-        if (!member.equals(localCallMember.getRecipient().getAddress())) {
-          remoteCallMembers.put(member, new CallMember(this, member, ++memberCount));
-        }
-      }
-
+      peerCallMembers = new RemoteCallMembers(members);
       initializeVideo();
 
       for (CallMember callMember : remoteCallMembers.values()) {
@@ -789,15 +786,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           sendMessage(WebRtcViewModel.State.CALL_OUTGOING, remoteCallMembers.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
-          for (CallMember callMember : remoteCallMembers.values()) {
+          for (CallMember callMember : peerCallMembers.members.values()) {
             try {
-              callMember.createPeerConnection(result, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
-              SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
-              callMember.peerConnection.setLocalDescription(sdp);
+//              callMember.createPeerConnection(result, remoteRenderer, localMediaStream, localPeerId, callMember.callOrder);
+//              SessionDescription sdp = callMember.peerConnection.createOffer(new MediaConstraints());
+//              callMember.peerConnection.setLocalDescription(sdp);
 
               Recipients recipients = RecipientFactory.getRecipientsFor(getApplicationContext(), callMember.recipient, false);
-              // Send call join here to all members and all devices.
-              ListenableFutureTask<Boolean> listenableFutureTask = sendCallOffer(recipients, remoteCallMembers.keySet(), threadUID, callId, sdp, localPeerId);
+//               Send call join here to all members and all devices.
+              ListenableFutureTask<Boolean> listenableFutureTask = sendCallJoin(recipients, remoteCallMembers.keySet(), threadUID, callId, localPeerId);
               listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
                 @Override
                 public void onFailureContinue(Throwable error) {
@@ -806,9 +803,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
                   callMember.terminate();
                 }
               });
-            } catch (PeerConnectionWrapper.PeerConnectionException e) {
+            } catch (Exception e) {
               Log.w(TAG, e);
-              callMember.terminate();
+//              callMember.terminate();
             }
           }
         }
@@ -924,12 +921,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
         intent.getStringExtra(EXTRA_ICE_SDP));
     List<IceCandidate> candidates = new LinkedList<>();
-//    if (remoteMember.pendingOutgoingIceUpdates != null) {
-//      remoteMember.addOutgoingIceCandidate(iceUpdateMessage);
-//      return;
-//    } else {
-//      candidates.add(iceUpdateMessage);
-//    }
+    // Gather a few outgoing ice candidates before sending.
     candidates.add(iceUpdateMessage);
 
     ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(remoteMember.recipient, remoteMember.deviceId, threadUID, callId, remoteMember.peerId, candidates);
