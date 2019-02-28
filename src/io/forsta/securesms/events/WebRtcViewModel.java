@@ -2,6 +2,7 @@ package io.forsta.securesms.events;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.ArrayMap;
 
 import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.recipients.Recipient;
@@ -11,6 +12,8 @@ import io.forsta.securesms.service.WebRtcCallService;
 import org.whispersystems.libsignal.IdentityKey;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,9 +41,12 @@ public class WebRtcViewModel {
 
 
   private final @NonNull  State       state;
-  private final @NonNull CallRecipient callRecipient;
-  private int callOrder = 0;
-  private final Map<Integer, CallRecipient> remoteCallRecipients;
+  private final CallRecipient callRecipient;
+  private final List<CallRecipient> callMembers;
+
+  private int callOrder = 0; // Remove
+  private final Map<Integer, CallRecipient> remoteCallRecipients; //Remove
+
 
   private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
@@ -57,8 +63,25 @@ public class WebRtcViewModel {
   {
     this.state                = state;
     this.remoteCallRecipients = remoteCallRecipients;
+    this.callMembers = new LinkedList<>();
     this.callRecipient = callRecipient;
     this.callOrder = callOrder;
+    this.localVideoEnabled    = localVideoEnabled;
+    this.remoteVideoEnabled   = remoteVideoEnabled;
+    this.isBluetoothAvailable = isBluetoothAvailable;
+    this.isMicrophoneEnabled  = isMicrophoneEnabled;
+  }
+
+  public WebRtcViewModel(@NonNull State state,
+                         List<CallRecipient> remoteCallMembers,
+                         @NonNull CallRecipient callRecipient,
+                         boolean localVideoEnabled, boolean remoteVideoEnabled,
+                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
+  {
+    this.state                = state;
+    this.callMembers = remoteCallMembers;
+    this.remoteCallRecipients = new ArrayMap<>();
+    this.callRecipient = callRecipient;
     this.localVideoEnabled    = localVideoEnabled;
     this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;

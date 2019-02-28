@@ -411,14 +411,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       callState = CallState.STATE_LOCAL_RINGING;
       CallMember incomingMember = new CallMember(this, incomingPeerId, incomingAddress, incomingDeviceId, 1);
       peerCallMembers.addCallMember(incomingMember);
-
       Log.w(TAG, "New incoming call: " + callState + " " + incomingMember);
-
-      if (incomingMember == null) {
-        Log.w(TAG, "Unknown caller");
-        terminateCall(false);
-        return;
-      }
 
       if (isIncomingMessageExpired(intent)) {
         insertMissedCall(incomingMember.recipient, true);
@@ -1693,9 +1686,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   public class CallMember implements PeerConnection.Observer {
     private volatile Context context;
-    private int deviceId = -1;
     private String peerId;
     private String address;
+    private int deviceId;
     private Recipient recipient;
     private int callOrder = 0;
     private int connectionRetryCount = 1;
