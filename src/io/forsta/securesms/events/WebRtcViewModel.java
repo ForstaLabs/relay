@@ -47,8 +47,6 @@ public class WebRtcViewModel {
   private int callOrder = 0; // Remove
   private final Map<Integer, CallRecipient> remoteCallRecipients; //Remove
 
-
-  private final boolean remoteVideoEnabled;
   private final boolean localVideoEnabled;
 
   private final boolean isBluetoothAvailable;
@@ -67,7 +65,6 @@ public class WebRtcViewModel {
     this.callRecipient = callRecipient;
     this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
-    this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
   }
@@ -75,7 +72,7 @@ public class WebRtcViewModel {
   public WebRtcViewModel(@NonNull State state,
                          List<CallRecipient> remoteCallMembers,
                          @NonNull CallRecipient callRecipient,
-                         boolean localVideoEnabled, boolean remoteVideoEnabled,
+                         boolean localVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
@@ -83,7 +80,6 @@ public class WebRtcViewModel {
     this.remoteCallRecipients = new ArrayMap<>();
     this.callRecipient = callRecipient;
     this.localVideoEnabled    = localVideoEnabled;
-    this.remoteVideoEnabled   = remoteVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
   }
@@ -103,10 +99,6 @@ public class WebRtcViewModel {
 
   public int getCallOrder() {
     return callOrder;
-  }
-
-  public boolean isRemoteVideoEnabled() {
-    return remoteVideoEnabled;
   }
 
   public boolean isLocalVideoEnabled() {
