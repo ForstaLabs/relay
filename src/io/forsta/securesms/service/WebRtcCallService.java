@@ -1225,7 +1225,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           List<SignalServiceAddress> addresses = getSignalAddresses(context, recipients);
           SignalServiceAddress address = new SignalServiceAddress(recipient.getAddress(), Optional.fromNullable(null));
-          Log.d(TAG, "Sending ICE Update: " + recipients.toFullString());
+          Log.d(TAG, "Sending ICE Update: " + recipients.toFullString() + ":" + deviceId);
           messageSender.sendMessage(address, deviceId, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();
@@ -1258,7 +1258,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           OutgoingMessage message = new OutgoingMessage(recipients, payload, new LinkedList<Attachment>(), System.currentTimeMillis(), 0);
           SignalServiceDataMessage mediaMessage = createSignalServiceDataMessage(message);
           SignalServiceAddress address = new SignalServiceAddress(recipient.getAddress(), Optional.fromNullable(null));
-          Log.w(TAG, "Sending callOffer to: " + address + ":" + deviceId + " " + recipient.toShortString());
+          Log.w(TAG, "Sending callAcceptOffer to: " + address.getNumber() + ":" + deviceId + " " + recipient.toShortString());
           messageSender.sendMessage(address, deviceId, mediaMessage);
         } catch (Exception e) {
           e.printStackTrace();
