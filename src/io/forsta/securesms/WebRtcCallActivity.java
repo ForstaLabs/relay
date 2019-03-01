@@ -292,6 +292,10 @@ public class WebRtcCallActivity extends Activity {
     callScreen.setLocalVideoEnabled(event.isLocalVideoEnabled());
   }
 
+  private void handleCallAnswering(final @NonNull WebRtcViewModel event) {
+    callScreen.setCallAnswering();
+  }
+
   private void delayedFinish() {
     delayedFinish(STANDARD_DELAY_FINISH);
   }
@@ -313,6 +317,7 @@ public class WebRtcCallActivity extends Activity {
       case CALL_CONNECTED:          handleCallConnected(event);            break;
       case NETWORK_FAILURE:         handleServerFailure(event);            break;
       case CALL_RINGING:            handleCallRinging(event);              break;
+      case CALL_ANSWERING:          handleCallAnswering(event);            break;
       case CALL_DISCONNECTED:       handleTerminate(event);                break;
       case NO_SUCH_USER:            handleNoSuchUser(event);               break;
       case RECIPIENT_UNAVAILABLE:   handleRecipientUnavailable(event);     break;
@@ -400,6 +405,7 @@ public class WebRtcCallActivity extends Activity {
         Intent intent = new Intent(WebRtcCallActivity.this, WebRtcCallService.class);
         intent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, recipient.getRecipient().getAddress());
         intent.putExtra(WebRtcCallService.EXTRA_CALL_ORDER, position + 1);
+        intent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, recipient.getDeviceId());
         intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
         startService(intent);
       } else if (recipient.getCallState() != WebRtcViewModel.State.CALL_MEMBER_LEAVING) {

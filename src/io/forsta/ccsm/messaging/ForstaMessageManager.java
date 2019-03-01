@@ -179,7 +179,7 @@ public class ForstaMessageManager {
               break;
             case ForstaMessage.ControlTypes.CALL_OFFER:
               if (data.has("offer")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 JSONObject offer = data.getJSONObject("offer");
                 String spd = offer.optString("sdp");
@@ -200,7 +200,7 @@ public class ForstaMessageManager {
               break;
             case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
               if (data.has("answer")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 JSONObject answer = data.getJSONObject("answer");
                 String spd = answer.optString("sdp");
@@ -226,7 +226,7 @@ public class ForstaMessageManager {
               break;
             case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
               if (data.has("icecandidates")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 String peerId = data.getString("peerId");
                 JSONArray callIceCandidates = data.getJSONArray("icecandidates");
@@ -244,7 +244,7 @@ public class ForstaMessageManager {
               }
               break;
             case ForstaMessage.ControlTypes.CALL_LEAVE:
-              String originator = data.getString("originator");
+              String originator = data.optString("originator");
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
               break;

@@ -31,6 +31,7 @@ public class WebRtcViewModel {
     CALL_MEMBER_LEAVING,
     CALL_MEMBER_VIDEO,
     VIDEO_ENABLE,
+    CALL_ANSWERING,
 
     // Error states
     NETWORK_FAILURE,
@@ -71,7 +72,7 @@ public class WebRtcViewModel {
 
   public WebRtcViewModel(@NonNull State state,
                          List<CallRecipient> remoteCallMembers,
-                         @NonNull CallRecipient callRecipient,
+                         CallRecipient callRecipient,
                          boolean localVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {

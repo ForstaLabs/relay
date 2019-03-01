@@ -48,6 +48,10 @@ public class CallRecipient {
     return callStatus;
   }
 
+  public int getDeviceId() {
+    return deviceId;
+  }
+
   @Override
   public String toString() {
     return callState + " " + recipient + " video: " + videoEnabled;
