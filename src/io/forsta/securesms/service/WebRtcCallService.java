@@ -963,23 +963,17 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       Log.w(TAG, "handleRestartConnection: " + callState + " " + callMember);
 
       if (callMember != null) {
-        if (callMember.peerConnection != null && callMember.connectionRetryCount > 0) {
-          Log.w(TAG, "Restarting existing connection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
-          SessionDescription sdp = callMember.peerConnection.getLocalDescription();
-          if (sdp != null) {
-            ListenableFutureTask listenableFutureTask = sendCallOffer(callMember.recipient, callMember.deviceId, threadUID, getCallId(intent), callMember.peerConnection.getLocalDescription(), callMember.peerId);
-            listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
-              @Override
-              public void onFailureContinue(Throwable throwable) {
-                Log.w(TAG, "Failed to restart connection");
-                sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-              }
-            });
+        callMember.terminate();
+        Recipients recipients = RecipientFactory.getRecipientsFor(this, callMember.recipient, false);
+        ListenableFutureTask<Boolean> listenableFutureTask = sendCallJoin(recipients, threadUID, callId, localCallMember.peerId);
+        listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
+          @Override
+          public void onFailureContinue(Throwable error) {
+            Log.w(TAG, error);
+            // terminateCall?
+            // insert local failure message in thread?
           }
-        } else {
-          Log.w(TAG, "handleRestartConnection, no peerConnection " + callState + " " + callMember + " " + callMember.peerConnection.getRemoteDescription());
-//          sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-        }
+        });
       }
 
     } catch (Exception e) {
