@@ -551,6 +551,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     callState = CallState.STATE_ANSWERING;
+    audioManager.silenceIncomingRinger();
     try {
       Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, peerCallMembers.getCallAddresses(), false);
       ListenableFutureTask<Boolean> listenableFutureTask = sendCallJoin(recipients, threadUID, callId, localCallMember.peerId);
@@ -639,6 +640,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       }
 
+      // This should never happen. Outgoing are immediately sent as they are received.
+      // Receiving end will queue them up if they are processed before a peerConnection is created.
       if (member.pendingOutgoingIceUpdates != null && !member.pendingOutgoingIceUpdates.isEmpty()) {
         ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(member.recipient, member.deviceId, threadUID, callId, member.peerId, member.pendingOutgoingIceUpdates);
         listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -679,23 +682,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleIncomingIceCandidates(Intent intent) {
     CallMember member = getCallMember(intent);
+    Log.w(TAG, "handleIncomingIceCandidates" + callState + " " + member);
 
     if (member != null && callId != null && callId.equals(getCallId(intent))) {
       ArrayList<String> sdps = intent.getStringArrayListExtra(EXTRA_ICE_SDP_LIST);
       ArrayList<String> sdpMids = intent.getStringArrayListExtra(EXTRA_ICE_SDP_MID_LIST);
       ArrayList<Integer> sdpMLineIndexes = intent.getIntegerArrayListExtra(EXTRA_ICE_SDP_LINE_INDEX_LIST);
       for (int i=0; i< sdps.size(); i++) {
-        Intent iceIntent = new Intent(getApplicationContext(), WebRtcCallService.class);
-        iceIntent.setAction(WebRtcCallService.ACTION_ADD_ICE_MESSAGE);
-        iceIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, intent.getStringExtra(WebRtcCallService.EXTRA_CALL_ID));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS, intent.getStringExtra(WebRtcCallService.EXTRA_REMOTE_ADDRESS));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, intent.getIntExtra(WebRtcCallService.EXTRA_DEVICE_ID, 0));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP, sdps.get(i));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_MID, sdpMids.get(i));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_ICE_SDP_LINE_INDEX, sdpMLineIndexes.get(i));
-        iceIntent.putExtra(WebRtcCallService.EXTRA_PEER_ID, intent.getStringExtra(WebRtcCallService.EXTRA_PEER_ID));
-
-        startService(iceIntent);
+        IceCandidate ice = new IceCandidate(sdpMids.get(i), sdpMLineIndexes.get(i), sdps.get(i));
+        member.addIncomingIceCandidate(ice);
       }
     } else {
       Log.w(TAG, "No valid call member, or invalid callId");
