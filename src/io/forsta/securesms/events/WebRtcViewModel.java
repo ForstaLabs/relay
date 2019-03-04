@@ -11,6 +11,7 @@ import io.forsta.securesms.service.WebRtcCallService;
 
 import org.whispersystems.libsignal.IdentityKey;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,6 +86,17 @@ public class WebRtcViewModel {
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
   }
 
+  public WebRtcViewModel(@NonNull State state, boolean localVideoEnabled,
+                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
+    this.state = state;
+    this.callRecipient = null;
+    this.callMembers = new ArrayList<>();
+    this.remoteCallRecipients = new ArrayMap<>();
+    this.localVideoEnabled    = localVideoEnabled;
+    this.isBluetoothAvailable = isBluetoothAvailable;
+    this.isMicrophoneEnabled  = isMicrophoneEnabled;
+  }
+
   public @NonNull State getState() {
     return state;
   }
@@ -115,6 +127,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + callRecipient.getRecipient() + " callOrder: " + callOrder + ", remoteVideo: " + callRecipient.isVideoEnabled() + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + (callRecipient != null ? callRecipient.getRecipient(): "null") + " callOrder: " + callOrder + ", localVideo: " + localVideoEnabled + "]";
   }
 }

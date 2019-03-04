@@ -207,7 +207,7 @@ public class WebRtcCallActivity extends Activity {
   }
 
   private void handleOutgoingCall(@NonNull WebRtcViewModel event) {
-    callScreen.setOutgoingCall(event.getCallRecipient(), event.getCallOrder(), event.getRemoteCallRecipients());
+    callScreen.setOutgoingCall();
   }
 
   private void handleTerminate(@NonNull WebRtcViewModel event) {
