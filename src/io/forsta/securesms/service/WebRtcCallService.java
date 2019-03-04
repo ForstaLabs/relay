@@ -389,7 +389,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       } catch (PeerConnectionWrapper.PeerConnectionException e) {
         e.printStackTrace();
         member.terminate();
-        member.terminate();
       }
   }
 
@@ -541,7 +540,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       });
     }
-
   }
 
   private void handleAnswerCall(Intent intent) {
@@ -635,6 +633,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         return;
       }
 
+      // ? May want to make sure we have a local description. In other words, we sent the offer.
+      // Having an existing remote means that they already sent us an offer and are now sending an accept.
       if (member.peerConnection.getRemoteDescription() == null) {
         member.peerConnection.setRemoteDescription(new SessionDescription(SessionDescription.Type.ANSWER, intent.getStringExtra(EXTRA_REMOTE_DESCRIPTION)));
       }
