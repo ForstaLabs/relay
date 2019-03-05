@@ -124,6 +124,12 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(VISIBLE);
   }
 
+  public void setCallAnswering() {
+    incomingCallButton.stopRingingAnimation();
+    incomingCallButton.setVisibility(View.GONE);
+    localMemberLayout.setVisibility(VISIBLE);
+  }
+
   public void updateVideoSelection(@NonNull CallRecipient callRecipient, int callOrder) {
     for (CallRecipient recipient : remoteCallMembers.values()) {
       recipient.setVideoEnabled(false);
@@ -134,9 +140,18 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void updateCallMember(@NonNull CallRecipient callRecipient, int callOrder) {
     remoteCallMembers.put(callOrder, callRecipient);
-    if (remoteCallMemberList != null && remoteCallMemberList.getAdapter() != null) {
-      remoteCallMemberList.getAdapter().notifyItemChanged(callOrder - 1);
+    if (remoteCallMemberList.getAdapter() != null) {
+      remoteCallMemberList.getAdapter().notifyDataSetChanged();
+    } else {
+      CallMemberListAdapter adapter = new CallMemberListAdapter(remoteCallMembers);
+      remoteCallMemberList.setAdapter(adapter);
     }
+  }
+
+  public void setOutgoingCall() {
+    incomingCallButton.stopRingingAnimation();
+    incomingCallButton.setVisibility(View.GONE);
+    endCallButton.setVisibility(VISIBLE);
   }
 
   public void setOutgoingCall(CallRecipient callRecipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {
@@ -205,10 +220,12 @@ public class WebRtcCallScreen extends FrameLayout {
   public void setLocalVideoEnabled(boolean enabled) {
     this.controls.setVideoEnabled(enabled);
     View video = localMemberLayout.getChildAt(0);
-    if (!enabled) {
-      video.setVisibility(INVISIBLE);
-    } else {
-      video.setVisibility(VISIBLE);
+    if (video != null) {
+      if (!enabled) {
+        video.setVisibility(INVISIBLE);
+      } else {
+        video.setVisibility(VISIBLE);
+      }
     }
     localMemberLayout.requestLayout();
   }

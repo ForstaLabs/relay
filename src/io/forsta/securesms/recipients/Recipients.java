@@ -334,9 +334,15 @@ public class Recipients implements Iterable<Recipient>, RecipientModifiedListene
     return recipientsArray;
   }
 
+  public List<String> toStringList() {
+    return toNumberStringList(false);
+  }
+
   public @NonNull List<String> toNumberStringList(boolean scrub) {
     List<String> results = new LinkedList<>();
-    Collections.addAll(results, toNumberStringArray(scrub));
+    for (Recipient recipient : recipients) {
+      results.add(recipient.getAddress());
+    }
 
     return results;
   }

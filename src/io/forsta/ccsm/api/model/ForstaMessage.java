@@ -29,6 +29,8 @@ public class ForstaMessage {
   private String messageRef;
   private int vote;
   private ForstaCall rtcCall;
+  private int deviceId = -1;
+  private long timeStamp;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -43,6 +45,7 @@ public class ForstaMessage {
     public static final String DISCOVER = "discover";
     public static final String DISCOVER_RESPONSE = "discoverResponse";
     public static final String UP_VOTE = "upVote";
+    public static final String CALL_JOIN = "callJoin";
     public static final String CALL_OFFER = "callOffer";
     public static final String CALL_ICE_CANDIDATES = "callICECandidates";
     public static final String CALL_LEAVE = "callLeave";
@@ -157,6 +160,22 @@ public class ForstaMessage {
     return rtcCall;
   }
 
+  public long getTimeStamp() {
+    return timeStamp;
+  }
+
+  public int getDeviceId() {
+    return deviceId;
+  }
+
+  public void setTimeStamp(long timeStamp) {
+    this.timeStamp = timeStamp;
+  }
+
+  public void setDeviceId(int deviceId) {
+    this.deviceId = deviceId;
+  }
+
   public void setVote(int count) {
     vote = count;
   }
@@ -203,6 +222,11 @@ public class ForstaMessage {
 
   public void setSenderId(String senderId) {
     this.senderId = senderId;
+  }
+
+  public void setCallJoin(String callId, String originator, List<String> members) {
+    this.rtcCall = new ForstaCall(callId, originator);
+    this.rtcCall.members = members;
   }
 
   public void setCallOffer(String callId, String originator, String peerId, String offer) {
