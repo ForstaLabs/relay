@@ -20,6 +20,7 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.util.Pair;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -682,7 +683,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
   private void handleIncomingIceCandidates(Intent intent) {
     CallMember member = getCallMember(intent);
-    Log.w(TAG, "handleIncomingIceCandidates" + callState + " " + member);
+    Log.w(TAG, "handleIncomingIceCandidates " + callState + " " + member);
 
     if (member != null && callId != null && callId.equals(getCallId(intent))) {
       ArrayList<String> sdps = intent.getStringArrayListExtra(EXTRA_ICE_SDP_LIST);
@@ -1068,6 +1069,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     localAudioTrack.setEnabled(false);
     localMediaStream.addTrack(localAudioTrack);
 
+
     if (localVideoCapturer != null) {
       localVideoSource = peerConnectionFactory.createVideoSource(localVideoCapturer);
       localVideoTrack = peerConnectionFactory.createVideoTrack("ARDAMSv0", localVideoSource);
@@ -1411,7 +1413,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(thread);
         if (threadId != -1) {
           IncomingMessage infoMessage = ForstaMessageManager.createLocalInformationalMessage(context, message, recipients, threadId, 0);
-          DatabaseFactory.getMmsDatabase(context).insertSecureDecryptedMessageInbox(new MasterSecretUnion(masterSecret), infoMessage, threadId);
+          Pair<Long, Long> messagePair = DatabaseFactory.getMmsDatabase(context).insertSecureDecryptedMessageInbox(new MasterSecretUnion(masterSecret), infoMessage, threadId);
+          DatabaseFactory.getMmsDatabase(context).markAsRead(messagePair.first);
         }
         return true;
       }
