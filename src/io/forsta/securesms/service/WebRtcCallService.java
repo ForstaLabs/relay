@@ -107,6 +107,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_RINGING;
@@ -716,9 +717,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.getIntExtra(EXTRA_ICE_SDP_LINE_INDEX, 0),
         intent.getStringExtra(EXTRA_ICE_SDP));
 
-    // Gather a few outgoing ice candidates before sending.
-//    remoteMember.addOutgoingIceCandidate(iceUpdateMessage);
-
     List<IceCandidate> candidates = new LinkedList<>();
     candidates.add(iceUpdateMessage);
 
@@ -728,9 +726,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       public void onFailureContinue(Throwable error) {
         Log.w(TAG, error);
         sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, remoteMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-
         remoteMember.terminate();
-        terminateCall(true);
       }
     });
   }
@@ -835,9 +831,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   private void handleLocalHangup(Intent intent) {
     Log.w(TAG, "handleLocalHangup: " + callState);
     Recipients recipients = RecipientFactory.getRecipientsFromStrings(this, peerCallMembers.getCallAddresses(), false);
-    sendCallLeave(recipients, threadUID, callId);
-    sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-    insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
+    if (callId != null) {
+      sendCallLeave(recipients, threadUID, callId);
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
+    }
     terminateCall(true);
   }
 
@@ -866,7 +864,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     member.terminate();
-    if (!hasActiveCalls()) {
+    if (!peerCallMembers.hasActiveCalls()) {
       if (callState == CallState.STATE_REMOTE_RINGING) {
         sendMessage(WebRtcViewModel.State.RECIPIENT_UNAVAILABLE, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       } else {
@@ -985,10 +983,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       CallMember callMember = getCallMember(intent);
       Log.w(TAG, "handleFailedConnection: " + callState + " " + callMember);
 
-      if (callMember != null && callMember.connectionRetryCount > 0) {
+      if (callMember != null) {
         callMember.terminate();
-        terminateCall(true);
-//        handleRestartConnection(intent);
+        if (!peerCallMembers.hasActiveCalls()) {
+          sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+          terminateCall(true);
+        }
       }
     } catch (Exception e) {
       Log.w(TAG, "Exception restarting connection: " + e.getMessage());
@@ -997,15 +997,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   /// Helper Methods
-
-  private boolean hasActiveCalls() {
-    for (CallMember callMember : peerCallMembers.members.values()) {
-      if (callMember.isActiveConnection()) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   private CallMember getCallMember(Intent intent) {
     String address = intent.getStringExtra(EXTRA_REMOTE_ADDRESS);
@@ -1989,6 +1980,15 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         member.callOrder = callerCount;
       }
       members.put(new SignalProtocolAddress(member.address, member.deviceId), member);
+    }
+
+    private boolean hasActiveCalls() {
+      for (CallMember callMember : members.values()) {
+        if (callMember.isActiveConnection()) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }
