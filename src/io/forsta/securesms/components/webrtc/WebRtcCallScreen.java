@@ -250,7 +250,7 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-      localRenderer.setMirror(true);
+//      localRenderer.setMirror(true);
       localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);

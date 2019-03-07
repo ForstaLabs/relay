@@ -78,6 +78,7 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RendererCommon;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
@@ -256,7 +257,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         else if (intent.getAction().equals((ACTION_SCREEN_OFF)))              handleScreenOffChange(intent);
         else if (intent.getAction().equals(ACTION_RESPONSE_MESSAGE))          handleAcceptOffer(intent);
         else if (intent.getAction().equals(ACTION_ICE_MESSAGE))               handleIncomingIceCandidates(intent);
-        else if (intent.getAction().equals(ACTION_ICE_CANDIDATES))             handleOutgoingIceCandidates(intent);
+        else if (intent.getAction().equals(ACTION_ICE_CANDIDATE))             handleOutgoingIceCandidate(intent);
         else if (intent.getAction().equals(ACTION_ICE_CONNECTED))             handleIceConnected(intent);
         else if (intent.getAction().equals(ACTION_CALL_CONNECTED))            handleCallConnected(intent);
         else if (intent.getAction().equals(ACTION_CHECK_TIMEOUT))             handleCheckTimeout(intent);
@@ -750,11 +751,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         intent.getStringExtra(EXTRA_ICE_SDP));
 
     List<IceCandidate> candidates = new LinkedList<>();
-//    candidates.add(iceUpdateMessage);
-
-    remoteMember.addOutgoingIceCandidate(iceUpdateMessage);
-
-    candidates.addAll(remoteMember.pendingOutgoingIceUpdates);
+    candidates.add(iceUpdateMessage);
 
     ListenableFutureTask<Boolean> listenableFutureTask = sendIceUpdate(remoteMember.recipient, remoteMember.deviceId, threadUID, callId, remoteMember.peerId, candidates);
     listenableFutureTask.addListener(new FailureListener<Boolean>(callState, callId) {
@@ -911,6 +908,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         insertMissedCall(member.recipient, true);
       }
 
+      insertStatusMessage(threadUID, getString(R.string.CallService_in_call));
       terminateCall(callState == CallState.STATE_REMOTE_RINGING || callState == CallState.STATE_CONNECTED);
     } else {
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
@@ -1072,6 +1070,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         remoteRenderer = new SurfaceViewRenderer(WebRtcCallService.this);
 
         localRenderer.init(eglBase.getEglBaseContext(), null);
+
         remoteRenderer.init(eglBase.getEglBaseContext(), null);
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
@@ -1222,16 +1221,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
   }
-
-//  private void sendMessage(@NonNull WebRtcViewModel.State state,
-//                           List<CallRecipient> joinedMembers,
-//                           CallRecipient callMember,
-//                           boolean localVideoEnabled,
-//                           boolean bluetoothAvailable, boolean microphoneEnabled)
-//  {
-//    WebRtcViewModel vm = new WebRtcViewModel(state, joinedMembers, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-//    EventBus.getDefault().postSticky(vm);
-//  }
 
   // Only send to single device
   private ListenableFutureTask<Boolean> sendIceUpdate(@NonNull final Recipient recipient, int deviceId, String threadUID,
@@ -1890,22 +1879,22 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
       Log.d(TAG, "onIceGatheringChange:" + iceGatheringState + " " + this);
-      if (iceGatheringState == PeerConnection.IceGatheringState.COMPLETE) {
-        Intent intent = new Intent(context, WebRtcCallService.class);
-
-        intent.setAction(ACTION_ICE_CANDIDATES);
-        intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
-        intent.putExtra(EXTRA_DEVICE_ID, deviceId);
-        intent.putExtra(EXTRA_CALL_ID, callId);
-
-        startService(intent);
-      }
     }
 
     @Override
     public void onIceCandidate(IceCandidate candidate) {
       Log.d(TAG, "onIceCandidate: " + this);
-      pendingOutgoingIceUpdates.add(candidate);
+      Intent intent = new Intent(context, WebRtcCallService.class);
+
+      intent.setAction(ACTION_ICE_CANDIDATE);
+      intent.putExtra(EXTRA_ICE_SDP_MID, candidate.sdpMid);
+      intent.putExtra(EXTRA_ICE_SDP_LINE_INDEX, candidate.sdpMLineIndex);
+      intent.putExtra(EXTRA_ICE_SDP, candidate.sdp);
+      intent.putExtra(EXTRA_REMOTE_ADDRESS, address);
+      intent.putExtra(EXTRA_DEVICE_ID, deviceId);
+      intent.putExtra(EXTRA_CALL_ID, callId);
+
+      startService(intent);
     }
 
     @Override
