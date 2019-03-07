@@ -1890,7 +1890,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     @Override
     public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
       Log.d(TAG, "onIceGatheringChange:" + iceGatheringState + " " + this);
-      if (iceGatheringState.equals(PeerConnection.IceGatheringState.COMPLETE)) {
+      if (iceGatheringState == PeerConnection.IceGatheringState.COMPLETE) {
         Intent intent = new Intent(context, WebRtcCallService.class);
 
         intent.setAction(ACTION_ICE_CANDIDATES);
