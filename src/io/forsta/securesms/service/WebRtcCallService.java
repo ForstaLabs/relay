@@ -1070,7 +1070,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         remoteRenderer = new SurfaceViewRenderer(WebRtcCallService.this);
 
         localRenderer.init(eglBase.getEglBaseContext(), null);
-
         remoteRenderer.init(eglBase.getEglBaseContext(), null);
 
         peerConnectionFactory.setVideoHwAccelerationOptions(eglBase.getEglBaseContext(),
