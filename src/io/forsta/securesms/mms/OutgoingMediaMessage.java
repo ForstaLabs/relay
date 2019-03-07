@@ -95,7 +95,7 @@ public class OutgoingMediaMessage {
   }
 
   public boolean isSecure() {
-    return false;
+    return true;
   }
 
   public boolean isGroup() {
