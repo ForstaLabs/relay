@@ -390,13 +390,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
 
       inflater.inflate(R.menu.conversation, menu);
+      Recipient recipient = recipients.getPrimaryRecipient();
+      if (!TextUtils.isEmpty(recipient.getAddress())) {
+        final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
+        callItem.setVisible(true);
+      }
       if (recipients.isSingleRecipient() && !recipients.includesSelf(this)) {
-        Recipient recipient = recipients.getPrimaryRecipient();
-        if (!TextUtils.isEmpty(recipient.getAddress())) {
-          final MenuItem callItem = menu.findItem(R.id.menu_call_recipient);
-          callItem.setVisible(true);
-        }
-
         final MenuItem leaveConverationItem = menu.findItem(R.id.menu_leave_conversation);
         leaveConverationItem.setVisible(false);
       }
