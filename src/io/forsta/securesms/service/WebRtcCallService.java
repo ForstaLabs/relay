@@ -480,7 +480,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       });
 
-    } else {
+    } else if (callState == CallState.STATE_LOCAL_RINGING && (incomingAddress.equals(localCallMember.address) && incomingDeviceId != localCallMember.deviceId)) {
+      Log.d(TAG, "Remote device answered... terminating call");
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      terminateCall(true);
+    }
+    else {
       Log.w(TAG, "callJoin for incorrect state: " + callState);
     }
   }
@@ -821,21 +826,23 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     CallMember member = getCallMember(intent);
     Log.w(TAG, "handleCheckTimeout state: " + callState + " " + member);
 
-    if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
-      Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
-      member.terminate();
-      sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-
-      if (callState == CallState.STATE_LOCAL_RINGING) {
-        if (member.callOrder == 1) {
-          sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-          insertMissedCall(member.recipient, true);
-          terminateCall(true);
-        }
-      }
-    } else {
+    if (callState == CallState.STATE_REMOTE_RINGING) {
       sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       terminateCall(true);
+    } else {
+      if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
+        Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
+        member.terminate();
+        sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+
+        if (callState == CallState.STATE_LOCAL_RINGING) {
+          if (member.callOrder == 1) {
+            sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+            insertMissedCall(member.recipient, true);
+            terminateCall(true);
+          }
+        }
+      }
     }
   }
 
