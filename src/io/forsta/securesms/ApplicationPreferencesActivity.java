@@ -59,6 +59,7 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
   private static final String PREFERENCE_CATEGORY_CHATS          = "preference_category_chats";
   private static final String PREFERENCE_AUTH                    = "preference_auth";
   private static final String PREFERENCE_CATEGORY_ADVANCED       = "preference_category_advanced";
+  private static final String PREFERENCE_CATEGORY_DEVICES        = "preference_category_devices";
 
   private final DynamicTheme dynamicTheme    = new DynamicTheme();
   private final DynamicLanguage dynamicLanguage = new DynamicLanguage();
@@ -142,6 +143,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_CHATS));
       this.findPreference(PREFERENCE_CATEGORY_ADVANCED)
         .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_ADVANCED));
+      this.findPreference(PREFERENCE_CATEGORY_DEVICES)
+          .setOnPreferenceClickListener(new CategoryClickListener(masterSecret, PREFERENCE_CATEGORY_DEVICES));
     }
 
     @Override
@@ -194,6 +197,10 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
           break;
         case PREFERENCE_CATEGORY_ADVANCED:
           fragment = new AdvancedPreferenceFragment();
+          break;
+        case PREFERENCE_CATEGORY_DEVICES:
+          Intent devicesIntent = new Intent(getActivity(), DeviceActivity.class);
+          startActivity(devicesIntent);
           break;
         default:
           throw new AssertionError();

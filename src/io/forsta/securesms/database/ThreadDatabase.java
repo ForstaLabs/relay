@@ -721,9 +721,7 @@ public class ThreadDatabase extends Database {
     ForstaThread forstaThread = getForstaThread(threadId);
     ContentValues values = new ContentValues();
 
-    Log.w(TAG, "Thread update: " + distribution.universal);
-    Log.w(TAG, "Recipients: " + TextUtils.join(", ", distribution.getRecipients(context)));
-    Log.w(TAG, "Title: " + message.getThreadTitle());
+    Log.d(TAG, "Thread update: " + distribution.universal);
     if (message.getThreadTitle() != null && !TextUtils.equals(forstaThread.title, message.getThreadTitle())) {
       values.put(TITLE, message.getThreadTitle());
     }

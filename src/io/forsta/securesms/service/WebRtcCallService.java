@@ -884,6 +884,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (member == null || member.recipient == null) {
       Log.w(TAG, "Received hangup from invalid call member");
+      return;
     }
 
     if (member.videoEnabled) {
@@ -1973,7 +1974,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     boolean isCallMember(String address) {
-      return remoteAddresses.contains(address);
+      return remoteAddresses.contains(address) || address.equals(localCallMember.address);
     }
 
     CallMember getCallMember(String address, int deviceId) {
