@@ -440,6 +440,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
       // This only includes the caller.
       sendMessage(WebRtcViewModel.State.CALL_INCOMING, peerCallMembers.members.values(), incomingMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      timeoutExecutor.schedule(new TimeoutRunnable(incomingMember), 30, TimeUnit.SECONDS);
 
     } else if (callState == CallState.STATE_CONNECTED || callState == CallState.STATE_REMOTE_RINGING) {
       if (!peerCallMembers.isCallMember(incomingAddress)) {
@@ -479,7 +480,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         }
       });
 
-    } else {
+    } else if (callState == CallState.STATE_LOCAL_RINGING && (incomingAddress.equals(localCallMember.address) && incomingDeviceId != localCallMember.deviceId)) {
+      Log.d(TAG, "Remote device answered... terminating call");
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      terminateCall(true);
+    }
+    else {
       Log.w(TAG, "callJoin for incorrect state: " + callState);
     }
   }
@@ -524,8 +530,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       callingMember.terminate();
       return;
     }
-
-    timeoutExecutor.schedule(new TimeoutRunnable(callingMember), 30, TimeUnit.SECONDS);
 
     if (iceServers != null && iceServers.size() > 0) {
       acceptCallOffer(callingMember, incomingPeerId, offer, iceServers);
@@ -612,6 +616,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteRecipients);
 
       sendMessage(WebRtcViewModel.State.CALL_OUTGOING, null, null, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
+
     } catch (Exception e) {
       Log.e(TAG, "Exception: " + e.getMessage());
     }
@@ -820,19 +826,22 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     CallMember member = getCallMember(intent);
     Log.w(TAG, "handleCheckTimeout state: " + callState + " " + member);
 
-    if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
-      Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
-      member.terminate();
-      sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+    if (callState == CallState.STATE_REMOTE_RINGING) {
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      terminateCall(true);
+    } else {
+      if (member != null && callId != null && callId.equals(intent.getStringExtra(EXTRA_CALL_ID)) && callState != CallState.STATE_CONNECTED) {
+        Log.w(TAG, "Timing out call member: " + member + " CallId: " + callId);
+        member.terminate();
+        sendMessage(WebRtcViewModel.State.CALL_MEMBER_LEAVING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
 
-      if (callState == CallState.STATE_LOCAL_RINGING) {
-        if (member.callOrder == 1) {
-          sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-          insertMissedCall(member.recipient, true);
-          terminateCall(true);
+        if (callState == CallState.STATE_LOCAL_RINGING) {
+          if (member.callOrder == 1) {
+            sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+            insertMissedCall(member.recipient, true);
+            terminateCall(true);
+          }
         }
-      } else if (callState == CallState.STATE_REMOTE_RINGING) {
-        terminateCall(true);
       }
     }
   }
@@ -1537,6 +1546,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       intent.setAction(WebRtcCallService.ACTION_CHECK_TIMEOUT);
       intent.putExtra(EXTRA_CALL_ID, callId);
       intent.putExtra(EXTRA_REMOTE_ADDRESS, callMember.address);
+      intent.putExtra(EXTRA_DEVICE_ID, callMember.deviceId);
       intent.putExtra(EXTRA_PEER_ID, callMember.peerId);
       startService(intent);
     }
