@@ -832,10 +832,9 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           insertMissedCall(member.recipient, true);
           terminateCall(true);
         }
-      } else if (callState == CallState.STATE_REMOTE_RINGING) {
-        terminateCall(true);
       }
     } else {
+      sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       terminateCall(true);
     }
   }
