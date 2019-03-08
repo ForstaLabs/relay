@@ -440,6 +440,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_INCOMING_RINGING, incomingMember.recipient);
       // This only includes the caller.
       sendMessage(WebRtcViewModel.State.CALL_INCOMING, peerCallMembers.members.values(), incomingMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      timeoutExecutor.schedule(new TimeoutRunnable(incomingMember), 30, TimeUnit.SECONDS);
 
     } else if (callState == CallState.STATE_CONNECTED || callState == CallState.STATE_REMOTE_RINGING) {
       if (!peerCallMembers.isCallMember(incomingAddress)) {
@@ -524,8 +525,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       callingMember.terminate();
       return;
     }
-
-    timeoutExecutor.schedule(new TimeoutRunnable(callingMember), 30, TimeUnit.SECONDS);
 
     if (iceServers != null && iceServers.size() > 0) {
       acceptCallOffer(callingMember, incomingPeerId, offer, iceServers);
@@ -612,6 +611,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteRecipients);
 
       sendMessage(WebRtcViewModel.State.CALL_OUTGOING, null, null, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
+      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
+
     } catch (Exception e) {
       Log.e(TAG, "Exception: " + e.getMessage());
     }
@@ -834,6 +835,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       } else if (callState == CallState.STATE_REMOTE_RINGING) {
         terminateCall(true);
       }
+    } else {
+      terminateCall(true);
     }
   }
 
@@ -1537,6 +1540,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       intent.setAction(WebRtcCallService.ACTION_CHECK_TIMEOUT);
       intent.putExtra(EXTRA_CALL_ID, callId);
       intent.putExtra(EXTRA_REMOTE_ADDRESS, callMember.address);
+      intent.putExtra(EXTRA_DEVICE_ID, callMember.deviceId);
       intent.putExtra(EXTRA_PEER_ID, callMember.peerId);
       startService(intent);
     }
