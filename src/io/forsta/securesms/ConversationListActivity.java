@@ -147,7 +147,6 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       case R.id.menu_import_export:     handleImportExport();    return true;
       case R.id.menu_help:              handleHelp();            return true;
       case R.id.menu_logout:            handleLogout();          return true;
-      case R.id.menu_linked_devices:    handleLinkedDevices();   return true;
       case R.id.menu_archive:           onSwitchToArchive();     return true;
     }
 

@@ -544,6 +544,16 @@ public class MmsDatabase extends MessagingDatabase {
     notifyConversationListeners(threadId);
   }
 
+  public void markAsRead(long messageId) {
+    ContentValues contentValues = new ContentValues();
+    contentValues.put(READ, 1);
+    SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    db.update(TABLE_NAME, contentValues, ID_WHERE, new String[] {String.valueOf(messageId)});
+
+    long threadId = getThreadIdForMessage(messageId);
+    notifyConversationListeners(threadId);
+  }
+
   public List<MarkedMessageInfo> setMessagesRead(long threadId) {
     SQLiteDatabase          database  = databaseHelper.getWritableDatabase();
     String                  where     = THREAD_ID + " = ? AND " + READ + " = 0";

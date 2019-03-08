@@ -253,9 +253,7 @@ public class PushDecryptJob extends ContextJob {
                                                                  Optional.<List<SignalServiceAttachment>>absent());
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    Recipients recipients = getDistributionRecipients(distribution);
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
+    long threadId = updateThreadDistribution(forstaMessage, masterSecret.getMasterSecret().get());
 
     database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
@@ -300,7 +298,7 @@ public class PushDecryptJob extends ContextJob {
     } else if (message.getMessage().isExpirationUpdate()) {
       threadId = handleSynchronizeSentExpirationUpdate(masterSecret, message, smsMessageId);
     } else {
-      threadId = handleSynchronizeSentMediaMessage(masterSecret, message, smsMessageId);
+      threadId = handleSynchronizeSentMediaMessage(masterSecret, envelope, message, smsMessageId);
     }
 
     if (threadId != -1) {
@@ -352,10 +350,11 @@ public class PushDecryptJob extends ContextJob {
     forstaMessage.setSenderId(envelope.getSource());
     forstaMessage.setDeviceId(envelope.getSourceDevice());
     forstaMessage.setTimeStamp(envelope.getTimestamp());
+
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
     } else {
-      handleControlMessage(forstaMessage);
+      handleControlMessage(forstaMessage, masterSecret.getMasterSecret().get());
     }
   }
 
@@ -385,6 +384,7 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private long handleSynchronizeSentMediaMessage(@NonNull MasterSecretUnion masterSecret,
+                                                 @NonNull SignalServiceEnvelope envelope,
                                                  @NonNull SentTranscriptMessage message,
                                                  @NonNull Optional<Long> smsMessageId)
       throws MmsException, InvalidMessagePayloadException {
@@ -392,13 +392,16 @@ public class PushDecryptJob extends ContextJob {
 
     ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(message.getMessage().getBody().get());
     forstaMessage.setTimeStamp(message.getTimestamp());
+    forstaMessage.setSenderId(envelope.getSource());
+    forstaMessage.setDeviceId(envelope.getSourceDevice());
+    forstaMessage.setTimeStamp(envelope.getTimestamp());
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
       Recipients recipients = getDistributionRecipients(distribution);
       DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
       recipients.setStale();
       recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-      long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
+      long threadId = updateThreadDistribution(forstaMessage, masterSecret.getMasterSecret().get());
 
       if (DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId) != message.getMessage().getExpiresInSeconds()) {
         handleSynchronizeSentExpirationUpdate(masterSecret, message, Optional.<Long>absent());
@@ -433,7 +436,7 @@ public class PushDecryptJob extends ContextJob {
       return threadId;
     } else {
       Log.w(TAG, "handleSynchronizeSentMediaMessage Type: " + forstaMessage.getControlType());
-      handleSyncControlMessage(forstaMessage);
+      handleSyncControlMessage(forstaMessage, masterSecret.getMasterSecret().get());
       return -1;
     }
   }
@@ -445,10 +448,21 @@ public class PushDecryptJob extends ContextJob {
     throw new InvalidMessagePayloadException("No recipients found in message.");
   }
 
+  private long updateThreadDistribution(ForstaMessage forstaMessage, MasterSecret masterSecret) throws InvalidMessagePayloadException {
+    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
+    Recipients recipients = getDistributionRecipients(distribution);
+    DirectoryHelper.refreshDirectoryFor(context, masterSecret, recipients);
+    recipients.setStale();
+    recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
+    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
+    return  threadId;
+  }
+
   private void handleContentMessage(ForstaMessage forstaMessage,
                                     MasterSecretUnion masterSecret,
                                     SignalServiceDataMessage message,
                                     SignalServiceEnvelope envelope) throws InvalidMessagePayloadException, MmsException {
+
     MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
     String               localNumber  = TextSecurePreferences.getLocalNumber(context);
     IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
@@ -459,12 +473,7 @@ public class PushDecryptJob extends ContextJob {
         message.getGroupInfo(),
         message.getAttachments(), forstaMessage.getMessageRef(), forstaMessage.getVote(), forstaMessage.getMessageId());
 
-    ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-    Recipients recipients = getDistributionRecipients(distribution);
-    DirectoryHelper.refreshDirectoryFor(context, masterSecret.getMasterSecret().get(), recipients);
-    recipients.setStale();
-    recipients = RecipientFactory.getRecipientsFor(context, recipients.getRecipientsList(), false);
-    long threadId = DatabaseFactory.getThreadDatabase(context).getOrAllocateThreadId(recipients, forstaMessage, distribution);
+    long threadId = updateThreadDistribution(forstaMessage, masterSecret.getMasterSecret().get());
 
     if (message.getExpiresInSeconds() != DatabaseFactory.getThreadPreferenceDatabase(context).getExpireMessages(threadId)) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -483,15 +492,71 @@ public class PushDecryptJob extends ContextJob {
     MessageNotifier.updateNotification(context, masterSecret.getMasterSecret().orNull(), messageAndThreadId.second);
   }
 
-  private void handleCallJoin(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    if (threadId == -1) {
-      Log.w(TAG, "No such thread id");
-      ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-      Recipients recipients = getDistributionRecipients(distribution);
-      DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
+  private void handleControlMessage(ForstaMessage forstaMessage, MasterSecret masterSecret) {
+    try {
+      Log.d(TAG, "Control Message: " + forstaMessage.getControlType() + " " + forstaMessage.getSenderId() + ":" + forstaMessage.getDeviceId());
+
+      if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.PROVISION_REQUEST)) {
+        Log.w(TAG, "Got Provision Request...");
+        handleProvisionRequest(forstaMessage);
+      } else {
+
+        switch (forstaMessage.getControlType()) {
+          case ForstaMessage.ControlTypes.THREAD_UPDATE:
+            updateThreadDistribution(forstaMessage, masterSecret);
+            break;
+          case ForstaMessage.ControlTypes.CALL_JOIN:
+            updateThreadDistribution(forstaMessage, masterSecret);
+            handleCallJoin(forstaMessage);
+            break;
+          case ForstaMessage.ControlTypes.CALL_OFFER:
+            updateThreadDistribution(forstaMessage, masterSecret);
+            handleCallOffer(forstaMessage);
+            break;
+          case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
+            handleCallIceCandidates(forstaMessage);
+            break;
+          case ForstaMessage.ControlTypes.CALL_LEAVE:
+            handleCallLeave(forstaMessage);
+            break;
+          case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
+            long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
+            // Extra check to make sure we know who this is from.
+            if (threadId == -1) {
+              Log.w(TAG, "No such thread id");
+              return;
+            }
+            handleCallAcceptOffer(forstaMessage);
+            break;
+        }
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Control message excption: " + e.getMessage());
+    }
+  }
+
+  private void handleProvisionRequest(ForstaMessage forstaMessage) throws Exception {
+    String sender = forstaMessage.getSenderId();
+    if (!sender.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
+      throw new Exception("Received provision request from unknown sender.");
+    }
+    ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
+    ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
+    String verificationCode = accountManager.getNewDeviceVerificationCode();
+    String ephemeralId = request.getUuid();
+    String theirPublicKeyEncoded = request.getKey();
+
+    if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(theirPublicKeyEncoded)) {
+      throw new Exception("UUID or Key is empty!");
     }
 
+    ECPublicKey theirPublicKey = Curve.decodePoint(Base64.decode(theirPublicKeyEncoded), 0);
+    IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
+    accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
+    TextSecurePreferences.setMultiDevice(context, true);
+  }
+
+  private void handleCallJoin(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
     ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
     Intent joinIntent = new Intent(context, WebRtcCallService.class);
     joinIntent.setAction(WebRtcCallService.ACTION_JOIN_CALL);
@@ -509,14 +574,6 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleCallOffer(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    if (threadId == -1) {
-      Log.w(TAG, "No such thread id");
-      ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-      Recipients recipients = getDistributionRecipients(distribution);
-      DatabaseFactory.getThreadDatabase(context).allocateThread(recipients, distribution, forstaMessage.getThreadUId());
-    }
-
     ForstaMessage.ForstaCall callOffer = forstaMessage.getCall();
     Intent intent = new Intent(context, WebRtcCallService.class);
     intent.setAction(WebRtcCallService.ACTION_CALL_OFFER);
@@ -536,13 +593,6 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleCallIceCandidates(ForstaMessage forstaMessage) {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    // Temporary fix
-    if (threadId == -1) {
-      Log.w(TAG, "No such thread id");
-      return;
-    }
-
     ForstaMessage.ForstaCall iceUpdate = forstaMessage.getCall();
     ArrayList<String> sdps = new ArrayList<>();
     ArrayList<String> sdpMids = new ArrayList<>();
@@ -567,14 +617,7 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleCallAcceptOffer(ForstaMessage forstaMessage) {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    // Temporary fix
-    if (threadId == -1) {
-      Log.w(TAG, "No such thread id");
-      return;
-    }
     ForstaMessage.ForstaCall callAcceptOffer = forstaMessage.getCall();
-    Log.w(TAG, "" + callAcceptOffer.toString());
     Intent acceptIntent = new Intent(context, WebRtcCallService.class);
     acceptIntent.setAction(WebRtcCallService.ACTION_RESPONSE_MESSAGE);
     acceptIntent.putExtra(WebRtcCallService.EXTRA_CALL_ID, callAcceptOffer.getCallId());
@@ -586,12 +629,6 @@ public class PushDecryptJob extends ContextJob {
   }
 
   private void handleCallLeave(ForstaMessage forstaMessage) {
-    long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-    // Temporary fix
-    if (threadId == -1) {
-      Log.w(TAG, "No such thread id");
-      return;
-    }
     ForstaMessage.ForstaCall callLeave = forstaMessage.getCall();
     Intent leaveIntent = new Intent(context, WebRtcCallService.class);
     leaveIntent.setAction(WebRtcCallService.ACTION_REMOTE_HANGUP);
@@ -602,75 +639,7 @@ public class PushDecryptJob extends ContextJob {
     context.startService(leaveIntent);
   }
 
-  private void handleSyncControlMessage(ForstaMessage forstaMessage) {
-    handleControlMessage(forstaMessage);
+  private void handleSyncControlMessage(ForstaMessage forstaMessage, MasterSecret masterSecret) {
+    handleControlMessage(forstaMessage, masterSecret);
   }
-
-  private void handleControlMessage(ForstaMessage forstaMessage) {
-    try {
-      Log.w(TAG, "Control Message: " + forstaMessage.getControlType());
-
-      long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-      switch (forstaMessage.getControlType()) {
-        case ForstaMessage.ControlTypes.THREAD_UPDATE:
-          // Temporary fix
-          if (threadId == -1) {
-            Log.w(TAG, "No such thread id");
-            return;
-          }
-
-          ThreadDatabase threadDb = DatabaseFactory.getThreadDatabase(context);
-          ForstaThread threadData = threadDb.getForstaThread(forstaMessage.getThreadUId());
-
-          if (threadData != null) {
-            ForstaDistribution distribution = CcsmApi.getMessageDistribution(context, forstaMessage.getUniversalExpression());
-            Recipients recipients = getDistributionRecipients(distribution);
-            Log.w(TAG, "Message Recipients: " + recipients.toFullString());
-            threadDb.updateForstaThread(threadData.getThreadid(), recipients, forstaMessage, distribution);
-          }
-          break;
-        case ForstaMessage.ControlTypes.PROVISION_REQUEST:
-          Log.w(TAG, "Got Provision Request...");
-          // Check to see that message request was sent by superman.
-          String sender = forstaMessage.getSenderId();
-          if (!sender.equals(BuildConfig.FORSTA_SYNC_NUMBER)) {
-            throw new Exception("Received provision request from unknown sender.");
-          }
-          ForstaMessage.ForstaProvisionRequest request = forstaMessage.getProvisionRequest();
-          ForstaServiceAccountManager accountManager = TextSecureCommunicationFactory.createManager(context);
-          String verificationCode = accountManager.getNewDeviceVerificationCode();
-          String ephemeralId = request.getUuid();
-          String theirPublicKeyEncoded = request.getKey();
-
-          if (TextUtils.isEmpty(ephemeralId) || TextUtils.isEmpty(theirPublicKeyEncoded)) {
-            throw new Exception("UUID or Key is empty!");
-          }
-
-          ECPublicKey theirPublicKey = Curve.decodePoint(Base64.decode(theirPublicKeyEncoded), 0);
-          IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
-          accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
-          TextSecurePreferences.setMultiDevice(context, true);
-          break;
-        case ForstaMessage.ControlTypes.CALL_JOIN:
-          handleCallJoin(forstaMessage);
-          break;
-        case ForstaMessage.ControlTypes.CALL_OFFER:
-          handleCallOffer(forstaMessage);
-          break;
-        case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
-          handleCallIceCandidates(forstaMessage);
-          break;
-        case ForstaMessage.ControlTypes.CALL_LEAVE:
-          handleCallLeave(forstaMessage);
-          break;
-        case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
-          handleCallAcceptOffer(forstaMessage);
-          break;
-      }
-
-    } catch (Exception e) {
-      Log.e(TAG, "Control message excption: " + e.getMessage());
-    }
-  }
-
 }
