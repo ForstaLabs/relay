@@ -10,13 +10,8 @@ import android.widget.Toast;
 import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.Rfc5724Uri;
 import org.whispersystems.libsignal.util.guava.Optional;
 

@@ -24,19 +24,16 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.RemoteInput;
 
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.RecipientPreferenceDatabase.RecipientsPreferences;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import org.whispersystems.libsignal.util.guava.Optional;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**

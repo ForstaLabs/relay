@@ -14,15 +14,13 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.IdentityDatabase;
 import io.forsta.securesms.database.MmsAddressDatabase;
 import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.MmsSmsDatabase;
 import io.forsta.securesms.database.PushDatabase;
-import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.jobs.IdentityUpdateJob;
 import io.forsta.securesms.jobs.PushDecryptJob;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.util.Base64;
 
 /**

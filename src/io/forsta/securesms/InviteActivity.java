@@ -30,8 +30,6 @@ import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
 
