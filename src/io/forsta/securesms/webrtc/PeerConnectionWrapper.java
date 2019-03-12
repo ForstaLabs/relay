@@ -34,7 +34,6 @@ public class PeerConnectionWrapper {
                                @NonNull List<PeerConnection.IceServer> turnServers)
   {
     List<PeerConnection.IceServer> iceServers = new LinkedList<>();
-//    iceServers.add(STUN_SERVER);
     iceServers.addAll(turnServers);
 
     MediaConstraints                constraints      = new MediaConstraints();

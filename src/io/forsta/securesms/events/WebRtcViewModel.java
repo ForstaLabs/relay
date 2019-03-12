@@ -2,6 +2,7 @@ package io.forsta.securesms.events;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.ArrayMap;
 
 import io.forsta.ccsm.webrtc.CallRecipient;
 import io.forsta.securesms.recipients.Recipient;
@@ -10,7 +11,10 @@ import io.forsta.securesms.service.WebRtcCallService;
 
 import org.whispersystems.libsignal.IdentityKey;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +32,7 @@ public class WebRtcViewModel {
     CALL_MEMBER_LEAVING,
     CALL_MEMBER_VIDEO,
     VIDEO_ENABLE,
+    CALL_ANSWERING,
 
     // Error states
     NETWORK_FAILURE,
@@ -38,11 +43,12 @@ public class WebRtcViewModel {
 
 
   private final @NonNull  State       state;
-  private final @NonNull CallRecipient callRecipient;
-  private int callOrder = 0;
-  private final Map<Integer, CallRecipient> remoteCallRecipients;
+  private final CallRecipient callRecipient;
+  private final List<CallRecipient> callMembers;
 
-  private final boolean remoteVideoEnabled;
+  private int callOrder = 0; // Remove
+  private final Map<Integer, CallRecipient> remoteCallRecipients; //Remove
+
   private final boolean localVideoEnabled;
 
   private final boolean isBluetoothAvailable;
@@ -57,10 +63,36 @@ public class WebRtcViewModel {
   {
     this.state                = state;
     this.remoteCallRecipients = remoteCallRecipients;
+    this.callMembers = new LinkedList<>();
     this.callRecipient = callRecipient;
     this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
-    this.remoteVideoEnabled   = remoteVideoEnabled;
+    this.isBluetoothAvailable = isBluetoothAvailable;
+    this.isMicrophoneEnabled  = isMicrophoneEnabled;
+  }
+
+  public WebRtcViewModel(@NonNull State state,
+                         List<CallRecipient> remoteCallMembers,
+                         CallRecipient callRecipient,
+                         boolean localVideoEnabled,
+                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
+  {
+    this.state                = state;
+    this.callMembers = remoteCallMembers;
+    this.remoteCallRecipients = new ArrayMap<>();
+    this.callRecipient = callRecipient;
+    this.localVideoEnabled    = localVideoEnabled;
+    this.isBluetoothAvailable = isBluetoothAvailable;
+    this.isMicrophoneEnabled  = isMicrophoneEnabled;
+  }
+
+  public WebRtcViewModel(@NonNull State state, boolean localVideoEnabled,
+                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
+    this.state = state;
+    this.callRecipient = null;
+    this.callMembers = new ArrayList<>();
+    this.remoteCallRecipients = new ArrayMap<>();
+    this.localVideoEnabled    = localVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
   }
@@ -82,10 +114,6 @@ public class WebRtcViewModel {
     return callOrder;
   }
 
-  public boolean isRemoteVideoEnabled() {
-    return remoteVideoEnabled;
-  }
-
   public boolean isLocalVideoEnabled() {
     return localVideoEnabled;
   }
@@ -99,6 +127,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + callRecipient.getRecipient() + " callOrder: " + callOrder + ", remoteVideo: " + callRecipient.isVideoEnabled() + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + (callRecipient != null ? callRecipient.getRecipient(): "null") + " callOrder: " + callOrder + ", localVideo: " + localVideoEnabled + "]";
   }
 }

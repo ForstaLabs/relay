@@ -192,10 +192,6 @@ public class Recipient {
     return recipientId;
   }
 
-  public boolean isGroupRecipient() {
-    return GroupUtil.isEncodedGroup(number);
-  }
-
   public synchronized void addListener(RecipientModifiedListener listener) {
     listeners.add(listener);
   }

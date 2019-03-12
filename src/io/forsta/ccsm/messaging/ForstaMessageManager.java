@@ -179,7 +179,7 @@ public class ForstaMessageManager {
               break;
             case ForstaMessage.ControlTypes.CALL_OFFER:
               if (data.has("offer")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 JSONObject offer = data.getJSONObject("offer");
                 String spd = offer.optString("sdp");
@@ -200,7 +200,7 @@ public class ForstaMessageManager {
               break;
             case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
               if (data.has("answer")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 JSONObject answer = data.getJSONObject("answer");
                 String spd = answer.optString("sdp");
@@ -211,9 +211,22 @@ public class ForstaMessageManager {
               }
               break;
 
+            case ForstaMessage.ControlTypes.CALL_JOIN:
+              String joinOriginator = data.getString("originator");
+              String joinCallId = data.getString("callId");
+              List<String> members = new ArrayList<>();
+              if (data.has("members")) {
+                JSONArray callMembers = data.getJSONArray("members");
+                for (int i=0; i<callMembers.length(); i++) {
+                  String memberId = callMembers.getString(i);
+                  members.add(memberId);
+                }
+              }
+              forstaMessage.setCallJoin(joinCallId, joinOriginator, members);
+              break;
             case ForstaMessage.ControlTypes.CALL_ICE_CANDIDATES:
               if (data.has("icecandidates")) {
-                String originator = data.getString("originator");
+                String originator = data.optString("originator");
                 String callId = data.getString("callId");
                 String peerId = data.getString("peerId");
                 JSONArray callIceCandidates = data.getJSONArray("icecandidates");
@@ -231,7 +244,7 @@ public class ForstaMessageManager {
               }
               break;
             case ForstaMessage.ControlTypes.CALL_LEAVE:
-              String originator = data.getString("originator");
+              String originator = data.optString("originator");
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
               break;
@@ -259,13 +272,9 @@ public class ForstaMessageManager {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callLeave");
-      JSONArray members = new JSONArray();
-      for (Recipient x : recipients) {
-        members.put(x.getAddress());
-      }
-      data.put("members", members);
       data.put("callId", callId);
       data.put("originator", user.getUid());
+      data.put("version", 2);
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -273,22 +282,18 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId, Set<String> callMembers) {
+  public static String createAcceptCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callAcceptOffer");
       data.put("peerId", peerId);
-      JSONArray members = new JSONArray();
-      for (String x : callMembers) {
-        members.put(x);
-      }
-      data.put("members", members);
       data.put("callId", callId);
       data.put("originator", user.getUid());
       JSONObject answer = new JSONObject();
       answer.put("sdp", description);
       answer.put("type", "answer");
       data.put("answer", answer);
+      data.put("version", 2);
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -296,10 +301,29 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createCallOfferMessage(ForstaUser user, Recipients recipients, List<String> memberAddresses, ForstaThread forstaThread, String callId, String description, String peerId) {
+  public static String createCallOfferMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String description, String peerId) {
     JSONObject data = new JSONObject();
     try {
       data.put("control", "callOffer");
+      data.put("callId", callId);
+      data.put("originator", user.getUid());
+      JSONObject offer = new JSONObject();
+      offer.put("sdp", description);
+      offer.put("type", "offer");
+      data.put("offer", offer);
+      data.put("peerId", peerId);
+      data.put("version", 2);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
+    return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
+  }
+
+  public static String createCallJoinMessage(ForstaUser user, Recipients recipients, List<String> memberAddresses, ForstaThread forstaThread, String callId, String peerId) {
+    JSONObject data = new JSONObject();
+    try {
+      data.put("control", "callJoin");
       JSONArray members = new JSONArray();
       for (String x : memberAddresses) {
         members.put(x);
@@ -311,10 +335,8 @@ public class ForstaMessageManager {
       data.put("callId", callId);
       data.put("originator", user.getUid());
       JSONObject offer = new JSONObject();
-      offer.put("sdp", description);
-      offer.put("type", "offer");
-      data.put("offer", offer);
       data.put("peerId", peerId);
+      data.put("version", 2);
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -336,19 +358,24 @@ public class ForstaMessageManager {
     return createBaseMessageBody(user, recipients, forstaThread, ForstaMessage.MessageTypes.CONTROL, data);
   }
 
-  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, JSONArray candidates, Set<String> callMembers) {
+  public static String createIceCandidateMessage(ForstaUser user, Recipients recipients, ForstaThread forstaThread, String callId, String peerId, List<IceCandidate> candidates) {
     JSONObject data = new JSONObject();
     try {
-      data.put("control", "callICECandidates");
-      data.put("icecandidates", candidates);
-      data.put("peerId", peerId);
-      JSONArray members = new JSONArray();
-      for (String x : callMembers) {
-        members.put(x);
+      JSONArray jsonUpdates = new JSONArray();
+      for (IceCandidate candidate : candidates) {
+        JSONObject jsonCandidate = new JSONObject();
+        jsonCandidate.put("candidate", candidate.sdp);
+        jsonCandidate.put("sdpMid", candidate.sdpMid);
+        jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+        jsonUpdates.put(jsonCandidate);
       }
-      data.put("members", members);
+
+      data.put("control", "callICECandidates");
+      data.put("icecandidates", jsonUpdates);
+      data.put("peerId", peerId);
       data.put("callId", callId);
       data.put("originator", user.getUid());
+      data.put("version", 2);
     } catch (JSONException e) {
       e.printStackTrace();
     }

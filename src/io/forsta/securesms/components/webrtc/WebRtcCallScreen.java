@@ -20,6 +20,7 @@ package io.forsta.securesms.components.webrtc;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
@@ -124,6 +125,12 @@ public class WebRtcCallScreen extends FrameLayout {
     endCallButton.setVisibility(VISIBLE);
   }
 
+  public void setCallAnswering() {
+    incomingCallButton.stopRingingAnimation();
+    incomingCallButton.setVisibility(View.GONE);
+    localMemberLayout.setVisibility(VISIBLE);
+  }
+
   public void updateVideoSelection(@NonNull CallRecipient callRecipient, int callOrder) {
     for (CallRecipient recipient : remoteCallMembers.values()) {
       recipient.setVideoEnabled(false);
@@ -134,9 +141,18 @@ public class WebRtcCallScreen extends FrameLayout {
 
   public void updateCallMember(@NonNull CallRecipient callRecipient, int callOrder) {
     remoteCallMembers.put(callOrder, callRecipient);
-    if (remoteCallMemberList != null && remoteCallMemberList.getAdapter() != null) {
-      remoteCallMemberList.getAdapter().notifyItemChanged(callOrder - 1);
+    if (remoteCallMemberList.getAdapter() != null) {
+      remoteCallMemberList.getAdapter().notifyDataSetChanged();
+    } else {
+      CallMemberListAdapter adapter = new CallMemberListAdapter(remoteCallMembers);
+      remoteCallMemberList.setAdapter(adapter);
     }
+  }
+
+  public void setOutgoingCall() {
+    incomingCallButton.stopRingingAnimation();
+    incomingCallButton.setVisibility(View.GONE);
+    endCallButton.setVisibility(VISIBLE);
   }
 
   public void setOutgoingCall(CallRecipient callRecipient, int callOrder, Map<Integer, CallRecipient> remoteCallRecipients) {
@@ -205,10 +221,12 @@ public class WebRtcCallScreen extends FrameLayout {
   public void setLocalVideoEnabled(boolean enabled) {
     this.controls.setVideoEnabled(enabled);
     View video = localMemberLayout.getChildAt(0);
-    if (!enabled) {
-      video.setVisibility(INVISIBLE);
-    } else {
-      video.setVisibility(VISIBLE);
+    if (video != null) {
+      if (!enabled) {
+        video.setVisibility(INVISIBLE);
+      } else {
+        video.setVisibility(VISIBLE);
+      }
     }
     localMemberLayout.requestLayout();
   }
@@ -233,7 +251,7 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-      localRenderer.setMirror(true);
+//      localRenderer.setMirror(true);
       localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);
