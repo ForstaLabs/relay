@@ -955,12 +955,7 @@ public class MmsDatabase extends MessagingDatabase {
     else                                            type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
 
     if (message.isSecure()) type |= Types.SECURE_MESSAGE_BIT;
-    if (forceSms)           type |= Types.MESSAGE_FORCE_SMS_BIT;
-
-    if (message.isGroup()) {
-      if      (((OutgoingGroupMediaMessage)message).isGroupUpdate()) type |= Types.GROUP_UPDATE_BIT;
-      else if (((OutgoingGroupMediaMessage)message).isGroupQuit())   type |= Types.GROUP_QUIT_BIT;
-    }
+    else if (message.isEndSession())    type |= Types.END_SESSION_BIT;
 
     if (message.isExpirationUpdate()) {
       type |= Types.EXPIRATION_TIMER_UPDATE_BIT;

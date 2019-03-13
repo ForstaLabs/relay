@@ -50,7 +50,7 @@ import ws.com.google.android.mms.MmsException;
 public class MessageSender {
 
   private static final String TAG = MessageSender.class.getSimpleName();
-  
+
   private static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMediaMessage message,

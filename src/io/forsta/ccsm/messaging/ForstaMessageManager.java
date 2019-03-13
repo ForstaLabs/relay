@@ -229,7 +229,7 @@ public class ForstaMessageManager {
               forstaMessage.setCallLeave(callId, originator);
               break;
             default:
-              Log.w(TAG, "Unsupported control message");
+              Log.w(TAG, "Unsupported control message: " + forstaMessage.getControlType());
           }
         }
       }
@@ -512,7 +512,12 @@ public class ForstaMessageManager {
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
     JSONObject data = new JSONObject();
     try {
-      data.put("control", "endSession");
+      data.put("control", "closeSession");
+      JSONArray retransmitTimeStamps = new JSONArray();
+      // retransmits: [<number>] // Used with `closeSession` control to indicate which messages (sent timestamp) should be resent due to decryption error.  Client should validate veracity of requester before complying.
+      if (retransmitTimeStamps.length() > 0) {
+        data.put("retransmits", retransmitTimeStamps);
+      }
     } catch (JSONException e) {
       e.printStackTrace();
     }

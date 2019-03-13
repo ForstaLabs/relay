@@ -490,7 +490,7 @@ public class PushDecryptJob extends ContextJob {
 
   private void handleControlMessage(ForstaMessage forstaMessage, MasterSecret masterSecret) {
     try {
-      Log.d(TAG, "Control Message: " + forstaMessage.getControlType() + " " + forstaMessage.getSenderId() + ":" + forstaMessage.getDeviceId());
+      Log.d(TAG, "handleControlMessage: " + forstaMessage.getControlType() + " " + forstaMessage.getSenderId() + ":" + forstaMessage.getDeviceId());
 
       if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.PROVISION_REQUEST)) {
         Log.w(TAG, "Got Provision Request...");
