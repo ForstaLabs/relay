@@ -30,6 +30,7 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.messaging.OutgoingEndSessionMediaMessage;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
@@ -718,6 +719,7 @@ public class MmsDatabase extends MessagingDatabase {
         List<String>     destinations   = new LinkedList<>();
         String           body           = getDecryptedBody(masterSecret, messageText, outboxType);
         String messageUId = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_ID));
+
         String messageRef = cursor.getString(cursor.getColumnIndexOrThrow(MESSAGE_REF));
         int vote = cursor.getInt(cursor.getColumnIndexOrThrow(UP_VOTE));
 
@@ -731,9 +733,11 @@ public class MmsDatabase extends MessagingDatabase {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
-        OutgoingMediaMessage message = new OutgoingMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
-
-        return message;
+        if ((outboxType & Types.SECURE_MESSAGE_BIT) !=0) {
+          return new OutgoingEndSessionMediaMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
+        } else {
+          return new OutgoingMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
+        }
       }
 
       throw new NoSuchMessageException("No record found for id: " + messageId);
@@ -955,7 +959,6 @@ public class MmsDatabase extends MessagingDatabase {
     else                                            type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
 
     if (message.isSecure()) type |= Types.SECURE_MESSAGE_BIT;
-    else if (message.isEndSession())    type |= Types.END_SESSION_BIT;
 
     if (message.isExpirationUpdate()) {
       type |= Types.EXPIRATION_TIMER_UPDATE_BIT;
@@ -976,7 +979,6 @@ public class MmsDatabase extends MessagingDatabase {
     ContentValues contentValues = new ContentValues();
     contentValues.put(DATE_SENT, message.getSentTimeMillis());
     contentValues.put(MESSAGE_TYPE, PduHeaders.MESSAGE_TYPE_SEND_REQ);
-
     contentValues.put(MESSAGE_BOX, type);
     contentValues.put(THREAD_ID, threadId);
     contentValues.put(READ, 1);
