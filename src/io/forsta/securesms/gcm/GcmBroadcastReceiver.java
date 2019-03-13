@@ -56,18 +56,12 @@ public class GcmBroadcastReceiver extends WakefulBroadcastReceiver implements In
         return;
       }
 
-      String messageData = intent.getStringExtra("message");
       String receiptData = intent.getStringExtra("receipt");
 
-      if      (!TextUtils.isEmpty(messageData)) {
-        Log.w(TAG, "Push type: message");
-        handleReceivedMessage(context, messageData);
-      }
-      else if (!TextUtils.isEmpty(receiptData)) {
+      if (!TextUtils.isEmpty(receiptData)) {
         Log.w(TAG, "Push type: receipt");
         handleReceivedMessage(context, receiptData);
-      }
-      else if (intent.hasExtra("notification")) {
+      } else if (intent.hasExtra("notification")) {
         Log.w(TAG, "Push type: notification");
         handleReceivedNotification(context);
       } else {
