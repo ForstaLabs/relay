@@ -65,16 +65,16 @@ public class WearReplyReceiver extends MasterSecretBroadcastReceiver {
         protected Void doInBackground(Void... params) {
           long threadId;
 
-          Optional<RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipientIds);
-          int  subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
-          long expiresIn      = preferences.isPresent() ? preferences.get().getExpireMessages() * 1000 : 0;
-
-          OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
-          threadId = MessageSender.send(context, masterSecret, reply, -1, false);
-
-          List<MarkedMessageInfo> messageIds = DatabaseFactory.getThreadDatabase(context).setRead(threadId);
-          MessageNotifier.updateNotification(context, masterSecret);
-          MarkReadReceiver.process(context, messageIds);
+//          Optional<RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipientIds);
+//          int  subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
+//          long expiresIn      = preferences.isPresent() ? preferences.get().getExpireMessages() * 1000 : 0;
+//
+//          OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
+//          threadId = MessageSender.send(context, masterSecret, reply, -1, false);
+//
+//          List<MarkedMessageInfo> messageIds = DatabaseFactory.getThreadDatabase(context).setRead(threadId);
+//          MessageNotifier.updateNotification(context, masterSecret);
+//          MarkReadReceiver.process(context, messageIds);
 
           return null;
         }

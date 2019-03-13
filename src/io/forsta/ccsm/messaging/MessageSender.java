@@ -50,46 +50,7 @@ import ws.com.google.android.mms.MmsException;
 public class MessageSender {
 
   private static final String TAG = MessageSender.class.getSimpleName();
-
-  // This is only used for sending Session End Messages.
-  // OutgoingEndSessionMessage
-  public static long send(final Context context,
-                          final MasterSecret masterSecret,
-                          final OutgoingTextMessage message,
-                          final long threadId,
-                          final boolean forceSms)
-  {
-    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
-    Recipients            recipients  = message.getRecipients();
-    boolean               keyExchange = message.isKeyExchange();
-
-    long allocatedThreadId;
-
-    if (threadId == -1) {
-      allocatedThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    } else {
-      allocatedThreadId = threadId;
-    }
-
-    long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), allocatedThreadId,
-                                                  message, forceSms, System.currentTimeMillis());
-
-    sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
-
-    return allocatedThreadId;
-  }
-
-  private static void sendTextMessage(Context context, Recipients recipients,
-                                      boolean forceSms, boolean keyExchange,
-                                      long messageId, long expiresIn)
-  {
-    if (isSelfSend(context, recipients)) {
-      sendTextSelf(context, messageId, expiresIn);
-    } else {
-      sendTextPush(context, recipients, messageId);
-    }
-  }
-
+  
   private static long send(final Context context,
                           final MasterSecret masterSecret,
                           final OutgoingMediaMessage message,
