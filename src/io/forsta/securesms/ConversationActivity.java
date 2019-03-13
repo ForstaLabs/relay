@@ -89,6 +89,7 @@ import io.forsta.securesms.components.reminder.ReminderView;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.SessionUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
@@ -115,12 +116,11 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.ccsm.messaging.MessageSender;
-import io.forsta.securesms.sms.OutgoingEndSessionMessage;
-import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
+import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -572,20 +572,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     builder.setPositiveButton(R.string.ConversationActivity_reset, (dialog, which) -> {
       final Context context = getApplicationContext();
 
-      OutgoingTextMessage endTextMessage = new OutgoingTextMessage(recipients, "", 0, -1);
-      OutgoingEndSessionMessage endSessionMessage = new OutgoingEndSessionMessage(endTextMessage);
-
-      new AsyncTask<OutgoingEndSessionMessage, Void, Long>() {
+      new AsyncTask<Void, Void, Void>() {
         @Override
-        protected Long doInBackground(OutgoingEndSessionMessage... messages) {
-          return MessageSender.send(context, masterSecret, messages[0], threadId, false);
+        protected Void doInBackground(Void... messages) {
+          MessageSender.sendEndSessionMessage(context, masterSecret, recipients, threadId);
+          return null;
         }
 
         @Override
-        protected void onPostExecute(Long result) {
-                                              sendComplete(result);
-                                                                   }
-      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, endSessionMessage);
+        protected void onPostExecute(Void result) {
+          sendComplete(-1);
+        }
+      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     });
     builder.setNegativeButton(android.R.string.cancel, null);
     builder.show();

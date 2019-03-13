@@ -51,7 +51,6 @@ public abstract class PushReceivedJob extends ContextJob {
       Log.w(TAG, "*** Received blocked push message, ignoring...");
     }
 
-    //TODO Remove this?
     if (sendExplicitReceipt) {
       jobManager.add(new DeliveryReceiptJob(context, envelope.getSource(),
                                             envelope.getTimestamp(),

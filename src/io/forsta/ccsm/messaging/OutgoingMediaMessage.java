@@ -1,19 +1,9 @@
-package io.forsta.securesms.mms;
+package io.forsta.ccsm.messaging;
 
-import android.content.Context;
 import android.text.TextUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import io.forsta.ccsm.api.model.ForstaDistribution;
-import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaThread;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.util.ForstaUtils;
-import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.attachments.Attachment;
+import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipients;
 
 import java.util.List;
@@ -96,6 +86,14 @@ public class OutgoingMediaMessage {
 
   public boolean isSecure() {
     return true;
+  }
+
+  public boolean isEndSession() {
+    return false;
+  }
+
+  public boolean isKeyExchange() {
+    return false;
   }
 
   public boolean isGroup() {

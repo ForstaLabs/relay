@@ -3,7 +3,6 @@ package io.forsta.ccsm.messaging;
 import java.util.List;
 
 import io.forsta.securesms.attachments.Attachment;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.Recipients;
 
 public class OutgoingMessage extends OutgoingMediaMessage {

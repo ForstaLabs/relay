@@ -27,7 +27,6 @@ import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.sms.OutgoingEndSessionMessage;
@@ -508,13 +507,17 @@ public class ForstaMessageManager {
     return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
   }
 
-  public static OutgoingEndSessionMessage createOutgoingEndSessionMessage(Context context, Recipients recipients, long threadId, long expiresIn) {
+  public static OutgoingEndSessionMediaMessage createOutgoingEndSessionMessage(Context context, Recipients recipients, long threadId) {
     ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
     ForstaUser user = ForstaUser.getLocalForstaUser(context);
-    String uid = UUID.randomUUID().toString();
-    String jsonPayload = createContentMessage(context, "", user, recipients, new LinkedList<Attachment>(), thread, uid);
-//    return new OutgoingEndSessionMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
-    return null;
+    JSONObject data = new JSONObject();
+    try {
+      data.put("control", "endSession");
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    String jsonPayload = createBaseMessageBody(user, recipients, thread, ForstaMessage.MessageTypes.CONTROL, data);
+    return new OutgoingEndSessionMediaMessage(recipients, jsonPayload, System.currentTimeMillis());
   }
 
   public static IncomingMessage createLocalInformationalMessage(Context context, String message, Recipients recipients, long threadId, long expiresIn) {

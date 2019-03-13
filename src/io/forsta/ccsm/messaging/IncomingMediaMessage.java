@@ -1,4 +1,4 @@
-package io.forsta.securesms.mms;
+package io.forsta.ccsm.messaging;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.securesms.attachments.Attachment;

@@ -78,7 +78,8 @@ public class WearReplyReceiver extends MasterSecretBroadcastReceiver {
 
           return null;
         }
-      }.execute();
+      };
+      // .execute(); disabled. Obsolete code path
     }
 
   }

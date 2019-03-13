@@ -33,13 +33,12 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
+import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -246,5 +245,10 @@ public class MessageSender {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public static void sendEndSessionMessage(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
+    OutgoingEndSessionMediaMessage message = ForstaMessageManager.createOutgoingEndSessionMessage(context, recipients, threadId);
+    send(context, masterSecret, message, threadId, false);
   }
 }
