@@ -614,7 +614,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteRecipients);
 
       sendMessage(WebRtcViewModel.State.CALL_OUTGOING, null, null, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
+//      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
 
     } catch (Exception e) {
       Log.e(TAG, "Exception: " + e.getMessage());

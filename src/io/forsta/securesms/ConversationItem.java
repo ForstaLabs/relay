@@ -301,7 +301,9 @@ public class ConversationItem extends LinearLayout
     bodyText.setClickable(false);
     bodyText.setFocusable(false);
 
-    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+    if (messageRecord.isEndSession()) {
+      bodyText.setText("Ended session for all thread members");
+    } else if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
       bodyText.setText(messageRecord.getHtmlBody());
     } else {
       bodyText.setText(messageRecord.getPlainTextBody());
