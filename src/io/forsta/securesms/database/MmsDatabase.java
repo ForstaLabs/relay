@@ -959,6 +959,7 @@ public class MmsDatabase extends MessagingDatabase {
     else                                            type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
 
     if (message.isSecure()) type |= Types.SECURE_MESSAGE_BIT;
+    if (message.isEndSession()) type |= Types.END_SESSION_BIT;
 
     if (message.isExpirationUpdate()) {
       type |= Types.EXPIRATION_TIMER_UPDATE_BIT;
