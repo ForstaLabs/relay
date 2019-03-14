@@ -226,6 +226,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         .withTimestamp(message.getSentTimeMillis())
         .withExpiration((int)(message.getExpiresIn() / 1000))
         .asExpirationUpdate(message.isExpirationUpdate())
+        .asEndSessionMessage(message.isEndSession())
         .build();
     return mediaMessage;
   }
