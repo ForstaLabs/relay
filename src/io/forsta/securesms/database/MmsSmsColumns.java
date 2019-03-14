@@ -134,6 +134,7 @@ public interface MmsSmsColumns {
     }
 
     public static boolean isEndSessionType(long type) {
+      long temp = (type & END_SESSION_BIT);
       return (type & END_SESSION_BIT) != 0;
     }
 

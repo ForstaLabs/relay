@@ -733,7 +733,7 @@ public class MmsDatabase extends MessagingDatabase {
           return new OutgoingExpirationUpdateMessage(recipients, body, timestamp, expiresIn);
         }
 
-        if ((outboxType & Types.SECURE_MESSAGE_BIT) !=0) {
+        if ((outboxType & Types.END_SESSION_BIT) !=0) {
           return new OutgoingEndSessionMediaMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
         } else {
           return new OutgoingMessage(recipients, body, attachments, timestamp, expiresIn, messageUId, messageRef, vote);
