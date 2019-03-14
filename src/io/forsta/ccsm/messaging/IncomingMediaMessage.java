@@ -24,6 +24,7 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
+  private final boolean endSession = false;
   private final String messageRef;
   private final int voteCount;
   private final String messageId;
@@ -31,29 +32,6 @@ public class IncomingMediaMessage {
   private final List<String>     to          = new LinkedList<>();
   private final List<String>     cc          = new LinkedList<>();
   private final List<Attachment> attachments = new LinkedList<>();
-
-  // Not used. For MMS only messages.
-  public IncomingMediaMessage(String from, List<String> to, List<String> cc,
-                               String body, long sentTimeMillis,
-                               List<Attachment> attachments, int subscriptionId,
-                               long expiresIn, boolean expirationUpdate)
-  {
-    this.from             = from;
-    this.sentTimeMillis   = sentTimeMillis;
-    this.body             = body;
-    this.groupId          = null;
-    this.push             = false;
-    this.subscriptionId   = subscriptionId;
-    this.expiresIn        = expiresIn;
-    this.expirationUpdate = expirationUpdate;
-    this.messageRef = null;
-    this.voteCount = 0;
-    this.messageId = null;
-
-    this.to.addAll(to);
-    this.cc.addAll(cc);
-    this.attachments.addAll(attachments);
-  }
 
   protected IncomingMediaMessage(String from, String to, String body, long sentTimeMillis, long expiresIn)
   {

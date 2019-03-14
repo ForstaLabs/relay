@@ -346,6 +346,7 @@ public class PushDecryptJob extends ContextJob {
     forstaMessage.setSenderId(envelope.getSource());
     forstaMessage.setDeviceId(envelope.getSourceDevice());
     forstaMessage.setTimeStamp(envelope.getTimestamp());
+    forstaMessage.setEndSession(message.isEndSession());
 
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
@@ -501,6 +502,10 @@ public class PushDecryptJob extends ContextJob {
           case ForstaMessage.ControlTypes.THREAD_UPDATE:
             updateThreadDistribution(forstaMessage, masterSecret);
             break;
+          case ForstaMessage.ControlTypes.CLOSE_SESSION:
+            updateThreadDistribution(forstaMessage, masterSecret);
+            handleCloseSession(forstaMessage);
+            break;
           case ForstaMessage.ControlTypes.CALL_JOIN:
             updateThreadDistribution(forstaMessage, masterSecret);
             handleCallJoin(forstaMessage);
@@ -516,12 +521,7 @@ public class PushDecryptJob extends ContextJob {
             handleCallLeave(forstaMessage);
             break;
           case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
-            long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-            // Extra check to make sure we know who this is from.
-            if (threadId == -1) {
-              Log.w(TAG, "No such thread id");
-              return;
-            }
+            updateThreadDistribution(forstaMessage, masterSecret);
             handleCallAcceptOffer(forstaMessage);
             break;
         }
@@ -550,6 +550,10 @@ public class PushDecryptJob extends ContextJob {
     IdentityKeyPair identityKeyPair = IdentityKeyUtil.getIdentityKeyPair(context);
     accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
     TextSecurePreferences.setMultiDevice(context, true);
+  }
+
+  private void handleCloseSession(ForstaMessage forstaMessage) {
+    // Broadcast security update event, or handle as content message and write to message db?
   }
 
   private void handleCallJoin(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
