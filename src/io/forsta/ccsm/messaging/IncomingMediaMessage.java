@@ -24,7 +24,7 @@ public class IncomingMediaMessage {
   private final int     subscriptionId;
   private final long    expiresIn;
   private final boolean expirationUpdate;
-  private final boolean endSession = false;
+  private boolean endSession = false;
   private final String messageRef;
   private final int voteCount;
   private final String messageId;
@@ -95,6 +95,32 @@ public class IncomingMediaMessage {
     this.attachments.addAll(PointerAttachment.forPointers(masterSecret, attachments));
   }
 
+  public IncomingMediaMessage(MasterSecretUnion masterSecret,
+                              String from,
+                              String to,
+                              long sentTimeMillis,
+                              long expiresIn,
+                              Optional<String> body,
+                              boolean endSession,
+                              Optional<List<SignalServiceAttachment>> attachments)
+  {
+    this.push             = true;
+    this.from             = from;
+    this.sentTimeMillis   = sentTimeMillis;
+    this.body             = body.orNull();
+    this.subscriptionId   = -1;
+    this.expiresIn        = expiresIn;
+    this.messageRef = null;
+    this.voteCount = 0;
+    this.messageId = null;
+    this.groupId = null;
+    this.expirationUpdate = false;
+    this.endSession = endSession;
+
+    this.to.add(to);
+    this.attachments.addAll(PointerAttachment.forPointers(masterSecret, attachments));
+  }
+
   public int getSubscriptionId() {
     return subscriptionId;
   }
@@ -121,6 +147,10 @@ public class IncomingMediaMessage {
 
   public boolean isExpirationUpdate() {
     return expirationUpdate;
+  }
+
+  public boolean isEndSession() {
+    return endSession;
   }
 
   public long getSentTimeMillis() {

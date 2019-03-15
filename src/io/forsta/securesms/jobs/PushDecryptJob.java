@@ -180,7 +180,7 @@ public class PushDecryptJob extends ContextJob {
         if (content.getDataMessage().isPresent()) {
           SignalServiceDataMessage message = content.getDataMessage().get();
 
-          if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
+          if (message.isEndSession())                    handleEndSessionMessage(masterSecret, envelope, message);
           else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
           else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
         } else if (content.getSyncMessage().isPresent()) {
@@ -254,10 +254,33 @@ public class PushDecryptJob extends ContextJob {
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
   }
 
-  private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
-                                       @NonNull SignalServiceDataMessage message,
-                                       @NonNull Optional<Long>           smsMessageId)
+  private void handleEndSessionMessage(@NonNull MasterSecretUnion masterSecret,
+                                       @NonNull SignalServiceEnvelope    envelope,
+                                       @NonNull SignalServiceDataMessage message)
   {
+    try {
+      MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
+      String               localNumber  = TextSecurePreferences.getLocalNumber(context);
+      String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
+      IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
+          localNumber,
+          message.getTimestamp(),
+          0,
+          message.getBody(),
+          true,
+          Optional.<List<SignalServiceAttachment>>absent());
+
+      ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
+      long threadId = updateThreadDistribution(forstaMessage, masterSecret.getMasterSecret().get());
+
+      database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
+    } catch (InvalidMessagePayloadException e) {
+      e.printStackTrace();
+    } catch (MmsException e) {
+      e.printStackTrace();
+    }
+
+
     SignalProtocolAddress addr = new SignalProtocolAddress(envelope.getSource(), envelope.getSourceDevice());
     Log.w(TAG, "Deleting session for: " + addr);
     SessionStore sessionStore = new TextSecureSessionStore(context);
@@ -346,7 +369,6 @@ public class PushDecryptJob extends ContextJob {
     forstaMessage.setSenderId(envelope.getSource());
     forstaMessage.setDeviceId(envelope.getSourceDevice());
     forstaMessage.setTimeStamp(envelope.getTimestamp());
-    forstaMessage.setEndSession(message.isEndSession());
 
     if (forstaMessage.getMessageType().equals(ForstaMessage.MessageTypes.CONTENT)) {
       handleContentMessage(forstaMessage, masterSecret, message, envelope);
@@ -501,10 +523,6 @@ public class PushDecryptJob extends ContextJob {
         switch (forstaMessage.getControlType()) {
           case ForstaMessage.ControlTypes.THREAD_UPDATE:
             updateThreadDistribution(forstaMessage, masterSecret);
-            break;
-          case ForstaMessage.ControlTypes.CLOSE_SESSION:
-            updateThreadDistribution(forstaMessage, masterSecret);
-            handleCloseSession(forstaMessage);
             break;
           case ForstaMessage.ControlTypes.CALL_JOIN:
             updateThreadDistribution(forstaMessage, masterSecret);

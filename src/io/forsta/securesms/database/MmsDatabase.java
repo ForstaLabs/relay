@@ -886,6 +886,10 @@ public class MmsDatabase extends MessagingDatabase {
       type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
     }
 
+    if (retrieved.isEndSession()) {
+      type |= Types.END_SESSION_BIT;
+    }
+
     if (retrieved.isPushMessage()) {
       type |= Types.PUSH_MESSAGE_BIT;
     }
