@@ -526,7 +526,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (iceServers != null && iceServers.size() > 0) {
       acceptCallOffer(callingMember, incomingPeerId, offer, iceServers);
-      if (callState == CallState.STATE_ANSWERING) {
+      if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_REMOTE_RINGING) {
         handleCallConnected(intent);
       }
     } else {
