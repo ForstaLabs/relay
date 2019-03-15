@@ -30,6 +30,7 @@ import android.util.Pair;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 
+import io.forsta.ccsm.api.model.ForstaMessage;
 import io.forsta.ccsm.messaging.OutgoingEndSessionMediaMessage;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.ApplicationContext;
@@ -457,18 +458,6 @@ public class MmsDatabase extends MessagingDatabase {
     updateMailboxBitmask(messageId, Types.BASE_TYPE_MASK, Types.BASE_OUTBOX_TYPE, Optional.of(threadId));
   }
 
-  public void markAsForcedSms(long messageId) {
-    long threadId = getThreadIdForMessage(messageId);
-    updateMailboxBitmask(messageId, Types.PUSH_MESSAGE_BIT, Types.MESSAGE_FORCE_SMS_BIT, Optional.of(threadId));
-    notifyConversationListeners(threadId);
-  }
-
-  public void markAsPendingInsecureSmsFallback(long messageId) {
-    long threadId = getThreadIdForMessage(messageId);
-    updateMailboxBitmask(messageId, Types.BASE_TYPE_MASK, Types.BASE_PENDING_INSECURE_SMS_FALLBACK, Optional.of(threadId));
-    notifyConversationListeners(threadId);
-  }
-
   public void markAsSending(long messageId) {
     long threadId = getThreadIdForMessage(messageId);
     updateMailboxBitmask(messageId, Types.BASE_TYPE_MASK, Types.BASE_SENDING_TYPE, Optional.of(threadId));
@@ -520,11 +509,6 @@ public class MmsDatabase extends MessagingDatabase {
 
   public void markAsDecryptDuplicate(long messageId, long threadId) {
     updateMailboxBitmask(messageId, Types.ENCRYPTION_MASK, Types.ENCRYPTION_REMOTE_DUPLICATE_BIT, Optional.of(threadId));
-    notifyConversationListeners(threadId);
-  }
-
-  public void markAsLegacyVersion(long messageId, long threadId) {
-    updateMailboxBitmask(messageId, Types.ENCRYPTION_MASK, Types.ENCRYPTION_REMOTE_LEGACY_BIT, Optional.of(threadId));
     notifyConversationListeners(threadId);
   }
 
@@ -749,57 +733,6 @@ public class MmsDatabase extends MessagingDatabase {
     }
   }
 
-  public long copyMessageInbox(MasterSecret masterSecret, long messageId) throws MmsException {
-    try {
-      OutgoingMediaMessage request = getOutgoingMessage(masterSecret, messageId);
-      ContentValues contentValues = new ContentValues();
-      contentValues.put(ADDRESS, request.getRecipients().getPrimaryRecipient().getAddress());
-      contentValues.put(DATE_SENT, request.getSentTimeMillis());
-      contentValues.put(MESSAGE_BOX, Types.BASE_INBOX_TYPE | Types.SECURE_MESSAGE_BIT | Types.ENCRYPTION_SYMMETRIC_BIT);
-      contentValues.put(THREAD_ID, getThreadIdForMessage(messageId));
-      contentValues.put(READ, 1);
-      contentValues.put(DATE_RECEIVED, contentValues.getAsLong(DATE_SENT));
-      contentValues.put(EXPIRES_IN, request.getExpiresIn());
-
-      List<Attachment> attachments = new LinkedList<>();
-
-      for (Attachment attachment : request.getAttachments()) {
-        DatabaseAttachment databaseAttachment = (DatabaseAttachment)attachment;
-        attachments.add(new DatabaseAttachment(databaseAttachment.getAttachmentId(),
-                                               databaseAttachment.getMmsId(),
-                                               databaseAttachment.hasData(),
-                                               databaseAttachment.getContentType(),
-                                               AttachmentDatabase.TRANSFER_PROGRESS_DONE,
-                                               databaseAttachment.getSize(),
-                                               databaseAttachment.getLocation(),
-                                               databaseAttachment.getKey(),
-                                               databaseAttachment.getRelay()));
-      }
-
-      return insertMediaMessage(new MasterSecretUnion(masterSecret),
-                                MmsAddresses.forTo(request.getRecipients().toNumberStringList(false)),
-                                request.getBody(),
-                                attachments,
-                                contentValues);
-    } catch (NoSuchMessageException e) {
-      throw new MmsException(e);
-    }
-  }
-
-  private long getThreadIdOrThrow(IncomingMediaMessage retrieved) throws MmsException {
-    long threadId = -1L;
-    try {
-      threadId = getThreadIdFor(retrieved);
-    } catch (RecipientFormattingException e) {
-      Log.w("MmsDatabase", e);
-      if (threadId == -1)
-        throw new MmsException(e);
-    }
-    return threadId;
-  }
-
-
-
   private Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
                                               IncomingMediaMessage retrieved,
                                               String contentLocation,
@@ -849,30 +782,6 @@ public class MmsDatabase extends MessagingDatabase {
     return new Pair<>(messageId, threadId);
   }
 
-  public Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
-                                             IncomingMediaMessage retrieved,
-                                             String contentLocation, long threadId)
-      throws MmsException
-  {
-    long type = Types.BASE_INBOX_TYPE;
-
-    if (masterSecret.getMasterSecret().isPresent()) {
-      type |= Types.ENCRYPTION_SYMMETRIC_BIT;
-    } else {
-      type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
-    }
-
-    if (retrieved.isPushMessage()) {
-      type |= Types.PUSH_MESSAGE_BIT;
-    }
-
-    if (retrieved.isExpirationUpdate()) {
-      type |= Types.EXPIRATION_TIMER_UPDATE_BIT;
-    }
-
-    return insertMessageInbox(masterSecret, retrieved, contentLocation, threadId, type);
-  }
-
   public Pair<Long, Long> insertSecureDecryptedMessageInbox(MasterSecretUnion masterSecret,
                                                             IncomingMediaMessage retrieved,
                                                             long threadId)
@@ -899,57 +808,6 @@ public class MmsDatabase extends MessagingDatabase {
     }
 
     return insertMessageInbox(masterSecret, retrieved, "", threadId, type);
-  }
-
-  public Pair<Long, Long> insertMessageInbox(@NonNull NotificationInd notification, int subscriptionId) {
-    SQLiteDatabase     db              = databaseHelper.getWritableDatabase();
-    MmsAddressDatabase addressDatabase = DatabaseFactory.getMmsAddressDatabase(context);
-    long                 threadId       = getThreadIdFor(notification);
-    PduHeaders           headers        = notification.getPduHeaders();
-    ContentValues        contentValues  = new ContentValues();
-    ContentValuesBuilder contentBuilder = new ContentValuesBuilder(contentValues);
-
-
-    Log.w(TAG, "Message received type: " + headers.getOctet(PduHeaders.MESSAGE_TYPE));
-
-    contentBuilder.add(CONTENT_LOCATION, headers.getTextString(PduHeaders.CONTENT_LOCATION));
-    contentBuilder.add(DATE_SENT, headers.getLongInteger(PduHeaders.DATE) * 1000L);
-    contentBuilder.add(EXPIRY, headers.getLongInteger(PduHeaders.EXPIRY));
-    contentBuilder.add(MESSAGE_SIZE, headers.getLongInteger(PduHeaders.MESSAGE_SIZE));
-    contentBuilder.add(TRANSACTION_ID, headers.getTextString(PduHeaders.TRANSACTION_ID));
-    contentBuilder.add(MESSAGE_TYPE, headers.getOctet(PduHeaders.MESSAGE_TYPE));
-
-    if (headers.getEncodedStringValue(PduHeaders.FROM) != null) {
-      contentBuilder.add(ADDRESS, headers.getEncodedStringValue(PduHeaders.FROM).getTextString());
-    } else {
-      contentBuilder.add(ADDRESS, null);
-    }
-
-    contentValues.put(MESSAGE_BOX, Types.BASE_INBOX_TYPE);
-    contentValues.put(THREAD_ID, threadId);
-    contentValues.put(STATUS, Status.DOWNLOAD_INITIALIZED);
-    contentValues.put(DATE_RECEIVED, generatePduCompatTimestamp());
-    contentValues.put(READ, Util.isDefaultSmsProvider(context) ? 0 : 1);
-    contentValues.put(SUBSCRIPTION_ID, subscriptionId);
-
-    if (!contentValues.containsKey(DATE_SENT))
-      contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
-
-    long messageId = db.insert(TABLE_NAME, null, contentValues);
-    addressDatabase.insertAddressesForId(messageId, MmsAddresses.forFrom(Util.toIsoString(notification.getFrom().getTextString())));
-
-    return new Pair<>(messageId, threadId);
-  }
-
-  public void markIncomingNotificationReceived(long threadId) {
-    notifyConversationListeners(threadId);
-    DatabaseFactory.getThreadDatabase(context).update(threadId, true);
-
-    if (Util.isDefaultSmsProvider(context)) {
-      DatabaseFactory.getThreadDatabase(context).setUnread(threadId);
-    }
-
-    jobManager.add(new TrimThreadJob(context, threadId));
   }
 
   public long insertMessageOutbox(@NonNull MasterSecretUnion masterSecret,
@@ -1152,28 +1010,12 @@ public class MmsDatabase extends MessagingDatabase {
     }
   }
 
-
   public void deleteAllThreads() {
     DatabaseFactory.getAttachmentDatabase(context).deleteAllAttachments();
     DatabaseFactory.getMmsAddressDatabase(context).deleteAllAddresses();
 
     SQLiteDatabase database = databaseHelper.getWritableDatabase();
     database.delete(TABLE_NAME, null, null);
-  }
-
-  public Cursor getCarrierMmsInformation(String apn) {
-    Uri uri                = Uri.withAppendedPath(Uri.parse("content://telephony/carriers"), "current");
-    String selection       = TextUtils.isEmpty(apn) ? null : "apn = ?";
-    String[] selectionArgs = TextUtils.isEmpty(apn) ? null : new String[] {apn.trim()};
-
-    try {
-      return context.getContentResolver().query(uri, null, selection, selectionArgs, null);
-    } catch (NullPointerException npe) {
-      // NOTE - This is dumb, but on some devices there's an NPE in the Android framework
-      // for the provider of this call, which gets rethrown back to here through a binder
-      // call.
-      throw new IllegalArgumentException(npe);
-    }
   }
 
   public Reader readerFor(MasterSecret masterSecret, Cursor cursor) {
@@ -1390,5 +1232,159 @@ public class MmsDatabase extends MessagingDatabase {
   private long generatePduCompatTimestamp() {
     final long time = System.currentTimeMillis();
     return time - (time % 1000);
+  }
+
+  // Cleanup unused methods...
+  public Pair<Long, Long> insertMessageInbox(@NonNull NotificationInd notification, int subscriptionId) {
+    SQLiteDatabase     db              = databaseHelper.getWritableDatabase();
+    MmsAddressDatabase addressDatabase = DatabaseFactory.getMmsAddressDatabase(context);
+    long                 threadId       = getThreadIdFor(notification);
+    PduHeaders           headers        = notification.getPduHeaders();
+    ContentValues        contentValues  = new ContentValues();
+    ContentValuesBuilder contentBuilder = new ContentValuesBuilder(contentValues);
+
+
+    Log.w(TAG, "Message received type: " + headers.getOctet(PduHeaders.MESSAGE_TYPE));
+
+    contentBuilder.add(CONTENT_LOCATION, headers.getTextString(PduHeaders.CONTENT_LOCATION));
+    contentBuilder.add(DATE_SENT, headers.getLongInteger(PduHeaders.DATE) * 1000L);
+    contentBuilder.add(EXPIRY, headers.getLongInteger(PduHeaders.EXPIRY));
+    contentBuilder.add(MESSAGE_SIZE, headers.getLongInteger(PduHeaders.MESSAGE_SIZE));
+    contentBuilder.add(TRANSACTION_ID, headers.getTextString(PduHeaders.TRANSACTION_ID));
+    contentBuilder.add(MESSAGE_TYPE, headers.getOctet(PduHeaders.MESSAGE_TYPE));
+
+    if (headers.getEncodedStringValue(PduHeaders.FROM) != null) {
+      contentBuilder.add(ADDRESS, headers.getEncodedStringValue(PduHeaders.FROM).getTextString());
+    } else {
+      contentBuilder.add(ADDRESS, null);
+    }
+
+    contentValues.put(MESSAGE_BOX, Types.BASE_INBOX_TYPE);
+    contentValues.put(THREAD_ID, threadId);
+    contentValues.put(STATUS, Status.DOWNLOAD_INITIALIZED);
+    contentValues.put(DATE_RECEIVED, generatePduCompatTimestamp());
+    contentValues.put(READ, Util.isDefaultSmsProvider(context) ? 0 : 1);
+    contentValues.put(SUBSCRIPTION_ID, subscriptionId);
+
+    if (!contentValues.containsKey(DATE_SENT))
+      contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
+
+    long messageId = db.insert(TABLE_NAME, null, contentValues);
+    addressDatabase.insertAddressesForId(messageId, MmsAddresses.forFrom(Util.toIsoString(notification.getFrom().getTextString())));
+
+    return new Pair<>(messageId, threadId);
+  }
+  public Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret,
+                                             IncomingMediaMessage retrieved,
+                                             String contentLocation, long threadId)
+      throws MmsException
+  {
+    long type = Types.BASE_INBOX_TYPE;
+
+    if (masterSecret.getMasterSecret().isPresent()) {
+      type |= Types.ENCRYPTION_SYMMETRIC_BIT;
+    } else {
+      type |= Types.ENCRYPTION_ASYMMETRIC_BIT;
+    }
+
+    if (retrieved.isPushMessage()) {
+      type |= Types.PUSH_MESSAGE_BIT;
+    }
+
+    if (retrieved.isExpirationUpdate()) {
+      type |= Types.EXPIRATION_TIMER_UPDATE_BIT;
+    }
+
+    return insertMessageInbox(masterSecret, retrieved, contentLocation, threadId, type);
+  }
+  public long copyMessageInbox(MasterSecret masterSecret, long messageId) throws MmsException {
+    try {
+      OutgoingMediaMessage request = getOutgoingMessage(masterSecret, messageId);
+      ContentValues contentValues = new ContentValues();
+      contentValues.put(ADDRESS, request.getRecipients().getPrimaryRecipient().getAddress());
+      contentValues.put(DATE_SENT, request.getSentTimeMillis());
+      contentValues.put(MESSAGE_BOX, Types.BASE_INBOX_TYPE | Types.SECURE_MESSAGE_BIT | Types.ENCRYPTION_SYMMETRIC_BIT);
+      contentValues.put(THREAD_ID, getThreadIdForMessage(messageId));
+      contentValues.put(READ, 1);
+      contentValues.put(DATE_RECEIVED, contentValues.getAsLong(DATE_SENT));
+      contentValues.put(EXPIRES_IN, request.getExpiresIn());
+
+      List<Attachment> attachments = new LinkedList<>();
+
+      for (Attachment attachment : request.getAttachments()) {
+        DatabaseAttachment databaseAttachment = (DatabaseAttachment)attachment;
+        attachments.add(new DatabaseAttachment(databaseAttachment.getAttachmentId(),
+            databaseAttachment.getMmsId(),
+            databaseAttachment.hasData(),
+            databaseAttachment.getContentType(),
+            AttachmentDatabase.TRANSFER_PROGRESS_DONE,
+            databaseAttachment.getSize(),
+            databaseAttachment.getLocation(),
+            databaseAttachment.getKey(),
+            databaseAttachment.getRelay()));
+      }
+
+      return insertMediaMessage(new MasterSecretUnion(masterSecret),
+          MmsAddresses.forTo(request.getRecipients().toNumberStringList(false)),
+          request.getBody(),
+          attachments,
+          contentValues);
+    } catch (NoSuchMessageException e) {
+      throw new MmsException(e);
+    }
+  }
+  private long getThreadIdOrThrow(IncomingMediaMessage retrieved) throws MmsException {
+    long threadId = -1L;
+    try {
+      threadId = getThreadIdFor(retrieved);
+    } catch (RecipientFormattingException e) {
+      Log.w("MmsDatabase", e);
+      if (threadId == -1)
+        throw new MmsException(e);
+    }
+    return threadId;
+  }
+  private Pair<Long, Long> insertMessageInbox(MasterSecretUnion masterSecret, ForstaMessage forstaMessage, long threadId, long type) {
+
+
+    return null;
+  }
+  public void markIncomingNotificationReceived(long threadId) {
+    notifyConversationListeners(threadId);
+    DatabaseFactory.getThreadDatabase(context).update(threadId, true);
+
+    if (Util.isDefaultSmsProvider(context)) {
+      DatabaseFactory.getThreadDatabase(context).setUnread(threadId);
+    }
+
+    jobManager.add(new TrimThreadJob(context, threadId));
+  }
+  public void markAsForcedSms(long messageId) {
+    long threadId = getThreadIdForMessage(messageId);
+    updateMailboxBitmask(messageId, Types.PUSH_MESSAGE_BIT, Types.MESSAGE_FORCE_SMS_BIT, Optional.of(threadId));
+    notifyConversationListeners(threadId);
+  }
+  public void markAsPendingInsecureSmsFallback(long messageId) {
+    long threadId = getThreadIdForMessage(messageId);
+    updateMailboxBitmask(messageId, Types.BASE_TYPE_MASK, Types.BASE_PENDING_INSECURE_SMS_FALLBACK, Optional.of(threadId));
+    notifyConversationListeners(threadId);
+  }
+  public void markAsLegacyVersion(long messageId, long threadId) {
+    updateMailboxBitmask(messageId, Types.ENCRYPTION_MASK, Types.ENCRYPTION_REMOTE_LEGACY_BIT, Optional.of(threadId));
+    notifyConversationListeners(threadId);
+  }
+  public Cursor getCarrierMmsInformation(String apn) {
+    Uri uri                = Uri.withAppendedPath(Uri.parse("content://telephony/carriers"), "current");
+    String selection       = TextUtils.isEmpty(apn) ? null : "apn = ?";
+    String[] selectionArgs = TextUtils.isEmpty(apn) ? null : new String[] {apn.trim()};
+
+    try {
+      return context.getContentResolver().query(uri, null, selection, selectionArgs, null);
+    } catch (NullPointerException npe) {
+      // NOTE - This is dumb, but on some devices there's an NPE in the Android framework
+      // for the provider of this call, which gets rethrown back to here through a binder
+      // call.
+      throw new IllegalArgumentException(npe);
+    }
   }
 }
