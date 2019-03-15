@@ -258,29 +258,6 @@ public class PushDecryptJob extends ContextJob {
                                        @NonNull SignalServiceEnvelope    envelope,
                                        @NonNull SignalServiceDataMessage message)
   {
-    try {
-      MmsDatabase          database     = DatabaseFactory.getMmsDatabase(context);
-      String               localNumber  = TextSecurePreferences.getLocalNumber(context);
-      String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-      IncomingMediaMessage mediaMessage = new IncomingMediaMessage(masterSecret, envelope.getSource(),
-          localNumber,
-          message.getTimestamp(),
-          0,
-          message.getBody(),
-          true,
-          Optional.<List<SignalServiceAttachment>>absent());
-
-      ForstaMessage forstaMessage = ForstaMessageManager.fromMessagBodyString(body);
-      long threadId = updateThreadDistribution(forstaMessage, masterSecret.getMasterSecret().get());
-
-      database.insertSecureDecryptedMessageInbox(masterSecret, mediaMessage, threadId);
-    } catch (InvalidMessagePayloadException e) {
-      e.printStackTrace();
-    } catch (MmsException e) {
-      e.printStackTrace();
-    }
-
-
     SignalProtocolAddress addr = new SignalProtocolAddress(envelope.getSource(), envelope.getSourceDevice());
     Log.w(TAG, "Deleting session for: " + addr);
     SessionStore sessionStore = new TextSecureSessionStore(context);

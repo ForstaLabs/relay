@@ -228,6 +228,9 @@ public class ForstaMessageManager {
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
               break;
+            case ForstaMessage.ControlTypes.CLOSE_SESSION:
+              Log.w(TAG, "Received close session control");
+              break;
             default:
               Log.w(TAG, "Unsupported control message: " + forstaMessage.getControlType());
           }

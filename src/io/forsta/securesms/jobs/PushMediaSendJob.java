@@ -200,7 +200,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     messageSender.sendMessage(addresses, mediaMessage);
 
     if (mediaMessage.isEndSession()) {
-      Log.w(TAG, "Deleting sessions for: " + recipients);
+      Log.w(TAG, "Deleting sessions for: " + recipients.toShortString());
       SessionStore sessionStore = new TextSecureSessionStore(context);
       for (Recipient recipient : recipients) {
         sessionStore.deleteAllSessions(recipient.getAddress());
