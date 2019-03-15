@@ -535,7 +535,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           acceptCallOffer(finalMember, incomingPeerId, offer, result);
-          if (callState == CallState.STATE_ANSWERING) {
+          if (callState == CallState.STATE_ANSWERING  || callState == CallState.STATE_REMOTE_RINGING) {
             handleCallConnected(intent);
           }
         }
@@ -773,6 +773,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     if (callState == CallState.STATE_CONNECTED) {
+      member.disableVideo();
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }
   }
