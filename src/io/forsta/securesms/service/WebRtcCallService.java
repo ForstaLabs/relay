@@ -504,16 +504,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return;
     }
 
-    if (!peerCallMembers.isCallMember(incomingAddress)) {
-      Log.w(TAG, "Remote address is not a call member: " + incomingAddress);
-      return;
-    }
-
     CallMember callingMember = null;
-    if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_CONNECTED) {
+    if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_CONNECTED || callState == CallState.STATE_REMOTE_RINGING) {
       callingMember = peerCallMembers.getCallMember(incomingAddress, incomingDeviceId);
       if (callingMember == null) {
-        Log.w(TAG, "Got an offer from new caller");
+        Log.w(TAG, "Got an offer from new call member");
         callingMember = new CallMember(this, incomingPeerId, incomingAddress, incomingDeviceId, 0);
         peerCallMembers.addCallMember(callingMember);
       }
