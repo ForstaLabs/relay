@@ -546,11 +546,7 @@ public class PushDecryptJob extends ContextJob {
     accountManager.addDevice(ephemeralId, theirPublicKey, identityKeyPair, verificationCode);
     TextSecurePreferences.setMultiDevice(context, true);
   }
-
-  private void handleCloseSession(ForstaMessage forstaMessage) {
-    // Broadcast security update event, or handle as content message and write to message db?
-  }
-
+  
   private void handleCallJoin(ForstaMessage forstaMessage) throws InvalidMessagePayloadException {
     ForstaMessage.ForstaCall callJoin = forstaMessage.getCall();
     Intent joinIntent = new Intent(context, WebRtcCallService.class);
