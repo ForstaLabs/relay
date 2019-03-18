@@ -764,9 +764,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleIceConnected(Intent intent) {
-    Log.d(TAG, "handleIceConnected callState: " + callState);
-
     CallMember member = getCallMember(intent);
+    Log.w(TAG, "handleIceConnected callState: " + callState + " " + member);
     if (member == null) {
       Log.w(TAG, "No call member for this call ");
       return;
@@ -1795,7 +1794,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     public void setVideoEnabled() {
       if (isActiveConnection()) {
-        this.videoEnabled = true;
         if (videoTrack != null) {
           if (videoRenderer != null) {
             videoRenderer.dispose();
@@ -1803,6 +1801,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
           videoRenderer = new VideoRenderer(renderer);
           videoTrack.addRenderer(videoRenderer);
           videoTrack.setEnabled(true);
+          this.videoEnabled = true;
         }
       }
     }
@@ -1948,6 +1947,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     public String toString() {
       StringBuilder sb = new StringBuilder();
       sb.append(recipient.getLocalTag()).append(" (").append(address).append(":").append(")").append(" Peer ID: ").append(peerId).append(" callOrder: ").append(callOrder);
+      sb.append(" videoEnabled: ").append(videoEnabled);
       if (peerConnection != null) {
         sb.append(" remote desc: ");
         sb.append(peerConnection.getRemoteDescription() != null ? "Yes" : "None");
@@ -2016,15 +2016,6 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     private boolean hasActiveCalls() {
       for (CallMember callMember : members.values()) {
         if (callMember.isActiveConnection()) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    private boolean hasActiveVideo() {
-      for (CallMember member : members.values()) {
-        if (member.videoEnabled) {
           return true;
         }
       }
