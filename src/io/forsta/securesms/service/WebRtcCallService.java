@@ -773,8 +773,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     if (callState == CallState.STATE_CONNECTED) {
-      if (peerCallMembers.hasActiveVideo()) {
-        member.disableVideo();
+      if (member.callOrder == 1) {
+        member.setVideoEnabled();
       }
       sendMessage(WebRtcViewModel.State.CALL_MEMBER_JOINING, member, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
     }

@@ -127,6 +127,6 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + (callRecipient != null ? callRecipient.getRecipient(): "null") + " callOrder: " + callOrder + ", localVideo: " + localVideoEnabled + "]";
+    return "[State: " + state + ", recipient: " + (callRecipient != null ? (callRecipient.getRecipient() + " videoEnabled: " + callRecipient.isVideoEnabled()) : "null") + " callOrder: " + callOrder + ", localVideo: " + localVideoEnabled + "]";
   }
 }
