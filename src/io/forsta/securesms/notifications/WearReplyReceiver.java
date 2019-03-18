@@ -24,19 +24,16 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.RemoteInput;
 
-import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
 import io.forsta.securesms.database.RecipientPreferenceDatabase.RecipientsPreferences;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.sms.OutgoingTextMessage;
 import org.whispersystems.libsignal.util.guava.Optional;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -68,20 +65,21 @@ public class WearReplyReceiver extends MasterSecretBroadcastReceiver {
         protected Void doInBackground(Void... params) {
           long threadId;
 
-          Optional<RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipientIds);
-          int  subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
-          long expiresIn      = preferences.isPresent() ? preferences.get().getExpireMessages() * 1000 : 0;
-
-          OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
-          threadId = MessageSender.send(context, masterSecret, reply, -1, false);
-
-          List<MarkedMessageInfo> messageIds = DatabaseFactory.getThreadDatabase(context).setRead(threadId);
-          MessageNotifier.updateNotification(context, masterSecret);
-          MarkReadReceiver.process(context, messageIds);
+//          Optional<RecipientsPreferences> preferences = DatabaseFactory.getRecipientPreferenceDatabase(context).getRecipientsPreferences(recipientIds);
+//          int  subscriptionId = preferences.isPresent() ? preferences.get().getDefaultSubscriptionId().or(-1) : -1;
+//          long expiresIn      = preferences.isPresent() ? preferences.get().getExpireMessages() * 1000 : 0;
+//
+//          OutgoingTextMessage reply = new OutgoingTextMessage(recipients, responseText.toString(), expiresIn, subscriptionId);
+//          threadId = MessageSender.send(context, masterSecret, reply, -1, false);
+//
+//          List<MarkedMessageInfo> messageIds = DatabaseFactory.getThreadDatabase(context).setRead(threadId);
+//          MessageNotifier.updateNotification(context, masterSecret);
+//          MarkReadReceiver.process(context, messageIds);
 
           return null;
         }
-      }.execute();
+      };
+      // .execute(); disabled. Obsolete code path
     }
 
   }

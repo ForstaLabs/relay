@@ -243,6 +243,7 @@ public class WebRtcCallActivity extends Activity {
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
     Log.d(TAG, "Member joining. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
+
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
   }
 
@@ -408,7 +409,7 @@ public class WebRtcCallActivity extends Activity {
         intent.putExtra(WebRtcCallService.EXTRA_DEVICE_ID, recipient.getDeviceId());
         intent.setAction(WebRtcCallService.ACTION_REMOTE_VIDEO_ENABLE);
         startService(intent);
-      } else if (recipient.getCallState() != WebRtcViewModel.State.CALL_MEMBER_LEAVING) {
+      } else if (recipient.getCallState() == WebRtcViewModel.State.NETWORK_FAILURE) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(WebRtcCallActivity.this);
         dialog.setTitle("Connection Failure");
         dialog.setIconAttribute(R.attr.dialog_alert_icon);
@@ -437,7 +438,6 @@ public class WebRtcCallActivity extends Activity {
           }
         });
         dialog.show();
-
       }
     }
 

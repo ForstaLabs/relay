@@ -35,7 +35,7 @@ import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.documents.NetworkFailure;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.recipients.Recipient;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 
 /**
  * A simple view to show the recipients of a message

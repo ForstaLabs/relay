@@ -41,7 +41,7 @@ import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.events.WebRtcViewModel;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.ccsm.messaging.OutgoingMediaMessage;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -78,7 +78,6 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
-import org.webrtc.RendererCommon;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceViewRenderer;
@@ -108,7 +107,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static io.forsta.securesms.webrtc.CallNotificationBuilder.TYPE_INCOMING_RINGING;
@@ -481,7 +479,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       });
 
     } else if (callState == CallState.STATE_LOCAL_RINGING && (incomingAddress.equals(localCallMember.address) && incomingDeviceId != localCallMember.deviceId)) {
-      Log.d(TAG, "Remote device answered... terminating call");
+      Log.d(TAG, "Another device answered... terminating call");
       sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       terminateCall(true);
     }
@@ -506,16 +504,11 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       return;
     }
 
-    if (!peerCallMembers.isCallMember(incomingAddress)) {
-      Log.w(TAG, "Remote address is not a call member: " + incomingAddress);
-      return;
-    }
-
     CallMember callingMember = null;
-    if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_CONNECTED) {
+    if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_CONNECTED || callState == CallState.STATE_REMOTE_RINGING) {
       callingMember = peerCallMembers.getCallMember(incomingAddress, incomingDeviceId);
       if (callingMember == null) {
-        Log.w(TAG, "Got an offer from new caller");
+        Log.w(TAG, "Got an offer from new call member");
         callingMember = new CallMember(this, incomingPeerId, incomingAddress, incomingDeviceId, 0);
         peerCallMembers.addCallMember(callingMember);
       }
@@ -533,7 +526,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     if (iceServers != null && iceServers.size() > 0) {
       acceptCallOffer(callingMember, incomingPeerId, offer, iceServers);
-      if (callState == CallState.STATE_ANSWERING) {
+      if (callState == CallState.STATE_ANSWERING || callState == CallState.STATE_REMOTE_RINGING) {
         handleCallConnected(intent);
       }
     } else {
@@ -542,7 +535,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         @Override
         public void onSuccessContinue(List<PeerConnection.IceServer> result) {
           acceptCallOffer(finalMember, incomingPeerId, offer, result);
-          if (callState == CallState.STATE_ANSWERING) {
+          if (callState == CallState.STATE_ANSWERING  || callState == CallState.STATE_REMOTE_RINGING) {
             handleCallConnected(intent);
           }
         }
@@ -616,7 +609,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       setCallInProgressNotification(TYPE_OUTGOING_RINGING, remoteRecipients);
 
       sendMessage(WebRtcViewModel.State.CALL_OUTGOING, null, null, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
-      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
+//      timeoutExecutor.schedule(new TimeoutRunnable(new CallMember(this, localCallMember.address)), 30, TimeUnit.SECONDS);
 
     } catch (Exception e) {
       Log.e(TAG, "Exception: " + e.getMessage());
@@ -771,9 +764,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
   }
 
   private void handleIceConnected(Intent intent) {
-    Log.d(TAG, "handleIceConnected callState: " + callState);
-
     CallMember member = getCallMember(intent);
+    Log.w(TAG, "handleIceConnected callState: " + callState + " " + member);
     if (member == null) {
       Log.w(TAG, "No call member for this call ");
       return;
@@ -1032,6 +1024,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         if (!peerCallMembers.hasActiveCalls()) {
           sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
           terminateCall(true);
+        } else {
+          sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
       }
     } catch (Exception e) {
@@ -1802,11 +1796,14 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
 
     public void setVideoEnabled() {
       if (isActiveConnection()) {
-        this.videoEnabled = true;
         if (videoTrack != null) {
+          if (videoRenderer != null) {
+            videoRenderer.dispose();
+          }
           videoRenderer = new VideoRenderer(renderer);
           videoTrack.addRenderer(videoRenderer);
           videoTrack.setEnabled(true);
+          this.videoEnabled = true;
         }
       }
     }
@@ -1952,6 +1949,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     public String toString() {
       StringBuilder sb = new StringBuilder();
       sb.append(recipient.getLocalTag()).append(" (").append(address).append(":").append(")").append(" Peer ID: ").append(peerId).append(" callOrder: ").append(callOrder);
+      sb.append(" videoEnabled: ").append(videoEnabled);
       if (peerConnection != null) {
         sb.append(" remote desc: ");
         sb.append(peerConnection.getRemoteDescription() != null ? "Yes" : "None");

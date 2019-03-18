@@ -26,7 +26,6 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.database.ContentObserver;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
@@ -39,7 +38,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.Browser;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
@@ -73,8 +71,6 @@ import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.messaging.IncomingMessage;
-import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.audio.AudioRecorder;
 import io.forsta.securesms.audio.AudioSlidePlayer;
 import io.forsta.securesms.color.MaterialColor;
@@ -93,11 +89,10 @@ import io.forsta.securesms.components.reminder.ReminderView;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.MasterSecretUnion;
+import io.forsta.securesms.crypto.SessionUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
 import io.forsta.securesms.database.MessagingDatabase.MarkedMessageInfo;
-import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsColumns.Types;
 import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.database.ThreadPreferenceDatabase;
@@ -105,12 +100,8 @@ import io.forsta.securesms.mms.AttachmentManager;
 import io.forsta.securesms.mms.AttachmentManager.MediaType;
 import io.forsta.securesms.mms.AttachmentTypeSelectorAdapter;
 import io.forsta.securesms.mms.AudioSlide;
-import io.forsta.securesms.mms.IncomingMediaMessage;
 import io.forsta.securesms.mms.LocationSlide;
 import io.forsta.securesms.mms.MediaConstraints;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.notifications.MarkReadReceiver;
@@ -119,19 +110,17 @@ import io.forsta.securesms.permissions.Permissions;
 import io.forsta.securesms.providers.PersistentBlobProvider;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
-import io.forsta.securesms.recipients.RecipientProvider;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.service.WebRtcCallService;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.sms.OutgoingEndSessionMessage;
-import io.forsta.securesms.sms.OutgoingTextMessage;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicTheme;
 import io.forsta.securesms.util.ExpirationUtil;
+import io.forsta.securesms.util.IdentityUtil;
 import io.forsta.securesms.util.MediaUtil;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
@@ -151,7 +140,6 @@ import java.util.concurrent.ExecutionException;
 
 import io.forsta.securesms.components.KeyboardAwareLinearLayout;
 import ws.com.google.android.mms.ContentType;
-import ws.com.google.android.mms.MmsException;
 
 /**
  * Activity for displaying a message thread, as well as
@@ -584,20 +572,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     builder.setPositiveButton(R.string.ConversationActivity_reset, (dialog, which) -> {
       final Context context = getApplicationContext();
 
-      OutgoingTextMessage endTextMessage = new OutgoingTextMessage(recipients, "", 0, -1);
-      OutgoingEndSessionMessage endSessionMessage = new OutgoingEndSessionMessage(endTextMessage);
-
-      new AsyncTask<OutgoingEndSessionMessage, Void, Long>() {
+      new AsyncTask<Void, Void, Void>() {
         @Override
-        protected Long doInBackground(OutgoingEndSessionMessage... messages) {
-          return MessageSender.send(context, masterSecret, messages[0], threadId, false);
+        protected Void doInBackground(Void... messages) {
+          MessageSender.sendEndSessionMessage(context, masterSecret, recipients, threadId);
+          return null;
         }
 
         @Override
-        protected void onPostExecute(Long result) {
-                                              sendComplete(result);
-                                                                   }
-      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, endSessionMessage);
+        protected void onPostExecute(Void result) {
+          sendComplete(-1);
+        }
+      }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     });
     builder.setNegativeButton(android.R.string.cancel, null);
     builder.show();

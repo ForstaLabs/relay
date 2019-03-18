@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.forsta.securesms.sms;
+package io.forsta.ccsm.messaging;
 
 import android.content.Context;
 import android.util.Log;
@@ -22,8 +22,6 @@ import android.util.Pair;
 
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
-import io.forsta.ccsm.messaging.ForstaMessageManager;
-import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
@@ -35,59 +33,23 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.jobmanager.JobManager;
 import io.forsta.securesms.jobs.PushMediaSendJob;
 import io.forsta.securesms.jobs.PushTextSendJob;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
 import io.forsta.securesms.mms.SlideDeck;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.service.ExpiringMessageManager;
+import io.forsta.securesms.sms.OutgoingEndSessionMessage;
+import io.forsta.securesms.sms.OutgoingTextMessage;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.webrtc.IceCandidate;
-import org.webrtc.SessionDescription;
-
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 import ws.com.google.android.mms.MmsException;
 
 public class MessageSender {
 
   private static final String TAG = MessageSender.class.getSimpleName();
-
-  // This is only used for sending Session End Messages.
-  // OutgoingEndSessionMessage
-  public static long send(final Context context,
-                          final MasterSecret masterSecret,
-                          final OutgoingTextMessage message,
-                          final long threadId,
-                          final boolean forceSms)
-  {
-    EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
-    Recipients            recipients  = message.getRecipients();
-    boolean               keyExchange = message.isKeyExchange();
-
-    long allocatedThreadId;
-
-    if (threadId == -1) {
-      allocatedThreadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipients);
-    } else {
-      allocatedThreadId = threadId;
-    }
-
-    long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), allocatedThreadId,
-                                                  message, forceSms, System.currentTimeMillis());
-
-    sendTextMessage(context, recipients, forceSms, keyExchange, messageId, message.getExpiresIn());
-
-    return allocatedThreadId;
-  }
 
   private static long send(final Context context,
                           final MasterSecret masterSecret,
@@ -157,17 +119,6 @@ public class MessageSender {
       sendMediaSelf(context, masterSecret, messageId, expiresIn);
     } else {
       sendMediaPush(context, recipients, messageId);
-    }
-  }
-
-  private static void sendTextMessage(Context context, Recipients recipients,
-                                      boolean forceSms, boolean keyExchange,
-                                      long messageId, long expiresIn)
-  {
-    if (isSelfSend(context, recipients)) {
-      sendTextSelf(context, messageId, expiresIn);
-    } else {
-      sendTextPush(context, recipients, messageId);
     }
   }
 
@@ -255,5 +206,10 @@ public class MessageSender {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public static void sendEndSessionMessage(Context context, MasterSecret masterSecret, Recipients recipients, long threadId) {
+    OutgoingEndSessionMediaMessage message = ForstaMessageManager.createOutgoingEndSessionMessage(context, recipients, threadId);
+    send(context, masterSecret, message, threadId, false);
   }
 }

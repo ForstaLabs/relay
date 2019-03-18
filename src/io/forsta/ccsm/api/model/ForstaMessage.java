@@ -31,6 +31,7 @@ public class ForstaMessage {
   private ForstaCall rtcCall;
   private int deviceId = -1;
   private long timeStamp;
+  private boolean endSession = false;
 
   public static class ControlTypes {
     public static final String NONE = "none";
@@ -50,7 +51,7 @@ public class ForstaMessage {
     public static final String CALL_ICE_CANDIDATES = "callICECandidates";
     public static final String CALL_LEAVE = "callLeave";
     public static final String CALL_ACCEPT_OFFER = "callAcceptOffer";
-
+    public static final String CLOSE_SESSION = "closeSession";
   }
 
   public static class MessageTypes {
@@ -168,6 +169,10 @@ public class ForstaMessage {
     return deviceId;
   }
 
+  public boolean isEndSession() {
+    return endSession;
+  }
+
   public void setTimeStamp(long timeStamp) {
     this.timeStamp = timeStamp;
   }
@@ -182,6 +187,10 @@ public class ForstaMessage {
 
   public void setMessageRef(String messageRef) {
     this.messageRef = messageRef;
+  }
+
+  public void setEndSession(boolean isEndSession) {
+    this.endSession = isEndSession;
   }
 
   public void setControlType(String controlType) {

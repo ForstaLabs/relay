@@ -12,18 +12,15 @@ import androidx.work.WorkerParameters;
 import io.forsta.ccsm.api.CcsmApi;
 import io.forsta.ccsm.api.model.ForstaDistribution;
 import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.messaging.ForstaMessageManager;
 import io.forsta.ccsm.messaging.OutgoingMessage;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.BuildConfig;
-import io.forsta.securesms.WebRtcCallActivity;
 import io.forsta.securesms.attachments.DatabaseAttachment;
 import io.forsta.securesms.attachments.PointerAttachment;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
-import io.forsta.securesms.crypto.InvalidPassphraseException;
 import io.forsta.securesms.crypto.MasterSecret;
 import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.crypto.MasterSecretUtil;
@@ -35,13 +32,11 @@ import io.forsta.securesms.database.MessagingDatabase.SyncMessageId;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
 import io.forsta.securesms.database.PushDatabase;
-import io.forsta.securesms.database.ThreadDatabase;
 import io.forsta.securesms.jobmanager.JobParameters;
 import io.forsta.securesms.jobmanager.SafeData;
-import io.forsta.securesms.mms.IncomingMediaMessage;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
+import io.forsta.ccsm.messaging.IncomingMediaMessage;
+import io.forsta.ccsm.messaging.OutgoingExpirationUpdateMessage;
+import io.forsta.ccsm.messaging.OutgoingMediaMessage;
 import io.forsta.securesms.notifications.MessageNotifier;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -185,7 +180,7 @@ public class PushDecryptJob extends ContextJob {
         if (content.getDataMessage().isPresent()) {
           SignalServiceDataMessage message = content.getDataMessage().get();
 
-          if (message.isEndSession())                    handleEndSessionMessage(envelope, message, smsMessageId);
+          if (message.isEndSession())                    handleEndSessionMessage(masterSecret, envelope, message);
           else if (message.isExpirationUpdate())         handleExpirationUpdate(masterSecret, envelope, message, smsMessageId);
           else                                           handleMediaMessage(masterSecret, envelope, message, smsMessageId);
         } else if (content.getSyncMessage().isPresent()) {
@@ -259,13 +254,14 @@ public class PushDecryptJob extends ContextJob {
     DatabaseFactory.getThreadPreferenceDatabase(context).setExpireMessages(threadId, message.getExpiresInSeconds());
   }
 
-  private void handleEndSessionMessage(@NonNull SignalServiceEnvelope    envelope,
-                                       @NonNull SignalServiceDataMessage message,
-                                       @NonNull Optional<Long>           smsMessageId)
+  private void handleEndSessionMessage(@NonNull MasterSecretUnion masterSecret,
+                                       @NonNull SignalServiceEnvelope    envelope,
+                                       @NonNull SignalServiceDataMessage message)
   {
     SignalProtocolAddress addr = new SignalProtocolAddress(envelope.getSource(), envelope.getSourceDevice());
     Log.w(TAG, "Deleting session for: " + addr);
     SessionStore sessionStore = new TextSecureSessionStore(context);
+    // See if we can just archive the current session, instead of deleting it.
     sessionStore.deleteSession(addr);
     SecurityEvent.broadcastSecurityUpdateEvent(context);
   }
@@ -494,7 +490,7 @@ public class PushDecryptJob extends ContextJob {
 
   private void handleControlMessage(ForstaMessage forstaMessage, MasterSecret masterSecret) {
     try {
-      Log.d(TAG, "Control Message: " + forstaMessage.getControlType() + " " + forstaMessage.getSenderId() + ":" + forstaMessage.getDeviceId());
+      Log.d(TAG, "handleControlMessage: " + forstaMessage.getControlType() + " " + forstaMessage.getSenderId() + ":" + forstaMessage.getDeviceId());
 
       if (forstaMessage.getControlType().equals(ForstaMessage.ControlTypes.PROVISION_REQUEST)) {
         Log.w(TAG, "Got Provision Request...");
@@ -520,12 +516,7 @@ public class PushDecryptJob extends ContextJob {
             handleCallLeave(forstaMessage);
             break;
           case ForstaMessage.ControlTypes.CALL_ACCEPT_OFFER:
-            long threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdForUid(forstaMessage.getThreadUId());
-            // Extra check to make sure we know who this is from.
-            if (threadId == -1) {
-              Log.w(TAG, "No such thread id");
-              return;
-            }
+            updateThreadDistribution(forstaMessage, masterSecret);
             handleCallAcceptOffer(forstaMessage);
             break;
         }

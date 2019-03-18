@@ -31,6 +31,7 @@ public abstract class PushReceivedJob extends ContextJob {
   public void handle(SignalServiceEnvelope envelope, boolean sendExplicitReceipt) {
     synchronized (RECEIVE_LOCK) {
       if (envelope.isReceipt()) {
+        Log.w(TAG, "Received delivery receipt");
         handleReceipt(envelope);
       } else if (envelope.isPreKeySignalMessage() || envelope.isSignalMessage()) {
         handleMessage(envelope, sendExplicitReceipt);
@@ -51,7 +52,6 @@ public abstract class PushReceivedJob extends ContextJob {
       Log.w(TAG, "*** Received blocked push message, ignoring...");
     }
 
-    //TODO Remove this?
     if (sendExplicitReceipt) {
       jobManager.add(new DeliveryReceiptJob(context, envelope.getSource(),
                                             envelope.getTimestamp(),

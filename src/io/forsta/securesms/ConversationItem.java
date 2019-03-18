@@ -27,6 +27,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -55,6 +56,7 @@ import io.forsta.securesms.database.AttachmentDatabase;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.MmsSmsDatabase;
+import io.forsta.securesms.database.SmsDatabase;
 import io.forsta.securesms.database.documents.IdentityKeyMismatch;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
 import io.forsta.securesms.database.model.MessageRecord;
@@ -301,7 +303,9 @@ public class ConversationItem extends LinearLayout
     bodyText.setClickable(false);
     bodyText.setFocusable(false);
 
-    if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
+    if (messageRecord.isEndSession()) {
+      bodyText.setText(context.getString(R.string.ThreadRecord_secure_session_reset));
+    } else if (!TextUtils.isEmpty(messageRecord.getHtmlBody())) {
       bodyText.setText(messageRecord.getHtmlBody());
     } else {
       bodyText.setText(messageRecord.getPlainTextBody());

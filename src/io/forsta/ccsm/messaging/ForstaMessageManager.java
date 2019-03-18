@@ -6,51 +6,31 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.zxing.common.StringUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.IceCandidate;
-import org.webrtc.SessionDescription;
-import org.whispersystems.signalservice.api.util.InvalidNumberException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.RecursiveAction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.forsta.ccsm.api.model.ForstaMessage;
-import io.forsta.ccsm.database.ContactDb;
 import io.forsta.ccsm.database.DbFactory;
 import io.forsta.ccsm.database.model.ForstaThread;
 import io.forsta.ccsm.database.model.ForstaUser;
 import io.forsta.ccsm.util.ForstaUtils;
 import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.attachments.Attachment;
-import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.crypto.MasterSecretUnion;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.database.GroupDatabase;
-import io.forsta.securesms.database.MmsDatabase;
-import io.forsta.securesms.database.ThreadDatabase;
-import io.forsta.securesms.mms.OutgoingExpirationUpdateMessage;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
-import io.forsta.securesms.mms.OutgoingSecureMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
-import io.forsta.securesms.util.GroupUtil;
+import io.forsta.securesms.sms.OutgoingEndSessionMessage;
 import io.forsta.securesms.util.MediaUtil;
-import io.forsta.securesms.util.TextSecurePreferences;
-import io.forsta.securesms.util.Util;
-import ws.com.google.android.mms.MmsException;
 
 /**
  * Created by jlewis on 10/25/17.
@@ -248,8 +228,11 @@ public class ForstaMessageManager {
               String callId = data.getString("callId");
               forstaMessage.setCallLeave(callId, originator);
               break;
+            case ForstaMessage.ControlTypes.CLOSE_SESSION:
+              Log.w(TAG, "Received close session control");
+              break;
             default:
-              Log.w(TAG, "Unsupported control message");
+              Log.w(TAG, "Unsupported control message: " + forstaMessage.getControlType());
           }
         }
       }
@@ -525,6 +508,24 @@ public class ForstaMessageManager {
     String uid = UUID.randomUUID().toString();
     String jsonPayload = createContentMessage(context, "", user, recipients, new LinkedList<Attachment>(), thread, uid);
     return new OutgoingExpirationUpdateMessage(recipients, jsonPayload, System.currentTimeMillis(), expiresIn);
+  }
+
+  public static OutgoingEndSessionMediaMessage createOutgoingEndSessionMessage(Context context, Recipients recipients, long threadId) {
+    ForstaThread thread = DatabaseFactory.getThreadDatabase(context).getForstaThread(threadId);
+    ForstaUser user = ForstaUser.getLocalForstaUser(context);
+    JSONObject data = new JSONObject();
+    try {
+      data.put("control", "closeSession");
+      JSONArray retransmitTimeStamps = new JSONArray();
+      // retransmits: [<number>] // Used with `closeSession` control to indicate which messages (sent timestamp) should be resent due to decryption error.  Client should validate veracity of requester before complying.
+      if (retransmitTimeStamps.length() > 0) {
+        data.put("retransmits", retransmitTimeStamps);
+      }
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+    String jsonPayload = createBaseMessageBody(user, recipients, thread, ForstaMessage.MessageTypes.CONTROL, data);
+    return new OutgoingEndSessionMediaMessage(recipients, jsonPayload, System.currentTimeMillis());
   }
 
   public static IncomingMessage createLocalInformationalMessage(Context context, String message, Recipients recipients, long threadId, long expiresIn) {
