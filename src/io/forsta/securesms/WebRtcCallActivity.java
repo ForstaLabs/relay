@@ -243,6 +243,7 @@ public class WebRtcCallActivity extends Activity {
 
   private void handleCallMemberJoining(@NonNull WebRtcViewModel event) {
     Log.d(TAG, "Member joining. " + event.getCallRecipient() + " callOrder: " +  event.getCallOrder());
+
     callScreen.updateCallMember(event.getCallRecipient(), event.getCallOrder());
   }
 
