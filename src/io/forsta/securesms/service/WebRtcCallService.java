@@ -479,7 +479,7 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
       });
 
     } else if (callState == CallState.STATE_LOCAL_RINGING && (incomingAddress.equals(localCallMember.address) && incomingDeviceId != localCallMember.deviceId)) {
-      Log.d(TAG, "Remote device answered... terminating call");
+      Log.d(TAG, "Another device answered... terminating call");
       sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, peerCallMembers.members.values(), localVideoEnabled, bluetoothAvailable, microphoneEnabled);
       terminateCall(true);
     }
@@ -1024,6 +1024,8 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
         if (!peerCallMembers.hasActiveCalls()) {
           sendMessage(WebRtcViewModel.State.CALL_DISCONNECTED, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
           terminateCall(true);
+        } else {
+          sendMessage(WebRtcViewModel.State.NETWORK_FAILURE, callMember, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
         }
       }
     } catch (Exception e) {
