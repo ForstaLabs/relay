@@ -89,6 +89,7 @@ import io.forsta.securesms.components.reminder.ReminderView;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.crypto.MasterCipher;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.SecurityEvent;
 import io.forsta.securesms.crypto.SessionUtil;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.DraftDatabase;
@@ -114,6 +115,7 @@ import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.recipients.Recipients.RecipientsModifiedListener;
 import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.database.model.MediaMmsMessageRecord;
+import io.forsta.securesms.service.KeyCachingService;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.util.DirectoryHelper;
@@ -190,6 +192,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   AttachmentTypeSelector attachmentTypeSelector;
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
+  private   BroadcastReceiver      securityUpdateReceiver;
   private   BroadcastReceiver      recipientsClearReceiver;
   private   EmojiDrawer            emojiDrawer;
   protected HidingLinearLayout     quickAttachmentToggle;
@@ -298,6 +301,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected void onDestroy() {
     saveDraft();
     if (recipients != null)              recipients.removeListener(this);
+    if (securityUpdateReceiver != null)  unregisterReceiver(securityUpdateReceiver);
     if (recipientsClearReceiver != null) unregisterReceiver(recipientsClearReceiver);
 
     super.onDestroy();
@@ -863,6 +867,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void initializeReceivers() {
+    securityUpdateReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        Toast.makeText(ConversationActivity.this, getText(R.string.ConversationActivity_secure_session_reset), Toast.LENGTH_LONG).show();
+      }
+    };
+
     recipientsClearReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -872,6 +883,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     IntentFilter clearFilter = new IntentFilter();
     clearFilter.addAction(RecipientFactory.RECIPIENT_CLEAR_ACTION);
+    registerReceiver(securityUpdateReceiver, new IntentFilter(SecurityEvent.SECURITY_UPDATE_EVENT), KeyCachingService.KEY_PERMISSION, null);
     registerReceiver(recipientsClearReceiver, clearFilter);
 
     threadObserver = new ContentObserver(handler) {
