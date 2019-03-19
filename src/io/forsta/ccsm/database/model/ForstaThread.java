@@ -74,4 +74,9 @@ public class ForstaThread {
   public String getThreadCreator() {
     return !TextUtils.isEmpty(threadCreator) ? threadCreator : "";
   }
+
+  @Override
+  public String toString() {
+    return "title: " + title + " (" + uid + ") dbid: " + threadid + " type: " + threadType + " expression: " + distribution + " " + pretty;
+  }
 }

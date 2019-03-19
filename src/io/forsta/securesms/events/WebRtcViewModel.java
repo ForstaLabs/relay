@@ -121,6 +121,18 @@ public class WebRtcViewModel {
   }
 
   public String toString() {
-    return "[State: " + state + ", recipient: " + (callRecipient != null ? (callRecipient.getRecipient() + " videoEnabled: " + callRecipient.isVideoEnabled()) : "null") + " callOrder: " + callOrder + ", localVideo: " + localVideoEnabled + "]";
+    StringBuilder sb = new StringBuilder();
+    sb.append("[State: ").append(state);
+
+        if (threadUid != null) {
+          sb.append(" threadUID: ").append(threadUid);
+        }
+
+        if (callRecipient != null) {
+          sb.append(" recipient: ").append(callRecipient.getRecipient());
+        }
+        sb.append(" localVideoEnabled: ").append(localVideoEnabled);
+        sb.append("]");
+        return sb.toString();
   }
 }

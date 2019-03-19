@@ -870,7 +870,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     securityUpdateReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
-        Toast.makeText(ConversationActivity.this, getText(R.string.ConversationActivity_secure_session_reset), Toast.LENGTH_LONG).show();
+        Log.w(TAG, "Sessions have been removed for this thread " + forstaThread);
       }
     };
 
