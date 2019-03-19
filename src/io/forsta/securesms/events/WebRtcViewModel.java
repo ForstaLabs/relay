@@ -44,43 +44,38 @@ public class WebRtcViewModel {
 
   private final @NonNull  State       state;
   private final CallRecipient callRecipient;
-  private final List<CallRecipient> callMembers;
-
-  private int callOrder = 0; // Remove
+  private String threadUid;
+  private int callOrder = 0;
   private final Map<Integer, CallRecipient> remoteCallRecipients; //Remove
 
   private final boolean localVideoEnabled;
-
   private final boolean isBluetoothAvailable;
   private final boolean isMicrophoneEnabled;
+
+  public WebRtcViewModel(@NonNull State state, String threadUid, boolean localVideoEnabled,
+                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
+
+    this.state = state;
+    this.threadUid = threadUid;
+    this.callRecipient = null;
+    this.remoteCallRecipients = new ArrayMap<>();
+
+    this.localVideoEnabled = localVideoEnabled;
+    this.isMicrophoneEnabled = isBluetoothAvailable;
+    this.isBluetoothAvailable = isMicrophoneEnabled;
+  }
 
   public WebRtcViewModel(@NonNull State state,
                          Map<Integer, CallRecipient> remoteCallRecipients,
                          @NonNull CallRecipient callRecipient,
                          int callOrder,
-                         boolean localVideoEnabled, boolean remoteVideoEnabled,
-                         boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
-  {
-    this.state                = state;
-    this.remoteCallRecipients = remoteCallRecipients;
-    this.callMembers = new LinkedList<>();
-    this.callRecipient = callRecipient;
-    this.callOrder = callOrder;
-    this.localVideoEnabled    = localVideoEnabled;
-    this.isBluetoothAvailable = isBluetoothAvailable;
-    this.isMicrophoneEnabled  = isMicrophoneEnabled;
-  }
-
-  public WebRtcViewModel(@NonNull State state,
-                         List<CallRecipient> remoteCallMembers,
-                         CallRecipient callRecipient,
                          boolean localVideoEnabled,
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled)
   {
     this.state                = state;
-    this.callMembers = remoteCallMembers;
-    this.remoteCallRecipients = new ArrayMap<>();
+    this.remoteCallRecipients = remoteCallRecipients;
     this.callRecipient = callRecipient;
+    this.callOrder = callOrder;
     this.localVideoEnabled    = localVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
     this.isMicrophoneEnabled  = isMicrophoneEnabled;
@@ -90,7 +85,6 @@ public class WebRtcViewModel {
                          boolean isBluetoothAvailable, boolean isMicrophoneEnabled) {
     this.state = state;
     this.callRecipient = null;
-    this.callMembers = new ArrayList<>();
     this.remoteCallRecipients = new ArrayMap<>();
     this.localVideoEnabled    = localVideoEnabled;
     this.isBluetoothAvailable = isBluetoothAvailable;
