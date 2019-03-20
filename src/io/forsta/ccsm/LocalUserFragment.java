@@ -1,5 +1,7 @@
 package io.forsta.ccsm;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -7,16 +9,19 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
 import io.forsta.ccsm.database.model.ForstaUser;
+import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.util.Dialogs;
 
 /**
  * Created by jlewis on 5/19/17.
@@ -54,6 +59,7 @@ public class LocalUserFragment extends Fragment {
         contactPhotoImage.setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(user.getName()).asDrawable(getActivity(), MaterialColor.GREY.toConversationColor(getActivity())));
       }
     }
+
     return view;
   }
 
