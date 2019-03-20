@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.forsta.ccsm.database.model.ForstaThread;
+import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.Recipients;
 import io.forsta.securesms.util.ViewUtil;
@@ -44,8 +45,11 @@ public class ConversationTitleView extends LinearLayout {
   }
 
   public void setTitle(@Nullable Recipients recipients, ForstaThread thread) {
-    if      (recipients == null)             setComposeTitle();
-    else                                     setRecipientsTitle(recipients, thread);
+    if      (recipients == null) {
+      setComposeTitle();
+    } else {
+      setRecipientsTitle(recipients, thread);
+    }
 
     if (recipients != null && recipients.isBlocked()) {
       title.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_block_white_18dp, 0, 0, 0);
