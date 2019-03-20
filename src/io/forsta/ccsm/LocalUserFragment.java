@@ -21,6 +21,8 @@ import io.forsta.securesms.color.MaterialColor;
 import io.forsta.securesms.components.AvatarImageView;
 import io.forsta.securesms.contacts.avatars.ContactPhotoFactory;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.recipients.Recipient;
+import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.util.Dialogs;
 
 /**
@@ -53,11 +55,8 @@ public class LocalUserFragment extends Fragment {
     if (user != null) {
       userName.setText(user.getName());
       orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-      if (!TextUtils.isEmpty(user.getAvatar())) {
-        Glide.with(getActivity()).load("https://www.gravatar.com/avatar/" + user.getAvatar()).asBitmap().into(contactPhotoImage);
-      } else {
-        contactPhotoImage.setImageDrawable(ContactPhotoFactory.getDefaultContactPhoto(user.getName()).asDrawable(getActivity(), MaterialColor.GREY.toConversationColor(getActivity())));
-      }
+      Recipient recipient = RecipientFactory.getRecipient(getContext(), user.uid, true);
+      contactPhotoImage.setAvatar(recipient, false);
     }
 
     return view;
