@@ -682,7 +682,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (recipients != null) {
       recipients.removeListener(this);
     }
-    recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), true);
+    recipients = RecipientFactory.getRecipientsForIds(ConversationActivity.this, forstaThread.getRecipientIds(), false);
     recipients.addListener(this);
 
     if (recipients == null || recipients.isEmpty() || (!recipients.isSingleRecipient() && !recipients.includesSelf(ConversationActivity.this))) {

@@ -55,7 +55,7 @@ public class LocalUserFragment extends Fragment {
     if (user != null) {
       userName.setText(user.getName());
       orgTag.setText("@" + user.getTag() + ": " + user.getOrgTag());
-      Recipient recipient = RecipientFactory.getRecipient(getContext(), user.uid, true);
+      Recipient recipient = RecipientFactory.getRecipient(getContext(), user.uid, false);
       contactPhotoImage.setAvatar(recipient, false);
     }
 
