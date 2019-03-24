@@ -838,7 +838,7 @@ public class ThreadDatabase extends Database {
     public ThreadRecord getCurrent() {
       long       threadId    = cursor.getLong(0);
       String     recipientId = cursor.getString(cursor.getColumnIndexOrThrow(ThreadDatabase.RECIPIENT_IDS));
-      Recipients recipients  = RecipientFactory.getRecipientsForIds(context, recipientId, true);
+      Recipients recipients  = RecipientFactory.getRecipientsForIds(context, recipientId, false);
 
       DisplayRecord.Body body = getPlaintextBody(cursor);
       long date               = cursor.getLong(cursor.getColumnIndexOrThrow(ThreadDatabase.DATE));
