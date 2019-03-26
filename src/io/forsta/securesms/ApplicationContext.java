@@ -16,6 +16,7 @@
  */
 package io.forsta.securesms;
 
+import android.app.ActivityManager;
 import android.arch.lifecycle.DefaultLifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.ProcessLifecycleOwner;
@@ -251,4 +252,8 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
     this.expiringMessageManager = new ExpiringMessageManager(this);
   }
 
+  public void clearApplicationData() {
+    ((ActivityManager) getSystemService(ACTIVITY_SERVICE))
+        .clearApplicationUserData();
+  }
 }

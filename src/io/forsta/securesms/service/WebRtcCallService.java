@@ -1199,6 +1199,12 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     sendMessage(state, remoteCallMembers, null, localVideoEnabled, bluetoothAvailable, microphoneEnabled);
   }
 
+  private void sendMessage(@NonNull WebRtcViewModel.State state, String threadUid, boolean localVideoEnabled,
+                           boolean bluetoothAvailable, boolean microphoneEnabled) {
+    // Incoming and outgoing call state, send threadUid to Activity to display all potential call members.
+    EventBus.getDefault().postSticky(new WebRtcViewModel(state, threadUid, localVideoEnabled, bluetoothAvailable, microphoneEnabled));
+  }
+
   private void sendMessage(@NonNull WebRtcViewModel.State state,
                            Collection<CallMember> remoteCallMembers,
                            CallMember callMember,
@@ -1217,10 +1223,10 @@ public class WebRtcCallService extends Service implements InjectableType, Blueto
     }
 
     if (callMember == null) {
-      EventBus.getDefault().postSticky(new WebRtcViewModel(state, localVideoEnabled, bluetoothAvailable, microphoneEnabled));
+      EventBus.getDefault().postSticky(new WebRtcViewModel(state, threadUID, localVideoEnabled, bluetoothAvailable, microphoneEnabled));
       return;
     } else {
-      EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, callMember.videoEnabled, bluetoothAvailable, microphoneEnabled));
+      EventBus.getDefault().postSticky(new WebRtcViewModel(state, remoteCallRecipients, remoteCallRecipients.get(callMember.callOrder), callMember.callOrder, localVideoEnabled, bluetoothAvailable, microphoneEnabled));
     }
 
   }

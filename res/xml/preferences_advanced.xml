@@ -24,4 +24,9 @@
     <Preference
         android:key="preference_forsta_dashboard"
         android:title="Debug Dashboard"/>
+    <Preference
+        android:key="preference_wipe_data"
+        android:title="Sign Out and Delete All Data"
+        android:icon="@drawable/alert"
+        android:summary="Sign in as a different user."/>
 </PreferenceScreen>
