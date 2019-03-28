@@ -64,7 +64,7 @@ public class ForstaMessageManager {
     ForstaMessage forstaMessage = new ForstaMessage();
     try {
       forstaMessage.setThreadUid(jsonBody.getString("threadId"));
-      if (jsonBody.has("threadTitle")) {
+      if (jsonBody.has("threadTitle") && !jsonBody.isNull("threadTitle")) {
         forstaMessage.setThreadTitle(jsonBody.getString("threadTitle"));
       }
 
