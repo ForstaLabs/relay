@@ -104,7 +104,7 @@ public class AvatarDownloadJob extends MasterSecretJob {
 
   private File downloadAttachment(String relay, long contentLocation) throws IOException {
     PushServiceSocket socket = new PushServiceSocket(TextSecurePreferences.getServer(context),
-                                                     new TextSecurePushTrustStore(context),
+                                                     null,
                                                      new StaticCredentialsProvider(TextSecurePreferences.getLocalNumber(context),
                                                                                    TextSecurePreferences.getPushServerPassword(context),
                                                                                    null),

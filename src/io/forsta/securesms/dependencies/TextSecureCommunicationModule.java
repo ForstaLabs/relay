@@ -21,7 +21,6 @@ import io.forsta.securesms.jobs.PushTextSendJob;
 import io.forsta.securesms.jobs.RefreshAttributesJob;
 import io.forsta.securesms.jobs.RefreshPreKeysJob;
 import io.forsta.securesms.push.SecurityEventListener;
-import io.forsta.securesms.push.TextSecurePushTrustStore;
 import io.forsta.securesms.service.MessageRetrievalService;
 import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
@@ -60,7 +59,7 @@ public class TextSecureCommunicationModule {
 
   public static SignalServiceMessageSender createMessageSender(Context context) {
     return new SignalServiceMessageSender(TextSecurePreferences.getServer(context),
-        new TextSecurePushTrustStore(context),
+        null,
         TextSecurePreferences.getLocalNumber(context),
         TextSecurePreferences.getLocalDeviceId(context),
         TextSecurePreferences.getPushServerPassword(context),
@@ -71,7 +70,7 @@ public class TextSecureCommunicationModule {
 
   @Provides ForstaServiceAccountManager provideTextSecureAccountManager() {
     return new ForstaServiceAccountManager(TextSecurePreferences.getServer(context),
-                                           new TextSecurePushTrustStore(context),
+                                           null,
                                            TextSecurePreferences.getLocalNumber(context),
                                            TextSecurePreferences.getLocalDeviceId(context),
                                            TextSecurePreferences.getPushServerPassword(context),
@@ -83,7 +82,7 @@ public class TextSecureCommunicationModule {
       @Override
       public SignalServiceMessageSender create() {
         return new SignalServiceMessageSender(TextSecurePreferences.getServer(context),
-                                              new TextSecurePushTrustStore(context),
+                                              null,
                                               TextSecurePreferences.getLocalNumber(context),
                                               TextSecurePreferences.getLocalDeviceId(context),
                                               TextSecurePreferences.getPushServerPassword(context),
@@ -96,9 +95,9 @@ public class TextSecureCommunicationModule {
 
   @Provides SignalServiceMessageReceiver provideTextSecureMessageReceiver() {
     return new SignalServiceMessageReceiver(TextSecurePreferences.getServer(context),
-                                         new TextSecurePushTrustStore(context),
-                                         new DynamicCredentialsProvider(context),
-                                         TextSecurePreferences.getUserAgent(context));
+                                            null,
+                                            new DynamicCredentialsProvider(context),
+                                            TextSecurePreferences.getUserAgent(context));
   }
 
   public static interface TextSecureMessageSenderFactory {
