@@ -7,7 +7,6 @@ import org.whispersystems.signalservice.api.messages.SignalServiceGroup;
 import java.util.List;
 
 import io.forsta.securesms.crypto.MasterSecretUnion;
-import io.forsta.securesms.mms.IncomingMediaMessage;
 
 public class IncomingMessage extends IncomingMediaMessage {
 

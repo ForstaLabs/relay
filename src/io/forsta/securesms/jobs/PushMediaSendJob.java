@@ -14,6 +14,7 @@ import io.forsta.ccsm.util.InvalidMessagePayloadException;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.attachments.Attachment;
 import io.forsta.securesms.crypto.MasterSecret;
+import io.forsta.securesms.crypto.storage.TextSecureSessionStore;
 import io.forsta.securesms.database.DatabaseFactory;
 import io.forsta.securesms.database.MmsDatabase;
 import io.forsta.securesms.database.NoSuchMessageException;
@@ -22,7 +23,7 @@ import io.forsta.securesms.database.documents.NetworkFailure;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.mms.MediaConstraints;
-import io.forsta.securesms.mms.OutgoingMediaMessage;
+import io.forsta.ccsm.messaging.OutgoingMediaMessage;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.RecipientFormattingException;
@@ -32,6 +33,7 @@ import io.forsta.securesms.transport.RetryLaterException;
 import io.forsta.securesms.transport.UndeliverableMessageException;
 
 import org.whispersystems.libsignal.IdentityKey;
+import org.whispersystems.libsignal.state.SessionStore;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
 import org.whispersystems.signalservice.api.messages.SignalServiceAttachment;
@@ -196,6 +198,14 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
     List<SignalServiceAddress> addresses = getPushAddresses(recipients);
     Log.w(TAG, "Sending message: " + messageId);
     messageSender.sendMessage(addresses, mediaMessage);
+
+    if (mediaMessage.isEndSession()) {
+      Log.w(TAG, "Deleting sessions for: " + recipients.toShortString());
+      SessionStore sessionStore = new TextSecureSessionStore(context);
+      for (Recipient recipient : recipients) {
+        sessionStore.deleteAllSessions(recipient.getAddress());
+      }
+    }
   }
 
   private void acceptIndentityKey(UntrustedIdentityException uie) {
@@ -216,6 +226,7 @@ public class PushMediaSendJob extends PushSendJob implements InjectableType {
         .withTimestamp(message.getSentTimeMillis())
         .withExpiration((int)(message.getExpiresIn() / 1000))
         .asExpirationUpdate(message.isExpirationUpdate())
+        .asEndSessionMessage(message.isEndSession())
         .build();
     return mediaMessage;
   }

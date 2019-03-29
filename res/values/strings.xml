@@ -595,6 +595,7 @@
     <string name="SmsMessageRecord_received_message_with_new_safety_numbers_tap_to_process">Received message with new safety numbers. Tap to process and display.</string>
     <string name="SmsMessageRecord_secure_session_reset">You reset the secure session.</string>
     <string name="SmsMessageRecord_secure_session_reset_s">%s reset the secure session.</string>
+    <string name="ConversationActivity_secure_session_reset">Secure session has been reset.</string>
     <string name="SmsMessageRecord_duplicate_message">Duplicate message.</string>
 
     <!-- ThreadRecord -->

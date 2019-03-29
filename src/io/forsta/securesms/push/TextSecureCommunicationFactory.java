@@ -25,7 +25,7 @@ public class TextSecureCommunicationFactory {
 
   public static ForstaServiceAccountManager createManager(Context context) {
     return new ForstaServiceAccountManager(getAndUpdateServerUrl(context),
-                                           new TextSecurePushTrustStore(context),
+                                           null,
                                            TextSecurePreferences.getLocalNumber(context),
                                            TextSecurePreferences.getLocalDeviceId(context),
                                            TextSecurePreferences.getPushServerPassword(context),
@@ -35,7 +35,7 @@ public class TextSecureCommunicationFactory {
   public static ForstaServiceAccountManager createManager(Context context, String addr,
                                                           String password) {
     return new ForstaServiceAccountManager(getAndUpdateServerUrl(context),
-                                           new TextSecurePushTrustStore(context),
+                                           null,
                                            addr,
                                            new Integer(-1),
                                            password,

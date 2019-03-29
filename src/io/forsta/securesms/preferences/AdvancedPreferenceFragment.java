@@ -1,6 +1,7 @@
 package io.forsta.securesms.preferences;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,7 +15,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.preference.PreferenceFragment;
-import android.support.v7.app.AlertDialog;
+import io.forsta.securesms.util.Dialogs;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaLogSubmitActivity;
 import io.forsta.ccsm.ForstaPreferences;
+import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.BuildConfig;
 import io.forsta.securesms.LogSubmitActivity;
@@ -69,6 +71,32 @@ public class AdvancedPreferenceFragment extends PreferenceFragment {
     }
     submitDebugLog.setOnPreferenceClickListener(new SubmitDebugLogListener());
     submitDebugLog.setSummary(getVersion(getActivity()));
+
+    Preference wipeData = this.findPreference("preference_wipe_data");
+    wipeData.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+      @Override
+      public boolean onPreferenceClick(Preference preference) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder
+            .setIcon(R.drawable.alert)
+            .setTitle("Warning")
+            .setMessage("This will remove all data for this application, including all messages and attachments")
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                return;
+              }
+            }).setPositiveButton("Logout", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            ApplicationContext.getInstance(getContext()).clearApplicationData();
+          }
+        })
+            .setCancelable(true)
+            .show();
+        return false;
+      }
+    });
   }
 
   @Override

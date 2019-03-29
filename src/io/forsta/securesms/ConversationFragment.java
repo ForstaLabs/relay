@@ -55,7 +55,7 @@ import io.forsta.securesms.database.model.MessageRecord;
 import io.forsta.securesms.mms.Slide;
 import io.forsta.securesms.recipients.RecipientFactory;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.util.SaveAttachmentTask;
 import io.forsta.securesms.util.ViewUtil;
 import io.forsta.securesms.util.task.ProgressDialogAsyncTask;

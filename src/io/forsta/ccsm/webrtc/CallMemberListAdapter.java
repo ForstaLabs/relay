@@ -41,7 +41,7 @@ public class CallMemberListAdapter extends RecyclerView.Adapter<CallMemberListAd
   public void onBindViewHolder(CallMemberViewHolder holder, int position) {
     CallRecipient callRecipient = callRecipients.get(position + 1);
     View view = holder.itemView;
-    if (callRecipient.isVideoEnabled()) {
+    if (callRecipient != null && callRecipient.isVideoEnabled()) {
       view.setBackground(view.getResources().getDrawable(R.drawable.layout_rounded_bg));
       view.setClipToOutline(true);
     } else {

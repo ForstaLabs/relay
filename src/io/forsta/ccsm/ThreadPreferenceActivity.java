@@ -43,7 +43,7 @@ import io.forsta.securesms.database.ThreadPreferenceDatabase;
 import io.forsta.securesms.preferences.AdvancedRingtonePreference;
 import io.forsta.securesms.preferences.ColorPreference;
 import io.forsta.securesms.recipients.Recipients;
-import io.forsta.securesms.sms.MessageSender;
+import io.forsta.ccsm.messaging.MessageSender;
 import io.forsta.securesms.util.DynamicLanguage;
 import io.forsta.securesms.util.DynamicNoActionBarTheme;
 import io.forsta.securesms.util.DynamicTheme;

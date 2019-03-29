@@ -54,6 +54,6 @@ public class CallRecipient {
 
   @Override
   public String toString() {
-    return callState + " " + recipient + " video: " + videoEnabled;
+    return callState + " " + recipient + " deviceId: " + deviceId + " videoEnabled: " + videoEnabled;
   }
 }

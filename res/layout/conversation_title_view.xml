@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <io.forsta.securesms.ConversationTitleView
-              xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:orientation="horizontal"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:layout_gravity="center_vertical"
-              android:gravity="center_vertical">
-
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="0dp"
+    android:layout_gravity="center_vertical"
+    android:gravity="center_vertical">
     <ImageView
         android:id="@+id/conversation_title_announcement_indicator"
         android:layout_width="wrap_content"

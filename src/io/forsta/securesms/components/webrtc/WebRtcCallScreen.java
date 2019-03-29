@@ -144,8 +144,11 @@ public class WebRtcCallScreen extends FrameLayout {
     if (remoteCallMemberList.getAdapter() != null) {
       remoteCallMemberList.getAdapter().notifyDataSetChanged();
     } else {
-      CallMemberListAdapter adapter = new CallMemberListAdapter(remoteCallMembers);
-      remoteCallMemberList.setAdapter(adapter);
+      callMemberListAdapter = new CallMemberListAdapter(remoteCallMembers);
+      remoteCallMemberList.setAdapter(callMemberListAdapter);
+      if (callMemberClickListener != null) {
+        callMemberListAdapter.setItemClickListener(callMemberClickListener);
+      }
     }
   }
 
@@ -251,7 +254,7 @@ public class WebRtcCallScreen extends FrameLayout {
         ((ViewGroup)remoteRenderer.getParent()).removeView(remoteRenderer);
       }
 
-//      localRenderer.setMirror(true);
+      localRenderer.setMirror(true);
       localRenderer.setZOrderMediaOverlay(true);
       localMemberLayout.addView(localRenderer);
       localMemberLayout.setVisibility(VISIBLE);
