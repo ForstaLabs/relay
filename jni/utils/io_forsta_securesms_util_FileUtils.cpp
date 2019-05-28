@@ -1,10 +1,10 @@
-#include "org_thoughtcrime_securesms_util_FileUtils.h"
+#include "io_forsta_securesms_util_FileUtils.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-jint JNICALL Java_org_thoughtcrime_securesms_util_FileUtils_getFileDescriptorOwner
+jint JNICALL Java_io_forsta_securesms_util_FileUtils_getFileDescriptorOwner
   (JNIEnv *env, jclass clazz, jobject fileDescriptor)
 {
   jclass fdClass = env->GetObjectClass(fileDescriptor);
