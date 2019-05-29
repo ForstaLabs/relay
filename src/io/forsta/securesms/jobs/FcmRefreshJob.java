@@ -38,7 +38,7 @@ import io.forsta.securesms.jobmanager.SafeData;
 import io.forsta.securesms.notifications.NotificationChannels;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.jobmanager.JobParameters;
-import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
+
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.push.exceptions.NonSuccessfulResponseCodeException;
 
@@ -46,19 +46,19 @@ import javax.inject.Inject;
 import androidx.work.Data;
 
 
-public class GcmRefreshJob extends ContextJob implements InjectableType {
+public class FcmRefreshJob extends ContextJob implements InjectableType {
 
-  private static final String TAG = GcmRefreshJob.class.getSimpleName();
+  private static final String TAG = FcmRefreshJob.class.getSimpleName();
 
   public static final String REGISTRATION_ID = "268035575546";
 
   @Inject transient ForstaServiceAccountManager textSecureAccountManager;
 
-  public GcmRefreshJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
+  public FcmRefreshJob(@NonNull Context context, @NonNull WorkerParameters workerParameters) {
     super(context, workerParameters);
   }
 
-  public GcmRefreshJob(Context context) {
+  public FcmRefreshJob(Context context) {
     super(context, JobParameters.newBuilder()
         .withGroupId(TAG)
         .withDuplicatesIgnored(true)

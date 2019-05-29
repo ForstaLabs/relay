@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
+import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -37,5 +38,9 @@ public class ServiceUtil {
 
   public static AlarmManager getAlarmManager(Context context) {
     return (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+  }
+
+  public static PowerManager getPowerManager(Context context) {
+    return (PowerManager)context.getSystemService(Context.POWER_SERVICE);
   }
 }
