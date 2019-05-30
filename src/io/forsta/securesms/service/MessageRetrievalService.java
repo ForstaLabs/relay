@@ -11,7 +11,6 @@ import android.util.Log;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.dependencies.InjectableType;
-import io.forsta.securesms.gcm.GcmBroadcastReceiver;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirementProvider;
 import io.forsta.securesms.jobmanager.requirements.RequirementListener;
@@ -137,7 +136,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   private synchronized void decrementPushReceived() {
     if (!pushPending.isEmpty()) {
       Intent intent = pushPending.remove(0);
-      GcmBroadcastReceiver.completeWakefulIntent(intent);
+//      FcmService.completeWakefulIntent(intent);
       notifyAll();
     }
   }
