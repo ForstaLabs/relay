@@ -5,7 +5,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.3'
-        classpath 'com.google.gms:google-services:4.0.2'
         classpath files('libs/gradle-witness.jar')
     }
 }
@@ -346,5 +345,3 @@ if (System.getenv('STORE_FILE') && System.getenv('STORE_PASSWORD') && System.get
 } else {
     println 'signing.properties not found'
 }
-
-apply plugin: 'com.google.gms.google-services'
