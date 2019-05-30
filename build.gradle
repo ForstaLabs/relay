@@ -5,6 +5,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.3'
+        classpath 'com.google.gms:google-services:4.0.2'
         classpath files('libs/gradle-witness.jar')
     }
 }
@@ -58,11 +59,11 @@ dependencies {
         exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
     }
 
-    compile 'com.google.android.gms:play-services-base:11.0.1'
-    compile 'com.google.android.gms:play-services-maps:11.0.1'
-    compile 'com.google.android.gms:play-services-location:11.0.1'
-    compile 'com.google.android.gms:play-services-places:11.0.1'
-    compile 'com.google.android.gms:play-services-safetynet:11.0.1'
+    compile 'com.google.android.gms:play-services-base:16.0.0'
+    compile 'com.google.android.gms:play-services-maps:16.0.0'
+    compile 'com.google.android.gms:play-services-location:16.0.0'
+    compile 'com.google.android.gms:play-services-places:16.0.0'
+    compile 'com.google.android.gms:play-services-safetynet:16.0.0'
     compile('com.doomonafireball.betterpickers:library:1.5.3') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
@@ -346,3 +347,4 @@ if (System.getenv('STORE_FILE') && System.getenv('STORE_PASSWORD') && System.get
     println 'signing.properties not found'
 }
 
+apply plugin: 'com.google.gms.google-services'
