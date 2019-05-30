@@ -171,7 +171,7 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 
   private void initializeGcmCheck() {
     if (TextSecurePreferences.isPushRegistered(this) &&
-        TextSecurePreferences.getGcmRegistrationId(this) == null)
+        TextSecurePreferences.getFcmToken(this) == null)
     {
       this.jobManager.add(new FcmRefreshJob(this));
     }

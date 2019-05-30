@@ -21,7 +21,6 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.signalservice.api.SignalServiceMessagePipe;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
-import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -107,7 +106,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   }
 
   private void setForegroundIfNecessary() {
-    if (TextSecurePreferences.isGcmDisabled(this)) {
+    if (TextSecurePreferences.isFcmDisabled(this)) {
       NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationChannels.OTHER);
       builder.setContentTitle(getString(R.string.MessageRetrievalService_forsta));
       builder.setContentText(getString(R.string.MessageRetrievalService_background_connection_enabled));

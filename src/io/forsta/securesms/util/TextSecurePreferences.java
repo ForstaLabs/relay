@@ -83,8 +83,10 @@ public class TextSecurePreferences {
   private static final String SIGNED_PREKEY_REGISTERED_PREF    = "pref_signed_prekey_registered";
   private static final String WIFI_SMS_PREF                    = "pref_wifi_sms";
 
+  private static final String GCM_DISABLED_PREF                = "pref_gcm_disabled";
   private static final String GCM_REGISTRATION_ID_PREF         = "pref_gcm_registration_id";
   private static final String GCM_REGISTRATION_ID_VERSION_PREF = "pref_gcm_registration_id_version";
+  private static final String GCM_REGISTRATION_ID_TIME_PREF    = "pref_gcm_registration_id_last_set_time";
   private static final String WEBSOCKET_REGISTERED_PREF        = "pref_websocket_registered";
   private static final String RATING_LATER_PREF                = "pref_rating_later";
   private static final String RATING_ENABLED_PREF              = "pref_rating_enabled";
@@ -104,7 +106,6 @@ public class TextSecurePreferences {
   public static final String NOTIFICATION_FILTER = "pref_notification_filter";
   private static final String NOTIFICATION_CHANNEL_VERSION          = "pref_notification_channel_version";
   private static final String NOTIFICATION_MESSAGES_CHANNEL_VERSION = "pref_notification_messages_channel_version";
-  private static final String GCM_DISABLED_PREF                = "pref_gcm_disabled";
   private static final String NEEDS_MESSAGE_PULL = "pref_needs_message_pull";
 
   public static boolean getNeedsMessagePull(Context context) {
@@ -223,12 +224,12 @@ public class TextSecurePreferences {
     setBooleanPreference(context, SIGNED_PREKEY_REGISTERED_PREF, value);
   }
 
-  public static void setGcmRegistrationId(Context context, String registrationId) {
+  public static void setFcmToken(Context context, String registrationId) {
     setStringPreference(context, GCM_REGISTRATION_ID_PREF, registrationId);
     setIntegerPrefrence(context, GCM_REGISTRATION_ID_VERSION_PREF, Util.getCurrentApkReleaseVersion(context));
   }
 
-  public static String getGcmRegistrationId(Context context) {
+  public static String getFcmToken(Context context) {
     int storedRegistrationIdVersion = getIntegerPreference(context, GCM_REGISTRATION_ID_VERSION_PREF, 0);
 
     if (storedRegistrationIdVersion != Util.getCurrentApkReleaseVersion(context)) {
@@ -244,6 +245,14 @@ public class TextSecurePreferences {
     } else {
       return isInterceptAllSmsEnabled(context);
     }
+  }
+
+  public static long getFcmTokenLastSetTime(Context context) {
+    return getLongPreference(context, GCM_REGISTRATION_ID_TIME_PREF, 0);
+  }
+
+  public static void setFcmTokenLastSetTime(Context context, long timestamp) {
+    setLongPreference(context, GCM_REGISTRATION_ID_TIME_PREF, timestamp);
   }
 
   public static int getLocalRegistrationId(Context context) {
@@ -533,8 +542,12 @@ public class TextSecurePreferences {
     return getBooleanPreference(context, ALL_SMS_PREF, true);
   }
 
-  public static boolean isGcmDisabled(Context context) {
+  public static boolean isFcmDisabled(Context context) {
     return getBooleanPreference(context, GCM_DISABLED_PREF, false);
+  }
+
+  public static void setFcmDisabled(Context context, boolean disabled) {
+    setBooleanPreference(context, GCM_DISABLED_PREF, disabled);
   }
 
   public static boolean isNotificationsEnabled(Context context) {
