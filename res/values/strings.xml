@@ -331,7 +331,7 @@
     <string name="ExportFragment_error_while_writing_to_storage">Error while writing to storage.</string>
     <string name="ExportFragment_export_successful">Export successful.</string>
 
-    <!-- GcmRefreshJob -->
+    <!-- FcmRefreshJob -->
     <string name="GcmRefreshJob_Permanent_Signal_communication_failure">Permanent Forsta communication failure!</string>
     <string name="GcmRefreshJob_Signal_was_unable_to_register_with_Google_Play_Services">Forsta was unable to register with Google Play Services. Forsta messages have been disabled, please try re-registering in Settings &gt; Advanced.</string>
 

@@ -5,12 +5,12 @@ import android.content.Context;
 import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.securesms.DeviceListFragment;
 import io.forsta.securesms.crypto.storage.SignalProtocolStoreImpl;
-import io.forsta.securesms.gcm.GcmBroadcastReceiver;
+import io.forsta.securesms.gcm.FcmService;
 import io.forsta.securesms.jobs.AttachmentDownloadJob;
 import io.forsta.securesms.jobs.CleanPreKeysJob;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
 import io.forsta.securesms.jobs.DeliveryReceiptJob;
-import io.forsta.securesms.jobs.GcmRefreshJob;
+import io.forsta.securesms.jobs.FcmRefreshJob;
 import io.forsta.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceContactUpdateJob;
 import io.forsta.securesms.jobs.MultiDeviceGroupUpdateJob;
@@ -22,7 +22,6 @@ import io.forsta.securesms.jobs.RefreshAttributesJob;
 import io.forsta.securesms.jobs.RefreshPreKeysJob;
 import io.forsta.securesms.push.SecurityEventListener;
 import io.forsta.securesms.service.MessageRetrievalService;
-import io.forsta.securesms.service.WebRtcCallService;
 import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
@@ -47,8 +46,8 @@ import dagger.Provides;
                                      MultiDeviceBlockedUpdateJob.class,
                                      DeviceListFragment.class,
                                      RefreshAttributesJob.class,
-                                     GcmBroadcastReceiver.class,
-                                     GcmRefreshJob.class})
+                                     FcmService.class,
+                                     FcmRefreshJob.class})
 public class TextSecureCommunicationModule {
 
   private final Context context;

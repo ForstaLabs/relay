@@ -22,23 +22,17 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.ProcessLifecycleOwner;
 import android.content.Context;
 import android.os.Build;
-import android.os.StrictMode;
-import android.os.StrictMode.ThreadPolicy;
-import android.os.StrictMode.VmPolicy;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
-import com.google.android.gms.security.ProviderInstaller;
-
-import androidx.work.Configuration;
 import androidx.work.WorkManager;
 import io.forsta.securesms.crypto.PRNGFixes;
 import io.forsta.securesms.dependencies.AxolotlStorageModule;
 import io.forsta.securesms.dependencies.InjectableType;
 import io.forsta.securesms.dependencies.TextSecureCommunicationModule;
 import io.forsta.securesms.jobs.CreateSignedPreKeyJob;
-import io.forsta.securesms.jobs.GcmRefreshJob;
+import io.forsta.securesms.jobs.FcmRefreshJob;
 import io.forsta.securesms.jobs.PushNotificationReceiveJob;
 import io.forsta.securesms.jobs.requirements.MediaNetworkRequirementProvider;
 import io.forsta.securesms.service.ExpiringMessageManager;
@@ -177,9 +171,9 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
 
   private void initializeGcmCheck() {
     if (TextSecurePreferences.isPushRegistered(this) &&
-        TextSecurePreferences.getGcmRegistrationId(this) == null)
+        TextSecurePreferences.getFcmToken(this) == null)
     {
-      this.jobManager.add(new GcmRefreshJob(this));
+      this.jobManager.add(new FcmRefreshJob(this));
     }
   }
 

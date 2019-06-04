@@ -8,40 +8,24 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.preference.PreferenceFragment;
-import io.forsta.securesms.util.Dialogs;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
-import io.forsta.ccsm.api.model.ForstaDistribution;
-import io.forsta.ccsm.service.ForstaServiceAccountManager;
 import io.forsta.ccsm.DashboardActivity;
 import io.forsta.ccsm.ForstaLogSubmitActivity;
-import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.ApplicationPreferencesActivity;
 import io.forsta.securesms.BuildConfig;
-import io.forsta.securesms.LogSubmitActivity;
 import io.forsta.securesms.R;
-import io.forsta.securesms.RegistrationActivity;
 import io.forsta.securesms.contacts.ContactAccessor;
 import io.forsta.securesms.contacts.ContactIdentityManager;
 import io.forsta.securesms.crypto.MasterSecret;
-import io.forsta.securesms.push.TextSecureCommunicationFactory;
-import io.forsta.securesms.util.task.ProgressDialogAsyncTask;
 import io.forsta.securesms.util.TextSecurePreferences;
-import org.whispersystems.libsignal.util.guava.Optional;
-import org.whispersystems.signalservice.api.push.exceptions.AuthorizationFailedException;
-
-import java.io.IOException;
 
 public class AdvancedPreferenceFragment extends PreferenceFragment {
   private static final String TAG = AdvancedPreferenceFragment.class.getSimpleName();
