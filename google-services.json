@@ -1,39 +1,37 @@
 {
   "project_info": {
     "project_number": "268035575546",
-    "firebase_url": "https://api-project-268035575546.firebaseio.com",
+    "firebase_url": "https://forsta-relay.firebaseio.com",
     "project_id": "forsta-relay",
-    "storage_bucket": "api-project-268035575546.appspot.com"
+    "storage_bucket": "forsta-relay.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:312334754206:android:a9297b152879f266",
+        "mobilesdk_app_id": "1:268035575546:android:f38bd51d5e4497d5",
         "android_client_info": {
           "package_name": "io.forsta.relay"
         }
       },
       "oauth_client": [
         {
-          "client_id": "312334754206-dg1p1mtekis8ivja3ica50vonmrlunh4.apps.googleusercontent.com",
+          "client_id": "268035575546-2mi4mkfkos5s9qblk970a933o1e34ltk.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AAAAPmgqTvo:APA91bG_ZAp69hcL-rDKf7r0Cdd1mbdLdBnGN1Mhkvjf589dnbgc-xL7070Kvf7P1yG2a1lfDxZbPzkZyoqp4JfDvaFh5F9RvW3_zfAXv_Og-En5WysX2VYJ3qtDapqTwUHk_GSYZxsA"
+          "current_key": "AIzaSyBwqIisCBUZ1ABRJ6YJvfHcOoSBzPq06HY"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 2
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268035575546-2mi4mkfkos5s9qblk970a933o1e34ltk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
