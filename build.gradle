@@ -175,10 +175,6 @@ android {
         buildConfigField "String", "RECAPTCHA_KEY", "\"6LetY10UAAAAAKugwBLDP31SVLcl1iem9K1fqJlA\""
         resValue "string", "forsta_authorities", applicationId + '.provider.ccsm'
         resValue "string", "forsta_account_type", applicationId
-
-        ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-        }
     }
     flavorDimensions "forsta"
     productFlavors {
