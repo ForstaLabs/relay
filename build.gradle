@@ -237,6 +237,7 @@ android {
             buildConfigField "boolean", "DEV_BUILD", "false"
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-firebase-messaging.pro',
                     'proguard-google-play-services.pro',
                     'proguard-dagger.pro',
                     'proguard-jackson.pro',
