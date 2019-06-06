@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_app_id" translatable="false">1:268035575546:android:f38bd51d5e4497d5</string>
+    <string name="gcm_defaultSenderId" translatable="false">268035575546</string>
+    <string name="default_web_client_id" translatable="false">268035575546-2mi4mkfkos5s9qblk970a933o1e34ltk.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://forsta-relay.firebaseio.com</string>
+    <string name="google_api_key" translatable="false">AIzaSyBwqIisCBUZ1ABRJ6YJvfHcOoSBzPq06HY</string>
+    <string name="project_id" translatable="false">forsta-relay</string>
+</resources>

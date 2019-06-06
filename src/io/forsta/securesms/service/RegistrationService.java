@@ -9,8 +9,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import io.forsta.ccsm.ForstaPreferences;
 import io.forsta.ccsm.api.AutoProvision;
 import io.forsta.ccsm.api.CcsmApi;
@@ -20,7 +18,8 @@ import io.forsta.securesms.R;
 import io.forsta.securesms.crypto.IdentityKeyUtil;
 import io.forsta.securesms.crypto.PreKeyUtil;
 import io.forsta.securesms.database.DatabaseFactory;
-import io.forsta.securesms.jobs.GcmRefreshJob;
+import io.forsta.securesms.gcm.FcmUtil;
+import io.forsta.securesms.jobs.FcmRefreshJob;
 import io.forsta.securesms.push.TextSecureCommunicationFactory;
 import io.forsta.securesms.recipients.Recipient;
 import io.forsta.securesms.recipients.RecipientFactory;
@@ -28,9 +27,6 @@ import io.forsta.securesms.util.DirectoryHelper;
 import io.forsta.securesms.util.TextSecurePreferences;
 import io.forsta.securesms.util.Util;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
@@ -213,10 +209,10 @@ public class RegistrationService extends Service {
 
     setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING));
 
-    String gcmRegistrationId = GoogleCloudMessaging.getInstance(this).register(GcmRefreshJob.REGISTRATION_ID);
-    accountManager.setGcmId(Optional.of(gcmRegistrationId));
+    Optional<String> fcmToken = FcmUtil.getToken(); // GoogleCloudMessaging.getInstance(this).register(FcmRefreshJob.REGISTRATION_ID);
+    accountManager.setGcmId(fcmToken);
 
-    TextSecurePreferences.setGcmRegistrationId(this, gcmRegistrationId);
+    TextSecurePreferences.setFcmToken(this, fcmToken.orNull());
     TextSecurePreferences.setWebsocketRegistered(this, true);
 
     DatabaseFactory.getIdentityDatabase(this).saveIdentity(self.getRecipientId(), identityKey.getPublicKey());

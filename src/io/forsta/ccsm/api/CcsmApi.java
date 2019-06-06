@@ -468,8 +468,8 @@ public class CcsmApi {
       try {
         String error = response.getString("error");
         Log.e(TAG, error);
-        if (error.contains("401")) {
-          Log.e(TAG, "CCSM API Unauthorized.");
+        if (error.contains("401") || error.contains("400")) {
+          Log.e(TAG, "CCSM API Unauthorized or Expired.");
           return true;
         }
       } catch (JSONException e) {

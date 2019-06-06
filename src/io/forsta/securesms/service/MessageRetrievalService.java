@@ -11,7 +11,6 @@ import android.util.Log;
 import io.forsta.securesms.ApplicationContext;
 import io.forsta.securesms.R;
 import io.forsta.securesms.dependencies.InjectableType;
-import io.forsta.securesms.gcm.GcmBroadcastReceiver;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirement;
 import io.forsta.securesms.jobmanager.requirements.NetworkRequirementProvider;
 import io.forsta.securesms.jobmanager.requirements.RequirementListener;
@@ -21,7 +20,6 @@ import io.forsta.securesms.util.TextSecurePreferences;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.signalservice.api.SignalServiceMessagePipe;
 import org.whispersystems.signalservice.api.SignalServiceMessageReceiver;
-import org.whispersystems.signalservice.api.messages.SignalServiceEnvelope;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -107,7 +105,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   }
 
   private void setForegroundIfNecessary() {
-    if (TextSecurePreferences.isGcmDisabled(this)) {
+    if (TextSecurePreferences.isFcmDisabled(this)) {
       NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationChannels.OTHER);
       builder.setContentTitle(getString(R.string.MessageRetrievalService_forsta));
       builder.setContentText(getString(R.string.MessageRetrievalService_background_connection_enabled));
@@ -138,7 +136,7 @@ public class MessageRetrievalService extends Service implements InjectableType, 
   private synchronized void decrementPushReceived() {
     if (!pushPending.isEmpty()) {
       Intent intent = pushPending.remove(0);
-      GcmBroadcastReceiver.completeWakefulIntent(intent);
+//      FcmService.completeWakefulIntent(intent);
       notifyAll();
     }
   }

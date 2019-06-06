@@ -52,7 +52,7 @@ public class RefreshAttributesJob extends ContextJob implements InjectableType {
   public void onRun() throws IOException {
     String signalingKey      = TextSecurePreferences.getSignalingKey(context);
     /* XXX: Need this now? */
-    String gcmRegistrationId = TextSecurePreferences.getGcmRegistrationId(context);
+    String gcmRegistrationId = TextSecurePreferences.getFcmToken(context);
     int    registrationId    = TextSecurePreferences.getLocalRegistrationId(context);
 
     String token = textSecureAccountManager.getAccountVerificationToken();
